@@ -89,6 +89,12 @@
 
 ## Вопросы, сниппеты и другое
 
+- :memo:&nbsp;&nbsp;[lastone JS](./docs/other/lastone.md)
+- :memo:&nbsp;&nbsp;[Вопросы по JavaScript, HTML, CSS](./docs/other/jsnew.md)
+- :memo:&nbsp;&nbsp;[Вопросы по Основам, HTML, CSS](./docs/other/jsdfebase.md)
+- :memo:&nbsp;&nbsp;[Вопросы по JavaScript](./docs/other/jsfdsfamain.md)
+- :memo:&nbsp;&nbsp;[Задачи по JavaScript](./docs/other/js-tasks-example.md)
+- :memo:&nbsp;&nbsp;[Вопросы по JavaScript details ](./docs/other/javascriptQueue.md)
 - :memo:&nbsp;&nbsp;[Вопросы по JavaScript. Версия 1](./docs/other/js-questions.md)
 - :memo:&nbsp;&nbsp;[Вопросы по JavaScript. Версия 2](./docs/other/js-questions2.md)
 - :memo:&nbsp;&nbsp;[Алгоритмы и структуры данных, реализованные на JavaScript](./docs/other/js-algorithms.md)
@@ -100,10 +106,18 @@
 
 ---
 
+- :memo:&nbsp;&nbsp;[Вопросы по React New](./docs/other/rnew.md)
+- :memo:&nbsp;&nbsp;[Вопросы по React Part 1](./docs/other/react-part-1.md)
+- :memo:&nbsp;&nbsp;[Вопросы по React Part 2](./docs/other/react-part-2.md)
+- :memo:&nbsp;&nbsp;[Вопросы по React](./docs/other/main.md)
 - :memo:&nbsp;&nbsp;[Вопросы по React. Версия 1](./docs/other/react-questions.md)
 - :memo:&nbsp;&nbsp;[Вопросы по React. Версия 2](./docs/other/react-questions2.md)
 - :memo:&nbsp;&nbsp;[Шпаргалки по React, Jest, Redux и лучшие практики по React](./docs/other/best-practices.md)
 - :page_facing_up:&nbsp;&nbsp;[Размышления о React](./docs/other/react-philosophies.md)
+
+---
+
+- :memo:&nbsp;&nbsp;[Вопросы по Git](./docs/other/git-commands.md)
 
 ---
 
