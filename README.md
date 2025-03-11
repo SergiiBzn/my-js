@@ -95,7 +95,8 @@
 
 ---
 
-- :memo:&nbsp;&nbsp;[Вопросы по TypeScript](./docs/other/ts-questions.md)
+- :memo:&nbsp;&nbsp;[TS new](./docs/other/ts-queue.md)
+- :memo:&nbsp;&nbsp;[Вопросы по TypeScript](./docs/other/ts.md)
 
 ---
 
