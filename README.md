@@ -89,6 +89,7 @@
 
 ## Вопросы, сниппеты и другое
 
+- :memo:&nbsp;&nbsp;[pro_JS (de)](./docs/other/proJS.md)
 - :memo:&nbsp;&nbsp;[lastone JS](./docs/other/lastone.md)
 - :memo:&nbsp;&nbsp;[Вопросы по JavaScript, HTML, CSS](./docs/other/jsnew.md)
 - :memo:&nbsp;&nbsp;[Вопросы по Основам, HTML, CSS](./docs/other/jsdfebase.md)
