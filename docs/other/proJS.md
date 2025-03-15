@@ -71,6 +71,220 @@
   
 1. ### <a name="1"></a> Klassifizierung von Datentypen, Typumwandlung
 
+### **Datentypen in JavaScript**  
+
+In JavaScript gibt es **primitive Datentypen** und **Referenztypen**.  
+
+---
+
+## **1. Primitive Datentypen (Werte werden direkt gespeichert)**  
+Primitive Datentypen sind **immutable** (unveränderlich) und speichern Werte direkt im Speicher.
+
+| Datentyp   | Beschreibung | Beispiel |
+|------------|-------------|-----------|
+| **`string`** | Zeichenkette | `"Hallo"`, `'Test'`, `` `Template` `` |
+| **`number`** | Zahlen (Ganzzahlen, Dezimal, `NaN`, `Infinity`) | `42`, `3.14`, `NaN`, `Infinity` |
+| **`bigint`** | Sehr große Ganzzahlen | `123456789012345678901234567890n` |
+| **`boolean`** | Wahrheitswerte | `true`, `false` |
+| **`undefined`** | Variable wurde deklariert, aber nicht zugewiesen | `let x; console.log(x); // undefined` |
+| **`null`** | Bewusste "leere" Variable | `let y = null;` |
+| **`symbol`** | Einzigartige, unveränderliche Identifikatoren | `let id = Symbol("id");` |
+
+```js
+let name = "Max"; // string
+let alter = 25; // number
+let isStudent = true; // boolean
+let nichts = null; // null
+let unbestimmt; // undefined
+let großeZahl = 123456789012345678901n; // bigint
+let uniqueKey = Symbol("key"); // symbol
+```
+
+---
+
+## **2. Referenztypen (Speichern Verweise auf Objekte im Speicher)**
+Referenztypen speichern **Referenzen** auf Speicherorte, nicht die Werte direkt.
+
+| Datentyp   | Beschreibung | Beispiel |
+|------------|-------------|-----------|
+| **`object`** | Sammlungen von Werten als Key-Value-Paare | `{name: "Max", alter: 25}` |
+| **`array`** | Listen von Werten | `[1, 2, 3, "Test"]` |
+| **`function`** | Funktionen sind Objekte | `function add(a, b) { return a + b; }` |
+| **`date`** | Datum und Zeit | `new Date()` |
+| **`RegExp`** | Reguläre Ausdrücke | `/abc/i` |
+
+```js
+let person = { name: "Max", alter: 25 }; // Objekt
+let zahlen = [1, 2, 3, 4]; // Array
+function sagHallo() { console.log("Hallo!"); } // Funktion
+let heute = new Date(); // Datum
+let regex = /abc/i; // Regulärer Ausdruck
+```
+
+---
+
+## **3. Unterschiede zwischen Primitiven und Referenztypen**
+| Eigenschaft | Primitive Typen | Referenztypen |
+|------------|----------------|--------------|
+| Speicherort | Direkt im Stack gespeichert | Verweis auf Speicheradresse im Heap |
+| Vergleich | Vergleicht Werte (`===` und `==` gleich) | Vergleicht Speicherreferenzen (`{}` !== `{}`) |
+| Veränderbarkeit | **Immutable** (Wert kann nicht direkt geändert werden) | **Mutable** (Werte innerhalb des Objekts/Arrays können geändert werden) |
+
+```js
+let a = 5;
+let b = a;
+b = 10;
+console.log(a); // 5 (unverändert)
+
+let obj1 = { name: "Max" };
+let obj2 = obj1; // Referenz auf dasselbe Objekt
+obj2.name = "Anna";
+console.log(obj1.name); // "Anna" (beide verweisen auf dasselbe Objekt)
+```
+
+---
+
+## **4. Sonderfälle**
+### **Falsy und Truthy Werte**
+#### **Falsy-Werte (`Boolean(wert) → false`)**
+Diese Werte werden als `false` interpretiert:
+```js
+false, 0, "", null, undefined, NaN
+```
+
+#### **Truthy-Werte (`Boolean(wert) → true`)**
+Alle anderen Werte sind `true`, z. B.:
+```js
+"0", "false", [], {}, function() {}, Infinity
+```
+
+```js
+console.log(Boolean(0)); // false
+console.log(Boolean("")); // false
+console.log(Boolean([])); // true (leeres Array ist truthy)
+console.log(Boolean({})); // true (leeres Objekt ist truthy)
+```
+
+---
+
+## **5. Dynamische Typisierung in JavaScript**
+JavaScript ist eine **dynamisch typisierte** Sprache, d. h., eine Variable kann den Typ zur Laufzeit ändern:
+```js
+let x = "Hallo"; // String
+x = 42; // Jetzt eine Zahl
+x = true; // Jetzt ein Boolean
+console.log(x); // true
+```
+
+---
+
+### **Zusammenfassung**
+✅ **Primitive Typen** speichern Werte direkt und sind immutable.  
+✅ **Referenztypen** speichern Verweise auf Objekte und sind veränderbar.  
+✅ **Vergleich von Referenztypen** erfolgt über Speicherreferenzen.  
+✅ **Falsy-Werte** sind `0, "", null, undefined, NaN`.  
+✅ **Dynamische Typisierung** erlaubt das Ändern von Typen zur Laufzeit.
+
+
+### **Typumwandlung in JavaScript (Type Conversion)**
+
+In JavaScript gibt es zwei Arten der Typumwandlung:
+1. **Implizite Typumwandlung (Type Coercion)** → Automatische Konvertierung durch JavaScript  
+2. **Explizite Typumwandlung (Type Casting)** → Manuelle Konvertierung durch den Entwickler
+
+---
+
+## **1. Implizite Typumwandlung (Automatische Umwandlung)**
+JavaScript wandelt Werte automatisch um, wenn sie in bestimmten Operationen verwendet werden.
+
+### **String-Konkatenation mit `+` (Zahl → String)**
+```js
+console.log("10" + 5); // "105" (Zahl wird zu String)
+console.log(5 + "10"); // "510"
+console.log("Hello " + true); // "Hello true"
+```
+
+### **Arithmetische Operationen (`-`, `*`, `/`) (String → Zahl)**
+```js
+console.log("10" - 5); // 5 ("10" wird zu 10)
+console.log("6" * "2"); // 12
+console.log("100" / "10"); // 10
+console.log("5" - true); // 4 (true → 1)
+console.log("5" - false); // 5 (false → 0)
+```
+
+### **Vergleiche mit `==` (Typumwandlung vor dem Vergleich)**
+```js
+console.log(0 == "0");  // true (String wird zu Zahl)
+console.log(false == ""); // true ("" wird zu false)
+console.log(null == undefined); // true
+```
+👉 **Verwende `===`, um ohne Typumwandlung zu vergleichen!**
+```js
+console.log(0 === "0"); // false
+console.log(false === ""); // false
+```
+
+---
+
+## **2. Explizite Typumwandlung (Manuelle Umwandlung)**
+Hier erfolgt die Umwandlung durch Methoden wie `Number()`, `String()`, `Boolean()`.
+
+### **String → Number**
+```js
+console.log(Number("42")); // 42
+console.log(Number("3.14")); // 3.14
+console.log(Number("10abc")); // NaN (Fehler, da "abc" keine Zahl ist)
+console.log(parseInt("42px")); // 42 (ignoriert "px")
+console.log(parseFloat("3.14abc")); // 3.14
+```
+
+### **Number → String**
+```js
+console.log(String(100)); // "100"
+console.log((42).toString()); // "42"
+console.log((3.14).toFixed(1)); // "3.1" (Rundet und gibt String zurück)
+```
+
+### **Beliebiger Wert → Boolean**
+```js
+console.log(Boolean(1)); // true
+console.log(Boolean(0)); // false
+console.log(Boolean("Hello")); // true
+console.log(Boolean("")); // false
+console.log(Boolean(null)); // false
+console.log(Boolean(undefined)); // false
+console.log(Boolean([])); // true (leeres Array ist truthy!)
+console.log(Boolean({})); // true (leeres Objekt ist truthy!)
+```
+
+---
+
+## **Spezialfälle und Fallstricke**
+### **1. `NaN` (Not-a-Number)**
+```js
+console.log(Number("abc")); // NaN
+console.log(0 / 0); // NaN
+console.log(NaN == NaN); // false (NaN ist nicht gleich NaN!)
+```
+
+### **2. `null` und `undefined` Verhalten**
+```js
+console.log(Number(null)); // 0
+console.log(Number(undefined)); // NaN
+console.log(Boolean(null)); // false
+console.log(Boolean(undefined)); // false
+```
+
+---
+
+## **Fazit**
+- **Implizite Typumwandlung** passiert automatisch, kann aber zu unerwarteten Ergebnissen führen.
+- **Explizite Typumwandlung** ist sicherer und kontrollierter.
+- **Nutze `===` statt `==`**, um unerwartete Konvertierungen zu vermeiden.
+
+
+
 # Klassifizierung von Datentypen und Typumwandlung in JavaScript
 
 ## **Datentypen in JavaScript**
