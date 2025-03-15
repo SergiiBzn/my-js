@@ -2189,26 +2189,507 @@ schritt1(() => {
 
 25. ### <a name="25"></a> Konstruktor-Funktionen
 
+In JavaScript sind **Konstruktor-Funktionen** spezielle Funktionen, die zur Erstellung von Objekten verwendet werden. Sie werden mit dem Schlüsselwort `new` aufgerufen und ermöglichen die Wiederverwendung von Objektstrukturen.
+
+### **Syntax einer Konstruktor-Funktion**
+```javascript
+function Person(name, alter) {
+  this.name = name; // Eigenschaft "name"
+  this.alter = alter; // Eigenschaft "alter"
+
+  this.greet = function() {
+    console.log(`Hallo, mein Name ist ${this.name} und ich bin ${this.alter} Jahre alt.`);
+  };
+}
+
+const person1 = new Person("Max", 30);
+const person2 = new Person("Anna", 25);
+
+person1.greet(); // Hallo, mein Name ist Max und ich bin 30 Jahre alt.
+person2.greet(); // Hallo, mein Name ist Anna und ich bin 25 Jahre alt.
+```
+- Das Schlüsselwort `this` referenziert das erstellte Objekt.
+- `new Person("Max", 30)` erzeugt ein neues Objekt mit den Eigenschaften `name` und `alter`.
+
+### **Prototyp-Methode statt Direktdefinition**
+Jede Instanz einer Konstruktor-Funktion erhält eine eigene Kopie der Methoden. Eine effizientere Lösung ist die Verwendung des **Prototyps**, da Methoden dann von allen Instanzen geteilt werden:
+
+```javascript
+function Person(name, alter) {
+  this.name = name;
+  this.alter = alter;
+}
+
+// Methode im Prototyp definieren (spart Speicherplatz)
+Person.prototype.greet = function() {
+  console.log(`Hallo, mein Name ist ${this.name} und ich bin ${this.alter} Jahre alt.`);
+};
+
+const person3 = new Person("Lena", 28);
+person3.greet(); // Hallo, mein Name ist Lena und ich bin 28 Jahre alt.
+```
+
+### **Zusammenfassung**
+- Konstruktor-Funktionen werden mit `new` aufgerufen.
+- `this` verweist auf die erstellte Instanz.
+- Methoden sollten über `prototype` hinzugefügt werden, um Speicher zu sparen.
+
+🔗 [MDN-Dokumentation zu Konstruktor-Funktionen](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Operators/new)
 
   **[⬆ Наверх](#top)**
 
-26. ### <a name="26"></a> 
+26. ### <a name="26"></a> Aufrufkontext (this)
 
+Der **Aufrufkontext (`this`)** in JavaScript bestimmt, auf welches Objekt sich `this` innerhalb einer Funktion oder Methode bezieht. Der Wert von `this` hängt davon ab, wie die Funktion aufgerufen wird.
+
+### **1. Globaler Kontext (`this` in der obersten Ebene)**
+Im globalen Kontext verweist `this`:
+- Im **Browser** auf das `window`-Objekt.
+- In **Node.js** auf `global`.
+
+```javascript
+console.log(this); // Im Browser: window, in Node.js: global
+```
+
+### **2. `this` in einer Funktion**
+Ohne `use strict` verweist `this` in einer normalen Funktion auf das globale Objekt. Mit `"use strict"` ist `this` `undefined`.
+
+```javascript
+function test() {
+  console.log(this);
+}
+
+test(); // Browser: window, Node.js: global (ohne strict)
+```
+
+Mit **strict mode**:
+
+```javascript
+"use strict";
+function testStrict() {
+  console.log(this);
+}
+
+testStrict(); // undefined
+```
+
+### **3. `this` in Objekten (Methoden)**
+Wird eine Funktion als Methode eines Objekts aufgerufen, verweist `this` auf das Objekt selbst.
+
+```javascript
+const person = {
+  name: "Max",
+  greet: function() {
+    console.log(`Hallo, ich bin ${this.name}`);
+  }
+};
+
+person.greet(); // Hallo, ich bin Max
+```
+
+### **4. `this` in Konstruktor-Funktionen**
+Bei Konstruktor-Funktionen verweist `this` auf die neu erstellte Instanz.
+
+```javascript
+function Person(name) {
+  this.name = name;
+}
+
+const max = new Person("Max");
+console.log(max.name); // Max
+```
+
+### **5. `this` in Arrow-Funktionen**
+Arrow-Funktionen übernehmen `this` aus dem umgebenden Lexikalischen Kontext (kein eigenes `this`!).
+
+```javascript
+const person = {
+  name: "Anna",
+  greet: function() {
+    const arrowFunction = () => console.log(this.name);
+    arrowFunction(); // this bleibt auf `person` bezogen
+  }
+};
+
+person.greet(); // Anna
+```
+
+### **6. Explizite Steuerung von `this` (`call`, `apply`, `bind`)**
+Man kann `this` manuell setzen mit `call()`, `apply()` oder `bind()`.
+
+```javascript
+function greet() {
+  console.log(`Hallo, ich bin ${this.name}`);
+}
+
+const user = { name: "Lisa" };
+
+greet.call(user);  // Hallo, ich bin Lisa
+greet.apply(user); // Hallo, ich bin Lisa
+
+const boundGreet = greet.bind(user);
+boundGreet(); // Hallo, ich bin Lisa
+```
+
+### **Zusammenfassung**
+- `this` hängt vom **Aufrufkontext** ab.
+- In einer **Funktion** (strict mode) ist `this` `undefined`, sonst `window/global`.
+- In **Methoden** zeigt `this` auf das aufrufende Objekt.
+- In **Konstruktoren** verweist `this` auf die erstellte Instanz.
+- **Arrow-Funktionen** haben kein eigenes `this`, sondern übernehmen es aus der Umgebung.
+- **`call`, `apply`, `bind`** erlauben das manuelle Setzen von `this`.
+
+🔗 [MDN-Dokumentation zu `this`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Operators/this)
 
   **[⬆ Наверх](#top)**
 
-27. ### <a name="27"></a> 
+27. ### <a name="27"></a> Getter und Setter (Objekteigenschaften)
 
+In JavaScript ermöglichen **Getter** und **Setter** den kontrollierten Zugriff auf Objekteigenschaften. Sie werden mit `get` und `set` innerhalb eines Objekts oder einer Klasse definiert.
+
+---
+
+### **1. Getter (`get`)**
+Getter sind Methoden, die eine Eigenschaft abrufen, aber wie normale Eigenschaften verwendet werden.
+
+```javascript
+const person = {
+  vorname: "Max",
+  nachname: "Mustermann",
+  
+  get vollerName() {
+    return `${this.vorname} ${this.nachname}`;
+  }
+};
+
+console.log(person.vollerName); // Max Mustermann
+```
+- `vollerName` wird als Eigenschaft aufgerufen (`person.vollerName`), aber intern als Methode definiert.
+
+---
+
+### **2. Setter (`set`)**
+Setter ermöglichen das Festlegen von Eigenschaftswerten und können Validierung oder Formatierung enthalten.
+
+```javascript
+const user = {
+  _alter: 0, // Private Variable (Konvention: Unterstrich)
+
+  get alter() {
+    return this._alter;
+  },
+
+  set alter(value) {
+    if (value < 0) {
+      console.log("Alter kann nicht negativ sein!");
+    } else {
+      this._alter = value;
+    }
+  }
+};
+
+user.alter = 25;
+console.log(user.alter); // 25
+
+user.alter = -5; // Alter kann nicht negativ sein!
+```
+- Der `set`-Methodenaufruf `user.alter = -5` verhindert ungültige Werte.
+
+---
+
+### **3. Getter und Setter in Klassen**
+In Klassen können Getter und Setter auf Instanzvariablen zugreifen.
+
+```javascript
+class Auto {
+  constructor(marke, baujahr) {
+    this.marke = marke;
+    this._baujahr = baujahr; // Private Variable
+  }
+
+  get baujahr() {
+    return this._baujahr;
+  }
+
+  set baujahr(value) {
+    if (value < 1886) {
+      console.log("Ungültiges Baujahr!");
+    } else {
+      this._baujahr = value;
+    }
+  }
+}
+
+const meinAuto = new Auto("Tesla", 2022);
+console.log(meinAuto.baujahr); // 2022
+
+meinAuto.baujahr = 1800; // Ungültiges Baujahr!
+```
+
+---
+
+### **Zusammenfassung**
+- **Getter (`get`)**: Erlauben den kontrollierten Zugriff auf Eigenschaften.
+- **Setter (`set`)**: Ermöglichen das Setzen und Validieren von Werten.
+- Werden oft für **Datenkapselung** verwendet.
+- Können in **Objekten** und **Klassen** definiert werden.
+
+🔗 [MDN-Dokumentation zu Getter und Setter](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Functions/get)
 
   **[⬆ Наверх](#top)**
 
-28. ### <a name="28"></a> 
+28. ### <a name="28"></a> Generatorfunktionen in JavaScript
 
+### **Generatorfunktionen in JavaScript**
+Generatorfunktionen (`function*`) ermöglichen das **pausieren und fortsetzen** der Codeausführung mit `yield`. Sie sind besonders nützlich für iterative Prozesse und Lazy Evaluation.
+
+---
+
+### **1. Syntax einer Generatorfunktion**
+```javascript
+function* meineGeneratorFunktion() {
+  yield 1;
+  yield 2;
+  yield 3;
+}
+
+const generator = meineGeneratorFunktion();
+
+console.log(generator.next()); // { value: 1, done: false }
+console.log(generator.next()); // { value: 2, done: false }
+console.log(generator.next()); // { value: 3, done: false }
+console.log(generator.next()); // { value: undefined, done: true }
+```
+- Das `yield`-Schlüsselwort pausiert die Funktion und gibt einen Wert zurück.
+- `next()` setzt die Funktion an der letzten `yield`-Stelle fort.
+
+---
+
+### **2. Generator in einer Schleife**
+Man kann Generatoren mit `for...of` durchlaufen:
+
+```javascript
+function* zahlenGenerator() {
+  yield 10;
+  yield 20;
+  yield 30;
+}
+
+for (const zahl of zahlenGenerator()) {
+  console.log(zahl);
+}
+// 10
+// 20
+// 30
+```
+
+---
+
+### **3. Unendliche Generatoren**
+Generatoren können **endlos laufen**, ohne den Speicher zu überlasten:
+
+```javascript
+function* unendlicherZähler() {
+  let i = 1;
+  while (true) {
+    yield i++;
+  }
+}
+
+const counter = unendlicherZähler();
+console.log(counter.next().value); // 1
+console.log(counter.next().value); // 2
+console.log(counter.next().value); // 3
+```
+
+---
+
+### **4. `yield` mit Parametern**
+Man kann `next(value)` verwenden, um Werte an den Generator zurückzugeben:
+
+```javascript
+function* bidirektionalerGenerator() {
+  const wert1 = yield "Erster Wert?";
+  const wert2 = yield `Zweiter Wert ist ${wert1}`;
+  return `Dritter Wert ist ${wert2}`;
+}
+
+const gen = bidirektionalerGenerator();
+console.log(gen.next().value);      // "Erster Wert?"
+console.log(gen.next(42).value);    // "Zweiter Wert ist 42"
+console.log(gen.next(100).value);   // "Dritter Wert ist 100"
+```
+
+---
+
+### **5. `yield*` für geschachtelte Generatoren**
+Mit `yield*` kann man einen anderen Generator aufrufen:
+
+```javascript
+function* unterGenerator() {
+  yield "A";
+  yield "B";
+}
+
+function* hauptGenerator() {
+  yield* unterGenerator();
+  yield "C";
+}
+
+for (const wert of hauptGenerator()) {
+  console.log(wert);
+}
+// A
+// B
+// C
+```
+
+---
+
+### **Zusammenfassung**
+- Generatorfunktionen (`function*`) erlauben das **pausieren und fortsetzen** der Codeausführung.
+- `yield` gibt einen Wert zurück, `next()` setzt die Funktion fort.
+- Generatoren eignen sich für **Lazy Evaluation, unendliche Sequenzen** und **asynchrone Verarbeitung**.
+- `yield*` ermöglicht das Delegieren an andere Generatoren.
+
+🔗 [MDN-Dokumentation zu Generatorfunktionen](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/function*)
 
   **[⬆ Наверх](#top)**
 
-29. ### <a name="29"></a> 
+29. ### <a name="29"></a> Rekursion in JavaScript
 
+### **Rekursion in JavaScript**
+Rekursion bedeutet, dass eine Funktion sich **selbst aufruft**, bis eine **Abbruchbedingung** erreicht ist. Sie wird oft für Probleme mit **natürlicher Teilung** verwendet, z. B. Baumstrukturen oder mathematische Berechnungen.
+
+---
+
+### **1. Einfaches Beispiel: Countdown**
+```javascript
+function countdown(n) {
+  if (n <= 0) {
+    console.log("Fertig!");
+    return;
+  }
+  console.log(n);
+  countdown(n - 1); // Rekursiver Aufruf
+}
+
+countdown(5);
+/*
+5
+4
+3
+2
+1
+Fertig!
+*/
+```
+- Die Funktion ruft sich mit `n - 1` selbst auf.
+- Sobald `n <= 0`, stoppt die Rekursion (**Abbruchbedingung**).
+
+---
+
+### **2. Fakultät berechnen (n!)**
+Die **Fakultät** eines Zahl `n` ist `n * (n-1) * (n-2) * ... * 1`.
+
+```javascript
+function fakultaet(n) {
+  if (n === 0) return 1; // Abbruchbedingung
+  return n * fakultaet(n - 1); // Rekursiver Aufruf
+}
+
+console.log(fakultaet(5)); // 120 (5*4*3*2*1)
+```
+- Ohne Abbruchbedingung würde die Funktion **unendlich laufen**.
+
+---
+
+### **3. Fibonacci-Folge**
+Die **Fibonacci-Zahlen** sind definiert als:
+- `fib(0) = 0`, `fib(1) = 1`
+- `fib(n) = fib(n-1) + fib(n-2)`
+
+```javascript
+function fibonacci(n) {
+  if (n <= 1) return n; // Basisfälle
+  return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+console.log(fibonacci(6)); // 8 (0,1,1,2,3,5,8)
+```
+❌ **Problem:** Rekursion kann ineffizient sein, da viele Werte mehrfach berechnet werden.
+
+✅ **Lösung:** **Memoization** zur Optimierung:
+
+```javascript
+function fibonacciMemo(n, memo = {}) {
+  if (n in memo) return memo[n];
+  if (n <= 1) return n;
+  
+  memo[n] = fibonacciMemo(n - 1, memo) + fibonacciMemo(n - 2, memo);
+  return memo[n];
+}
+
+console.log(fibonacciMemo(50)); // Sehr schnelle Berechnung
+```
+
+---
+
+### **4. Rekursion für verschachtelte Strukturen (Baum-Durchlauf)**
+Rekursion ist ideal für **hierarchische Daten**, wie verschachtelte Objekte oder Bäume.
+
+```javascript
+const baum = {
+  wert: 1,
+  kinder: [
+    { wert: 2, kinder: [{ wert: 4 }, { wert: 5 }] },
+    { wert: 3, kinder: [{ wert: 6 }] }
+  ]
+};
+
+function durchlaufeBaum(knoten) {
+  console.log(knoten.wert);
+  if (knoten.kinder) {
+    knoten.kinder.forEach(durchlaufeBaum);
+  }
+}
+
+durchlaufeBaum(baum);
+/*
+1
+2
+4
+5
+3
+6
+*/
+```
+- Die Funktion ruft sich **für jedes Kind** des Knotens auf.
+
+---
+
+### **5. Tail Call Optimization (TCO)**
+Moderne JavaScript-Engines optimieren **Tail-Recursive-Funktionen** (wenn der letzte Ausdruck ein rekursiver Aufruf ist), um **Stack-Überläufe zu vermeiden**.
+
+```javascript
+function summe(n, akk = 0) {
+  if (n === 0) return akk;
+  return summe(n - 1, akk + n); // Tail Call (optimierbar)
+}
+
+console.log(summe(10000)); // Kein Stack Overflow in TCO-fähigen Umgebungen
+```
+
+---
+
+### **Zusammenfassung**
+- **Rekursion** bedeutet, dass eine Funktion sich **selbst aufruft**.
+- **Wichtig:** Immer eine **Abbruchbedingung** (`if`) definieren, um Endlosschleifen zu vermeiden.
+- **Memoization** kann ineffiziente Rekursion optimieren.
+- **Ideal für:** Mathematische Probleme, hierarchische Strukturen (Bäume), Algorithmen wie Tiefensuche.
+- **Tail Call Optimization (TCO)** reduziert Speicherverbrauch, aber nicht in allen JavaScript-Engines unterstützt.
+
+🔗 [MDN-Dokumentation zu Rekursion](https://developer.mozilla.org/de/docs/Glossary/Rekursion)
 
   **[⬆ Наверх](#top)**
 
