@@ -1841,114 +1841,113 @@ Oder mit **Pfeilfunktion**:
 
 22. ### <a name="22"></a> Methoden zur Kontextbindung (call, apply, bind)
 
-### **Methoden zur Kontextbindung: `call`, `apply`, `bind` in JavaScript**  
+### **Methoden zur Kontextbindung (`call`, `apply`, `bind`) in JavaScript**
 
-JavaScript erlaubt es, den Kontext (`this`) einer Funktion **manuell zu setzen**.  
-Dazu gibt es drei Methoden:  
+In JavaScript kann das `this`-Binding einer Funktion dynamisch verändert werden. Dafür gibt es drei Methoden:  
+- `call()`
+- `apply()`
+- `bind()`
 
-| Methode | Funktion |
-|---------|-------------------------|
-| **`call()`** | Ruft die Funktion mit **einem bestimmten `this` und Einzelargumenten** auf. |
-| **`apply()`** | Wie `call()`, aber **Argumente als Array** übergeben. |
-| **`bind()`** | Gibt eine **neue Funktion mit festem `this` zurück**. |
+Diese Methoden werden verwendet, um **Funktionen mit einem bestimmten `this`-Wert auszuführen**.
 
 ---
 
-## **1. `call()` – Funktion mit bestimmtem `this` aufrufen**
-📌 **Nützlich, wenn `this` explizit gesetzt werden soll.**  
+## **1. `call()` – Funktion mit explizitem `this`-Wert aufrufen**
+Die Methode `call()` ruft eine Funktion mit einem bestimmten `this`-Wert und einzelnen Argumenten auf.
 
-```js
-function greet() {
-  console.log(`Hallo, ${this.name}!`);
+```javascript
+function begruessen(land, sprache) {
+  console.log(`Hallo, ich bin ${this.name} aus ${land}, und ich spreche ${sprache}.`);
 }
 
-const person = { name: "Alice" };
-greet.call(person); // "Hallo, Alice!"
-```
-🔹 **Ohne `call()`** wäre `this` `undefined` oder würde auf `window` zeigen.  
-🔹 `call()` ruft die Funktion direkt auf.
+const person = { name: "Max" };
 
-### **Mit Argumenten**
-```js
-function greet(message) {
-  console.log(`${message}, ${this.name}!`);
-}
-
-const person = { name: "Bob" };
-greet.call(person, "Hallo"); // "Hallo, Bob!"
+begruessen.call(person, "Deutschland", "Deutsch");
+// Hallo, ich bin Max aus Deutschland, und ich spreche Deutsch.
 ```
-👉 **Erstes Argument**: `this`, danach die Parameter **als Einzelwerte**.
+✅ **Eigenschaften**:
+- `this` wird auf `person` gesetzt.
+- Die Argumente werden **einzeln übergeben**.
 
 ---
 
-## **2. `apply()` – Funktion mit `this` und Array-Argumenten aufrufen**
-📌 **Ähnlich wie `call()`, aber mit Argumenten als Array.**  
+## **2. `apply()` – Ähnlich wie `call()`, aber mit Array als Argumente**
+Die Methode `apply()` funktioniert wie `call()`, aber Argumente werden als **Array** übergeben.
 
-```js
-function greet(message) {
-  console.log(`${message}, ${this.name}!`);
-}
-
-const person = { name: "Alice" };
-greet.apply(person, ["Guten Tag"]); // "Guten Tag, Alice!"
+```javascript
+begruessen.apply(person, ["Frankreich", "Französisch"]);
+// Hallo, ich bin Max aus Frankreich, und ich spreche Französisch.
 ```
-👉 Unterschied zu `call()`:  
-```js
-greet.call(person, "Hallo");   // call → Einzelwerte
-greet.apply(person, ["Hallo"]); // apply → Array
-```
-📌 **Wichtig:** `apply()` wird oft genutzt, wenn man bereits ein **Array von Argumenten** hat, z. B.:  
-```js
-const numbers = [3, 5, 9, 1];
-console.log(Math.max.apply(null, numbers)); // 9
-```
-👉 **Ohne `apply()`** würde `Math.max(numbers)` nicht funktionieren.
+✅ **Unterschied zu `call()`**:
+- Argumente werden **als Array** (`[]`) übergeben, nicht einzeln.
 
 ---
 
-## **3. `bind()` – Neue Funktion mit festem `this` erzeugen**
-📌 **Erstellt eine neue Funktion mit festem `this`, ohne sie sofort auszuführen.**  
+## **3. `bind()` – Neue Funktion mit festem `this` erstellen**
+Die Methode `bind()` gibt eine **neue Funktion** zurück, in der `this` dauerhaft an ein Objekt gebunden ist.
 
-```js
-function greet() {
-  console.log(`Hallo, ${this.name}!`);
-}
-
-const person = { name: "Charlie" };
-const greetPerson = greet.bind(person);
-greetPerson(); // "Hallo, Charlie!"
+```javascript
+const begruessungMax = begruessen.bind(person);
+begruessungMax("Spanien", "Spanisch");
+// Hallo, ich bin Max aus Spanien, und ich spreche Spanisch.
 ```
-🔹 **`bind()` gibt eine neue Funktion zurück**, die jederzeit aufgerufen werden kann.
-
-### **Mit Argumenten**
-```js
-function greet(message) {
-  console.log(`${message}, ${this.name}!`);
-}
-
-const person = { name: "David" };
-const greetDavid = greet.bind(person, "Hallo");
-greetDavid(); // "Hallo, David!"
-```
-👉 **Erstes Argument:** `this`, weitere Argumente werden gespeichert.
+✅ **Eigenschaften**:
+- `this` bleibt dauerhaft auf `person` gebunden.
+- Gibt eine **neue Funktion** zurück, die später aufgerufen werden kann.
 
 ---
 
-## **4. Vergleich `call()`, `apply()`, `bind()`**
-| Methode  | Aufruf | Argumente |
-|----------|--------------|--------------------|
-| **`call()`** | Sofortige Ausführung | `call(this, arg1, arg2, ...)` |
-| **`apply()`** | Sofortige Ausführung | `apply(this, [arg1, arg2, ...])` |
-| **`bind()`** | Gibt **eine neue Funktion** zurück | `bind(this, arg1, arg2, ...)` |
+## **4. `bind()` für Methoden in Objekten**
+Ein häufiges Problem: **`this`-Verlust in Event-Handlern**.
+
+```javascript
+const user = {
+  name: "Lisa",
+  sagHallo() {
+    console.log(`Hallo, ich bin ${this.name}`);
+  }
+};
+
+const hallo = user.sagHallo;
+hallo(); // Fehler: `this` ist `undefined` oder `window`
+```
+✅ **Lösung: `bind()` verwenden**:
+```javascript
+const halloGebunden = user.sagHallo.bind(user);
+halloGebunden(); // Hallo, ich bin Lisa
+```
+- `bind()` sorgt dafür, dass `this` auf `user` bleibt.
 
 ---
 
-## **5. Wann benutzt man `call()`, `apply()`, `bind()`?**
-✅ **`call()`** – Wenn man `this` sofort ändern und **Einzelargumente** übergeben möchte.  
-✅ **`apply()`** – Wenn man `this` sofort ändern und **Argumente als Array** übergeben möchte.  
-✅ **`bind()`** – Wenn man eine neue Funktion mit festem `this` erstellen möchte, um sie später auszuführen.  
+## **5. `bind()` in Event-Handlern**
+Beim Event-Handling in DOM-Elementen verliert `this` oft die Verbindung zum Objekt.
 
-📖 **Mehr Infos:** [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Function/call) 🚀
+```javascript
+const button = document.querySelector("button");
+
+const handler = {
+  text: "Geklickt!",
+  clickHandler() {
+    console.log(this.text);
+  }
+};
+
+// Funktion ohne Bindung (Fehlverhalten)
+button.addEventListener("click", handler.clickHandler); // `this` ist nicht `handler`
+
+// Lösung: `bind()`
+button.addEventListener("click", handler.clickHandler.bind(handler));
+```
+
+---
+
+### **Zusammenfassung**
+- **`call(obj, arg1, arg2, ...)`** → Führt die Funktion sofort mit `this = obj` aus (Argumente einzeln).
+- **`apply(obj, [arg1, arg2, ...])`** → Wie `call()`, aber Argumente als Array.
+- **`bind(obj)`** → Erstellt eine neue Funktion mit festem `this`, die später aufgerufen wird.
+
+🔗 [MDN-Dokumentation zu `call`, `apply` und `bind`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Function/bind)
 
   **[⬆ Наверх](#top)**
 
