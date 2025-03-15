@@ -283,107 +283,6 @@ console.log(Boolean(undefined)); // false
 - **Explizite Typumwandlung** ist sicherer und kontrollierter.
 - **Nutze `===` statt `==`**, um unerwartete Konvertierungen zu vermeiden.
 
-
-
-# Klassifizierung von Datentypen und Typumwandlung in JavaScript
-
-## **Datentypen in JavaScript**
-JavaScript unterteilt Datentypen in primitive Datentypen und komplexe (objektbasierte) Datentypen.
-
-### **Primitive Datentypen**
-Primitive Datentypen sind unveränderlich und enthalten nur einen einzelnen Wert:
-
-- **Number**: Ganzzahlen und Gleitkommazahlen (`42`, `3.14`).
-- **String**: Zeichenketten, die in Anführungszeichen gesetzt werden (`"Hallo"`, `'Welt'`).
-- **Boolean**: Wahrheitswerte `true` oder `false`.
-- **undefined**: Eine Variable wurde deklariert, aber nicht initialisiert.
-- **null**: Eine explizite Absenz eines Wertes.
-- **Symbol** (ES6): Einzigartige und unveränderliche Werte.
-- **BigInt** (ES11): Für sehr große ganze Zahlen (`12345678901234567890n`).
-
-### **Objektbasierte Datentypen**
-Komplexe Datentypen, die mehrere Werte und Methoden enthalten können:
-
-- **Object**: Sammlung von Schlüssel-Wert-Paaren (`{ key: "value" }`).
-- **Array**: Geordnete Listen von Werten (`[1, 2, 3]`).
-- **Function**: Wiederverwendbare Codeblöcke (`function() {}`).
-- **Date**: Speichert Datums- und Zeitwerte.
-- **RegExp**: Muster für die String-Suche (`/abc/`).
-- **Weitere**: `Map`, `Set`, `WeakMap`, `WeakSet`, `Promise`, etc.
-
-### **Spezielle Werte**
-- **NaN (Not a Number)**: Ergebnis einer ungültigen mathematischen Operation (`Math.sqrt(-1)`).
-- **Infinity / -Infinity**: Unendlich große Zahlen (`1 / 0`).
-
-## **Typumwandlung in JavaScript**
-JavaScript ist eine dynamisch und schwach typisierte Sprache. Datentypen können explizit oder implizit umgewandelt werden.
-
-### **Explizite Typumwandlung (Type Casting)**
-Manuelle Umwandlung von Datentypen mit eingebauten Funktionen.
-
-#### **In eine Zeichenkette konvertieren**
-```js
-let num = 42;
-let str = String(num); // Explizite Konvertierung
-console.log(str); // "42"
-```
-
-#### **In eine Zahl konvertieren**
-```js
-let str = "42";
-let num = Number(str);
-console.log(num); // 42
-```
-Alternativ:
-```js
-let num2 = parseInt("42px"); // 42 (nur Ganzzahl wird extrahiert)
-let num3 = parseFloat("3.14"); // 3.14
-```
-
-#### **In einen Boolean-Wert konvertieren**
-```js
-let value = "Hallo";
-let bool = Boolean(value);
-console.log(bool); // true
-```
-
-### **Implizite Typumwandlung (Type Coercion)**
-JavaScript wandelt Typen automatisch um, je nach Kontext.
-
-#### **Automatische Konvertierung zu einer Zeichenkette**
-```js
-let number = 42;
-let str = "Die Antwort ist " + number;
-console.log(str); // "Die Antwort ist 42"
-```
-
-#### **Automatische Konvertierung zu einer Zahl**
-```js
-let a = "42";
-let b = "5";
-let sum = a - b;
-console.log(sum); // 37
-```
-(Achtung: `+` würde die Strings verketten, nicht subtrahieren.)
-
-#### **Automatische Konvertierung zu einem Boolean**
-```js
-let value = "Hello";
-if (value) {
-  console.log("Wahrheitswert ist true"); // Wahrheitswert ist true
-}
-```
-
-### **Achtung bei unerwarteten Typumwandlungen**
-```js
-console.log(1 + "1"); // "11" (String-Konkatenation)
-console.log(1 - "1"); // 0 (numerische Berechnung)
-console.log(true + false); // 1 (true = 1, false = 0)
-console.log("5" * "2"); // 10 (automatische Zahlkonvertierung)
-```
-
-**Empfehlung**: Verwende explizite Typumwandlungen, um unerwartete Ergebnisse zu vermeiden.
-
 ---
 📖 Weitere Informationen findest du in der offiziellen [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Data_structures).
 
@@ -2111,17 +2010,174 @@ greetDavid(); // "Hallo, David!"
 
   **[⬆ Наверх](#top)**
 
-23. ### <a name="23"></a> 
+23. ### <a name="23"></a> Closures (Abschlüsse)
 
+Hier ist die Antwort zu **Closures (Abschlüsse) in JavaScript** im **Markdown-Format**:
+
+---
+
+# Closures (Abschlüsse) in JavaScript
+
+## Was ist ein Closure?
+Ein **Closure** entsteht, wenn eine Funktion auf Variablen aus ihrer äußeren Funktion zugreift, auch nachdem die äußere Funktion bereits ausgeführt wurde. Dadurch bleibt der **Zugriff auf den ursprünglichen Scope** erhalten.
+
+Closures sind nützlich für:
+- **Datenkapselung** (Encapsulation)
+- **Erstellung von privaten Variablen**
+- **Callbacks und Event-Handler**
+
+---
+
+## Beispiel 1: Einfaches Closure
+```js
+function begrüßung(name) {
+  return function() {
+    console.log(`Hallo, ${name}!`);
+  };
+}
+
+const sagHallo = begrüßung("Sergii");
+sagHallo(); // Ausgabe: "Hallo, Sergii!"
+```
+### Erklärung:
+- `begrüßung(name)` gibt eine innere Funktion zurück.
+- Diese innere Funktion hat weiterhin Zugriff auf die Variable `name`, obwohl `begrüßung()` bereits ausgeführt wurde.
+
+---
+
+## Beispiel 2: Private Variablen mit Closures
+```js
+function counter() {
+  let count = 0; // Private Variable
+
+  return {
+    erhöhen: function() {
+      count++;
+      console.log(`Zähler: ${count}`);
+    },
+    verringern: function() {
+      count--;
+      console.log(`Zähler: ${count}`);
+    }
+  };
+}
+
+const meinCounter = counter();
+meinCounter.erhöhen(); // Zähler: 1
+meinCounter.erhöhen(); // Zähler: 2
+meinCounter.verringern(); // Zähler: 1
+```
+### Erklärung:
+- `count` ist **privat**, weil es außerhalb der zurückgegebenen Methoden (`erhöhen` und `verringern`) nicht zugänglich ist.
+- `meinCounter` speichert die **Referenz auf die innere Funktion** und kann `count` manipulieren.
+
+---
+
+## Beispiel 3: Closures in `setTimeout`
+```js
+function verzögerteMeldung(nachricht, zeit) {
+  setTimeout(function() {
+    console.log(nachricht);
+  }, zeit);
+}
+
+verzögerteMeldung("Hallo nach 2 Sekunden!", 2000);
+```
+### Erklärung:
+- Die innere Funktion hat Zugriff auf `nachricht` und `zeit`, selbst wenn `verzögerteMeldung()` bereits ausgeführt wurde.
+
+---
+
+## Warum sind Closures wichtig?
+✅ **Datenkapselung:** Verhindert ungewollten Zugriff auf Variablen.  
+✅ **Modularität:** Ermöglicht die Strukturierung von Code.  
+✅ **Asynchroner Code:** Wird oft in `setTimeout`, `event listeners` oder `Promises` verwendet.  
+
+---
+
+## Wichtige Links:
+🔗 **MDN Web Docs:** [Closures](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures)  
+
+---
+
+Falls du Fragen hast, lass es mich wissen! 🚀
 
   **[⬆ Наверх](#top)**
 
-24. ### <a name="24"></a> 
+24. ### <a name="24"></a> Callback-Funktionen in JavaScript
 
+# Callback-Funktionen in JavaScript
+
+## Was ist eine Callback-Funktion?
+Eine **Callback-Funktion** ist eine Funktion, die als Argument an eine andere Funktion übergeben wird und später innerhalb dieser Funktion aufgerufen wird. Sie wird häufig für **asynchrone Operationen** oder zur **Modularisierung** des Codes verwendet.
+
+## Beispiel: Callback mit `setTimeout`
+```js
+function hallo(name, callback) {
+  console.log(`Hallo, ${name}!`);
+  callback(); // Aufruf der Callback-Funktion
+}
+
+function verabschieden() {
+  console.log("Tschüss, bis später!");
+}
+
+hallo("Sergii", verabschieden);
+```
+### Erklärung:
+- `hallo()` nimmt zwei Parameter: `name` (String) und `callback` (eine Funktion).
+- `callback()` wird innerhalb von `hallo()` aufgerufen.
+- `verabschieden()` wird als **Callback-Funktion** übergeben und ausgeführt.
+
+---
+
+## Beispiel: Asynchroner Callback mit `setTimeout`
+```js
+function ladeDaten(callback) {
+  console.log("Laden von Daten...");
+
+  setTimeout(() => {
+    console.log("Daten erfolgreich geladen!");
+    callback(); // Aufruf des Callbacks nach 2 Sekunden
+  }, 2000);
+}
+
+function verarbeiten() {
+  console.log("Daten werden verarbeitet...");
+}
+
+ladeDaten(verarbeiten);
+```
+### Erklärung:
+- `ladeDaten()` simuliert eine **asynchrone Operation** mit `setTimeout()`.
+- Nach 2 Sekunden wird die Callback-Funktion `verarbeiten()` ausgeführt.
+
+---
+
+## Wichtige Anwendungsfälle für Callbacks:
+1. **Asynchrone Operationen** (z. B. `setTimeout()`, `fetch()`, `event listeners`).
+2. **Array-Methoden** (`map()`, `filter()`, `forEach()`).
+3. **Modularisierung** – Trennung von Logik und Verarbeitungsschritten.
+
+### Beispiel mit `map()`:
+```js
+const zahlen = [1, 2, 3, 4];
+
+const verdoppelt = zahlen.map(function(num) {
+  return num * 2;
+});
+
+console.log(verdoppelt); // [2, 4, 6, 8]
+```
+
+---
+
+## Wichtige Links:
+🔗 **MDN Web Docs:** [Callback-Funktionen](https://developer.mozilla.org/en-US/docs/Glossary/Callback_function)  
 
   **[⬆ Наверх](#top)**
 
-25. ### <a name="25"></a> 
+25. ### <a name="25"></a> Konstruktor-Funktionen
 
 
   **[⬆ Наверх](#top)**
