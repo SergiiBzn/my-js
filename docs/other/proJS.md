@@ -50,16 +50,38 @@
 |39 | [Unterschied zwischen klassischer und prototypischer Vererbung](#39) |
 |40 | [](#40) |
 |   | Arrays und Sammlungen |
-|41 | [](#41) |
-|42 | [](#42) |
-|43 | [](#43) |
-|44 | [](#44) |
-|45 | [](#45) |
+|41 | [Arrays und Pseudo-Arrays, Array-Destrukturierung](#41) |
+|42 | [Methoden Array, Array.prototype](#42) |
+|43 | [Kopieren von Arrays](#43) |
+|44 | [Map, Set, WeakSet, WeakMap](#44) |
+|45 | [Live Collections (lebendige Sammlungen)](#45) |
 |46 | [](#46) |
 |47 | [](#47) |
 |48 | [](#48) |
 |49 | [](#49) |
 |50 | [](#50) |
+|   | Moderne JavaScript-Funktionen |
+|51 | [Spread-Operator (ES6-ES9)](#51) |
+|52 | [Rest-Operator und Standardparameter (ES6)](#52) |
+|53 | [Symbol](#53) |
+|54 | [BigInt](#54) |
+|55 | [Module import/export (ES6) & CommonJS](#55) |
+|56 | [](#56) |
+|57 | [](#57) |
+|58 | [](#58) |
+|59 | [](#59) |
+|60 | [](#60) |
+|   | Ereignisse und DOM-Manipulation |
+|61 | [](#61) |
+|62 | [](#62) |
+|63 | [](#63) |
+|64 | [](#64) |
+|65 | [](#65) |
+|66 | [](#66) |
+|67 | [](#67) |
+|68 | [](#68) |
+|69 | [](#69) |
+|70 | [](#70) |
 
 
 
