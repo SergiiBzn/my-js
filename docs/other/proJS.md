@@ -1737,163 +1737,105 @@ Obwohl der Garbage Collector automatisch arbeitet, können **Speicherlecks** auf
 
 21. ### <a name="21"></a> Funktionen, Pfeilfunktionen, IIFE
 
-### **Funktionen, Pfeilfunktionen & IIFE in JavaScript**  
+### **Funktionen, Pfeilfunktionen und IIFE in JavaScript**
 
-Funktionen sind grundlegende Bausteine in JavaScript. Sie ermöglichen Code-Wiederverwendung, Strukturierung und Modularität.  
-
----
-
-## **1. Funktionstypen in JavaScript**  
-Es gibt drei Hauptarten von Funktionen in JavaScript:  
-✅ **Function Declaration** (Funktionsdeklaration)  
-✅ **Function Expression** (Funktionsausdruck)  
-✅ **Arrow Function** (Pfeilfunktion)  
+JavaScript bietet verschiedene Arten von Funktionen, die sich in **Syntax, `this`-Bindung und Anwendungsfällen** unterscheiden.
 
 ---
 
-## **2. Function Declaration (Funktionsdeklaration)**
-- Beginnt mit dem Schlüsselwort `function`.
-- **Kann vor ihrer Definition aufgerufen werden (Hoisting).**  
+## **1. Klassische Funktionsdeklaration**
+Die **Funktionsdeklaration** ist die traditionelle Methode zur Definition von Funktionen.
 
-### **Beispiel:**  
-```js
-function greet(name) {
-  console.log(`Hallo, ${name}!`);
+```javascript
+function addiere(a, b) {
+  return a + b;
 }
 
-greet("Alice"); // "Hallo, Alice!"
+console.log(addiere(3, 5)); // 8
 ```
-📌 **Hoisting:**  
-```js
-sayHello(); // ✅ Funktion kann vorher aufgerufen werden
-
-function sayHello() {
-  console.log("Hallo!");
-}
-```
+✅ **Eigenschaften**:
+- Kann **vor der Definition** aufgerufen werden (Hoisting).
+- Hat eine eigene `this`-Bindung.
 
 ---
 
-## **3. Function Expression (Funktionsausdruck)**
-- Eine Funktion wird als **Wert einer Variablen gespeichert**.
-- **Kein Hoisting!** Die Funktion muss vor der ersten Nutzung definiert sein.
+## **2. Funktionsausdruck**
+Ein **Funktionsausdruck** speichert eine Funktion in einer Variable.
 
-### **Beispiel:**  
-```js
-const greet = function(name) {
-  console.log(`Hallo, ${name}!`);
+```javascript
+const subtrahiere = function (a, b) {
+  return a - b;
 };
 
-greet("Alice"); // "Hallo, Alice!"
+console.log(subtrahiere(10, 4)); // 6
 ```
-
-📌 **Named Function Expression:**  
-```js
-const square = function multiply(num) {
-  return num * num;
-};
-
-console.log(square(4)); // ✅ 16
-// console.log(multiply(4)); ❌ ReferenceError (nur intern sichtbar)
-```
-👉 **Nützlich für Rekursion oder Debugging**.
+✅ **Eigenschaften**:
+- Muss **nach der Definition** aufgerufen werden.
+- Ist nützlich für **anonyme Funktionen**.
 
 ---
 
-## **4. Arrow Functions (Pfeilfunktionen)**
-- Kürzere Syntax mit `=>`.
-- **Kein eigenes `this`** (erbt `this` aus dem umgebenden Kontext).
+## **3. Pfeilfunktionen (`=>`)**
+Pfeilfunktionen bieten eine **kürzere Syntax** und übernehmen `this` aus dem umgebenden Kontext.
 
-### **Beispiele:**
-```js
-// Ohne Parameter
-const sayHello = () => console.log("Hallo!");
-sayHello(); // "Hallo!"
+```javascript
+const multipliziere = (a, b) => a * b;
 
-// Mit einem Parameter
-const double = num => num * 2;
-console.log(double(5)); // 10
-
-// Mit mehreren Parametern
-const add = (a, b) => a + b;
-console.log(add(3, 4)); // 7
-```
-📌 **Kein `return`, wenn nur eine Anweisung da ist.  
-Mehrzeilige Funktionen benötigen `{}` und `return`.**  
-
-```js
-const multiply = (a, b) => {
-  const result = a * b;
-  return result; // Muss explizit geschrieben werden
-};
+console.log(multipliziere(3, 4)); // 12
 ```
 
----
+📌 **Besonderheiten von Pfeilfunktionen**:
+- **Kein eigenes `this`** (übernimmt `this` vom äußeren Kontext).
+- **Kein `arguments`-Objekt**.
+- Kürzere Syntax, **besonders für Callbacks**.
 
-## **5. Unterschiede zwischen Arrow Function & normaler Funktion**
-| Eigenschaft         | Normale Funktion          | Pfeilfunktion |
-|--------------------|------------------------|--------------|
-| **Syntax**        | `function()`            | `() => {}` |
-| **Hoisting**      | ✅ Ja                   | ❌ Nein (muss vorher definiert sein) |
-| **`this` Verhalten** | Dynamisch, abhängig vom Aufruf | Erbt `this` von der äußeren Umgebung |
-| **Verwendbar mit `arguments`** | ✅ Ja | ❌ Nein |
-| **Verwendbar als Konstruktor (`new`)** | ✅ Ja | ❌ Nein |
-
-📌 **Beispiel mit `this`:**
-```js
-const obj = {
-  value: 10,
-  normalFunc: function() {
-    console.log(this.value); // ✅ 10 (this bezieht sich auf obj)
-  },
-  arrowFunc: () => {
-    console.log(this.value); // ❌ undefined (this von globalem Scope)
+### **Beispiel: `this` in Pfeilfunktionen**
+```javascript
+const person = {
+  name: "Max",
+  sagHallo: function() {
+    setTimeout(() => {
+      console.log(`Hallo, ich bin ${this.name}`);
+    }, 1000);
   }
 };
 
-obj.normalFunc();
-obj.arrowFunc();
+person.sagHallo(); // Hallo, ich bin Max (weil `this` von `person` kommt)
 ```
-👉 **Arrow Functions eignen sich nicht für Methoden in Objekten!**
+- **Normale Funktionen** würden `this` verlieren (`undefined` oder `window`).
+- **Pfeilfunktionen** behalten `this` vom äußeren Scope.
 
 ---
 
-## **6. IIFE (Immediately Invoked Function Expression)**
-**IIFE (Sofort ausgeführte Funktion) wird direkt nach der Definition ausgeführt.**  
-📌 **Zweck:** Variablen kapseln, um globale Namenskonflikte zu vermeiden.
+## **4. Immediately Invoked Function Expression (IIFE)**
+Ein **IIFE** (Sofort ausgeführter Funktionsausdruck) wird **direkt nach der Definition** ausgeführt.
 
-### **Syntax:**
-```js
+```javascript
 (function() {
-  console.log("IIFE wurde ausgeführt!");
-})();
+  console.log("Ich bin ein IIFE!");
+})(); // Ich bin ein IIFE!
 ```
+Oder mit **Pfeilfunktion**:
 
-### **Mit Parameter:**
-```js
-(function(name) {
-  console.log(`Hallo, ${name}!`);
-})("Alice");
-```
-
-### **Mit Arrow Function:**
-```js
+```javascript
 (() => {
-  console.log("IIFE mit Arrow Function!");
-})();
+  console.log("IIFE mit Pfeilfunktion!");
+})(); // IIFE mit Pfeilfunktion!
 ```
 
-📌 **IIFE wird oft genutzt, um Module zu erstellen oder Daten zu kapseln.**
+📌 **Anwendungsfälle für IIFE**:
+- Um **Variablen vor dem globalen Scope zu schützen**.
+- Einmalige Initialisierungen oder Konfigurationen.
 
 ---
 
-## **7. Zusammenfassung**
-✅ **Function Declaration**: Hoisting möglich, klassische Funktionen.  
-✅ **Function Expression**: In Variablen gespeichert, kein Hoisting.  
-✅ **Arrow Function**: Kürzere Syntax, kein eigenes `this`, nicht für Methoden geeignet.  
-✅ **IIFE**: Direkt ausgeführt, nützlich für isolierten Code.  
+## **Zusammenfassung**
+- **Funktionsdeklarationen** (`function name()`) sind **hoistbar** und haben ein eigenes `this`.
+- **Funktionsausdrücke** (`const name = function() {}`) müssen zuerst definiert werden.
+- **Pfeilfunktionen** (`const name = () => {}`) haben **kein eigenes `this`** und sind ideal für Callbacks.
+- **IIFE (`(function() {})()`)** werden sofort ausgeführt und kapseln Variablen.
 
-📖 **Mehr Infos:** [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Functions) 🚀
+🔗 [MDN-Dokumentation zu Funktionen](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Functions)
 
   **[⬆ Наверх](#top)**
 
@@ -2012,142 +1954,237 @@ greetDavid(); // "Hallo, David!"
 
 23. ### <a name="23"></a> Closures (Abschlüsse)
 
+### **Closures (Abschlüsse) in JavaScript**  
+
+Ein **Closure** entsteht, wenn eine **innere Funktion** auf die **Variablen einer äußeren Funktion** zugreift, auch nach dem Abschluss der äußeren Funktion. Dadurch bleibt der Zugriff auf **private Daten** erhalten.
+
 ---
 
-# Closures (Abschlüsse) in JavaScript
-
-## Was ist ein Closure?
-Ein **Closure** entsteht, wenn eine Funktion auf Variablen aus ihrer äußeren Umgebung zugreift, selbst nachdem die äußere Funktion bereits ausgeführt wurde. Closures sind nützlich für **Datenkapselung**, **Modularität** und **asynchrone Programmierung**.
-
-## Beispiel 1: Einfaches Closure
-```js
-function begrüßung(name) {
+## **1. Einfaches Beispiel für ein Closure**  
+```javascript
+function begruessung(name) {
   return function() {
     console.log(`Hallo, ${name}!`);
   };
 }
 
-const sagHallo = begrüßung("Sergii");
-sagHallo(); // Ausgabe: "Hallo, Sergii!"
+const sagHallo = begruessung("Max");
+sagHallo(); // Hallo, Max!
 ```
-- Die innere Funktion behält Zugriff auf `name`, auch nach der Ausführung von `begrüßung()`.
+✅ **Erklärung**:  
+- `begruessung("Max")` gibt eine **innere Funktion** zurück.  
+- Diese Funktion merkt sich `name`, selbst nachdem `begruessung` beendet wurde.
 
-## Beispiel 2: Private Variablen mit Closures
-```js
-function counter() {
+---
+
+## **2. Datenkapselung mit Closures**  
+Closures können **private Variablen** simulieren:
+
+```javascript
+function zaehler() {
   let count = 0; // Private Variable
 
   return {
-    erhöhen: function() {
-      count++;
-      console.log(`Zähler: ${count}`);
-    },
-    verringern: function() {
-      count--;
-      console.log(`Zähler: ${count}`);
-    }
+    hoch: function() { count++; console.log(count); },
+    runter: function() { count--; console.log(count); },
+    wert: function() { return count; }
   };
 }
 
-const meinCounter = counter();
-meinCounter.erhöhen(); // Zähler: 1
-meinCounter.erhöhen(); // Zähler: 2
-meinCounter.verringern(); // Zähler: 1
+const meinZaehler = zaehler();
+meinZaehler.hoch(); // 1
+meinZaehler.hoch(); // 2
+meinZaehler.runter(); // 1
+console.log(meinZaehler.wert()); // 1
 ```
-- `count` ist **privat** und kann nur über die zurückgegebenen Methoden manipuliert werden.
+✅ **Vorteile**:
+- `count` ist **nicht direkt zugänglich** (private Variable).
+- Zugriff nur über die bereitgestellten Methoden.
 
-## Beispiel 3: Closures in `setTimeout`
-```js
-function verzögerteMeldung(nachricht, zeit) {
+---
+
+## **3. Closures in `setTimeout` und Event-Handlern**  
+```javascript
+function verzögerteNachricht(nachricht, delay) {
   setTimeout(function() {
     console.log(nachricht);
-  }, zeit);
+  }, delay);
 }
 
-verzögerteMeldung("Hallo nach 2 Sekunden!", 2000);
+verzögerteNachricht("Hallo nach 2 Sekunden!", 2000);
 ```
-- Die innere Funktion hat Zugriff auf `nachricht` und `zeit`, selbst wenn `verzögerteMeldung()` bereits ausgeführt wurde.
+- Die innere Funktion speichert `nachricht` und `delay`, bis `setTimeout` sie ausführt.
 
-## Zusammenfassung:
-- **Closures ermöglichen den Zugriff auf Variablen der äußeren Funktion**, auch wenn diese bereits beendet ist.
-- Sie werden für **private Variablen**, **Callbacks** und **asynchrone Operationen** genutzt.
-- Typische Anwendungsfälle sind **Funktionen in Funktionen**, **Event-Handler** und **setTimeout**.
+---
 
-## Wichtige Links:
-🔗 **MDN Web Docs:** [Closures](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures)
+## **4. Closure in einer Schleife (Problem & Lösung)**  
+❌ **Problem mit `var` (kein Block-Scope)**  
+```javascript
+for (var i = 1; i <= 3; i++) {
+  setTimeout(function() {
+    console.log(i);
+  }, i * 1000);
+}
+// Ausgabe nach 3 Sekunden: 4, 4, 4 (falsche Werte!)
+```
+✅ **Lösung mit `let` (Block-Scope)**  
+```javascript
+for (let i = 1; i <= 3; i++) {
+  setTimeout(function() {
+    console.log(i);
+  }, i * 1000);
+}
+// Ausgabe: 1, 2, 3 (korrekt)
+```
+✅ **Alternative Lösung mit Closure (`var`)**  
+```javascript
+for (var i = 1; i <= 3; i++) {
+  (function(j) {
+    setTimeout(function() {
+      console.log(j);
+    }, j * 1000);
+  })(i);
+}
+```
+- Hier wird `i` als Parameter (`j`) an eine sofort ausgeführte Funktion (`IIFE`) übergeben.
+
+---
+
+### **Zusammenfassung**  
+- **Closures** ermöglichen Zugriff auf Variablen einer äußeren Funktion, auch nach deren Ausführung.  
+- **Nützlich für**:
+  - **Datenkapselung** (private Variablen).
+  - **Callbacks und Event-Handler**.
+  - **Speicherung von Werten über Zeit** (z. B. `setTimeout`).  
+- **Probleme mit `var`** → Verwende `let` oder eine IIFE-Lösung.
+
+🔗 [MDN-Dokumentation zu Closures](https://developer.mozilla.org/de/docs/Web/JavaScript/Closures)
 
   **[⬆ Наверх](#top)**
 
 24. ### <a name="24"></a> Callback-Funktionen in JavaScript
 
-# Callback-Funktionen in JavaScript
+### **Callback-Funktionen in JavaScript**  
 
-## Was ist eine Callback-Funktion?
-Eine **Callback-Funktion** ist eine Funktion, die als Argument an eine andere Funktion übergeben wird und später innerhalb dieser Funktion aufgerufen wird. Sie wird häufig für **asynchrone Operationen** oder zur **Modularisierung** des Codes verwendet.
+Eine **Callback-Funktion** ist eine Funktion, die als Argument an eine andere Funktion übergeben wird und **zu einem späteren Zeitpunkt** aufgerufen wird. Callbacks sind essenziell für **asynchrone Operationen** (z. B. `setTimeout`, Event-Handling, HTTP-Anfragen).
 
-## Beispiel: Callback mit `setTimeout`
-```js
-function hallo(name, callback) {
+---
+
+## **1. Einfaches Beispiel für Callbacks**  
+```javascript
+function begruessen(name, callback) {
   console.log(`Hallo, ${name}!`);
-  callback(); // Aufruf der Callback-Funktion
+  callback();
 }
 
 function verabschieden() {
-  console.log("Tschüss, bis später!");
+  console.log("Tschüss!");
 }
 
-hallo("Sergii", verabschieden);
+begruessen("Max", verabschieden);
+// Hallo, Max!
+// Tschüss!
 ```
-### Erklärung:
-- `hallo()` nimmt zwei Parameter: `name` (String) und `callback` (eine Funktion).
-- `callback()` wird innerhalb von `hallo()` aufgerufen.
-- `verabschieden()` wird als **Callback-Funktion** übergeben und ausgeführt.
+✅ **Erklärung**:
+- `verabschieden` wird als **Callback** an `begruessen` übergeben.
+- Nach der Begrüßung wird `callback()` ausgeführt.
 
 ---
 
-## Beispiel: Asynchroner Callback mit `setTimeout`
-```js
+## **2. Callbacks mit `setTimeout` (asynchrones Verhalten)**  
+```javascript
 function ladeDaten(callback) {
-  console.log("Laden von Daten...");
-
+  console.log("Daten werden geladen...");
   setTimeout(() => {
-    console.log("Daten erfolgreich geladen!");
-    callback(); // Aufruf des Callbacks nach 2 Sekunden
+    console.log("Daten erfolgreich geladen.");
+    callback();
   }, 2000);
 }
 
-function verarbeiten() {
+function verarbeiteDaten() {
   console.log("Daten werden verarbeitet...");
 }
 
-ladeDaten(verarbeiten);
+ladeDaten(verarbeiteDaten);
+/*
+Daten werden geladen...
+(Daten werden nach 2 Sekunden geladen)
+Daten erfolgreich geladen.
+Daten werden verarbeitet...
+*/
 ```
-### Erklärung:
-- `ladeDaten()` simuliert eine **asynchrone Operation** mit `setTimeout()`.
-- Nach 2 Sekunden wird die Callback-Funktion `verarbeiten()` ausgeführt.
+✅ **Erklärung**:
+- `ladeDaten()` simuliert eine **asynchrone Operation**.
+- Nach 2 Sekunden wird `callback()` (`verarbeiteDaten()`) ausgeführt.
 
 ---
 
-## Wichtige Anwendungsfälle für Callbacks:
-1. **Asynchrone Operationen** (z. B. `setTimeout()`, `fetch()`, `event listeners`).
-2. **Array-Methoden** (`map()`, `filter()`, `forEach()`).
-3. **Modularisierung** – Trennung von Logik und Verarbeitungsschritten.
+## **3. Callbacks in Arrays (z. B. `forEach`, `map`, `filter`)**
+```javascript
+const zahlen = [1, 2, 3, 4, 5];
 
-### Beispiel mit `map()`:
-```js
-const zahlen = [1, 2, 3, 4];
-
-const verdoppelt = zahlen.map(function(num) {
-  return num * 2;
+zahlen.forEach((zahl) => {
+  console.log(zahl * 2);
 });
-
-console.log(verdoppelt); // [2, 4, 6, 8]
+/*
+2
+4
+6
+8
+10
+*/
 ```
+- `forEach()` nimmt eine **Callback-Funktion** als Argument.
+- Die Callback-Funktion wird für jedes Element des Arrays ausgeführt.
 
 ---
 
-## Wichtige Links:
-🔗 **MDN Web Docs:** [Callback-Funktionen](https://developer.mozilla.org/en-US/docs/Glossary/Callback_function)  
+## **4. Callback Hell (verschachtelte Callbacks)**
+**Problem**: Wenn Callbacks tief verschachtelt werden, entsteht **"Callback Hell"** (schwer lesbarer Code).
+
+```javascript
+function schritt1(callback) {
+  setTimeout(() => {
+    console.log("Schritt 1 erledigt");
+    callback();
+  }, 1000);
+}
+
+function schritt2(callback) {
+  setTimeout(() => {
+    console.log("Schritt 2 erledigt");
+    callback();
+  }, 1000);
+}
+
+function schritt3(callback) {
+  setTimeout(() => {
+    console.log("Schritt 3 erledigt");
+    callback();
+  }, 1000);
+}
+
+schritt1(() => {
+  schritt2(() => {
+    schritt3(() => {
+      console.log("Alle Schritte erledigt!");
+    });
+  });
+});
+```
+❌ **Problem:** Der Code ist schwer zu lesen und zu warten.
+
+✅ **Lösung:** Verwende **Promises** oder **async/await** statt Callbacks.
+
+---
+
+### **Zusammenfassung**  
+- **Callback-Funktionen** werden als Argumente an andere Funktionen übergeben und später ausgeführt.  
+- Nützlich für **asynchrone Operationen** (z. B. `setTimeout`, HTTP-Anfragen, Events).  
+- **Array-Methoden** wie `forEach`, `map`, `filter` verwenden Callbacks.  
+- **Callback Hell** (tiefe Verschachtelung) → Ersetze Callbacks durch **Promises** oder **async/await**.
+
+🔗 [MDN-Dokumentation zu Callbacks](https://developer.mozilla.org/de/docs/Glossary/Callback-Funktion)  
 
   **[⬆ Наверх](#top)**
 
