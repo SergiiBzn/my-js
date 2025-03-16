@@ -72,16 +72,59 @@
 |59 | [](#59) |
 |60 | [](#60) |
 |   | Ereignisse und DOM-Manipulation |
-|61 | [](#61) |
-|62 | [](#62) |
-|63 | [](#63) |
-|64 | [](#64) |
-|65 | [](#65) |
-|66 | [](#66) |
-|67 | [](#67) |
-|68 | [](#68) |
-|69 | [](#69) |
-|70 | [](#70) |
+|61 | [Ereignisse und ihre Handler](#61) |
+|62 | [Ereignis-Bubbling (event bubbling)](#62) |
+|63 | [Ereignis-Delegation](#63) |
+|64 | [Unterschied zwischen load und DOMContentLoaded](#64) |
+|65 | [Elemente von der Seite abrufen](#65) |
+|66 | [Methoden zum Abrufen von DOM-Elementen in JavaScript](#66) |
+|67 | [Navigation durch DOM-Elemente](#67) |
+|68 | [classList, className und Ereignisdelegation](#68) |
+|69 | [Manipulation von Seitenelementen](#69) |
+|70 | [Dokument- und Fensterparameter sowie deren Nutzung](#70) |
+|71 | [Web Animations API](#71) |
+|72 | [requestAnimationFrame](#72) |
+|73 | [](#73) |
+|74 | [](#74) |
+|75 | [](#75) |
+|   | Asynchronität und Serverkommunikation |
+|76 | [setTimeout und setInterval, Besonderheiten](#76) |
+|77 | [AJAX und XMLHttpRequest](#77) |
+|78 | [Promise (ES6)](#78) |
+|79 | [Fetch API](#79) |
+|80 | [Async/Await (ES8)](#80) |
+|81 | [try...catch, throw-Anweisung](#81) |
+|82 | [Axios-Bibliothek](#82) |
+|83 | [Event Loop, synchrone und asynchrone Operationen](#83) |
+|84 | [Möglichkeiten zum Senden von Serveranfragen](#84) |
+|85 | [Long Polling (Langes Abfragen)](#85) |
+|86 | [Web Socket](#86) |
+|87 | [Was sind Web Workers und wofür braucht man sie?](#87) |
+|88 | [](#88) |
+|89 | [](#89) |
+|90 | [](#90) |
+|   | Fortgeschrittene Themen |
+|91 | [Klassen (ES6)](#91) |
+|92 | [Klassenvererbung, private und geschützte Eigenschaften](#92) |
+|93 | [Kapselung (Encapsulation)](#93) |
+|94 | [Was ist funktionale Programmierung? Grundlagen (First-Class-Funktionen, Higher-Order-Funktionen, Pure Functions, Immutability, Lazy Evaluation usw.)](#94) |
+|95 | [Reguläre Ausdrücke (RegExp)](#95) |
+|96 | [JSON](#96) |
+|97 | [Code-Minimierung (Minification)](#97) |
+|98 | [TypeScript oder Flow](#98) |
+|99 | [](#99) |
+|100 | [](#100) |
+|   | Praktische Aufgaben |
+|101 | [Erstellen von Tabs in einem Projekt](#101) |
+|102 | [Countdown-Timer](#102) |
+|103 | [Modales Fenster](#103) |
+|104 | [Slider](#104) |
+|105 | [Rechner](#105) |
+|106 | [](#106) |
+|107 | [](#107) |
+|108 | [](#108) |
+|109 | [](#109) |
+|110 | [](#110) |
 
 
 
