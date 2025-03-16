@@ -3944,23 +3944,574 @@ zeigePerson(daten); // Lisa ist 30 Jahre alt.
 
   **[⬆ Наверх](#top)**
 
-42. ### <a name="42"></a> 
+42. ### <a name="42"></a> Methoden Array, Array.prototype
 
+### **Methoden für Arrays und `Array.prototype` in JavaScript**  
+
+JavaScript-Arrays besitzen viele Methoden, die das Arbeiten mit Daten erleichtern. Sie sind in zwei Kategorien unterteilt:
+
+1. **Statische Methoden** (`Array.method()`)
+2. **Instanzmethoden** (`Array.prototype.method()` – für einzelne Arrays)
+
+---
+
+## **1. Statische Methoden (`Array.method()`)**
+Diese Methoden werden direkt auf `Array` angewendet.
+
+### **1.1 `Array.from(iterable)` – Pseudo-Array zu echtem Array konvertieren**
+```javascript
+const pseudoArray = document.querySelectorAll("div"); // NodeList (kein echtes Array)
+const echtesArray = Array.from(pseudoArray);
+
+console.log(echtesArray instanceof Array); // true
+```
+✅ **Konvertiert `NodeList`, `arguments`, `Set` in Arrays**  
+
+---
+
+### **1.2 `Array.isArray(value)` – Prüft, ob ein Wert ein echtes Array ist**
+```javascript
+console.log(Array.isArray([1, 2, 3])); // true
+console.log(Array.isArray({ 0: "a", length: 1 })); // false
+```
+✅ **Sicherer als `instanceof Array`, weil auch für `iframes` funktioniert.**  
+
+---
+
+### **1.3 `Array.of(...values)` – Erstellt ein Array aus Argumenten**
+```javascript
+console.log(Array.of(1, 2, 3)); // [1, 2, 3]
+console.log(Array(3)); // [empty × 3] (Sonderverhalten!)
+```
+✅ **Verhindert `Array(3)`-Problem (leeres Array mit Länge 3).**  
+
+---
+
+## **2. Instanzmethoden (`Array.prototype.method()`)**
+Diese Methoden werden auf einzelne Arrays angewendet.
+
+---
+
+### **2.1 Mutierende Methoden (verändern das Array)**
+#### **`push()` – Element(e) ans Ende hinzufügen**
+```javascript
+const zahlen = [1, 2];
+zahlen.push(3, 4);
+console.log(zahlen); // [1, 2, 3, 4]
+```
+
+#### **`pop()` – Letztes Element entfernen**
+```javascript
+const namen = ["Max", "Anna"];
+namen.pop();
+console.log(namen); // ["Max"]
+```
+
+#### **`shift()` – Erstes Element entfernen**
+```javascript
+const queue = ["Erster", "Zweiter"];
+queue.shift();
+console.log(queue); // ["Zweiter"]
+```
+
+#### **`unshift()` – Element(e) am Anfang hinzufügen**
+```javascript
+const liste = ["B"];
+liste.unshift("A");
+console.log(liste); // ["A", "B"]
+```
+
+#### **`splice(start, deleteCount, ...items)` – Elemente entfernen/hinzufügen**
+```javascript
+const farben = ["Rot", "Grün", "Blau"];
+farben.splice(1, 1, "Gelb"); // 1 Element ab Index 1 ersetzen
+console.log(farben); // ["Rot", "Gelb", "Blau"]
+```
+✅ **Vielseitig: Entfernen, Einfügen und Ersetzen von Elementen.**  
+
+---
+
+### **2.2 Nicht-mutierende Methoden (erstellt neue Arrays)**
+#### **`slice(start, end)` – Teilausschnitt eines Arrays**
+```javascript
+const zahlen = [1, 2, 3, 4];
+console.log(zahlen.slice(1, 3)); // [2, 3] (Index 1 bis 2)
+```
+
+#### **`concat(arr)` – Arrays verbinden**
+```javascript
+const a = [1, 2], b = [3, 4];
+console.log(a.concat(b)); // [1, 2, 3, 4]
+```
+
+#### **`join(separator)` – Array zu String**
+```javascript
+const worte = ["Hallo", "Welt"];
+console.log(worte.join(" ")); // "Hallo Welt"
+```
+
+---
+
+### **2.3 Iterationsmethoden**
+#### **`forEach(callback)` – Jedes Element durchlaufen**
+```javascript
+const zahlen = [1, 2, 3];
+zahlen.forEach((zahl) => console.log(zahl * 2));
+// 2
+// 4
+// 6
+```
+✅ **Ersetzt `for`-Schleife für Arrays.**  
+
+---
+
+### **2.4 Methoden für neue Arrays**
+#### **`map(callback)` – Jedes Element transformieren**
+```javascript
+const zahlen = [1, 2, 3];
+const verdoppelt = zahlen.map((zahl) => zahl * 2);
+console.log(verdoppelt); // [2, 4, 6]
+```
+✅ **Ändert Werte ohne Original-Array zu modifizieren.**  
+
+---
+
+#### **`filter(callback)` – Elemente basierend auf Bedingung filtern**
+```javascript
+const zahlen = [10, 20, 30, 40];
+const gefiltert = zahlen.filter((zahl) => zahl > 20);
+console.log(gefiltert); // [30, 40]
+```
+✅ **Perfekt für Datenverarbeitung.**  
+
+---
+
+#### **`reduce(callback, startwert)` – Werte reduzieren (z. B. Summe)**
+```javascript
+const zahlen = [1, 2, 3, 4];
+const summe = zahlen.reduce((acc, zahl) => acc + zahl, 0);
+console.log(summe); // 10
+```
+✅ **Wird oft für Summen, Durchschnittswerte und Objektverarbeitung genutzt.**  
+
+---
+
+### **2.5 Suchen und Prüfen**
+#### **`find(callback)` – Erstes passendes Element**
+```javascript
+const leute = [{ name: "Max", alter: 30 }, { name: "Anna", alter: 25 }];
+const ergebnis = leute.find(person => person.alter > 28);
+console.log(ergebnis); // { name: "Max", alter: 30 }
+```
+
+#### **`findIndex(callback)` – Index des ersten passenden Elements**
+```javascript
+const zahlen = [10, 20, 30];
+console.log(zahlen.findIndex(n => n === 20)); // 1
+```
+
+#### **`some(callback)` – Prüft, ob mind. ein Element passt**
+```javascript
+const zahlen = [3, 7, 11];
+console.log(zahlen.some(n => n > 5)); // true
+```
+
+#### **`every(callback)` – Prüft, ob ALLE Elemente passen**
+```javascript
+console.log(zahlen.every(n => n > 2)); // true
+console.log(zahlen.every(n => n > 5)); // false
+```
+
+---
+
+### **2.6 Sortieren**
+#### **`sort([compareFunction])` – Sortiert das Array**
+```javascript
+const zahlen = [10, 2, 30, 4];
+zahlen.sort((a, b) => a - b);
+console.log(zahlen); // [2, 4, 10, 30]
+```
+❌ **Standard `sort()` sortiert alphabetisch – Immer `compareFunction` nutzen!**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Typ | Funktion |
+|---------|-----|----------|
+| `push()`, `pop()`, `shift()`, `unshift()` | Mutierend | Elemente hinzufügen/entfernen |
+| `slice()`, `concat()`, `join()` | Nicht-mutierend | Neues Array/Strings erstellen |
+| `map()`, `filter()`, `reduce()` | Iterativ | Transformation & Aggregation |
+| `find()`, `some()`, `every()` | Suchmethoden | Elemente finden & prüfen |
+| `sort()`, `reverse()` | Sortieren | Reihenfolge ändern |
+
+🔗 [MDN-Dokumentation zu Arrays](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Array)
 
   **[⬆ Наверх](#top)**
 
-43. ### <a name="43"></a> 
+43. ### <a name="43"></a> Kopieren von Arrays
 
+### **Kopieren von Arrays in JavaScript**  
+
+Beim Kopieren von Arrays gibt es zwei Methoden:  
+
+1. **Shallow Copy (flache Kopie)** – Erstellt eine Kopie der obersten Ebene, verschachtelte Objekte/Arrays bleiben referenziert.  
+2. **Deep Copy (tiefe Kopie)** – Erstellt eine komplette Kopie inklusive aller verschachtelten Werte.
+
+---
+
+## **1. Flache Kopie (Shallow Copy)**
+Eine **flache Kopie** dupliziert nur die oberste Ebene des Arrays. **Verschachtelte Objekte bleiben referenziert**.
+
+### **1.1 Spread-Operator (`[...]`)**
+```javascript
+const original = [1, 2, [3, 4]];
+const kopie = [...original];
+
+kopie[0] = 99;
+kopie[2][0] = 999; // ⚠️ Änderung in verschachteltem Array!
+
+console.log(original); // [1, 2, [999, 4]] (Änderung übernommen!)
+console.log(kopie); // [99, 2, [999, 4]]
+```
+✅ **Kürzeste Methode**  
+❌ **Tief verschachtelte Werte bleiben referenziert!**  
+
+---
+
+### **1.2 `Array.slice()` – Erstellt eine neue Kopie**
+```javascript
+const original = [1, 2, 3];
+const kopie = original.slice();
+
+kopie[0] = 99;
+
+console.log(original); // [1, 2, 3] (unverändert)
+console.log(kopie); // [99, 2, 3]
+```
+✅ **Gut für flache Arrays**  
+❌ **Verschachtelte Werte bleiben referenziert**  
+
+---
+
+### **1.3 `Array.from()` – Erstellt eine Kopie**
+```javascript
+const original = [1, 2, { a: 3 }];
+const kopie = Array.from(original);
+
+kopie[2].a = 99; // ⚠️ Referenzierte Objekte werden nicht kopiert!
+
+console.log(original); // [1, 2, { a: 99 }]
+console.log(kopie); // [1, 2, { a: 99 }]
+```
+✅ **Nützlich für `arguments` oder `NodeList`**  
+❌ **Verschachtelte Objekte bleiben referenziert**  
+
+---
+
+## **2. Tiefe Kopie (Deep Copy)**
+Eine **tiefe Kopie** dupliziert **das gesamte Array und alle verschachtelten Werte**, sodass keine Referenz bestehen bleibt.
+
+### **2.1 `JSON.parse(JSON.stringify(array))` (Einfache Lösung)**
+```javascript
+const original = [1, 2, { a: 3 }];
+const kopie = JSON.parse(JSON.stringify(original));
+
+kopie[2].a = 99;
+
+console.log(original); // [1, 2, { a: 3 }] (unverändert)
+console.log(kopie); // [1, 2, { a: 99 }]
+```
+✅ **Einfache Methode für tiefe Kopien**  
+❌ **Verliert Methoden, `undefined`, `Symbol`, `Date`**  
+
+---
+
+### **2.2 `structuredClone(array)` (Moderne Lösung)**
+```javascript
+const original = [1, 2, { a: 3 }, new Date()];
+const kopie = structuredClone(original);
+
+kopie[2].a = 99;
+
+console.log(original); // [1, 2, { a: 3 }, Date]
+console.log(kopie); // [1, 2, { a: 99 }, Date]
+```
+✅ **Erhält `Date`, `Map`, `Set`**  
+❌ **Nicht in älteren Browsern unterstützt**  
+
+---
+
+### **2.3 Rekursive Deep Copy-Funktion**
+Falls `structuredClone()` nicht verfügbar ist, kann man eine **eigene Funktion** schreiben.
+
+```javascript
+function deepCopy(arr) {
+  return arr.map(item => 
+    Array.isArray(item) ? deepCopy(item) : 
+    typeof item === "object" && item !== null ? {...item} : item
+  );
+}
+
+const original = [1, 2, { a: 3 }, [4, 5]];
+const kopie = deepCopy(original);
+
+kopie[2].a = 99;
+kopie[3][0] = 999;
+
+console.log(original); // [1, 2, { a: 3 }, [4, 5]]
+console.log(kopie); // [1, 2, { a: 99 }, [999, 5]]
+```
+✅ **Flexible und funktionale Lösung**  
+❌ **Verliert Methoden und komplexe Objekte (`Date`, `Map`, `Set`)**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Typ | Vorteile | Nachteile |
+|---------|-----|----------|-----------|
+| **`slice()` / `[...arr]`** | Flach | Schnell, einfach | Tiefe Werte bleiben referenziert |
+| **`JSON.parse(JSON.stringify(arr))`** | Tief | Einfach, gut für Objekte | Verliert `undefined`, Methoden, `Date` |
+| **`structuredClone(arr)`** | Tief | Beste moderne Lösung | Nicht in älteren Browsern |
+| **Rekursive Funktion (`deepCopy()`)** | Tief | Anpassbar | Kein `Date`, `Map`, `Set` |
+
+🔗 [MDN-Dokumentation zu `structuredClone()`](https://developer.mozilla.org/de/docs/Web/API/structuredClone)
 
   **[⬆ Наверх](#top)**
 
-44. ### <a name="44"></a> 
+44. ### <a name="44"></a> Map, Set, WeakSet, WeakMap
 
+### **`Map`, `Set`, `WeakMap`, `WeakSet` in JavaScript**  
+
+JavaScript bietet **`Map`** und **`Set`** als moderne Alternativen zu **Objekten (`{}`) und Arrays (`[]`)**, sowie **`WeakMap`** und **`WeakSet`** für schwache Referenzen.
+
+---
+
+## **1. `Map` – Schlüssel-Wert-Speicher mit beliebigen Schlüsseltypen**  
+
+Ein **`Map`** ist eine geordnete Sammlung von **Schlüssel-Wert-Paaren**, bei der **beliebige Werte** als Schlüssel verwendet werden können (z. B. Objekte oder Funktionen).  
+
+### **1.1 Erstellen & Befüllen einer Map**
+```javascript
+const benutzerMap = new Map();
+benutzerMap.set("name", "Max");
+benutzerMap.set(42, "Alter");
+benutzerMap.set({ id: 1 }, "Objekt als Schlüssel");
+
+console.log(benutzerMap.get("name")); // Max
+console.log(benutzerMap.get(42)); // Alter
+```
+✅ **Beliebige Schlüssel möglich (Objekte, Zahlen, Strings, Funktionen)**  
+✅ **Erhält Reihenfolge der Einträge**  
+
+---
+
+### **1.2 Methoden von `Map`**
+```javascript
+console.log(benutzerMap.has(42)); // true
+benutzerMap.delete(42);
+console.log(benutzerMap.size); // 2
+benutzerMap.clear(); // Löscht alle Einträge
+```
+
+---
+
+### **1.3 `forEach()`, `keys()`, `values()`, `entries()`**
+```javascript
+const map = new Map([
+  ["name", "Anna"],
+  ["stadt", "Berlin"]
+]);
+
+// Iteration
+map.forEach((wert, schlüssel) => console.log(`${schlüssel}: ${wert}`));
+
+console.log([...map.keys()]); // ["name", "stadt"]
+console.log([...map.values()]); // ["Anna", "Berlin"]
+console.log([...map.entries()]); // [["name", "Anna"], ["stadt", "Berlin"]]
+```
+
+---
+
+## **2. `Set` – Sammlung eindeutiger Werte**  
+
+Ein **`Set`** speichert **einzigartige Werte** (keine Duplikate).
+
+### **2.1 Erstellen & Befüllen eines Sets**
+```javascript
+const zahlenSet = new Set([1, 2, 3, 3, 4]);
+
+console.log(zahlenSet.size); // 4 (kein doppeltes 3)
+```
+
+---
+
+### **2.2 Methoden von `Set`**
+```javascript
+zahlenSet.add(5);
+console.log(zahlenSet.has(3)); // true
+zahlenSet.delete(2);
+zahlenSet.clear(); // Löscht alle Einträge
+```
+
+---
+
+### **2.3 `forEach()`, `keys()`, `values()`, `entries()`**
+```javascript
+const set = new Set(["Apfel", "Banane", "Kirsche"]);
+set.forEach((wert) => console.log(wert));
+
+console.log([...set.keys()]); // ["Apfel", "Banane", "Kirsche"]
+console.log([...set.values()]); // ["Apfel", "Banane", "Kirsche"]
+console.log([...set.entries()]); // [["Apfel", "Apfel"], ["Banane", "Banane"], ["Kirsche", "Kirsche"]]
+```
+✅ **Perfekt für Listen ohne doppelte Werte**  
+
+---
+
+## **3. `WeakMap` – Schlüssel-Objekte mit automatischem Speicherfreigeben**  
+
+Ein **`WeakMap`** speichert nur **Objekte als Schlüssel** und erlaubt **automatische Speicherbereinigung (Garbage Collection)**, wenn das Objekt nicht mehr verwendet wird.
+
+### **3.1 Erstellen & Verwenden einer `WeakMap`**
+```javascript
+const weakMap = new WeakMap();
+let obj = { id: 1 };
+
+weakMap.set(obj, "Daten für das Objekt");
+console.log(weakMap.get(obj)); // "Daten für das Objekt"
+
+obj = null; // Das Objekt wird entfernt -> automatisch aus WeakMap gelöscht
+```
+✅ **Speichert nur Objekte als Schlüssel**  
+✅ **Automatische Speicherfreigabe bei `null`**  
+❌ **Hat keine `size`, `keys()`, `values()` oder Iterationsmethoden**  
+
+---
+
+## **4. `WeakSet` – Sammlung von Objekten mit automatischer Speicherfreigabe**  
+
+Ein **`WeakSet`** speichert **nur Objekte** und entfernt sie automatisch, wenn sie nicht mehr referenziert werden.
+
+### **4.1 Erstellen & Verwenden eines `WeakSet`**
+```javascript
+const weakSet = new WeakSet();
+let obj1 = { name: "Max" };
+
+weakSet.add(obj1);
+console.log(weakSet.has(obj1)); // true
+
+obj1 = null; // Objekt wird entfernt -> automatisch aus WeakSet gelöscht
+```
+✅ **Perfekt für "Markierungen" an Objekten**  
+❌ **Keine Iterationsmethoden (`forEach()`, `keys()`, etc.)**  
+
+---
+
+### **Zusammenfassung**
+| Struktur | Schlüsseltyp | Werte dürfen sein | Iterierbar? | Speicherbereinigung |
+|----------|-------------|-------------------|-------------|---------------------|
+| **Map** | Beliebig | Beliebig | ✅ Ja | ❌ Nein |
+| **Set** | Keine Schlüssel | Einzigartige Werte | ✅ Ja | ❌ Nein |
+| **WeakMap** | Nur Objekte | Beliebig | ❌ Nein | ✅ Ja |
+| **WeakSet** | Keine Schlüssel | Nur Objekte | ❌ Nein | ✅ Ja |
+
+🔗 [MDN-Dokumentation zu `Map`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Map)  
+🔗 [MDN-Dokumentation zu `Set`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Set)  
 
   **[⬆ Наверх](#top)**
 
-45. ### <a name="45"></a> 
+45. ### <a name="45"></a> Live Collections (lebendige Sammlungen)
 
+### **Live Collections (lebendige Sammlungen) in JavaScript**  
+
+**Live Collections** sind **Datenstrukturen im DOM**, die sich **automatisch aktualisieren**, wenn sich das Dokument ändert.  
+
+---
+
+## **1. Arten von Live Collections**
+- **`HTMLCollection`** → Ergebnis von `getElementsByTagName()`, `getElementsByClassName()`
+- **`NodeList` (manchmal live)** → Ergebnis von `querySelectorAll()` (statisch) oder `childNodes` (live)
+
+---
+
+## **2. `HTMLCollection` – Automatisch aktualisierbare Liste von Elementen**
+Ein **`HTMLCollection`** wird live aktualisiert, wenn sich das DOM verändert.
+
+```javascript
+const divs = document.getElementsByTagName("div");
+console.log(divs.length); // Anzahl der <div>-Elemente
+
+const neuesDiv = document.createElement("div");
+document.body.appendChild(neuesDiv); // Ein neues <div> wird hinzugefügt
+
+console.log(divs.length); // Live-Collection zeigt automatisch die neue Anzahl!
+```
+✅ **Live (automatische Updates)**  
+❌ **Hat keine Array-Methoden (`map()`, `filter()`, etc.)**  
+
+---
+
+## **3. `NodeList` – Live vs. Statische Liste**
+Nicht alle `NodeList`-Sammlungen sind live!  
+
+### **3.1 Live `NodeList` (z. B. `childNodes`)**
+```javascript
+const nodes = document.body.childNodes;
+console.log(nodes.length);
+
+const neuerText = document.createTextNode("Hallo!");
+document.body.appendChild(neuerText);
+
+console.log(nodes.length); // Wird automatisch aktualisiert!
+```
+✅ **Live-Updates bei Änderungen**  
+❌ **Enthält auch `TextNodes` und `Comments`**  
+
+---
+
+### **3.2 Statische `NodeList` (`querySelectorAll()`)**
+```javascript
+const liste = document.querySelectorAll("li");
+console.log(liste.length); // Anzahl der <li>-Elemente
+
+const neuesLi = document.createElement("li");
+document.querySelector("ul").appendChild(neuesLi);
+
+console.log(liste.length); // ❌ Bleibt unverändert (statisch)!
+```
+✅ **Hat `forEach()` & andere Array-Methoden**  
+❌ **Bleibt unverändert, wenn DOM geändert wird**  
+
+---
+
+## **4. Live Collection in einer Schleife (Problem!)**
+Ein **großes Problem** mit Live Collections: Änderungen während einer Schleife führen zu unerwartetem Verhalten.
+
+```javascript
+const elemente = document.getElementsByTagName("p");
+
+for (let i = 0; i < elemente.length; i++) {
+  document.body.removeChild(elemente[i]); // ⚠️ Fehler: `elemente.length` ändert sich!
+}
+```
+✅ **Lösung:** Rückwärts iterieren oder `Array.from()` verwenden.
+
+```javascript
+const elemente = Array.from(document.getElementsByTagName("p"));
+
+elemente.forEach(p => document.body.removeChild(p)); // Funktioniert sicher
+```
+
+---
+
+### **Zusammenfassung**
+| Sammlung | Live? | Methoden verfügbar? | Typ |
+|----------|------|----------------|------|
+| **`HTMLCollection`** | ✅ Ja | ❌ Keine Array-Methoden | Elemente |
+| **`NodeList` (z. B. `childNodes`)** | ✅ Ja | ❌ Nur `forEach()` | Knoten (Elemente, Text) |
+| **`NodeList` (`querySelectorAll()`)** | ❌ Nein | ✅ Array-Methoden | Elemente |
+
+🔗 [MDN-Dokumentation zu Live Collections](https://developer.mozilla.org/de/docs/Web/API/HTMLCollection)
 
   **[⬆ Наверх](#top)**
 
