@@ -2720,48 +2720,1102 @@ console.log(summe(10000)); // Kein Stack Overflow in TCO-fähigen Umgebungen
 
   **[⬆ Наверх](#top)**
 
-31. ### <a name="31"></a> 
+31. ### <a name="31"></a> Objekte, Destrukturierung von Objekten (ES6)
 
+### **Objekte & Destrukturierung von Objekten (ES6) in JavaScript**  
+
+---
+
+## **1. Objekte in JavaScript**  
+Ein **Objekt** ist eine Sammlung von **Schlüssel-Wert-Paaren**.
+
+```javascript
+const person = {
+  name: "Max",
+  alter: 30,
+  beruf: "Entwickler"
+};
+
+console.log(person.name);  // Max
+console.log(person["alter"]); // 30
+```
+✅ **Eigenschaften von Objekten**:  
+- Werte können **beliebige Datentypen** sein (Strings, Arrays, andere Objekte).
+- Zugriff über **Punkt-Notation (`.`)** oder **Array-Notation (`[]`)**.
+
+---
+
+## **2. ES6-Destrukturierung von Objekten**  
+Mit **Destrukturierung** kann man **Eigenschaften direkt extrahieren**.
+
+```javascript
+const person = { name: "Anna", alter: 25, beruf: "Designer" };
+
+const { name, alter } = person;
+
+console.log(name); // Anna
+console.log(alter); // 25
+```
+✅ **Vorteile**:  
+- Spart **Schreibarbeit** (`person.name` → `name`).
+- Einfachere **Funktionseingaben**.
+
+---
+
+## **3. Destrukturierung mit Standardwerten**
+Falls eine Eigenschaft **nicht existiert**, kann ein **Standardwert** gesetzt werden.
+
+```javascript
+const user = { name: "Lisa" };
+
+const { name, alter = 18 } = user;
+
+console.log(alter); // 18 (Standardwert)
+```
+
+---
+
+## **4. Umbenennung von Variablen bei der Destrukturierung**
+Man kann Eigenschaftsnamen **umbenennen**.
+
+```javascript
+const auto = { marke: "Tesla", baujahr: 2023 };
+
+const { marke: hersteller, baujahr } = auto;
+
+console.log(hersteller); // Tesla
+```
+
+---
+
+## **5. Destrukturierung in Funktionen**  
+```javascript
+function zeigeInfo({ name, alter }) {
+  console.log(`${name} ist ${alter} Jahre alt.`);
+}
+
+const person = { name: "Tom", alter: 40 };
+zeigeInfo(person); // Tom ist 40 Jahre alt.
+```
+✅ **Vorteile**:  
+- Die Funktion erhält direkt die **relevanten Werte**.
+
+---
+
+## **6. Verschachtelte Objekte destrukturieren**
+```javascript
+const student = {
+  name: "Sophia",
+  adresse: {
+    stadt: "Berlin",
+    land: "Deutschland"
+  }
+};
+
+const { adresse: { stadt, land } } = student;
+
+console.log(stadt); // Berlin
+console.log(land); // Deutschland
+```
+✅ **Hierbei wird `adresse` nicht als Variable erstellt!**  
+Falls nötig, kann man `adresse` zusätzlich speichern:
+```javascript
+const { adresse, adresse: { stadt } } = student;
+console.log(adresse); // { stadt: "Berlin", land: "Deutschland" }
+```
+
+---
+
+### **Zusammenfassung**
+- **Objekte** sind Sammlungen von Schlüssel-Wert-Paaren.
+- **Destrukturierung** vereinfacht den Zugriff auf Eigenschaften.
+- **Standardwerte** können gesetzt werden.
+- **Eigenschaftsnamen können umbenannt werden**.
+- **Verschachtelte Objekte** lassen sich destrukturieren.
+- **Nützlich in Funktionen**, um nur relevante Daten zu extrahieren.
+
+🔗 [MDN-Dokumentation zur Destrukturierung](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Operators/Destrukturierende_Zuweisung)
 
   **[⬆ Наверх](#top)**
 
-32. ### <a name="32"></a> 
+32. ### <a name="32"></a> Methoden Object, Object.prototype
 
+### **Methoden von `Object` & `Object.prototype` in JavaScript**
+
+In JavaScript gibt es zwei Kategorien von Methoden für Objekte:
+
+1. **`Object`-Methoden** → Statische Methoden von `Object`
+2. **`Object.prototype`-Methoden** → Methoden, die jedes Objekt erbt
+
+---
+
+## **1. `Object`-Methoden (statische Methoden)**
+Diese Methoden werden direkt auf `Object` aufgerufen.
+
+### **1.1 `Object.keys(obj)` – Alle Schlüssel eines Objekts**
+```javascript
+const person = { name: "Anna", alter: 28, beruf: "Designer" };
+
+console.log(Object.keys(person)); // ["name", "alter", "beruf"]
+```
+
+### **1.2 `Object.values(obj)` – Alle Werte eines Objekts**
+```javascript
+console.log(Object.values(person)); // ["Anna", 28, "Designer"]
+```
+
+### **1.3 `Object.entries(obj)` – Schlüssel-Wert-Paare als Array**
+```javascript
+console.log(Object.entries(person));
+// [["name", "Anna"], ["alter", 28], ["beruf", "Designer"]]
+```
+
+### **1.4 `Object.assign(target, source)` – Objekte zusammenführen**
+```javascript
+const obj1 = { a: 1 };
+const obj2 = { b: 2 };
+const merged = Object.assign({}, obj1, obj2);
+
+console.log(merged); // { a: 1, b: 2 }
+```
+
+### **1.5 `Object.freeze(obj)` – Objekt unveränderlich machen**
+```javascript
+const buch = { titel: "JavaScript", preis: 30 };
+Object.freeze(buch);
+
+buch.preis = 40; // Fehler (im strikten Modus)
+console.log(buch.preis); // 30 (unverändert)
+```
+
+### **1.6 `Object.seal(obj)` – Keine neuen Eigenschaften, aber Änderung erlaubt**
+```javascript
+const auto = { marke: "Tesla", farbe: "Rot" };
+Object.seal(auto);
+
+auto.farbe = "Blau"; // OK
+auto.modell = "Model S"; // ❌ Fehler (Eigenschaft kann nicht hinzugefügt werden)
+console.log(auto); // { marke: "Tesla", farbe: "Blau" }
+```
+
+### **1.7 `Object.create(proto)` – Neues Objekt mit bestimmtem Prototyp**
+```javascript
+const tier = { typ: "Säugetier" };
+const hund = Object.create(tier);
+
+console.log(hund.typ); // "Säugetier" (geerbt von `tier`)
+```
+
+---
+
+## **2. `Object.prototype`-Methoden**
+Diese Methoden sind für **alle Objekte verfügbar**, weil sie von `Object.prototype` erben.
+
+### **2.1 `obj.hasOwnProperty(prop)` – Prüft, ob eine Eigenschaft direkt existiert**
+```javascript
+const person = { name: "Max" };
+
+console.log(person.hasOwnProperty("name")); // true
+console.log(person.hasOwnProperty("alter")); // false
+```
+🔹 **Warum wichtig?**  
+Verhindert, dass geerbte Eigenschaften (`prototype`) fälschlicherweise als eigene Eigenschaften interpretiert werden.
+
+---
+
+### **2.2 `obj.toString()` – Objekt in String umwandeln**
+```javascript
+const zahl = 123;
+console.log(zahl.toString()); // "123"
+
+const array = [1, 2, 3];
+console.log(array.toString()); // "1,2,3"
+```
+
+---
+
+### **2.3 `obj.valueOf()` – Gibt den Primärwert eines Objekts zurück**
+```javascript
+const num = new Number(42);
+console.log(num.valueOf()); // 42
+```
+
+---
+
+### **2.4 `obj.isPrototypeOf(obj2)` – Prüft, ob ein Objekt Prototyp eines anderen ist**
+```javascript
+function Tier() {}
+const hund = new Tier();
+
+console.log(Tier.prototype.isPrototypeOf(hund)); // true
+```
+
+---
+
+### **Zusammenfassung**
+- **`Object.keys()`**, **`Object.values()`**, **`Object.entries()`** → Arbeiten mit Eigenschaften.
+- **`Object.assign()`**, **`Object.create()`**, **`Object.freeze()`**, **`Object.seal()`** → Objektverwaltung.
+- **`hasOwnProperty()`** → Prüft, ob eine Eigenschaft direkt im Objekt existiert.
+- **`toString()`**, **`valueOf()`** → Umwandlung von Objekten in Strings oder primitive Werte.
+
+🔗 [MDN-Dokumentation zu `Object`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
   **[⬆ Наверх](#top)**
 
-33. ### <a name="33"></a> 
+33. ### <a name="33"></a> Möglichkeiten zur Objekterstellung
 
+### **Möglichkeiten zur Objekterstellung in JavaScript**  
+
+In JavaScript gibt es mehrere Möglichkeiten, ein Objekt zu erstellen. Jede Methode hat ihre eigenen **Anwendungsfälle und Vorteile**.
+
+---
+
+## **1. Objekt-Literal (`{}`)**
+Die einfachste Methode, um ein Objekt zu erstellen.
+
+```javascript
+const person = {
+  name: "Max",
+  alter: 30,
+  beruf: "Entwickler"
+};
+
+console.log(person.name); // Max
+```
+✅ **Vorteile**:  
+- Schnell und einfach für kleine Objekte  
+- Kein `new` oder Prototyp erforderlich  
+
+---
+
+## **2. `Object.create(prototype)`**
+Erstellt ein neues Objekt mit einem bestimmten **Prototyp**.
+
+```javascript
+const tier = {
+  typ: "Säugetier"
+};
+
+const hund = Object.create(tier);
+hund.name = "Bello";
+
+console.log(hund.typ); // "Säugetier" (geerbt von `tier`)
+console.log(hund.hasOwnProperty("typ")); // false (kommt aus dem Prototyp)
+```
+✅ **Vorteile**:  
+- Erlaubt direkte Kontrolle über den **Prototyp**  
+- Gut für **Prototypen-Vererbung**  
+
+---
+
+## **3. `new Object()` (Konstruktor von `Object`)**
+Alternative zu `{}`.
+
+```javascript
+const person = new Object();
+person.name = "Anna";
+person.alter = 25;
+
+console.log(person.name); // Anna
+```
+❌ **Weniger gebräuchlich**, da `{}` kürzer und verständlicher ist.
+
+---
+
+## **4. Konstruktorfunktion**
+Verwendet eine Funktion, um **mehrere Objekte mit ähnlicher Struktur** zu erstellen.
+
+```javascript
+function Person(name, alter) {
+  this.name = name;
+  this.alter = alter;
+}
+
+const person1 = new Person("Lisa", 28);
+const person2 = new Person("Tom", 35);
+
+console.log(person1.name); // Lisa
+console.log(person2.alter); // 35
+```
+✅ **Vorteile**:  
+- Ermöglicht das Erstellen **mehrerer Instanzen**  
+- `this` verweist auf das erstellte Objekt  
+❌ **Nachteile**:  
+- Methoden werden bei jeder Instanz neu erstellt (besser `prototype` verwenden).  
+
+---
+
+## **5. Konstruktorfunktion mit `prototype` (Speichereffizienter)**
+```javascript
+function Auto(marke) {
+  this.marke = marke;
+}
+
+Auto.prototype.fahren = function() {
+  console.log(`${this.marke} fährt.`);
+};
+
+const meinAuto = new Auto("Tesla");
+meinAuto.fahren(); // Tesla fährt.
+```
+✅ **Speichert Methoden im Prototyp, nicht bei jeder Instanz**.
+
+---
+
+## **6. ES6 Klassen (`class`)**
+Klassen sind eine modernere Alternative zu Konstruktorfunktionen.
+
+```javascript
+class Fahrzeug {
+  constructor(marke) {
+    this.marke = marke;
+  }
+
+  fahren() {
+    console.log(`${this.marke} fährt.`);
+  }
+}
+
+const auto = new Fahrzeug("BMW");
+auto.fahren(); // BMW fährt.
+```
+✅ **Vorteile**:  
+- Klarere Syntax  
+- Bessere Lesbarkeit für objektorientierte Programmierung  
+
+---
+
+## **7. Fabrikfunktion (Factory Function)**
+Eine **Funktion, die Objekte zurückgibt**, ohne `new`.
+
+```javascript
+function erstellePerson(name, alter) {
+  return {
+    name,
+    alter,
+    sagHallo() {
+      console.log(`Hallo, ich bin ${this.name}.`);
+    }
+  };
+}
+
+const person = erstellePerson("Markus", 40);
+person.sagHallo(); // Hallo, ich bin Markus.
+```
+✅ **Vorteile**:  
+- Kein `new` erforderlich  
+- Gut für **geschlossene (private) Variablen**  
+
+---
+
+## **8. JSON (`JSON.parse()` & `JSON.stringify()`)**
+### **Objekt aus JSON-String erstellen**
+```javascript
+const jsonString = '{"name": "Elena", "alter": 22}';
+const person = JSON.parse(jsonString);
+
+console.log(person.name); // Elena
+```
+
+### **Objekt in JSON umwandeln**
+```javascript
+const jsonDaten = JSON.stringify(person);
+console.log(jsonDaten); // {"name":"Elena","alter":22}
+```
+✅ **Wichtig für:**  
+- **Datenübertragung (APIs)**  
+- **Speicherung in `localStorage`**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Vorteile | Nachteile |
+|---------|---------|-----------|
+| **`{}` (Objekt-Literal)** | Einfach, direkt | Nicht für viele Instanzen |
+| **`Object.create(proto)`** | Direktes Prototyp-Handling | Komplexe Vererbung |
+| **`new Object()`** | Alternative zu `{}` | Länger als `{}` |
+| **Konstruktorfunktion (`new`)** | Strukturierte Erstellung | Methoden ineffizient ohne `prototype` |
+| **Konstruktorfunktion mit `prototype`** | Speicheroptimiert | Weniger intuitiv als `class` |
+| **`class` (ES6)** | Klarer, modernes OOP | Komplexer als einfache Objekte |
+| **Fabrikfunktion (`Factory Function`)** | Kein `new`, einfach zu lesen | Kein direkter Prototypzugriff |
+| **JSON (`JSON.parse()`)** | API-kompatibel | Kein Verhalten (Methoden) |
+
+🔗 [MDN-Dokumentation zu Objekten](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
   **[⬆ Наверх](#top)**  
 
-34. ### <a name="34"></a> 
+34. ### <a name="34"></a> Kopieren von Objekten
 
+### **Kopieren von Objekten in JavaScript**  
+
+Beim Kopieren von Objekten in JavaScript gibt es zwei Arten:  
+
+1. **Shallow Copy (flache Kopie)** – Kopiert nur die erste Ebene der Eigenschaften (tiefer liegende Objekte bleiben referenziert).  
+2. **Deep Copy (tiefe Kopie)** – Erstellt eine vollständige Kopie, auch von verschachtelten Objekten.  
+
+---
+
+## **1. Shallow Copy (Flache Kopie)**  
+
+Flache Kopien duplizieren nur die **oberste Ebene** des Objekts. Falls das Objekt **verschachtelte Objekte** enthält, bleiben diese referenziert (Änderungen im Original wirken sich auf die Kopie aus).  
+
+### **1.1 `Object.assign(target, source)`**
+```javascript
+const original = { a: 1, b: { c: 2 } };
+const kopie = Object.assign({}, original);
+
+kopie.a = 42;
+kopie.b.c = 99; // Achtung: Referenzierte Objekte werden nicht kopiert!
+
+console.log(original.b.c); // 99 (auch geändert!)
+```
+
+✅ **Schnelle flache Kopie**  
+❌ **Nicht für verschachtelte Objekte geeignet**
+
+---
+
+### **1.2 Spread-Operator (`{ ...obj }`)**
+```javascript
+const original = { a: 1, b: { c: 2 } };
+const kopie = { ...original };
+
+kopie.a = 42;
+kopie.b.c = 99; // Wieder nur eine Referenz!
+
+console.log(original.b.c); // 99 (Original ebenfalls verändert!)
+```
+✅ **Einfacher als `Object.assign()`**  
+❌ **Nur erste Ebene wird kopiert**
+
+---
+
+## **2. Deep Copy (Tiefe Kopie)**  
+
+### **2.1 `JSON.parse(JSON.stringify(obj))` (einfache Lösung)**
+```javascript
+const original = { a: 1, b: { c: 2 } };
+const kopie = JSON.parse(JSON.stringify(original));
+
+kopie.b.c = 99;
+
+console.log(original.b.c); // 2 (Original bleibt unverändert)
+```
+✅ **Einfache Methode für tiefe Kopien**  
+❌ **Verliert Funktionen, `undefined`, Symbole**  
+
+---
+
+### **2.2 Rekursive Funktion für tiefe Kopie**
+```javascript
+function deepCopy(obj) {
+  if (obj === null || typeof obj !== "object") return obj;
+
+  const kopie = Array.isArray(obj) ? [] : {};
+
+  for (let key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      kopie[key] = deepCopy(obj[key]);
+    }
+  }
+  return kopie;
+}
+
+const original = { a: 1, b: { c: 2 } };
+const kopie = deepCopy(original);
+
+kopie.b.c = 99;
+
+console.log(original.b.c); // 2 (Original bleibt unverändert)
+```
+✅ **Kopiert auch Funktionen, Arrays, `undefined`**  
+❌ **Aufwendiger als `JSON.parse()`**
+
+---
+
+### **2.3 `structuredClone(obj)` (Moderne Lösung)**
+```javascript
+const original = { a: 1, b: { c: 2 }, d: new Date() };
+const kopie = structuredClone(original);
+
+kopie.b.c = 99;
+
+console.log(original.b.c); // 2 (Original bleibt unverändert)
+console.log(kopie.d instanceof Date); // true (Kopiert auch `Date`!)
+```
+✅ **Unterstützt `Date`, Arrays, `Map`, `Set`**  
+✅ **Schnell & sicher**  
+❌ **Nicht in älteren Browsern verfügbar**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Typ | Vorteile | Nachteile |
+|---------|-----|----------|------------|
+| **`Object.assign({}, obj)`** | Flach | Schnell & einfach | Tiefe Objekte bleiben referenziert |
+| **`{ ...obj }` (Spread)** | Flach | Kürzere Syntax | Keine tiefe Kopie |
+| **`JSON.parse(JSON.stringify(obj))`** | Tief | Einfach & schnell | Verliert Methoden & `undefined` |
+| **Rekursive Funktion** | Tief | Behandelt alle Datentypen | Komplexer |
+| **`structuredClone(obj)`** | Tief | Beste moderne Lösung | Nicht überall unterstützt |
+
+🔗 [MDN-Dokumentation zu `structuredClone()`](https://developer.mozilla.org/de/docs/Web/API/structuredClone)
 
   **[⬆ Наверх](#top)**
 
-35. ### <a name="35"></a> 
+35. ### <a name="35"></a> Property Descriptors (Eigenschaftsbeschreibungen)
 
+### **Property Descriptors (Eigenschaftsbeschreibungen) in JavaScript**  
+
+Jede Eigenschaft eines Objekts hat **Eigenschaftsbeschreibungen** (**Property Descriptors**), die bestimmen, wie die Eigenschaft funktioniert. Diese können mit `Object.getOwnPropertyDescriptor()` und `Object.defineProperty()` verwaltet werden.
+
+---
+
+## **1. Property Descriptor auslesen**
+Mit `Object.getOwnPropertyDescriptor(obj, prop)` kann man die Eigenschaften einer Eigenschaft abrufen.
+
+```javascript
+const person = { name: "Max" };
+
+console.log(Object.getOwnPropertyDescriptor(person, "name"));
+/*
+{
+  value: 'Max',
+  writable: true,
+  enumerable: true,
+  configurable: true
+}
+*/
+```
+
+✅ **Standardwerte für eine Eigenschaft**:  
+- `writable: true` → Wert kann geändert werden  
+- `enumerable: true` → Eigenschaft wird in Schleifen (`for...in`, `Object.keys()`) angezeigt  
+- `configurable: true` → Eigenschaft kann gelöscht oder verändert werden  
+
+---
+
+## **2. Eigenschaften mit `Object.defineProperty()` setzen**  
+Mit `Object.defineProperty(obj, prop, descriptor)` kann man Eigenschaften **kontrollierter definieren**.
+
+### **2.1 `writable: false` – Schreibschutz aktivieren**
+```javascript
+const auto = {};
+Object.defineProperty(auto, "marke", {
+  value: "Tesla",
+  writable: false
+});
+
+auto.marke = "BMW"; // ❌ Keine Änderung möglich!
+console.log(auto.marke); // "Tesla"
+```
+
+---
+
+### **2.2 `enumerable: false` – Eigenschaft verstecken**
+```javascript
+const benutzer = { name: "Anna", passwort: "geheim" };
+
+Object.defineProperty(benutzer, "passwort", {
+  enumerable: false
+});
+
+console.log(Object.keys(benutzer)); // ["name"] (passwort wird nicht angezeigt)
+```
+✅ **Gut für sensible Daten!**
+
+---
+
+### **2.3 `configurable: false` – Eigenschaft gegen Änderungen sperren**
+```javascript
+const buch = { titel: "JavaScript Guide" };
+
+Object.defineProperty(buch, "titel", {
+  configurable: false
+});
+
+// Löschen schlägt fehl:
+delete buch.titel; 
+console.log(buch.titel); // "JavaScript Guide"
+
+// `configurable: false` verhindert Neudefinition:
+Object.defineProperty(buch, "titel", { writable: true }); // ❌ Fehler!
+```
+✅ **Schützt eine Eigenschaft vor Modifikationen oder Löschung**
+
+---
+
+## **3. Getter & Setter mit `defineProperty()`**
+Man kann auch Getter und Setter definieren.
+
+```javascript
+const konto = {
+  _saldo: 1000
+};
+
+Object.defineProperty(konto, "saldo", {
+  get() {
+    return `${this._saldo} EUR`;
+  },
+  set(value) {
+    if (value < 0) {
+      console.log("Saldo kann nicht negativ sein!");
+    } else {
+      this._saldo = value;
+    }
+  }
+});
+
+console.log(konto.saldo); // "1000 EUR"
+konto.saldo = 500; 
+console.log(konto.saldo); // "500 EUR"
+konto.saldo = -200; // ❌ "Saldo kann nicht negativ sein!"
+```
+✅ **Steuert den Zugriff auf eine Eigenschaft durch Regeln**
+
+---
+
+### **Zusammenfassung**
+| Eigenschaft | Bedeutung |
+|------------|-----------|
+| `value` | Der Wert der Eigenschaft |
+| `writable` | Kann der Wert geändert werden? (`true` / `false`) |
+| `enumerable` | Wird die Eigenschaft in `Object.keys()` und Schleifen (`for...in`) angezeigt? |
+| `configurable` | Kann die Eigenschaft gelöscht oder verändert werden? |
+| `get()` | Gibt einen Wert zurück (Getter) |
+| `set(value)` | Setzt einen Wert mit Logik (Setter) |
+
+🔗 [MDN-Dokumentation zu Property Descriptors](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty)
 
   **[⬆ Наверх](#top)**
 
-36. ### <a name="36"></a> 
+36. ### <a name="36"></a> Private und geschützte Eigenschaften von Objekten
 
+### **Private und geschützte Eigenschaften von Objekten in JavaScript**  
+
+JavaScript bietet verschiedene Möglichkeiten, **private** oder **geschützte Eigenschaften** zu definieren, um Daten **vor direktem Zugriff zu schützen**.
+
+---
+
+## **1. Konvention: `_` für "geschützte" Eigenschaften**  
+Es gibt **keine echte Privateigenschaft** in normalen Objekten, aber Konventionen helfen:
+
+```javascript
+class Nutzer {
+  constructor(name) {
+    this.name = name;
+    this._passwort = "geheim"; // Geschützt (Konvention: `_`)
+  }
+
+  zeigePasswort() {
+    return this._passwort;
+  }
+}
+
+const user = new Nutzer("Anna");
+console.log(user._passwort); // ❌ Sollte nicht direkt genutzt werden
+console.log(user.zeigePasswort()); // ✅ "geheim"
+```
+✅ **Nützlich, aber nicht wirklich privat!**  
+❌ **Jeder kann `_passwort` trotzdem lesen und ändern!**
+
+---
+
+## **2. Private Eigenschaften mit `#` (ES2020+)**
+Seit ES2020 können **private Eigenschaften** mit `#` definiert werden. Sie sind **außerhalb der Klasse nicht zugänglich**.
+
+```javascript
+class Konto {
+  #saldo = 1000; // Private Variable mit `#`
+
+  getSaldo() {
+    return this.#saldo;
+  }
+
+  einzahlen(betrag) {
+    if (betrag > 0) this.#saldo += betrag;
+  }
+}
+
+const meinKonto = new Konto();
+console.log(meinKonto.getSaldo()); // ✅ 1000
+meinKonto.einzahlen(500);
+console.log(meinKonto.getSaldo()); // ✅ 1500
+
+console.log(meinKonto.#saldo); // ❌ Fehler: Private Eigenschaft nicht zugänglich!
+```
+✅ **Echte Privateigenschaften** (nicht von außen sichtbar)  
+❌ **Nicht kompatibel mit älteren JavaScript-Versionen**
+
+---
+
+## **3. Private Eigenschaften mit Closures (ältere Alternative)**
+Vor ES2020 wurden Closures genutzt, um Eigenschaften **privat zu halten**:
+
+```javascript
+function erstelleKonto() {
+  let saldo = 1000; // Private Variable
+
+  return {
+    getSaldo: () => saldo,
+    einzahlen: (betrag) => { if (betrag > 0) saldo += betrag; }
+  };
+}
+
+const konto = erstelleKonto();
+console.log(konto.getSaldo()); // ✅ 1000
+konto.einzahlen(500);
+console.log(konto.getSaldo()); // ✅ 1500
+
+console.log(konto.saldo); // ❌ `saldo` ist nicht zugänglich!
+```
+✅ **Private Daten sind geschützt**  
+❌ **Nicht so intuitiv wie `class` mit `#`**
+
+---
+
+## **4. `WeakMap` für private Eigenschaften**
+Eine andere Technik ist die Nutzung von `WeakMap`, um private Eigenschaften außerhalb des Objekts zu speichern.
+
+```javascript
+const privateDaten = new WeakMap();
+
+class Benutzer {
+  constructor(name) {
+    privateDaten.set(this, { passwort: "geheim" });
+    this.name = name;
+  }
+
+  getPasswort() {
+    return privateDaten.get(this).passwort;
+  }
+}
+
+const benutzer = new Benutzer("Tom");
+console.log(benutzer.getPasswort()); // ✅ "geheim"
+
+console.log(benutzer.passwort); // ❌ `undefined`
+```
+✅ **Sicherer als `_`-Konvention, aber komplexer**  
+✅ **Privat, da `WeakMap`-Werte nicht direkt zugänglich sind**  
+❌ **Mehr Overhead als `#`-Privateigenschaften**
+
+---
+
+### **Zusammenfassung**
+| Methode | Privat? | Einfachheit | Kompatibilität |
+|---------|---------|------------|---------------|
+| `_geschützt` (Konvention) | ❌ Nein | ✅ Einfach | ✅ Überall |
+| `#privat` (ES2020+) | ✅ Ja | ✅ Einfach | ❌ Nicht in älteren Browsern |
+| **Closure (Funktion + `let`)** | ✅ Ja | ❌ Umständlich | ✅ Überall |
+| `WeakMap` | ✅ Ja | ❌ Komplexer | ✅ Überall |
+
+🔗 [MDN-Dokumentation zu privaten Feldern (`#`)](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Classes/Private_class_fields)
 
   **[⬆ Наверх](#top)**
 
-37. ### <a name="37"></a> 
+37. ### <a name="37"></a> Prototypen, Prototypen-Kette
 
+### **Prototypen und Prototypen-Kette in JavaScript**  
+
+In JavaScript basiert die **Objektvererbung** auf **Prototypen**. Jedes Objekt hat eine **interne Verbindung zu einem Prototypen**, von dem es Eigenschaften und Methoden erben kann.
+
+---
+
+## **1. Prototyp eines Objekts**
+Jedes JavaScript-Objekt hat eine versteckte Verbindung (`[[Prototype]]`) zu einem Prototyp-Objekt, das mit `Object.getPrototypeOf(obj)` oder `__proto__` sichtbar gemacht werden kann.
+
+```javascript
+const person = { name: "Max" };
+
+console.log(Object.getPrototypeOf(person)); 
+console.log(person.__proto__ === Object.prototype); // true
+```
+✅ **`Object.prototype` ist der Standard-Prototyp für Objekte.**  
+✅ **`Object.getPrototypeOf(obj)` ist sicherer als `obj.__proto__`**  
+
+---
+
+## **2. Prototypen-Kette (Prototype Chain)**
+Wenn eine Eigenschaft nicht im Objekt selbst gefunden wird, sucht JavaScript sie **im Prototypen**.
+
+```javascript
+const tier = {
+  atmen() {
+    console.log("Das Tier atmet.");
+  }
+};
+
+const hund = Object.create(tier); // `hund` erbt von `tier`
+hund.bellen = function() {
+  console.log("Wuff!");
+};
+
+hund.bellen(); // "Wuff!"
+hund.atmen(); // "Das Tier atmet." (geerbt von `tier`)
+console.log(Object.getPrototypeOf(hund) === tier); // true
+```
+✅ **Eigenschaften werden über die Prototypen-Kette vererbt.**  
+✅ **Wenn eine Eigenschaft fehlt, wird im nächsten Prototyp gesucht.**  
+
+---
+
+## **3. Eigene Prototypen mit Konstruktorfunktionen**
+Jede Funktion hat eine `prototype`-Eigenschaft, die für die Vererbung genutzt wird.
+
+```javascript
+function Person(name) {
+  this.name = name;
+}
+
+Person.prototype.greet = function() {
+  console.log(`Hallo, ich bin ${this.name}.`);
+};
+
+const max = new Person("Max");
+max.greet(); // "Hallo, ich bin Max."
+console.log(max.__proto__ === Person.prototype); // true
+```
+✅ **Methoden werden nur einmal im Prototyp gespeichert, nicht in jeder Instanz.**  
+❌ **Ohne `new` wird `this` nicht richtig gesetzt.**  
+
+---
+
+## **4. Prototyp-Kette mit Klassen (`class`)**
+ES6 **Klassen (`class`)** sind eine modernere Syntax für Prototypen.
+
+```javascript
+class Tier {
+  atmen() {
+    console.log("Das Tier atmet.");
+  }
+}
+
+class Hund extends Tier {
+  bellen() {
+    console.log("Wuff!");
+  }
+}
+
+const bello = new Hund();
+bello.bellen(); // "Wuff!"
+bello.atmen(); // "Das Tier atmet." (geerbt von `Tier`)
+```
+✅ **Klarere Syntax für Vererbung.**  
+✅ **Nutzen intern Prototypen (`extends`).**  
+
+---
+
+## **5. `Object.create(prototype)` für Prototypen**
+```javascript
+const katze = Object.create(tier);
+katze.miauen = function() {
+  console.log("Miau!");
+};
+
+katze.atmen(); // "Das Tier atmet." (geerbt)
+```
+✅ **Flexibel, kein `new` nötig.**  
+❌ **Kein `instanceof`-Support.**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Beschreibung | Vorteile | Nachteile |
+|---------|-------------|----------|-----------|
+| `Object.create(proto)` | Erstellt ein Objekt mit bestimmtem Prototyp | Einfach, flexibel | Kein `instanceof` |
+| **Konstruktorfunktion + `prototype`** | Klassische Methode zur Vererbung | Speicheroptimiert | Braucht `new` |
+| **ES6 `class` + `extends`** | Modernere Syntax für Vererbung | Lesbar, `super()`-Support | Nur syntaktischer Zucker |
+| **Prototyp-Kette** | Automatische Suche in `[[Prototype]]` | Ermöglicht Vererbung | Kann unübersichtlich werden |
+
+🔗 [MDN-Dokumentation zu Prototypen](https://developer.mozilla.org/de/docs/Learn/JavaScript/Objects/Prototypes)
 
   **[⬆ Наверх](#top)**
 
-38. ### <a name="38"></a> 
+38. ### <a name="38"></a> Object.create()
 
+### **`Object.create()` in JavaScript**  
+
+Die Methode `Object.create(proto)` erstellt ein neues Objekt mit einem bestimmten **Prototypen**. Dadurch kann man einfach Objekte **vererben**, ohne Konstruktorfunktionen oder Klassen zu verwenden.
+
+---
+
+## **1. Einfaches Beispiel: Objekt mit Prototyp**
+```javascript
+const tier = {
+  atmen() {
+    console.log("Das Tier atmet.");
+  }
+};
+
+const hund = Object.create(tier);
+hund.bellen = function() {
+  console.log("Wuff!");
+};
+
+hund.atmen(); // "Das Tier atmet." (geerbt von `tier`)
+hund.bellen(); // "Wuff!"
+console.log(Object.getPrototypeOf(hund) === tier); // true
+```
+✅ **`hund` erbt die Methode `atmen()` von `tier`.**  
+✅ **Prototype Chain wird genutzt.**  
+
+---
+
+## **2. `Object.create(proto, properties)` mit Eigenschaften**
+Man kann Eigenschaften direkt definieren.
+
+```javascript
+const person = {
+  beschreibung() {
+    return `${this.name} ist ${this.alter} Jahre alt.`;
+  }
+};
+
+const max = Object.create(person, {
+  name: { value: "Max", writable: true, enumerable: true },
+  alter: { value: 30, writable: true, enumerable: true }
+});
+
+console.log(max.beschreibung()); // "Max ist 30 Jahre alt."
+console.log(Object.keys(max)); // ["name", "alter"] (enumerable: true)
+```
+✅ **Man kann `writable`, `enumerable`, `configurable` setzen.**  
+
+---
+
+## **3. `Object.create(null)` – Objekt ohne Prototyp**
+Erstellt ein **komplett leeres Objekt** (kein `Object.prototype`).
+
+```javascript
+const obj = Object.create(null);
+obj.name = "Test";
+
+console.log(obj.name); // "Test"
+console.log(obj.toString); // ❌ `undefined` (kein `Object.prototype`)
+```
+✅ **Gut für "reine" Key-Value-Maps (z. B. für Dictionary-Speicherung).**  
+❌ **Keine Standardmethoden (`toString`, `hasOwnProperty`).**  
+
+---
+
+## **4. Vererbung mit `Object.create()`**
+```javascript
+const fahrzeug = {
+  start() {
+    console.log(`${this.marke} startet.`);
+  }
+};
+
+const auto = Object.create(fahrzeug);
+auto.marke = "Tesla";
+
+auto.start(); // "Tesla startet."
+```
+✅ **Einfachere Alternative zu `class` oder Konstruktorfunktionen.**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Beschreibung | Vorteile | Nachteile |
+|---------|-------------|----------|-----------|
+| `Object.create(proto)` | Erstellt Objekt mit Prototyp `proto` | Speicheroptimiert, flexibel | Kein direkter `instanceof`-Support |
+| `Object.create(proto, props)` | Erstellt Objekt + Eigenschaftsdefinition | Kontrolle über Eigenschaften | Komplexer |
+| `Object.create(null)` | Objekt ohne Prototyp (`Object.prototype` fehlt) | Kein Overhead | Keine Standardmethoden |
+
+🔗 [MDN-Dokumentation zu `Object.create()`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Object/create)
 
   **[⬆ Наверх](#top)**
 
-39. ### <a name="39"></a> 
+39. ### <a name="39"></a> Unterschied zwischen klassischer und prototypischer Vererbung
 
+### **Unterschied zwischen klassischer und prototypischer Vererbung in JavaScript**  
+
+JavaScript nutzt **prototypische Vererbung**, während viele andere Sprachen wie Java oder C++ **klassische Vererbung** (klassenbasiert) verwenden. Ab **ES6** gibt es jedoch die `class`-Syntax, die auf Prototypen basiert, aber klassisches Verhalten nachahmt.
+
+---
+
+## **1. Klassische Vererbung (Klassenbasiert – ES6 `class`)**
+In klassischer Vererbung erstellt man **eine Klasse**, die als Blaupause für Objekte dient. Subklassen können von einer Superklasse erben.
+
+```javascript
+class Tier {
+  constructor(name) {
+    this.name = name;
+  }
+
+  laufen() {
+    console.log(`${this.name} läuft.`);
+  }
+}
+
+class Hund extends Tier {
+  bellen() {
+    console.log(`${this.name} bellt: Wuff!`);
+  }
+}
+
+const rex = new Hund("Rex");
+rex.laufen(); // "Rex läuft."
+rex.bellen(); // "Rex bellt: Wuff!"
+```
+✅ **Vorteile:**  
+- Klare Struktur, leicht verständlich  
+- `super()` ermöglicht Zugriff auf die Superklasse  
+- Bessere Lesbarkeit für Entwickler mit OOP-Erfahrung  
+
+❌ **Nachteile:**  
+- Statischer als Prototypen  
+- Weniger flexibel für dynamische Objekte  
+
+---
+
+## **2. Prototypische Vererbung (`Object.create()` oder `prototype`)**
+Hier gibt es **keine Klassen**. Objekte erben direkt von anderen Objekten über die **Prototype Chain**.
+
+```javascript
+const tier = {
+  laufen() {
+    console.log("Das Tier läuft.");
+  }
+};
+
+const hund = Object.create(tier);
+hund.bellen = function() {
+  console.log("Wuff!");
+};
+
+hund.laufen(); // "Das Tier läuft." (geerbt von `tier`)
+hund.bellen(); // "Wuff!"
+```
+✅ **Vorteile:**  
+- Mehr **Flexibilität** (dynamische Objekte, keine feste Klassendefinition)  
+- **Direkte Vererbung von Objekten**  
+- Speicherfreundlich (Methoden im Prototyp gespeichert)  
+
+❌ **Nachteile:**  
+- Weniger intuitiv für Entwickler mit OOP-Hintergrund  
+- Keine direkte `instanceof`-Überprüfung  
+
+---
+
+## **3. Vergleich: Klassisch vs. Prototypisch**
+
+| Merkmal | Klassische Vererbung (`class`) | Prototypische Vererbung (`Object.create()` / `prototype`) |
+|---------|---------------------------------|---------------------------------|
+| **Basis** | Klassen mit Konstruktoren | Objekte erben direkt von anderen Objekten |
+| **Syntax** | `class` und `extends` | `Object.create()` oder `prototype` |
+| **Methodenspeicher** | Im `prototype` der Klasse | Direkt im Prototyp-Objekt |
+| **Flexibilität** | Statisch, festgelegte Struktur | Dynamisch, Objekte können geändert werden |
+| **Performance** | Optimiert für OOP | Speicherfreundlich, da Prototypen gemeinsam genutzt werden |
+
+---
+
+### **Zusammenfassung**
+- **`class` (ES6)** → Klassische Syntax, aber basiert intern auf **Prototypen**.
+- **`Object.create(proto)` oder `prototype`** → Direktes Erben von Objekten, flexibler.
+- **Prototypische Vererbung ist dynamischer**, klassisches OOP ist strukturierter.
+
+🔗 [MDN-Dokumentation zu Vererbung](https://developer.mozilla.org/de/docs/Learn/JavaScript/Objects/Inheritance)
 
   **[⬆ Наверх](#top)**
 
@@ -2770,8 +3824,123 @@ console.log(summe(10000)); // Kein Stack Overflow in TCO-fähigen Umgebungen
 
   **[⬆ Наверх](#top)**  
 
-41. ### <a name="41"></a> 
+41. ### <a name="41"></a> Arrays und Pseudo-Arrays, Array-Destrukturierung
 
+### **Arrays und Pseudo-Arrays, Array-Destrukturierung in JavaScript**  
+
+---
+
+## **1. Arrays in JavaScript**
+Ein **Array** ist eine geordnete Liste von Werten, die mit Index (`0`-basiert) zugänglich sind.
+
+```javascript
+const zahlen = [10, 20, 30];
+console.log(zahlen[0]); // 10
+console.log(zahlen.length); // 3
+```
+✅ **Arrays sind dynamisch und können verschiedene Datentypen speichern.**  
+
+---
+
+## **2. Pseudo-Arrays (Array-ähnliche Objekte)**
+Pseudo-Arrays haben **Längen- und Indexeigenschaften**, aber **nicht alle Array-Methoden**.
+
+### **2.1 `arguments`-Objekt (funktionales Pseudo-Array)**
+```javascript
+function summe() {
+  console.log(arguments); // Pseudo-Array
+  return Array.from(arguments).reduce((acc, val) => acc + val, 0);
+}
+
+console.log(summe(1, 2, 3)); // 6
+```
+✅ `Array.from(arguments)` konvertiert ein Pseudo-Array in ein echtes Array.  
+
+---
+
+### **2.2 `NodeList` und `HTMLCollection` (DOM-Pseudo-Arrays)**
+```javascript
+const alleDivs = document.querySelectorAll("div");
+console.log(alleDivs instanceof NodeList); // true
+
+const echteArray = Array.from(alleDivs);
+console.log(echteArray.map(div => div.innerText)); // Array-Methoden nutzbar
+```
+✅ **`NodeList` ist kein echtes Array → `Array.from()` oder Spread-Operator nutzen.**  
+
+---
+
+## **3. Array-Destrukturierung (ES6)**  
+Mit **Destrukturierung** können Werte direkt aus einem Array extrahiert werden.
+
+### **3.1 Grundlegende Destrukturierung**
+```javascript
+const zahlen = [10, 20, 30];
+const [erstes, zweites] = zahlen;
+
+console.log(erstes); // 10
+console.log(zweites); // 20
+```
+✅ **Verkürzt den Code bei Wertzuweisungen.**  
+
+---
+
+### **3.2 Überspringen von Werten**
+```javascript
+const zahlen = [10, 20, 30, 40];
+const [, , drittes] = zahlen;
+
+console.log(drittes); // 30
+```
+✅ **Lässt bestimmte Elemente aus.**  
+
+---
+
+### **3.3 Destrukturierung mit Rest-Operator (`...`)**
+```javascript
+const [erstes, ...rest] = [1, 2, 3, 4, 5];
+
+console.log(erstes); // 1
+console.log(rest); // [2, 3, 4, 5]
+```
+✅ **Ideal für Variablen mit dynamischer Länge.**  
+
+---
+
+### **3.4 Werte tauschen mit Destrukturierung**
+```javascript
+let a = 5, b = 10;
+[a, b] = [b, a];
+
+console.log(a, b); // 10, 5
+```
+✅ **Kein temporärer Zwischenspeicher nötig.**  
+
+---
+
+### **3.5 Destrukturierung in Funktionsparametern**
+```javascript
+function zeigePerson([name, alter]) {
+  console.log(`${name} ist ${alter} Jahre alt.`);
+}
+
+const daten = ["Lisa", 30];
+zeigePerson(daten); // Lisa ist 30 Jahre alt.
+```
+✅ **Perfekt für Funktionen mit Array-Parametern.**  
+
+---
+
+### **Zusammenfassung**
+| Thema | Beschreibung |
+|-------|-------------|
+| **Array** | Geordnete Liste von Werten (`[1, 2, 3]`) |
+| **Pseudo-Arrays** | `arguments`, `NodeList` – Kein echtes Array |
+| **Destrukturierung** | Extrahiert Werte aus Arrays |
+| **Rest-Operator (`...`)** | Speichert den Rest der Werte |
+| **Tauschen mit Destrukturierung** | `[a, b] = [b, a]` |
+
+🔗 [MDN-Dokumentation zur Array-Destrukturierung](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Operators/Destrukturierende_Zuweisung#arrays)
 
   **[⬆ Наверх](#top)**
 
