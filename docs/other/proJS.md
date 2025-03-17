@@ -6437,63 +6437,1499 @@ trackFPS();
 
   **[⬆ Наверх](#top)** 
 
-76. ### <a name="76"></a> 
+76. ### <a name="76"></a> setTimeout und setInterval, Besonderheiten
 
+### **`setTimeout()` und `setInterval()` in JavaScript**  
+
+Diese Methoden werden verwendet, um **zeitverzögerte oder wiederholte Ausführungen** von Funktionen zu steuern.  
+
+---
+
+## **1. `setTimeout(callback, delay)` – Verzögerte Ausführung**
+Führt eine Funktion **nach einer bestimmten Zeit (ms)** einmal aus.
+
+```javascript
+setTimeout(() => {
+  console.log("Nach 2 Sekunden ausgeführt!");
+}, 2000);
+```
+✅ **Einmalige Verzögerung**  
+❌ **Funktioniert asynchron – läuft unabhängig vom Hauptcode**  
+
+---
+
+### **1.1 `setTimeout()` abbrechen mit `clearTimeout()`**
+```javascript
+const timeoutId = setTimeout(() => {
+  console.log("Das wird nicht ausgeführt!");
+}, 2000);
+
+clearTimeout(timeoutId); // Löscht den Timeout
+```
+✅ **Nützlich, um Verzögerungen zu stoppen (z. B. Ladeanimationen)**  
+
+---
+
+## **2. `setInterval(callback, delay)` – Wiederholte Ausführung**
+Führt eine Funktion **immer wieder nach einer bestimmten Zeit aus**.
+
+```javascript
+const intervalId = setInterval(() => {
+  console.log("Alle 2 Sekunden wiederholt!");
+}, 2000);
+```
+✅ **Perfekt für zyklische Updates (z. B. Uhren, Echtzeit-Daten)**  
+
+---
+
+### **2.1 `setInterval()` abbrechen mit `clearInterval()`**
+```javascript
+const intervalId = setInterval(() => {
+  console.log("Wiederholung...");
+}, 1000);
+
+setTimeout(() => {
+  clearInterval(intervalId); // Stoppt den `setInterval`
+  console.log("Interval gestoppt!");
+}, 5000);
+```
+✅ **Nützlich, um Loops zu stoppen (z. B. nach X Sekunden)**  
+
+---
+
+## **3. `setTimeout()` als `setInterval()`-Alternative**
+Manchmal ist es besser, `setTimeout()` rekursiv zu verwenden, statt `setInterval()`.
+
+```javascript
+function wiederhole() {
+  console.log("Wiederholung...");
+  setTimeout(wiederhole, 1000); // Wartet 1 Sekunde und ruft sich erneut auf
+}
+
+wiederhole();
+```
+✅ **Bessere Kontrolle als `setInterval()` (z. B. variabler Delay)**  
+
+---
+
+## **4. Besonderheiten & Probleme**
+### **4.1 `setTimeout(0)` – Wann wird es ausgeführt?**
+```javascript
+console.log("Start");
+
+setTimeout(() => {
+  console.log("Timeout mit 0 ms!");
+}, 0);
+
+console.log("Ende");
+```
+**Konsolenausgabe:**
+```
+Start
+Ende
+Timeout mit 0 ms!
+```
+📌 **Grund:** `setTimeout(0)` wird erst nach dem aktuellen Callstack ausgeführt!  
+
+---
+
+### **4.2 `setInterval()` kann ungenau sein**
+```javascript
+let count = 0;
+const start = Date.now();
+
+const interval = setInterval(() => {
+  count++;
+  console.log(`Laufzeit: ${Date.now() - start} ms`);
+  if (count === 5) clearInterval(interval);
+}, 1000);
+```
+❌ **`setInterval(1000)` läuft nicht exakt jede Sekunde, weil andere Code-Ausführungen Verzögerungen verursachen können.**  
+✅ **Besser:** `setTimeout()` rekursiv nutzen (siehe Punkt 3).  
+
+---
+
+### **Zusammenfassung**
+| Methode | Beschreibung | Stoppen mit |
+|---------|-------------|------------|
+| **`setTimeout(callback, delay)`** | Führt `callback` **einmal** nach `delay` ms aus | `clearTimeout(id)` |
+| **`setInterval(callback, delay)`** | Führt `callback` **wiederholt** alle `delay` ms aus | `clearInterval(id)` |
+| **Alternative** | `setTimeout()` rekursiv als `setInterval()`-Ersatz nutzen | - |
+
+🔗 [MDN-Dokumentation zu `setTimeout()`](https://developer.mozilla.org/de/docs/Web/API/setTimeout)  
+🔗 [MDN-Dokumentation zu `setInterval()`](https://developer.mozilla.org/de/docs/Web/API/setInterval)
 
   **[⬆ Наверх](#top)** 
 
-77. ### <a name="77"></a> 
+77. ### <a name="77"></a> AJAX und XMLHttpRequest
 
+### **AJAX und `XMLHttpRequest` in JavaScript**  
+
+**AJAX (Asynchronous JavaScript and XML)** ermöglicht das **asynchrone Laden von Daten** in eine Webseite, ohne die Seite neu zu laden.  
+Dazu wird häufig das **`XMLHttpRequest`-Objekt (XHR)** oder die modernere **`fetch()`-API** verwendet.
+
+---
+
+## **1. Grundlagen: `XMLHttpRequest`**
+```javascript
+const xhr = new XMLHttpRequest();
+xhr.open("GET", "https://jsonplaceholder.typicode.com/posts/1", true);
+xhr.onreadystatechange = function () {
+  if (xhr.readyState === 4 && xhr.status === 200) {
+    console.log(JSON.parse(xhr.responseText)); // Antwort als JSON ausgeben
+  }
+};
+xhr.send();
+```
+✅ **`xhr.open(method, url, async)`** → Öffnet eine Verbindung  
+✅ **`xhr.send()`** → Sendet die Anfrage  
+
+---
+
+## **2. `readyState` Werte (`onreadystatechange`)**
+| `readyState` | Bedeutung |
+|-------------|-----------|
+| `0` | Anfrage nicht initialisiert (`UNSENT`) |
+| `1` | Verbindung geöffnet (`OPENED`) |
+| `2` | Anfrage gesendet (`HEADERS_RECEIVED`) |
+| `3` | Antwort wird geladen (`LOADING`) |
+| `4` | Antwort vollständig (`DONE`) |
+
+---
+
+## **3. HTTP-Methoden mit `XMLHttpRequest`**
+### **3.1 `GET`-Anfrage**
+```javascript
+xhr.open("GET", "https://jsonplaceholder.typicode.com/users", true);
+xhr.send();
+```
+
+### **3.2 `POST`-Anfrage (Daten senden)**
+```javascript
+const xhr = new XMLHttpRequest();
+xhr.open("POST", "https://jsonplaceholder.typicode.com/posts", true);
+xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+xhr.onreadystatechange = function () {
+  if (xhr.readyState === 4 && xhr.status === 201) {
+    console.log("Erfolgreich gesendet:", JSON.parse(xhr.responseText));
+  }
+};
+
+const daten = JSON.stringify({ title: "Neuer Beitrag", body: "Inhalt", userId: 1 });
+xhr.send(daten);
+```
+✅ **`xhr.setRequestHeader()` setzt die benötigten Header für JSON-Daten**  
+
+---
+
+## **4. Fehlerbehandlung**
+```javascript
+xhr.onerror = function () {
+  console.log("Fehler beim Laden der Daten!");
+};
+```
+✅ **Wichtig für Netzwerkfehler**  
+
+---
+
+## **5. `fetch()` als moderner Ersatz für `XMLHttpRequest`**
+```javascript
+fetch("https://jsonplaceholder.typicode.com/posts/1")
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error("Fehler:", error));
+```
+✅ **Kürzere Syntax**  
+✅ **Verwendet Promises statt `onreadystatechange`**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Beschreibung |
+|---------|-------------|
+| **`XMLHttpRequest`** | Ältere AJAX-Technik, erfordert `onreadystatechange` |
+| **`fetch()`** | Moderner, nutzt Promises, kürzere Syntax |
+| **`readyState`** | Zeigt Status der Anfrage (`0-4`) |
+| **`xhr.setRequestHeader()`** | Setzt HTTP-Header für Anfragen |
+
+🔗 [MDN-Dokumentation zu `XMLHttpRequest`](https://developer.mozilla.org/de/docs/Web/API/XMLHttpRequest)  
+🔗 [MDN-Dokumentation zu `fetch()`](https://developer.mozilla.org/de/docs/Web/API/Fetch_API)
 
   **[⬆ Наверх](#top)** 
 
-78. ### <a name="78"></a> 
+78. ### <a name="78"></a> Promise (ES6)
 
+### **Promise (ES6) in JavaScript**  
+
+Ein **Promise** ist ein **Objekt**, das einen **asynchronen Prozess** repräsentiert. Es kann folgende Zustände haben:  
+
+- **`pending`** → Der Promise wird ausgeführt (noch nicht abgeschlossen).  
+- **`fulfilled`** → Der Promise wurde erfolgreich abgeschlossen (`resolve`).  
+- **`rejected`** → Der Promise ist fehlgeschlagen (`reject`).  
+
+---
+
+## **1. Einfache `Promise`-Erstellung**
+```javascript
+const meinPromise = new Promise((resolve, reject) => {
+  setTimeout(() => {
+    resolve("Erfolg!"); // Promise erfolgreich
+    // reject("Fehler!"); // Falls Fehler auftritt
+  }, 2000);
+});
+
+meinPromise
+  .then((ergebnis) => console.log(ergebnis)) // "Erfolg!"
+  .catch((fehler) => console.error(fehler)) // Falls `reject` ausgeführt wurde
+  .finally(() => console.log("Fertig!")); // Wird immer ausgeführt
+```
+✅ **`resolve(value)`** → Erfolg (geht in `.then()`)  
+✅ **`reject(error)`** → Fehler (geht in `.catch()`)  
+✅ **`finally()`** → Wird immer ausgeführt  
+
+---
+
+## **2. Verkettung von Promises (`then()`)**
+```javascript
+new Promise((resolve) => resolve(2))
+  .then((wert) => wert * 2)
+  .then((wert) => wert + 3)
+  .then((wert) => console.log(wert)); // 7
+```
+✅ **`then()` gibt automatisch einen neuen Promise zurück**  
+
+---
+
+## **3. `Promise.all()` – Mehrere Promises parallel ausführen**
+```javascript
+const p1 = new Promise((resolve) => setTimeout(() => resolve("A"), 1000));
+const p2 = new Promise((resolve) => setTimeout(() => resolve("B"), 2000));
+
+Promise.all([p1, p2]).then((ergebnisse) => console.log(ergebnisse)); // ["A", "B"] nach 2s
+```
+✅ **Wird erst ausgeführt, wenn ALLE Promises erfolgreich sind**  
+❌ **Falls ein Promise fehlschlägt, wird der gesamte `Promise.all()` abgebrochen**  
+
+📌 **Fehlertolerante Alternative: `Promise.allSettled()`**
+```javascript
+Promise.allSettled([p1, Promise.reject("Fehler")])
+  .then((ergebnisse) => console.log(ergebnisse));
+```
+✅ **Jedes Promise gibt seinen Status zurück (`fulfilled` oder `rejected`)**  
+
+---
+
+## **4. `Promise.race()` – Erstes abgeschlossenes Promise gewinnt**
+```javascript
+Promise.race([
+  new Promise((resolve) => setTimeout(() => resolve("Schnell"), 1000)),
+  new Promise((resolve) => setTimeout(() => resolve("Langsam"), 3000))
+]).then((ergebnis) => console.log(ergebnis)); // "Schnell" nach 1s
+```
+✅ **Nützlich für Timeout-Strategien**  
+
+---
+
+## **5. `Promise.any()` – Erster `resolve()` gewinnt (ES2021)**
+```javascript
+Promise.any([
+  Promise.reject("Fehler 1"),
+  new Promise((resolve) => setTimeout(() => resolve("Erfolg"), 2000)),
+  Promise.reject("Fehler 2")
+]).then((ergebnis) => console.log(ergebnis)); // "Erfolg" nach 2s
+```
+✅ **Ignoriert Fehler, solange mindestens ein Promise erfolgreich ist**  
+❌ **Falls alle fehlschlagen → `AggregateError`**  
+
+---
+
+## **6. `async/await` als Alternative zu Promises**
+```javascript
+async function ladeDaten() {
+  try {
+    let daten = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+    let json = await daten.json();
+    console.log(json);
+  } catch (fehler) {
+    console.error("Fehler:", fehler);
+  }
+}
+
+ladeDaten();
+```
+✅ **Bessere Lesbarkeit als `.then()`-Ketten**  
+✅ **Kann mit `try/catch` Fehler abfangen**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Beschreibung |
+|---------|-------------|
+| **`then()`** | Wird bei `resolve()` ausgeführt |
+| **`catch()`** | Wird bei `reject()` ausgeführt |
+| **`finally()`** | Wird immer ausgeführt |
+| **`Promise.all([])`** | Wartet auf alle Promises, bricht bei Fehler ab |
+| **`Promise.allSettled([])`** | Wartet auf alle Promises, gibt Status zurück |
+| **`Promise.race([])`** | Nimmt das erste Promise, das fertig ist |
+| **`Promise.any([])`** | Nimmt das erste erfolgreiche Promise |
+
+🔗 [MDN-Dokumentation zu Promises](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 
   **[⬆ Наверх](#top)** 
 
-79. ### <a name="79"></a> 
+79. ### <a name="79"></a> Fetch API
 
+### **Fetch API in JavaScript**  
+
+Die **Fetch API** ist eine moderne Möglichkeit, um **asynchrone HTTP-Anfragen** zu senden. Sie bietet eine **promisbasierte API** und ist eine Alternative zu `XMLHttpRequest`.
+
+---
+
+## **1. Grundlegende Verwendung von `fetch()`**
+```javascript
+fetch("https://jsonplaceholder.typicode.com/posts/1")
+  .then((response) => response.json()) // Antwort als JSON parsen
+  .then((data) => console.log(data))    // Die Daten weiterverarbeiten
+  .catch((error) => console.error("Fehler:", error)); // Fehlerbehandlung
+```
+✅ **`fetch()` gibt ein Promise zurück**, das mit der Antwort (Response) aufgelöst wird.  
+✅ **Antworten müssen explizit in das gewünschte Format (z. B. `json()`) umgewandelt werden.**
+
+---
+
+## **2. `fetch()` mit POST-Anfragen und Senden von Daten**
+```javascript
+fetch("https://jsonplaceholder.typicode.com/posts", {
+  method: "POST",                       // HTTP-Methode
+  headers: {                            // Header
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({                // Daten, die gesendet werden
+    title: "Neuer Post",
+    body: "Dies ist ein neuer Beitrag.",
+    userId: 1
+  })
+})
+  .then((response) => response.json())
+  .then((data) => console.log(data))
+  .catch((error) => console.error("Fehler:", error));
+```
+✅ **`method`** gibt die HTTP-Methode an (`GET`, `POST`, etc.)  
+✅ **`headers`** definieren die Header der Anfrage  
+✅ **`body`** enthält die gesendeten Daten (wird normalerweise als JSON-String übertragen)
+
+---
+
+## **3. Behandlung der Antwort**
+### **3.1 Überprüfen des Statuscodes**
+```javascript
+fetch("https://jsonplaceholder.typicode.com/posts/1")
+  .then((response) => {
+    if (!response.ok) { // Statuscode 200-299
+      throw new Error("Fehler beim Abrufen der Daten");
+    }
+    return response.json();
+  })
+  .then((data) => console.log(data))
+  .catch((error) => console.error("Fehler:", error));
+```
+✅ **`response.ok`** überprüft, ob der Statuscode im Bereich 200-299 liegt.  
+✅ **Fehlerbehandlung** ist wichtig, um auf HTTP-Fehler zu reagieren.
+
+---
+
+### **3.2 Umwandeln der Antwort in andere Formate**
+```javascript
+fetch("https://jsonplaceholder.typicode.com/posts/1")
+  .then((response) => response.text()) // Antwort als Text
+  .then((text) => console.log(text))    // Textinhalt ausgeben
+
+fetch("https://jsonplaceholder.typicode.com/posts/1")
+  .then((response) => response.blob()) // Antwort als Blob (z. B. Bild)
+  .then((blob) => console.log(blob))    // Blob weiterverarbeiten
+```
+✅ **`text()`**, **`json()`**, **`blob()`** und andere Methoden wandeln die Antwort in unterschiedliche Formate um.
+
+---
+
+## **4. `async/await` mit Fetch API**
+```javascript
+async function fetchDaten() {
+  try {
+    const response = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+    if (!response.ok) {
+      throw new Error("Fehler beim Abrufen der Daten");
+    }
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error("Fehler:", error);
+  }
+}
+
+fetchDaten();
+```
+✅ **`async/await` macht den Code lesbarer und synchroner.**  
+✅ **Fehler können direkt mit `try/catch` abgefangen werden.**
+
+---
+
+## **5. CORS (Cross-Origin Resource Sharing)**
+**CORS** steuert, ob eine Webanwendung **Anfragen von einer anderen Domäne** ausführen kann. Wenn ein Fehler auftritt, sieht die Fehlermeldung z. B. so aus:
+```
+Access to fetch at 'https://example.com' from origin 'https://yourwebsite.com' has been blocked by CORS policy.
+```
+✅ **CORS-Probleme können mit Serverkonfigurationen oder durch Hinzufügen von CORS-Headern auf dem Server behoben werden.**
+
+---
+
+## **6. Optionen wie `mode`, `credentials`, `cache`**
+```javascript
+fetch("https://jsonplaceholder.typicode.com/posts/1", {
+  method: "GET",
+  headers: {
+    "Accept": "application/json"
+  },
+  mode: "cors",          // CORS-Modus (z. B. "cors", "no-cors", "same-origin")
+  credentials: "same-origin",  // Senden von Cookies nur bei derselben Herkunft
+  cache: "no-cache"      // Cache-Optionen (z. B. "no-cache", "reload", "force-cache")
+})
+  .then((response) => response.json())
+  .then((data) => console.log(data));
+```
+✅ **`mode`** regelt CORS-Handling.  
+✅ **`credentials`** steuert das Senden von Cookies und Authentifizierung.  
+✅ **`cache`** bietet Optionen zur Caching-Strategie.
+
+---
+
+### **Zusammenfassung**
+| Methode | Beschreibung |
+|---------|-------------|
+| **`fetch(url, options)`** | Senden von HTTP-Anfragen (z. B. `GET`, `POST`) |
+| **`response.json()`** | Antwort als JSON parsen |
+| **`response.text()`** | Antwort als Text parsen |
+| **`response.blob()`** | Antwort als Blob parsen (z. B. Bilder) |
+| **`response.ok`** | Überprüft, ob die Antwort erfolgreich war (Status 200-299) |
+| **`async/await`** | Verbessert die Lesbarkeit und Fehlerbehandlung von `fetch()` |
+
+🔗 [MDN-Dokumentation zu `fetch()`](https://developer.mozilla.org/de/docs/Web/API/Fetch_API)  
+🔗 [MDN-Dokumentation zu `Response`](https://developer.mozilla.org/de/docs/Web/API/Response)
 
   **[⬆ Наверх](#top)** 
 
-80. ### <a name="80"></a> 
+80. ### <a name="80"></a> Async/Await (ES8)
 
+### **Async/Await (ES8) in JavaScript**  
+
+**`async/await`** ist eine **modernere Alternative** zu Promises (`.then()`-Ketten) und macht asynchronen Code **lesbarer und synchroner**.
+
+---
+
+## **1. `async`-Funktion erstellen**
+Eine **`async`-Funktion** gibt immer **ein Promise zurück**.
+
+```javascript
+async function beispiel() {
+  return "Hallo Welt!";
+}
+
+beispiel().then(console.log); // "Hallo Welt!"
+```
+✅ **Automatische Rückgabe eines Promises**  
+✅ **Kein explizites `return new Promise()` nötig**  
+
+---
+
+## **2. `await` – Warte auf Promise-Ergebnisse**
+```javascript
+async function ladeDaten() {
+  let response = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+  let daten = await response.json();
+  console.log(daten);
+}
+
+ladeDaten();
+```
+✅ **`await` wartet, bis das Promise aufgelöst wurde**  
+✅ **Kein `.then()` nötig**  
+
+---
+
+## **3. Fehlerbehandlung mit `try/catch`**
+```javascript
+async function ladeDatenMitFehler() {
+  try {
+    let response = await fetch("https://jsonplaceholder.typicode.com/invalid-url");
+    if (!response.ok) throw new Error("Fehlerhafte Anfrage!");
+    
+    let daten = await response.json();
+    console.log(daten);
+  } catch (error) {
+    console.error("Fehler:", error);
+  }
+}
+
+ladeDatenMitFehler();
+```
+✅ **Besser als `.catch()` für Fehlerbehandlung**  
+
+---
+
+## **4. `async/await` mit mehreren Promises (`Promise.all`)**
+```javascript
+async function ladeMehrereDaten() {
+  let [benutzer, beitraege] = await Promise.all([
+    fetch("https://jsonplaceholder.typicode.com/users/1").then((res) => res.json()),
+    fetch("https://jsonplaceholder.typicode.com/posts?userId=1").then((res) => res.json()),
+  ]);
+
+  console.log(benutzer, beitraege);
+}
+
+ladeMehrereDaten();
+```
+✅ **Effizient – Beide Anfragen laufen gleichzeitig!**  
+
+---
+
+## **5. `await` in Schleifen (nacheinander ausführen)**
+```javascript
+async function ladeNacheinander() {
+  for (let id of [1, 2, 3]) {
+    let res = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`);
+    let daten = await res.json();
+    console.log(daten.title);
+  }
+}
+
+ladeNacheinander();
+```
+✅ **Führt Anfragen in einer Schleife nacheinander aus**  
+❌ **Langsamer als `Promise.all()` (kein paralleles Laden)**  
+
+---
+
+## **6. `await` in einer normalen Funktion (geht nicht)**
+❌ **`await` kann nur in `async`-Funktionen verwendet werden!**
+```javascript
+// Ungültig:
+function test() {
+  let data = await fetch("https://jsonplaceholder.typicode.com/posts/1"); // ❌ Fehler!
+}
+```
+✅ **Lösung:** Funktion in `async`-Funktion umwandeln  
+```javascript
+async function test() {
+  let data = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+  console.log(await data.json());
+}
+```
+
+---
+
+### **Zusammenfassung**
+| Feature | Beschreibung |
+|---------|-------------|
+| **`async function()`** | Erstellt eine asynchrone Funktion, gibt ein Promise zurück |
+| **`await`** | Wartet auf das Ergebnis eines Promises |
+| **`try/catch`** | Fängt Fehler in `async`-Funktionen ab |
+| **`Promise.all()`** | Führt mehrere Promises parallel aus |
+| **`await` in Schleifen** | Führt Promises nacheinander aus |
+
+🔗 [MDN-Dokumentation zu `async/await`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/async_function)
 
   **[⬆ Наверх](#top)** 
 
-81. ### <a name="81"></a> 
+81. ### <a name="81"></a> try...catch, throw-Anweisung
 
+### **`try...catch` und `throw` in JavaScript**  
+
+Die **`try...catch`-Anweisung** dient zur **Fehlerbehandlung**, während **`throw`** es ermöglicht, manuell Fehler auszulösen.
+
+---
+
+## **1. Grundlegende Fehlerbehandlung mit `try...catch`**
+```javascript
+try {
+  let x = y + 1; // Fehler: `y` ist nicht definiert
+} catch (error) {
+  console.log("Fehler:", error.message);
+}
+```
+✅ **`try`-Block führt den Code aus**  
+✅ **`catch`-Block fängt Fehler ab und verhindert Absturz**  
+
+---
+
+## **2. `catch` kann Fehlerdetails abrufen**
+```javascript
+try {
+  let x = y + 1;
+} catch (error) {
+  console.log("Fehlertyp:", error.name); // ReferenceError
+  console.log("Fehlermeldung:", error.message); // y is not defined
+}
+```
+✅ **`error.name` → Fehlertyp (z. B. `ReferenceError`, `TypeError`)**  
+✅ **`error.message` → Detaillierte Fehlermeldung**  
+
+---
+
+## **3. `throw` – Eigene Fehler auslösen**
+```javascript
+function prüfeAlter(alter) {
+  if (alter < 18) {
+    throw new Error("Du bist zu jung!");
+  }
+  return "Zugang erlaubt";
+}
+
+try {
+  console.log(prüfeAlter(16));
+} catch (error) {
+  console.error("Fehler:", error.message);
+}
+```
+✅ **`throw` kann benutzerdefinierte Fehler auslösen**  
+
+📌 **Ohne `try...catch` würde das Skript abstürzen!**  
+
+---
+
+## **4. `finally` – Code immer ausführen**
+```javascript
+try {
+  console.log("Code wird ausgeführt");
+} catch (error) {
+  console.log("Fehler passiert");
+} finally {
+  console.log("Wird immer ausgeführt!");
+}
+```
+✅ **`finally` wird immer ausgeführt – auch bei Fehlern!**  
+
+---
+
+## **5. `try...catch` mit `async/await`**
+```javascript
+async function ladeDaten() {
+  try {
+    let response = await fetch("https://jsonplaceholder.typicode.com/invalid-url");
+    if (!response.ok) throw new Error("Fehlerhafte Anfrage!");
+    
+    let daten = await response.json();
+    console.log(daten);
+  } catch (error) {
+    console.error("Fehler:", error.message);
+  }
+}
+
+ladeDaten();
+```
+✅ **Fängt Fehler bei `fetch()` oder anderen Promises ab**  
+
+---
+
+### **Zusammenfassung**
+| Anweisung | Beschreibung |
+|-----------|-------------|
+| **`try {}`** | Führt den Code aus |
+| **`catch(error) {}`** | Fängt Fehler ab |
+| **`error.name`** | Zeigt den Fehler-Typ (z. B. `TypeError`) |
+| **`error.message`** | Gibt die Fehlermeldung aus |
+| **`throw new Error("...")`** | Löst einen eigenen Fehler aus |
+| **`finally {}`** | Wird immer ausgeführt, egal ob Fehler oder nicht |
+
+🔗 [MDN-Dokumentation zu `try...catch`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/try...catch)  
+🔗 [MDN-Dokumentation zu `throw`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/throw)
 
   **[⬆ Наверх](#top)** 
 
-82. ### <a name="82"></a> 
+82. ### <a name="82"></a> Axios-Bibliothek
 
+### **Axios-Bibliothek in JavaScript**  
+
+**Axios** ist eine beliebte **HTTP-Client-Bibliothek**, die einfacher und leistungsfähiger als die native `fetch()`-API ist.  
+Sie basiert auf **Promises** und unterstützt **automatische JSON-Verarbeitung, Fehlerbehandlung und Abbruch von Anfragen**.
+
+📌 **Installation (für Node.js / Browser mit npm):**
+```bash
+npm install axios
+```
+📌 **CDN für den Browser:**
+```html
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+```
+
+---
+
+## **1. `GET`-Anfrage mit Axios**
+```javascript
+axios.get("https://jsonplaceholder.typicode.com/posts/1")
+  .then((response) => console.log(response.data)) // JSON-Daten ausgeben
+  .catch((error) => console.error("Fehler:", error));
+```
+✅ **`axios.get(url)`** → Führt eine `GET`-Anfrage aus  
+✅ **Antwort ist bereits in `response.data` (kein `response.json()` nötig)**  
+
+---
+
+## **2. `POST`-Anfrage mit Axios**
+```javascript
+axios.post("https://jsonplaceholder.typicode.com/posts", {
+  title: "Neuer Beitrag",
+  body: "Inhalt des Beitrags",
+  userId: 1
+})
+  .then((response) => console.log(response.data))
+  .catch((error) => console.error("Fehler:", error));
+```
+✅ **Automatische Umwandlung in JSON**  
+✅ **Kein `fetch() + JSON.stringify()` nötig**  
+
+---
+
+## **3. `PUT` und `DELETE` mit Axios**
+```javascript
+// Eintrag aktualisieren (PUT)
+axios.put("https://jsonplaceholder.typicode.com/posts/1", {
+  title: "Aktualisierter Titel",
+  body: "Neuer Inhalt"
+});
+
+// Eintrag löschen (DELETE)
+axios.delete("https://jsonplaceholder.typicode.com/posts/1")
+  .then(() => console.log("Erfolgreich gelöscht!"));
+```
+✅ **PUT: Überschreibt die gesamte Ressource**  
+✅ **DELETE: Entfernt eine Ressource**  
+
+---
+
+## **4. `async/await` mit Axios**
+```javascript
+async function ladeDaten() {
+  try {
+    const response = await axios.get("https://jsonplaceholder.typicode.com/posts");
+    console.log(response.data);
+  } catch (error) {
+    console.error("Fehler:", error);
+  }
+}
+
+ladeDaten();
+```
+✅ **Verbessert Lesbarkeit im Vergleich zu `.then()`**  
+
+---
+
+## **5. Mehrere Anfragen gleichzeitig (`axios.all()`)**
+```javascript
+axios.all([
+  axios.get("https://jsonplaceholder.typicode.com/users/1"),
+  axios.get("https://jsonplaceholder.typicode.com/posts?userId=1")
+])
+  .then(axios.spread((benutzer, beitraege) => {
+    console.log("Benutzer:", benutzer.data);
+    console.log("Beiträge:", beitraege.data);
+  }));
+```
+✅ **Führt mehrere Anfragen parallel aus**  
+
+---
+
+## **6. Abbrechen von Anfragen mit `CancelToken`**
+```javascript
+const source = axios.CancelToken.source();
+
+axios.get("https://jsonplaceholder.typicode.com/posts", { cancelToken: source.token })
+  .catch((thrown) => {
+    if (axios.isCancel(thrown)) {
+      console.log("Anfrage abgebrochen:", thrown.message);
+    }
+  });
+
+// Abbrechen der Anfrage
+source.cancel("Anfrage wurde manuell abgebrochen.");
+```
+✅ **Perfekt für das Abbrechen von Requests in SPA-Apps**  
+
+---
+
+## **7. Fehlerbehandlung mit `response.status`**
+```javascript
+axios.get("https://jsonplaceholder.typicode.com/invalid-url")
+  .then((response) => console.log(response.data))
+  .catch((error) => {
+    if (error.response) {
+      console.log("Fehlerstatus:", error.response.status); // z. B. 404
+    } else {
+      console.log("Netzwerkfehler:", error.message);
+    }
+  });
+```
+✅ **Detaillierte Fehlerbehandlung basierend auf HTTP-Statuscodes**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Beschreibung |
+|---------|-------------|
+| **`axios.get(url)`** | Führt eine `GET`-Anfrage aus |
+| **`axios.post(url, data)`** | Sendet eine `POST`-Anfrage |
+| **`axios.put(url, data)`** | Aktualisiert eine Ressource (`PUT`) |
+| **`axios.delete(url)`** | Löscht eine Ressource |
+| **`axios.all([req1, req2])`** | Führt mehrere Anfragen parallel aus |
+| **`axios.CancelToken`** | Erlaubt das Abbrechen von Anfragen |
+
+🔗 [Axios-Dokumentation](https://axios-http.com/docs/intro)
 
   **[⬆ Наверх](#top)**   
 
-83. ### <a name="83"></a> 
+83. ### <a name="83"></a> Event Loop, synchrone und asynchrone Operationen
 
+### **Event Loop, synchrone und asynchrone Operationen in JavaScript**  
+
+Der **Event Loop** ist der Mechanismus in JavaScript, der zwischen **synchronem und asynchronem Code** vermittelt und dafür sorgt, dass asynchrone Operationen **nicht blockierend** ablaufen.
+
+---
+
+## **1. Synchrone vs. Asynchrone Operationen**
+📌 **Synchrone Operationen** werden in der Reihenfolge ausgeführt, in der sie im Code stehen.  
+
+```javascript
+console.log("Erste Ausgabe");
+console.log("Zweite Ausgabe");
+```
+**Konsolenausgabe:**  
+```
+Erste Ausgabe
+Zweite Ausgabe
+```
+✅ **Einfach, aber kann blockieren**  
+
+📌 **Asynchrone Operationen** laufen im **Hintergrund** und werden erst später ausgeführt.  
+
+```javascript
+console.log("Start");
+
+setTimeout(() => {
+  console.log("Asynchrone Ausgabe");
+}, 2000);
+
+console.log("Ende");
+```
+**Konsolenausgabe:**  
+```
+Start
+Ende
+Asynchrone Ausgabe (nach 2 Sekunden)
+```
+✅ **Verhindert Blockieren des Hauptprogramms**  
+
+---
+
+## **2. Der Event Loop – Wie funktioniert er?**
+JavaScript läuft **single-threaded**, was bedeutet, dass es **nur eine Hauptausführungsschleife** gibt.  
+
+**Der Ablauf im Event Loop:**
+1. **Call Stack (Aufrufstapel)** – Hier werden **synchrone Operationen** direkt ausgeführt.  
+2. **Web APIs (z. B. `setTimeout`)** – Hier laufen **asynchrone Funktionen** im Hintergrund.  
+3. **Callback Queue (Warteschlange)** – Hier werden **fertige asynchrone Operationen** auf ihren Aufruf gewartet.  
+4. **Event Loop** – Prüft, ob der Call Stack leer ist, und führt dann Code aus der Callback Queue aus.  
+
+---
+
+## **3. Beispiel: Event Loop in Aktion**
+```javascript
+console.log("1");
+
+setTimeout(() => console.log("2"), 0);
+
+Promise.resolve().then(() => console.log("3"));
+
+console.log("4");
+```
+**Konsolenausgabe:**
+```
+1
+4
+3
+2
+```
+📌 **Warum?**
+1. **`console.log("1")`** → Wird direkt ausgeführt (Call Stack).  
+2. **`setTimeout(..., 0)`** → Kommt in die Web API, wird nach 0 ms in die Callback Queue geschoben.  
+3. **`Promise.resolve().then(...)`** → Kommt in die **Microtask Queue** (höhere Priorität!).  
+4. **`console.log("4")`** → Wird direkt ausgeführt.  
+5. **Event Loop** prüft: **Microtasks (Promise)** werden VOR `setTimeout()`-Callbacks ausgeführt → **`3` kommt vor `2`**.  
+
+---
+
+## **4. Unterschied: Callback Queue vs. Microtask Queue**
+- **Callback Queue:** Enthält **`setTimeout`**, **`setInterval`**, **`setImmediate`**-Callbacks.  
+- **Microtask Queue:** Enthält **`Promise.then()`**, **`MutationObserver`** (höhere Priorität).  
+
+**Reihenfolge:**  
+1. **Call Stack wird geleert**  
+2. **Alle Microtasks (`Promise.then()`) werden ausgeführt**  
+3. **Erst dann kommen `setTimeout()` & `setInterval()` aus der Callback Queue**  
+
+---
+
+## **5. Praxis: Reihenfolge verstehen**
+```javascript
+setTimeout(() => console.log("Timeout"), 0);
+Promise.resolve().then(() => console.log("Promise"));
+console.log("Sofort");
+```
+**Konsolenausgabe:**
+```
+Sofort
+Promise
+Timeout
+```
+✅ **Promiseketten (`.then()`) haben Vorrang vor `setTimeout()`**  
+
+---
+
+## **6. Blockierende Operationen vermeiden**
+Wenn eine **langsame Schleife** den Call Stack blockiert, wird der Event Loop **angehalten**.
+
+```javascript
+console.log("Start");
+
+for (let i = 0; i < 1e9; i++) {} // ❌ Blockiert die UI!
+
+console.log("Ende");
+```
+❌ **Alles bleibt hängen, da die Schleife nicht unterbrochen wird.**  
+
+📌 **Besser: Asynchron mit `setTimeout()` ausführen**
+```javascript
+console.log("Start");
+
+setTimeout(() => {
+  for (let i = 0; i < 1e9; i++) {} // Wird verzögert ausgeführt
+  console.log("Lange Berechnung fertig");
+}, 0);
+
+console.log("Ende");
+```
+✅ **Verhindert Blockieren der Hauptschleife**  
+
+---
+
+### **Zusammenfassung**
+| Begriff | Beschreibung |
+|---------|-------------|
+| **Call Stack** | Stapel für synchronen Code |
+| **Web APIs** | Verarbeitet asynchrone Operationen (`setTimeout`, `fetch`) |
+| **Callback Queue** | Warteschlange für `setTimeout`, `setInterval` |
+| **Microtask Queue** | Warteschlange für `Promise.then()`, hat höhere Priorität |
+| **Event Loop** | Steuert die Ausführung von Code zwischen Stack, Queues & Web APIs |
+
+🔗 [MDN-Dokumentation zum Event Loop](https://developer.mozilla.org/de/docs/Web/JavaScript/EventLoop)
 
   **[⬆ Наверх](#top)** 
 
-84. ### <a name="84"></a> 
+84. ### <a name="84"></a> Möglichkeiten zum Senden von Serveranfragen
 
+### **Möglichkeiten zum Senden von Serveranfragen in JavaScript**  
+
+JavaScript bietet mehrere Methoden, um **HTTP-Anfragen** an einen Server zu senden.  
+Hier sind die wichtigsten Techniken:
+
+---
+
+## **1. `fetch()` (Moderne Lösung, Promises)**
+```javascript
+fetch("https://jsonplaceholder.typicode.com/posts/1")
+  .then((response) => response.json()) // Antwort als JSON parsen
+  .then((data) => console.log(data))    // Daten ausgeben
+  .catch((error) => console.error("Fehler:", error));
+```
+✅ **Einfach & nativ in JS verfügbar**  
+✅ **Unterstützt `async/await` für bessere Lesbarkeit**  
+❌ **Kein automatischer Timeout oder Fehlerhandling für HTTP-Fehler**  
+
+📌 **POST-Anfrage mit `fetch()`**
+```javascript
+fetch("https://jsonplaceholder.typicode.com/posts", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ title: "Neuer Beitrag", body: "Text", userId: 1 })
+})
+  .then((response) => response.json())
+  .then((data) => console.log(data));
+```
+
+---
+
+## **2. `XMLHttpRequest` (Ältere Methode)**
+```javascript
+const xhr = new XMLHttpRequest();
+xhr.open("GET", "https://jsonplaceholder.typicode.com/posts/1", true);
+
+xhr.onload = function () {
+  if (xhr.status === 200) {
+    console.log(JSON.parse(xhr.responseText));
+  }
+};
+
+xhr.onerror = function () {
+  console.error("Fehler bei der Anfrage");
+};
+
+xhr.send();
+```
+✅ **Funktioniert in älteren Browsern**  
+❌ **Komplexer als `fetch()` und nicht Promise-basiert**  
+
+---
+
+## **3. `Axios` (Beliebte externe Bibliothek)**
+📌 **Installation (für Node.js & Browser mit npm)**
+```bash
+npm install axios
+```
+📌 **CDN für den Browser**
+```html
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+```
+📌 **GET-Anfrage mit Axios**
+```javascript
+axios.get("https://jsonplaceholder.typicode.com/posts/1")
+  .then((response) => console.log(response.data))
+  .catch((error) => console.error("Fehler:", error));
+```
+📌 **POST-Anfrage mit Axios**
+```javascript
+axios.post("https://jsonplaceholder.typicode.com/posts", {
+  title: "Neuer Post",
+  body: "Inhalt",
+  userId: 1
+})
+  .then((response) => console.log(response.data));
+```
+✅ **Promise-basiert und einfach zu benutzen**  
+✅ **Automatische Fehlerbehandlung**  
+✅ **Unterstützt `async/await` & Abbruch von Anfragen**  
+
+---
+
+## **4. `WebSockets` (Echtzeit-Kommunikation)**
+📌 **Verwendet für Live-Daten wie Chat, Spiele & Finanzmärkte**
+```javascript
+const socket = new WebSocket("wss://example.com/socket");
+
+socket.onopen = () => {
+  console.log("Verbindung geöffnet");
+  socket.send("Hallo, Server!");
+};
+
+socket.onmessage = (event) => {
+  console.log("Nachricht vom Server:", event.data);
+};
+
+socket.onerror = (error) => {
+  console.error("WebSocket-Fehler:", error);
+};
+
+socket.onclose = () => {
+  console.log("Verbindung geschlossen");
+};
+```
+✅ **Ideal für Echtzeitkommunikation**  
+❌ **Server muss WebSockets unterstützen**  
+
+---
+
+## **5. `EventSource` (Server-Sent Events, SSE)**
+📌 **Für einseitige Updates (Server → Client), z. B. News-Feeds**
+```javascript
+const eventSource = new EventSource("https://example.com/stream");
+
+eventSource.onmessage = (event) => {
+  console.log("Neue Nachricht:", event.data);
+};
+
+eventSource.onerror = () => {
+  console.error("Verbindung unterbrochen");
+};
+```
+✅ **Weniger Overhead als WebSockets**  
+❌ **Nur für Server → Client-Nachrichten**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Beschreibung | Vorteile | Nachteile |
+|---------|-------------|----------|-----------|
+| **`fetch()`** | Moderne API für HTTP-Anfragen | Einfach, `async/await`, Promises | Kein Timeout, Fehlerbehandlung nötig |
+| **`XMLHttpRequest`** | Ältere Methode für AJAX | Funktioniert überall | Komplexer, nicht Promise-basiert |
+| **`Axios`** | Externe Bibliothek für HTTP | Einfach, `async/await`, Abbruch möglich | Externer Import nötig |
+| **`WebSockets`** | Zwei-Wege-Kommunikation in Echtzeit | Live-Daten, geringe Latenz | Server-Unterstützung nötig |
+| **`EventSource`** | Einweg-Kommunikation Server → Client | Einfach für Live-Updates | Kein Client → Server-Kanal |
+
+🔗 [MDN-Dokumentation zu `fetch()`](https://developer.mozilla.org/de/docs/Web/API/Fetch_API)  
+🔗 [Axios-Dokumentation](https://axios-http.com/docs/intro)  
+🔗 [WebSockets-Dokumentation](https://developer.mozilla.org/de/docs/Web/API/WebSockets_API)
 
   **[⬆ Наверх](#top)** 
 
-85. ### <a name="85"></a> 
+85. ### <a name="85"></a> Long Polling (Langes Abfragen)
 
+### **Long Polling (Langes Abfragen) in JavaScript**  
+
+**Long Polling** ist eine Technik zur **Echtzeitkommunikation**, bei der der Client eine **lang laufende HTTP-Anfrage** an den Server sendet und auf eine Antwort wartet.  
+Sobald neue Daten verfügbar sind, antwortet der Server und der Client sendet eine neue Anfrage.  
+
+🔹 **Wird verwendet, wenn WebSockets oder Server-Sent Events (SSE) nicht verfügbar sind.**  
+
+---
+
+## **1. Funktionsweise von Long Polling**
+1. Der **Client** sendet eine `GET`-Anfrage an den **Server**.  
+2. Der **Server** hält die Verbindung offen, bis neue Daten verfügbar sind.  
+3. Sobald neue Daten vorhanden sind, antwortet der **Server** und schließt die Verbindung.  
+4. Der **Client** sendet sofort eine neue Anfrage (wiederholte Anfragen erzeugen ein "Live-Update").  
+
+---
+
+## **2. Beispiel: Long Polling mit `fetch()`**
+```javascript
+function longPolling() {
+  fetch("https://example.com/api/updates")
+    .then(response => response.json())
+    .then(data => {
+      console.log("Neue Daten:", data);
+      longPolling(); // Neue Anfrage nach Antwort starten
+    })
+    .catch(error => {
+      console.error("Fehler:", error);
+      setTimeout(longPolling, 5000); // Bei Fehler nach 5 Sekunden erneut versuchen
+    });
+}
+
+longPolling(); // Startet den Long Polling-Prozess
+```
+✅ **Server sendet Daten nur, wenn neue Informationen verfügbar sind**  
+✅ **Direkt nach einer Antwort startet eine neue Anfrage**  
+
+---
+
+## **3. Beispiel: Long Polling mit `async/await`**
+```javascript
+async function longPolling() {
+  try {
+    const response = await fetch("https://example.com/api/updates");
+    const data = await response.json();
+    console.log("Neue Daten:", data);
+  } catch (error) {
+    console.error("Fehler:", error);
+  } finally {
+    longPolling(); // Wiederholen
+  }
+}
+
+longPolling();
+```
+✅ **`async/await` verbessert die Lesbarkeit**  
+✅ **Fehlertolerant durch `try/catch`**  
+
+---
+
+## **4. Beispiel: Long Polling mit `XMLHttpRequest` (ältere Methode)**
+```javascript
+function longPolling() {
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", "https://example.com/api/updates", true);
+
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      console.log("Neue Daten:", JSON.parse(xhr.responseText));
+    }
+    longPolling(); // Erneute Anfrage nach Antwort
+  };
+
+  xhr.onerror = function () {
+    console.error("Fehler bei der Anfrage");
+    setTimeout(longPolling, 5000); // Nach 5 Sekunden erneut versuchen
+  };
+
+  xhr.send();
+}
+
+longPolling();
+```
+✅ **Funktioniert auch in älteren Browsern**  
+❌ **Komplexer als `fetch()` oder `async/await`**  
+
+---
+
+## **5. Vergleich: Long Polling vs. Alternativen**
+| Technik | Beschreibung | Vorteile | Nachteile |
+|---------|-------------|----------|-----------|
+| **Long Polling** | Wiederholte `GET`-Anfragen für Echtzeit-Updates | Funktioniert überall, kein WebSocket-Server nötig | Hohe Serverlast |
+| **WebSockets** | Permanente Zwei-Wege-Verbindung | Sehr schnell, geringe Serverlast | WebSocket-Server erforderlich |
+| **Server-Sent Events (SSE)** | Nur Server → Client-Nachrichten | Einfach zu implementieren | Nur Einweg-Kommunikation |
+| **Short Polling** | Regelmäßige `GET`-Anfragen in Intervallen | Einfach umzusetzen | Verzögerte Updates, höhere Last |
+
+🔗 [MDN-Dokumentation zu Long Polling](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/Polling)
 
   **[⬆ Наверх](#top)** 
 
-86. ### <a name="86"></a> 
+86. ### <a name="86"></a> Web Socket
 
+### **WebSockets in JavaScript**  
+
+**WebSockets** ermöglichen eine **bidirektionale (zweiwege) Echtzeit-Kommunikation** zwischen **Client** (Browser) und **Server** über eine dauerhafte Verbindung.  
+Im Gegensatz zu **HTTP**, das für **jeden Request eine neue Verbindung** öffnet, bleibt die **WebSocket-Verbindung offen**, wodurch **schnellere und effizientere Kommunikation** möglich ist.
+
+---
+
+## **1. WebSocket-Verbindung aufbauen**
+```javascript
+const socket = new WebSocket("wss://example.com/socket");
+
+// Verbindung erfolgreich geöffnet
+socket.onopen = () => {
+  console.log("WebSocket-Verbindung hergestellt");
+  socket.send("Hallo, Server!");
+};
+
+// Nachricht vom Server empfangen
+socket.onmessage = (event) => {
+  console.log("Nachricht vom Server:", event.data);
+};
+
+// Fehlerbehandlung
+socket.onerror = (error) => {
+  console.error("WebSocket-Fehler:", error);
+};
+
+// Verbindung geschlossen
+socket.onclose = (event) => {
+  console.log("WebSocket geschlossen:", event.reason);
+};
+```
+✅ **Sofortige Datenübertragung nach Verbindungsaufbau**  
+✅ **Effizient für Chats, Echtzeitdaten (Finanzmärkte, Spiele, IoT, etc.)**  
+
+---
+
+## **2. Nachrichten an den Server senden**
+```javascript
+socket.send(JSON.stringify({ type: "message", text: "Hallo, Server!" }));
+```
+✅ **Daten können als JSON-Objekte gesendet werden**  
+
+---
+
+## **3. Verbindung sicher schließen**
+```javascript
+socket.close(1000, "Verbindung beendet");
+```
+📌 **WebSocket-Schlusscodes (Status-Codes):**
+- `1000` → **Normaler Verbindungsabbruch**
+- `1001` → **Client oder Server geht offline**
+- `1006` → **Verbindung wurde unerwartet getrennt**
+
+---
+
+## **4. WebSocket-Server mit Node.js (Beispiel)**
+**📌 Server mit `ws`-Bibliothek erstellen**  
+📌 **Installation:**
+```bash
+npm install ws
+```
+
+📌 **Node.js WebSocket-Server:**
+```javascript
+const WebSocket = require("ws");
+const server = new WebSocket.Server({ port: 8080 });
+
+server.on("connection", (ws) => {
+  console.log("Neuer Client verbunden");
+
+  ws.on("message", (message) => {
+    console.log("Nachricht erhalten:", message);
+    ws.send(`Server antwortet: ${message}`);
+  });
+
+  ws.on("close", () => {
+    console.log("Client hat die Verbindung geschlossen");
+  });
+});
+```
+✅ **Funktioniert mit jedem WebSocket-Client (Browser, Node.js, mobile Apps)**  
+
+---
+
+## **5. Vergleich: WebSockets vs. Alternativen**
+| Technologie | Beschreibung | Vorteile | Nachteile |
+|-------------|-------------|----------|-----------|
+| **WebSockets** | Dauerhafte Echtzeit-Verbindung | Schnell, bidirektional, effizient | WebSocket-Server nötig |
+| **AJAX (Polling)** | Regelmäßige `GET`-Anfragen | Einfach zu implementieren | Hohe Serverlast, Verzögerungen |
+| **Long Polling** | Server hält Verbindung offen | Bessere Echtzeit-Daten als AJAX | Höhere Serverbelastung als WebSockets |
+| **Server-Sent Events (SSE)** | Einweg-Stream Server → Client | Einfach, weniger Overhead | Kein Client → Server-Kanal |
+
+---
+
+### **Zusammenfassung**
+- WebSockets bieten eine **bidirektionale** Echtzeitkommunikation.
+- **Ideal für Chats, Live-Updates, Multiplayer-Spiele & Finanzmärkte**.
+- **Alternative: SSE (nur Server → Client) oder Long Polling (weniger effizient)**.
+
+🔗 [MDN-Dokumentation zu WebSockets](https://developer.mozilla.org/de/docs/Web/API/WebSockets_API)  
+🔗 [ws-Bibliothek für Node.js](https://github.com/websockets/ws)
 
   **[⬆ Наверх](#top)** 
 
-87. ### <a name="87"></a> 
+87. ### <a name="87"></a> Was sind Web Workers und wofür braucht man sie?
 
+### **Web Workers in JavaScript – Hintergrundprozesse für bessere Performance**  
+
+**Web Workers** sind **separate Threads**, die in JavaScript **unabhängig vom Hauptthread** laufen.  
+Sie ermöglichen die **Parallelverarbeitung**, ohne die Hauptseite zu blockieren.
+
+---
+
+## **1. Warum Web Workers?**  
+📌 **JavaScript ist Single-Threaded** → Langsame Operationen (z. B. schwere Berechnungen, API-Anfragen) können die **UI blockieren**.  
+✅ **Web Workers lösen das Problem**, indem sie Rechenaufgaben in einem separaten Thread ausführen.  
+
+**Beispiel: Ohne Web Workers (Blockierung der UI)**  
+```javascript
+console.log("Start");
+
+// Blockierende Schleife (UI hängt!)
+for (let i = 0; i < 1e9; i++) {}
+
+console.log("Ende");
+```
+❌ **Der Browser friert ein, weil JavaScript den Hauptthread blockiert.**  
+
+---
+
+## **2. Web Worker erstellen**
+**📌 Web Workers werden in einer separaten Datei (`worker.js`) definiert.**  
+
+📌 **Hauptthread (`main.js`):**
+```javascript
+const worker = new Worker("worker.js");
+
+worker.onmessage = (event) => {
+  console.log("Ergebnis vom Worker:", event.data);
+};
+
+worker.postMessage(10); // Sende Daten an den Worker
+```
+📌 **Worker-Thread (`worker.js`):**
+```javascript
+onmessage = function (event) {
+  let zahl = event.data;
+  let ergebnis = zahl * 2; // Beispiel: Berechnung
+  postMessage(ergebnis); // Antwort zurück an Hauptthread
+};
+```
+✅ **Hauptseite bleibt reaktionsfähig, während der Worker arbeitet.**  
+
+---
+
+## **3. Daten zwischen Hauptthread & Worker senden**
+### **3.1 Hauptthread → Worker**
+```javascript
+worker.postMessage({ zahl: 5, text: "Hallo" });
+```
+✅ **Daten als JSON-Objekt senden**  
+
+### **3.2 Worker → Hauptthread**
+```javascript
+postMessage("Fertig!");
+```
+
+---
+
+## **4. Worker beenden**
+```javascript
+worker.terminate(); // Stoppt den Worker sofort
+```
+✅ **Verhindert unnötige CPU-Auslastung**  
+
+---
+
+## **5. Einschränkungen von Web Workers**
+- ❌ **Kein direkter Zugriff auf DOM (`document`, `window`, `alert()`)**  
+- ❌ **Müssen in separaten Dateien (`worker.js`) gespeichert werden**  
+- ✅ **Kommunikation nur über `postMessage()`**  
+
+---
+
+## **6. Beispiel: Aufwendige Berechnung mit Web Worker**
+📌 **Hauptthread (`main.js`):**
+```javascript
+const worker = new Worker("worker.js");
+
+worker.onmessage = (event) => {
+  console.log("Faktorielle Berechnung:", event.data);
+};
+
+worker.postMessage(10);
+```
+📌 **Worker (`worker.js`):**
+```javascript
+onmessage = function (event) {
+  let n = event.data;
+  let ergebnis = 1;
+  for (let i = 2; i <= n; i++) ergebnis *= i;
+  postMessage(ergebnis);
+};
+```
+✅ **Hauptthread bleibt ungestört, während der Worker rechnet.**  
+
+---
+
+## **7. `SharedWorker` (Ein Worker für mehrere Tabs)**
+📌 **Standard-Workers können nur vom Ersteller genutzt werden. `SharedWorker` kann von mehreren Tabs einer Seite geteilt werden.**  
+
+📌 **Shared Worker (sharedWorker.js):**
+```javascript
+onconnect = function (event) {
+  const port = event.ports[0];
+
+  port.onmessage = function (event) {
+    port.postMessage("Empfangen: " + event.data);
+  };
+};
+```
+📌 **Hauptseite (`main.js`):**
+```javascript
+const sharedWorker = new SharedWorker("sharedWorker.js");
+
+sharedWorker.port.onmessage = function (event) {
+  console.log("Antwort vom Worker:", event.data);
+};
+
+sharedWorker.port.postMessage("Hallo Worker!");
+```
+✅ **Mehrere Tabs können denselben Worker verwenden.**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Beschreibung |
+|---------|-------------|
+| **Web Worker** | Führt Berechnungen in einem separaten Thread aus |
+| **postMessage()** | Kommunikation zwischen Worker & Hauptthread |
+| **terminate()** | Beendet den Worker |
+| **Kein Zugriff auf DOM** | `document`, `window`, `alert()` sind nicht verfügbar |
+| **Shared Worker** | Kann von mehreren Tabs genutzt werden |
+
+🔗 [MDN-Dokumentation zu Web Workers](https://developer.mozilla.org/de/docs/Web/API/Web_Workers_API)
 
   **[⬆ Наверх](#top)** 
 
