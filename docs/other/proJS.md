@@ -7948,33 +7948,843 @@ sharedWorker.port.postMessage("Hallo Worker!");
 
   **[⬆ Наверх](#top)** 
 
-91. ### <a name="91"></a> 
+91. ### <a name="91"></a> Klassen (ES6)
 
+### **Klassen (`class`) in JavaScript (ES6)**  
+
+**Klassen** in JavaScript sind eine **ES6-Syntax** für die objektorientierte Programmierung (OOP). Sie sind eine **vereinfachte Schreibweise** für das Prototypensystem.
+
+---
+
+## **1. Grundlegende Klassendefinition**
+```javascript
+class Person {
+  constructor(name, alter) {
+    this.name = name;
+    this.alter = alter;
+  }
+
+  // Methode
+  vorstellen() {
+    console.log(`Hallo, ich bin ${this.name} und ${this.alter} Jahre alt.`);
+  }
+}
+
+// Instanz der Klasse erstellen
+const max = new Person("Max", 30);
+max.vorstellen();
+```
+✅ **`constructor` wird beim Erstellen eines Objekts ausgeführt**  
+✅ **Methoden (`vorstellen()`) sind automatisch im `prototype` gespeichert**  
+
+---
+
+## **2. Klassenvererbung (`extends`, `super`)**
+```javascript
+class Mitarbeiter extends Person {
+  constructor(name, alter, beruf) {
+    super(name, alter); // Ruft den `constructor` der Elternklasse auf
+    this.beruf = beruf;
+  }
+
+  vorstellen() {
+    super.vorstellen(); // Ruft die Methode der Elternklasse auf
+    console.log(`Ich arbeite als ${this.beruf}.`);
+  }
+}
+
+const anna = new Mitarbeiter("Anna", 28, "Entwicklerin");
+anna.vorstellen();
+```
+✅ **`extends` → Erbt von einer anderen Klasse**  
+✅ **`super()` → Ruft den `constructor` der Elternklasse auf**  
+✅ **`super.method()` → Ruft eine Methode der Elternklasse auf**  
+
+---
+
+## **3. Getter & Setter für Eigenschaften**
+```javascript
+class Auto {
+  constructor(marke) {
+    this._marke = marke; // Private Konvention (_)
+  }
+
+  get marke() {
+    return this._marke.toUpperCase();
+  }
+
+  set marke(neueMarke) {
+    this._marke = neueMarke;
+  }
+}
+
+const meinAuto = new Auto("BMW");
+console.log(meinAuto.marke); // "BMW"
+meinAuto.marke = "Audi";
+console.log(meinAuto.marke); // "AUDI"
+```
+✅ **Getter (`get`) → Ermöglicht eine abgeleitete Darstellung**  
+✅ **Setter (`set`) → Ermöglicht Validierung oder Transformation von Daten**  
+
+---
+
+## **4. Statische Methoden & Eigenschaften**
+```javascript
+class Mathe {
+  static addiere(a, b) {
+    return a + b;
+  }
+}
+
+console.log(Mathe.addiere(5, 3)); // 8
+```
+✅ **`static` Methoden gehören zur Klasse, nicht zur Instanz**  
+
+---
+
+## **5. Private Eigenschaften & Methoden (`#`)**
+📌 **Seit ES2020 können echte private Felder mit `#` definiert werden.**
+```javascript
+class Konto {
+  #saldo = 0; // Privates Feld
+
+  einzahlen(betrag) {
+    this.#saldo += betrag;
+  }
+
+  get saldo() {
+    return this.#saldo;
+  }
+}
+
+const meinKonto = new Konto();
+meinKonto.einzahlen(100);
+console.log(meinKonto.saldo); // 100
+// console.log(meinKonto.#saldo); // ❌ Fehler! Private Eigenschaft
+```
+✅ **Private Felder sind wirklich nicht von außen zugänglich!**  
+❌ **Nur in moderneren Browsern verfügbar**  
+
+---
+
+## **6. Klassen als `Expressions`**
+```javascript
+const Auto = class {
+  constructor(marke) {
+    this.marke = marke;
+  }
+};
+
+const bmw = new Auto("BMW");
+console.log(bmw.marke); // "BMW"
+```
+✅ **Funktioniert ähnlich wie `function expressions` (`const foo = function() {}`)**  
+
+---
+
+## **7. `instanceof` – Prüfen, ob ein Objekt zu einer Klasse gehört**
+```javascript
+console.log(anna instanceof Person); // true
+console.log(anna instanceof Mitarbeiter); // true
+console.log(max instanceof Mitarbeiter); // false
+```
+✅ **Überprüft die Zugehörigkeit eines Objekts zu einer Klasse**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Beschreibung |
+|---------|-------------|
+| **`class`** | Erstellt eine Klasse |
+| **`constructor`** | Initialisiert Eigenschaften |
+| **`extends`** | Vererbung von einer anderen Klasse |
+| **`super()`** | Ruft Konstruktor/Methode der Elternklasse auf |
+| **`get` / `set`** | Getter & Setter für Eigenschaften |
+| **`static`** | Statische Methoden & Eigenschaften |
+| **`#privat`** | Private Eigenschaften (ab ES2020) |
+
+🔗 [MDN-Dokumentation zu Klassen](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Classes)
 
   **[⬆ Наверх](#top)** 
 
-92. ### <a name="92"></a> 
+92. ### <a name="92"></a> Klassenvererbung, private und geschützte Eigenschaften
 
+### **Klassenvererbung, private und geschützte Eigenschaften in JavaScript**  
+
+In JavaScript ermöglicht **ES6-Klassenvererbung (`extends`)** das Wiederverwenden von Code durch **Vererbung**.  
+Ab **ES2020** sind auch **private Eigenschaften (`#`)** verfügbar.
+
+---
+
+## **1. Klassenvererbung (`extends`, `super`)**
+Eine Klasse kann Eigenschaften und Methoden von einer anderen Klasse erben.
+
+```javascript
+class Person {
+  constructor(name, alter) {
+    this.name = name;
+    this.alter = alter;
+  }
+
+  vorstellen() {
+    console.log(`Hallo, ich bin ${this.name} und ${this.alter} Jahre alt.`);
+  }
+}
+
+// Vererbung mit `extends`
+class Mitarbeiter extends Person {
+  constructor(name, alter, beruf) {
+    super(name, alter); // Ruft den Konstruktor der Elternklasse auf
+    this.beruf = beruf;
+  }
+
+  vorstellen() {
+    super.vorstellen(); // Ruft die Methode der Elternklasse auf
+    console.log(`Ich arbeite als ${this.beruf}.`);
+  }
+}
+
+const anna = new Mitarbeiter("Anna", 28, "Entwicklerin");
+anna.vorstellen();
+```
+✅ **`extends`** → Erbt von einer Elternklasse  
+✅ **`super()`** → Ruft den Konstruktor der Elternklasse auf  
+✅ **`super.methode()`** → Ruft eine Methode der Elternklasse auf  
+
+---
+
+## **2. Private Eigenschaften (`#`) – ES2020**
+📌 **Private Eigenschaften sind nur innerhalb der Klasse sichtbar.**  
+
+```javascript
+class Konto {
+  #saldo = 0; // Private Eigenschaft mit `#`
+
+  einzahlen(betrag) {
+    if (betrag > 0) this.#saldo += betrag;
+  }
+
+  get saldo() {
+    return this.#saldo;
+  }
+}
+
+const meinKonto = new Konto();
+meinKonto.einzahlen(100);
+console.log(meinKonto.saldo); // 100
+// console.log(meinKonto.#saldo); // ❌ Fehler! Nicht von außen zugänglich
+```
+✅ **`#privat` → Kann nicht außerhalb der Klasse geändert oder gelesen werden**  
+❌ **Nicht in älteren Browsern unterstützt**  
+
+---
+
+## **3. Geschützte Eigenschaften (Konvention `_`)**
+📌 **JavaScript hat keine echte `protected`-Eigenschaft, aber `_` wird als Konvention genutzt.**  
+```javascript
+class Auto {
+  constructor(marke) {
+    this._marke = marke; // "Geschützt" durch Konvention
+  }
+}
+
+class Sportwagen extends Auto {
+  zeigeMarke() {
+    console.log(`Marke: ${this._marke}`); // Zugriff in der Unterklasse möglich
+  }
+}
+
+const porsche = new Sportwagen("Porsche");
+porsche.zeigeMarke(); // "Marke: Porsche"
+console.log(porsche._marke); // ❌ Konvention sagt: Nicht außerhalb der Klasse nutzen!
+```
+✅ **Zugriff in der Unterklasse erlaubt**  
+❌ **Keine echte Zugriffsbeschränkung**  
+
+---
+
+## **4. Statische Methoden & Eigenschaften (`static`)**
+📌 **Statische Methoden und Eigenschaften gehören zur Klasse, nicht zur Instanz.**  
+```javascript
+class Mathe {
+  static addiere(a, b) {
+    return a + b;
+  }
+}
+
+console.log(Mathe.addiere(5, 3)); // 8
+```
+✅ **Kann direkt über `Klasse.method()` aufgerufen werden**  
+❌ **Nicht von Instanzen zugänglich**  
+
+---
+
+## **5. `instanceof` – Prüfen, ob ein Objekt zu einer Klasse gehört**
+```javascript
+console.log(anna instanceof Person); // true
+console.log(anna instanceof Mitarbeiter); // true
+console.log(anna instanceof Array); // false
+```
+✅ **Überprüft die Zugehörigkeit eines Objekts zu einer Klasse**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Beschreibung |
+|---------|-------------|
+| **`extends`** | Vererbung von einer anderen Klasse |
+| **`super()`** | Ruft Konstruktor der Elternklasse auf |
+| **`#privat`** | Echte private Eigenschaften (ab ES2020) |
+| **`_geschützt`** | Konvention für geschützte Eigenschaften |
+| **`static`** | Statische Methoden/Eigenschaften |
+| **`instanceof`** | Prüft, ob ein Objekt zu einer Klasse gehört |
+
+🔗 [MDN-Dokumentation zu Klassen](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Classes)  
+🔗 [MDN-Dokumentation zu privaten Eigenschaften](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Classes/Private_class_fields)
 
   **[⬆ Наверх](#top)**
 
-93. ### <a name="93"></a> 
+93. ### <a name="93"></a> Kapselung (Encapsulation)
 
+### **Kapselung (Encapsulation) in JavaScript**  
+
+**Kapselung** bedeutet, dass **Daten innerhalb eines Objekts geschützt** werden, sodass sie nicht direkt von außen geändert werden können.  
+In JavaScript kann Kapselung mit **private Eigenschaften (`#`), Gettern/Settern und Closures** erreicht werden.
+
+---
+
+## **1. Kapselung mit privaten Eigenschaften (`#`) – ES2020**
+📌 **Private Eigenschaften sind nur innerhalb der Klasse sichtbar.**  
+
+```javascript
+class Konto {
+  #saldo = 0; // Private Eigenschaft
+
+  einzahlen(betrag) {
+    if (betrag > 0) this.#saldo += betrag;
+  }
+
+  get saldo() {
+    return this.#saldo;
+  }
+}
+
+const meinKonto = new Konto();
+meinKonto.einzahlen(100);
+console.log(meinKonto.saldo); // ✅ 100
+// console.log(meinKonto.#saldo); // ❌ Fehler! Nicht von außen zugänglich
+```
+✅ **Echte Privatsphäre: `#saldo` ist von außen nicht erreichbar**  
+❌ **Nicht in älteren Browsern verfügbar**  
+
+---
+
+## **2. Kapselung mit Getter & Setter**
+📌 **Getter & Setter ermöglichen kontrollierten Zugriff auf Eigenschaften.**  
+```javascript
+class Auto {
+  constructor(marke) {
+    this._marke = marke; // Geschützt durch Konvention "_"
+  }
+
+  get marke() {
+    return this._marke.toUpperCase();
+  }
+
+  set marke(neueMarke) {
+    if (neueMarke.length > 0) this._marke = neueMarke;
+  }
+}
+
+const bmw = new Auto("BMW");
+console.log(bmw.marke); // ✅ "BMW"
+bmw.marke = "Audi";
+console.log(bmw.marke); // ✅ "AUDI"
+```
+✅ **Getter ermöglicht formatierte Ausgabe**  
+✅ **Setter verhindert ungültige Werte**  
+
+---
+
+## **3. Kapselung mit Closures (IIFE) – Alternative ohne Klassen**
+📌 **Privatsphäre kann auch mit Closures erreicht werden.**  
+```javascript
+const konto = (function () {
+  let saldo = 0; // Private Variable
+
+  return {
+    einzahlen(betrag) {
+      if (betrag > 0) saldo += betrag;
+    },
+    getSaldo() {
+      return saldo;
+    }
+  };
+})();
+
+konto.einzahlen(100);
+console.log(konto.getSaldo()); // ✅ 100
+// console.log(konto.saldo); // ❌ Fehler! saldo ist nicht zugänglich
+```
+✅ **Daten sind vollständig gekapselt**  
+❌ **Kein Zugriff von Unterklassen möglich**  
+
+---
+
+## **4. Geschützte Eigenschaften (`_`) – Konvention**
+📌 **In JavaScript gibt es kein echtes `protected`, daher wird `_` als Konvention genutzt.**  
+```javascript
+class Fahrzeug {
+  constructor(typ) {
+    this._typ = typ; // "Geschützt" durch Konvention
+  }
+}
+
+class Auto extends Fahrzeug {
+  zeigeTyp() {
+    console.log(`Fahrzeugtyp: ${this._typ}`); // Zugriff in Unterklasse erlaubt
+  }
+}
+
+const porsche = new Auto("Sportwagen");
+porsche.zeigeTyp(); // ✅ "Fahrzeugtyp: Sportwagen"
+console.log(porsche._typ); // ❌ Konvention sagt: Nicht von außen nutzen!
+```
+✅ **Kann in Unterklassen genutzt werden**  
+❌ **Nicht wirklich geschützt – `porsche._typ` ist von außen zugänglich**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Beschreibung | Schutzstufe |
+|---------|-------------|-------------|
+| **`#privat`** | Echte private Eigenschaften (ab ES2020) | 🔒 Vollständig privat |
+| **Getter/Setter** | Kontrollierter Zugriff auf Eigenschaften | 🟡 Halb-privat |
+| **Closures (IIFE)** | Private Variablen ohne Klassen | 🔒 Vollständig privat |
+| **`_geschützt`** | Nur Konvention für "geschützte" Felder | ⚠️ Kein echter Schutz |
+
+🔗 [MDN-Dokumentation zu privaten Eigenschaften](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Classes/Private_class_fields)  
+🔗 [MDN-Dokumentation zu Getter & Setter](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Functions/get)
 
   **[⬆ Наверх](#top)**
 
-94. ### <a name="94"></a> 
+94. ### <a name="94"></a> Was ist funktionale Programmierung? Grundlagen (First-Class-Funktionen, Higher-Order-Funktionen, Pure Functions, Immutability, Lazy Evaluation usw.)
 
+### **Funktionale Programmierung in JavaScript – Grundlagen**  
+
+**Funktionale Programmierung (FP)** ist ein **paradigmatischer Ansatz**, der Programme aus **reinen Funktionen** ohne veränderbare Zustände (`immutability`) und Nebenwirkungen (`side effects`) aufbaut.  
+
+---
+
+## **1. Grundlagen der funktionalen Programmierung**
+🔹 **First-Class-Funktionen** – Funktionen sind **Werte**, die gespeichert, übergeben und zurückgegeben werden können.  
+🔹 **Higher-Order-Funktionen** – Funktionen, die andere Funktionen als Parameter oder Rückgabewert haben.  
+🔹 **Pure Functions** – Funktionen, die nur vom Input abhängen und **keine Nebenwirkungen** haben.  
+🔹 **Immutability** – Daten werden **nicht verändert**, sondern neue Kopien erstellt.  
+🔹 **Lazy Evaluation** – Berechnungen werden nur ausgeführt, wenn sie benötigt werden.  
+
+---
+
+## **2. First-Class-Funktionen**
+📌 **In JavaScript sind Funktionen "first-class citizens" – sie können wie Variablen behandelt werden.**  
+
+```javascript
+const begruessung = function(name) {
+  return `Hallo, ${name}!`;
+};
+
+console.log(begruessung("Max")); // ✅ "Hallo, Max!"
+```
+✅ **Funktionen können in Variablen gespeichert und als Werte genutzt werden.**  
+
+---
+
+## **3. Higher-Order-Funktionen (HOF)**
+📌 **Funktionen, die andere Funktionen als Argumente nehmen oder zurückgeben.**  
+
+```javascript
+function ausführen(operation, a, b) {
+  return operation(a, b);
+}
+
+const addiere = (x, y) => x + y;
+const multiplizieren = (x, y) => x * y;
+
+console.log(ausführen(addiere, 3, 4)); // ✅ 7
+console.log(ausführen(multiplizieren, 3, 4)); // ✅ 12
+```
+✅ **Macht den Code flexibler und wiederverwendbar.**  
+
+---
+
+## **4. Pure Functions (Reine Funktionen)**
+📌 **Eine Funktion ist "rein", wenn sie:**
+- Nur von **ihren Parametern** abhängt.
+- **Keine Seiteneffekte** (`side effects`) erzeugt.
+- Immer **dieselbe Ausgabe** für denselben Input liefert.
+
+❌ **Nicht rein (verändert externe Variable)**  
+```javascript
+let saldo = 100;
+function abheben(betrag) {
+  saldo -= betrag; // ❌ Nebenwirkung (Mutation)
+  return saldo;
+}
+```
+✅ **Reine Funktion (Keine externe Veränderung)**  
+```javascript
+function neuesSaldo(saldo, betrag) {
+  return saldo - betrag;
+}
+console.log(neuesSaldo(100, 20)); // ✅ 80
+console.log(neuesSaldo(100, 20)); // ✅ 80 (Immer gleiche Ausgabe)
+```
+✅ **Erleichtert Debugging & macht Code vorhersehbar.**  
+
+---
+
+## **5. Immutability (Unveränderlichkeit)**
+📌 **In funktionaler Programmierung werden Objekte nicht verändert, sondern neue Kopien erstellt.**  
+
+❌ **Mutation (verändert das Original-Array)**  
+```javascript
+const zahlen = [1, 2, 3];
+zahlen.push(4); // ❌ Ändert das Original-Array
+console.log(zahlen); // [1, 2, 3, 4]
+```
+✅ **Unveränderlichkeit durch `map()`**  
+```javascript
+const neueZahlen = [...zahlen, 4]; // ✅ Erstellt neue Kopie
+console.log(neueZahlen); // [1, 2, 3, 4]
+```
+✅ **Daten bleiben unverändert, sicher & vorhersehbar.**  
+
+---
+
+## **6. Lazy Evaluation (Faule Auswertung)**
+📌 **Funktionen werden erst ausgeführt, wenn das Ergebnis wirklich benötigt wird.**  
+
+```javascript
+function generiereZahlen() {
+  console.log("Berechnung läuft...");
+  return [1, 2, 3, 4, 5];
+}
+
+const zahlen = generiereZahlen; // ✅ Funktion gespeichert, aber nicht ausgeführt!
+console.log(zahlen()); // "Berechnung läuft..." + [1, 2, 3, 4, 5]
+```
+✅ **Vermeidet unnötige Berechnungen.**  
+
+---
+
+## **7. Funktionale Array-Methoden (`map()`, `filter()`, `reduce()`)**
+📌 **JavaScript bietet viele Funktionen, um Daten funktional zu transformieren.**  
+
+### **7.1 `map()` – Jedes Element transformieren**
+```javascript
+const zahlen = [1, 2, 3];
+const verdoppelt = zahlen.map((x) => x * 2);
+console.log(verdoppelt); // ✅ [2, 4, 6]
+```
+✅ **Erstellt eine neue Kopie der Daten.**  
+
+---
+
+### **7.2 `filter()` – Elemente herausfiltern**
+```javascript
+const zahlen = [1, 2, 3, 4, 5];
+const gerade = zahlen.filter((x) => x % 2 === 0);
+console.log(gerade); // ✅ [2, 4]
+```
+✅ **Behält nur Elemente, die die Bedingung erfüllen.**  
+
+---
+
+### **7.3 `reduce()` – Werte zusammenfassen**
+```javascript
+const zahlen = [1, 2, 3, 4];
+const summe = zahlen.reduce((acc, x) => acc + x, 0);
+console.log(summe); // ✅ 10
+```
+✅ **Funktionale Alternative zu Schleifen.**  
+
+---
+
+### **Zusammenfassung**
+| Konzept | Beschreibung |
+|---------|-------------|
+| **First-Class-Funktionen** | Funktionen können als Werte behandelt werden |
+| **Higher-Order-Funktionen** | Funktionen, die andere Funktionen als Argumente oder Rückgabewerte haben |
+| **Pure Functions** | Funktionen ohne Seiteneffekte, die immer denselben Output für denselben Input liefern |
+| **Immutability** | Daten werden nicht verändert, sondern neue Kopien erstellt |
+| **Lazy Evaluation** | Berechnungen werden nur ausgeführt, wenn sie benötigt werden |
+| **`map()`, `filter()`, `reduce()`** | Funktionale Methoden zur Transformation von Arrays |
+
+🔗 [MDN-Dokumentation zu funktionaler Programmierung](https://developer.mozilla.org/en-US/docs/Glossary/Functional_programming)
 
   **[⬆ Наверх](#top)**
 
-95. ### <a name="95"></a> 
+95. ### <a name="95"></a> Reguläre Ausdrücke (RegExp)
 
+### **Reguläre Ausdrücke (`RegExp`) in JavaScript**  
+
+Reguläre Ausdrücke (**Regular Expressions, RegExp**) sind **Muster**, um **Texte zu durchsuchen, zu validieren oder zu ersetzen**.  
+
+---
+
+## **1. Regulären Ausdruck erstellen**
+### **1.1 Mit Schrägstrichen (`/regex/`)**
+```javascript
+const regex = /hallo/;
+console.log(regex.test("hallo Welt")); // ✅ true
+console.log(regex.test("Hallo Welt")); // ❌ false (Groß-/Kleinschreibung beachtet)
+```
+✅ **Direkte Schreibweise**  
+
+### **1.2 Mit `RegExp`-Konstruktor**
+```javascript
+const regex = new RegExp("hallo", "i"); // "i" ignoriert Groß-/Kleinschreibung
+console.log(regex.test("Hallo Welt")); // ✅ true
+```
+✅ **Dynamische Muster möglich (`new RegExp(variable)`)**  
+
+---
+
+## **2. Flags (`/pattern/flags`)**
+| Flag | Bedeutung |
+|------|-----------|
+| **`g`** | Global – Alle Vorkommen suchen |
+| **`i`** | Case-insensitive – Groß-/Kleinschreibung ignorieren |
+| **`m`** | Multiline – Mehrzeilenmodus |
+| **`s`** | Dotall – `.` erfasst auch Zeilenumbrüche |
+| **`u`** | Unicode-Unterstützung |
+| **`y`** | Sticky – Sucht genau ab aktueller Position |
+
+```javascript
+const regex = /hallo/gi;
+console.log("Hallo hallo hallo".match(regex)); // ✅ ["Hallo", "hallo", "hallo"]
+```
+
+---
+
+## **3. Zeichenklassen (`[...]`, `\d`, `\w`, `\s`)**
+| Zeichen | Bedeutung | Beispiel |
+|---------|-----------|----------|
+| **`.`** | Jedes Zeichen außer Zeilenumbruch | `/h.llo/` → `hallo`, `hxllo` |
+| **`\d`** | Ziffer `[0-9]` | `/\d/` → `5`, `9` |
+| **`\w`** | Wortzeichen `[a-zA-Z0-9_]` | `/\w/` → `a`, `9`, `_` |
+| **`\s`** | Leerzeichen, Tab, Zeilenumbruch | `/\s/` → `" "` |
+| **`\b`** | Wortgrenze | `/\btest\b/` findet `test`, aber nicht `testing` |
+| **`[xyz]`** | Eines dieser Zeichen | `/[aeiou]/` → findet Vokale |
+
+```javascript
+console.log(/\d/.test("Haus 123")); // ✅ true (Ziffer gefunden)
+console.log(/\w+/.exec("Hallo Welt!")); // ✅ ["Hallo"]
+```
+
+---
+
+## **4. Quantoren (`+`, `*`, `?`, `{n,m}`)**
+| Quantor | Bedeutung | Beispiel |
+|---------|-----------|----------|
+| **`+`** | Mindestens einmal | `/a+/` → `aaa` in `"baa"` |
+| **`*`** | Beliebig oft (auch 0-mal) | `/bo*l/` → `bl`, `bol`, `bool` |
+| **`?`** | Optional (0 oder 1-mal) | `/colou?r/` → `color`, `colour` |
+| **`{n}`** | Genau `n` Wiederholungen | `/\d{4}/` → `2023` |
+| **`{n,}`** | Mindestens `n`-mal | `/\d{2,}/` → `12`, `123` |
+| **`{n,m}`** | Zwischen `n` und `m`-mal | `/a{2,4}/` → `aa`, `aaa`, `aaaa` |
+
+```javascript
+console.log(/a{2,}/.test("baaa")); // ✅ true (mind. 2-mal `a`)
+console.log(/bo*l/.test("bl")); // ✅ true (kein `o` nötig)
+```
+
+---
+
+## **5. Gruppen (`()`, `|`, `?:`)**
+| Zeichen | Bedeutung | Beispiel |
+|---------|-----------|----------|
+| **`(abc)`** | Gruppe | `/H(a|e)llo/` → `Hallo`, `Hello` |
+| **`(?:abc)`** | Nicht speichernde Gruppe | `/H(?:e|a)llo/` → Kein Gruppenspeicher |
+| **`|`** | ODER (Alternation) | `/rot|blau/` → `rot`, `blau` |
+
+```javascript
+console.log(/(Hallo|Hi) Welt/.test("Hi Welt")); // ✅ true
+console.log(/(abc){2}/.test("abcabc")); // ✅ true (2-mal `abc`)
+```
+
+---
+
+## **6. Methoden mit `RegExp`**
+| Methode | Beschreibung |
+|---------|-------------|
+| **`regex.test(str)`** | Gibt `true` zurück, wenn Übereinstimmung gefunden |
+| **`regex.exec(str)`** | Gibt erstes Match als Array zurück |
+| **`str.match(regex)`** | Findet alle Übereinstimmungen |
+| **`str.replace(regex, ersatz)`** | Ersetzt Übereinstimmungen |
+| **`str.search(regex)`** | Gibt Index des ersten Treffers zurück |
+
+```javascript
+const text = "Die Zahl 42 ist wichtig!";
+console.log(/\d+/.test(text)); // ✅ true
+console.log(text.match(/\d+/)); // ✅ ["42"]
+console.log(text.replace(/\d+/, "100")); // ✅ "Die Zahl 100 ist wichtig!"
+```
+
+---
+
+## **7. Lookaheads & Lookbehinds**
+| Lookaround | Beschreibung | Beispiel |
+|------------|-------------|----------|
+| **`(?=...)`** | Positiver Lookahead | `/\d(?=€)/` → `5` in `5€` |
+| **`(?!...)`** | Negativer Lookahead | `/\d(?!€)/` → `5` in `5$` |
+| **`(?<=...)`** | Positives Lookbehind | `/(?<=€)\d/` → `5` in `€5` |
+| **`(?<!...)`** | Negatives Lookbehind | `/(?<!€)\d/` → `5` in `$5` |
+
+```javascript
+console.log(/(?<=€)\d+/.exec("€100")); // ✅ ["100"]
+console.log(/\d+(?=€)/.exec("50€")); // ✅ ["50"]
+```
+
+---
+
+### **Zusammenfassung**
+| Konzept | Beispiel | Bedeutung |
+|---------|---------|-----------|
+| **Zeichenklassen** | `/\d/`, `/\w/` | `\d` = Zahl, `\w` = Wortzeichen |
+| **Quantoren** | `/a+/`, `/b{2,4}/` | `+` mind. 1-mal, `{2,4}` 2-4-mal |
+| **Gruppen** | `/(abc|def)/` | Sucht `abc` oder `def` |
+| **Lookaheads** | `\d+(?=€)` | Zahl vor `€` |
+| **Lookbehinds** | `(?<=€)\d+` | Zahl nach `€` |
+| **Testen** | `/regex/.test("text")` | Gibt `true` oder `false` zurück |
+
+🔗 [MDN-Dokumentation zu RegExp](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/RegExp)
 
   **[⬆ Наверх](#top)**
 
-96. ### <a name="96"></a> 
+96. ### <a name="96"></a> JSON
 
+### **JSON in JavaScript**  
+
+**JSON (JavaScript Object Notation)** ist ein **leichtgewichtiges Datenformat**, das für **Datenübertragung und Speicherung** genutzt wird.  
+Es basiert auf **Schlüssel-Wert-Paaren** und ist in vielen Programmiersprachen verwendbar.
+
+---
+
+## **1. JSON-Struktur**
+📌 **JSON ist ähnlich zu JavaScript-Objekten, aber mit einigen Unterschieden:**
+- **Schlüssel müssen Strings sein** (`"key": "value"`)
+- **Werte können sein:** `String`, `Number`, `Boolean`, `Array`, `Object`, `null`
+- **Kein `undefined` oder Funktionen erlaubt**
+
+```json
+{
+  "name": "Max",
+  "alter": 30,
+  "verheiratet": false,
+  "kinder": ["Anna", "Tom"],
+  "adresse": { "stadt": "Berlin", "plz": "10115" }
+}
+```
+
+✅ **JSON ist universell lesbar und speicherbar**  
+❌ **Kommentare sind nicht erlaubt**  
+
+---
+
+## **2. JSON zu JavaScript-Objekt (`JSON.parse()`)**
+📌 **Daten aus JSON in ein JavaScript-Objekt umwandeln.**  
+
+```javascript
+const jsonString = '{"name": "Max", "alter": 30}';
+const person = JSON.parse(jsonString);
+console.log(person.name); // ✅ "Max"
+```
+✅ **Wandelt JSON-Text in ein echtes JavaScript-Objekt um**  
+
+---
+
+## **3. JavaScript-Objekt zu JSON (`JSON.stringify()`)**
+📌 **Ein JavaScript-Objekt in eine JSON-Zeichenkette umwandeln.**  
+
+```javascript
+const person = { name: "Max", alter: 30 };
+const jsonString = JSON.stringify(person);
+console.log(jsonString); // ✅ '{"name":"Max","alter":30}'
+```
+✅ **Nützlich für API-Anfragen oder lokale Speicherung**  
+
+---
+
+## **4. Formatierte JSON-Ausgabe (`JSON.stringify(obj, null, 2)`)**
+```javascript
+const jsonString = JSON.stringify(person, null, 2);
+console.log(jsonString);
+```
+**Ergebnis (lesbar formatiert):**
+```json
+{
+  "name": "Max",
+  "alter": 30
+}
+```
+✅ **Praktisch für Logging oder Debugging**  
+
+---
+
+## **5. JSON mit `fetch()` nutzen**
+📌 **JSON-Daten von einer API abrufen und in ein JavaScript-Objekt umwandeln.**  
+
+```javascript
+fetch("https://jsonplaceholder.typicode.com/users/1")
+  .then(response => response.json()) // ✅ JSON-Text in Objekt umwandeln
+  .then(data => console.log(data.name)) // ✅ "Leanne Graham"
+  .catch(error => console.error("Fehler:", error));
+```
+✅ **JSON ist das Standardformat für API-Kommunikation**  
+
+---
+
+## **6. JSON-Validierung mit `try...catch`**
+📌 **Falls JSON fehlerhaft ist, kann ein `try...catch`-Block Fehler abfangen.**  
+
+```javascript
+const jsonString = '{"name": "Max", "alter": }'; // ❌ Fehlerhafter JSON
+try {
+  const person = JSON.parse(jsonString);
+  console.log(person);
+} catch (error) {
+  console.error("Ungültiges JSON:", error.message);
+}
+```
+✅ **Verhindert Abstürze durch fehlerhafte JSON-Daten**  
+
+---
+
+## **7. Unterschied: `JSON.parse()` vs. `eval()`**
+```javascript
+const jsonString = '{"name": "Max"}';
+
+// Sicher:
+const person = JSON.parse(jsonString);
+
+// Unsicher:
+const unsicher = eval("(" + jsonString + ")"); // ❌ Kann schädlichen Code ausführen!
+```
+✅ **`JSON.parse()` ist sicherer als `eval()`**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Beschreibung |
+|---------|-------------|
+| **`JSON.parse(jsonString)`** | Wandelt JSON-String in JavaScript-Objekt |
+| **`JSON.stringify(obj)`** | Wandelt JavaScript-Objekt in JSON-String |
+| **`JSON.stringify(obj, null, 2)`** | Formatiert JSON für bessere Lesbarkeit |
+| **`fetch(url).then(res => res.json())`** | Holt JSON-Daten von einer API |
+| **`try...catch` für `JSON.parse()`** | Fängt JSON-Fehler ab |
+
+🔗 [MDN-Dokumentation zu JSON](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/JSON)
 
   **[⬆ Наверх](#top)**
 
