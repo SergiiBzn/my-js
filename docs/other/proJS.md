@@ -110,8 +110,8 @@
 |94 | [Was ist funktionale Programmierung? Grundlagen (First-Class-Funktionen, Higher-Order-Funktionen, Pure Functions, Immutability, Lazy Evaluation usw.)](#94) |
 |95 | [Reguläre Ausdrücke (RegExp)](#95) |
 |96 | [JSON](#96) |
-|97 | [Code-Minimierung (Minification)](#97) |
-|98 | [TypeScript oder Flow](#98) |
+|97 | [](#97) |
+|98 | [](#98) |
 |99 | [](#99) |
 |100 | [](#100) |
 |   | Praktische Aufgaben |
@@ -8808,28 +8808,557 @@ const unsicher = eval("(" + jsonString + ")"); // ❌ Kann schädlichen Code aus
 
   **[⬆ Наверх](#top)**
 
-101. ### <a name="101"></a> 
+101. ### <a name="101"></a> Erstellen von Tabs in einem Projekt
 
+### **Erstellen von Tabs in JavaScript**  
+
+Tabs sind eine häufige UI-Komponente, um Inhalte **in verschiedene Bereiche zu unterteilen**.  
+Hier zeige ich eine **einfache, moderne** Methode, um Tabs mit **JavaScript, HTML und CSS** zu erstellen.
+
+---
+
+## **1. HTML-Grundstruktur**
+```html
+<div class="tabs">
+  <button class="tab-button active" data-tab="1">Tab 1</button>
+  <button class="tab-button" data-tab="2">Tab 2</button>
+  <button class="tab-button" data-tab="3">Tab 3</button>
+</div>
+
+<div class="tab-content active" id="tab-1">
+  <p>Inhalt für Tab 1</p>
+</div>
+<div class="tab-content" id="tab-2">
+  <p>Inhalt für Tab 2</p>
+</div>
+<div class="tab-content" id="tab-3">
+  <p>Inhalt für Tab 3</p>
+</div>
+```
+✅ **`data-tab="1"` für Zuordnung von Tabs zu Inhalten**  
+✅ **`active`-Klasse für das aktuell sichtbare Tab**  
+
+---
+
+## **2. CSS-Styling**
+```css
+.tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.tab-button {
+  padding: 10px;
+  border: none;
+  background: lightgray;
+  cursor: pointer;
+}
+
+.tab-button.active {
+  background: blue;
+  color: white;
+}
+
+.tab-content {
+  display: none;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-top: 10px;
+}
+
+.tab-content.active {
+  display: block;
+}
+```
+✅ **Nur der aktive Tab ist sichtbar (`display: block`)**  
+✅ **Visuelle Hervorhebung des aktiven Buttons (`background: blue`)**  
+
+---
+
+## **3. JavaScript für die Tab-Funktionalität**
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+  const buttons = document.querySelectorAll(".tab-button");
+  const contents = document.querySelectorAll(".tab-content");
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      // Entferne `active` von allen Buttons und Inhalten
+      buttons.forEach((btn) => btn.classList.remove("active"));
+      contents.forEach((content) => content.classList.remove("active"));
+
+      // Aktiviere den geklickten Tab
+      button.classList.add("active");
+      document.getElementById(`tab-${button.dataset.tab}`).classList.add("active");
+    });
+  });
+});
+```
+✅ **Event-Listener für alle Buttons**  
+✅ **Wechselt die `active`-Klasse für den geklickten Tab**  
+✅ **Verwendet `dataset.tab`, um Inhalt zuzuordnen (`data-tab="1" → id="tab-1"`)**  
+
+---
+
+### **Fazit**
+✔ **Einfach & modern mit JavaScript, HTML & CSS**  
+✔ **Ohne externe Bibliotheken**  
+✔ **Kann leicht erweitert oder gestylt werden**  
 
   **[⬆ Наверх](#top)**  
 
-102. ### <a name="102"></a> 
+102. ### <a name="102"></a> Countdown-Timer
 
+### **Countdown-Timer in JavaScript**  
+
+Ein **Countdown-Timer** kann in vielen Anwendungen verwendet werden, z. B. für **Veranstaltungen, Werbeaktionen oder Online-Tests**.  
+Hier zeige ich eine **dynamische Lösung mit JavaScript, HTML & CSS**.
+
+---
+
+## **1. HTML-Grundstruktur**
+```html
+<div class="timer">
+  <h2>Countdown:</h2>
+  <div id="countdown">
+    <span id="days">00</span> Tage 
+    <span id="hours">00</span> Stunden 
+    <span id="minutes">00</span> Minuten 
+    <span id="seconds">00</span> Sekunden
+  </div>
+</div>
+```
+✅ **Zeigt Tage, Stunden, Minuten & Sekunden an**  
+
+---
+
+## **2. CSS-Styling (optional)**
+```css
+.timer {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  font-size: 24px;
+  background: #222;
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+#countdown span {
+  font-weight: bold;
+  font-size: 30px;
+  margin: 0 5px;
+}
+```
+✅ **Macht den Timer übersichtlicher & modern**  
+
+---
+
+## **3. JavaScript für den Countdown-Timer**
+```javascript
+function startCountdown(endTime) {
+  function updateTimer() {
+    const now = new Date().getTime();
+    const distance = endTime - now;
+
+    if (distance <= 0) {
+      clearInterval(timerInterval);
+      document.getElementById("countdown").innerHTML = "Zeit abgelaufen!";
+      return;
+    }
+
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    document.getElementById("days").textContent = days.toString().padStart(2, "0");
+    document.getElementById("hours").textContent = hours.toString().padStart(2, "0");
+    document.getElementById("minutes").textContent = minutes.toString().padStart(2, "0");
+    document.getElementById("seconds").textContent = seconds.toString().padStart(2, "0");
+  }
+
+  updateTimer();
+  const timerInterval = setInterval(updateTimer, 1000);
+}
+
+// Countdown auf ein zukünftiges Datum setzen (z. B. Neujahr)
+const countdownDate = new Date("December 31, 2024 23:59:59").getTime();
+startCountdown(countdownDate);
+```
+
+✅ **Berechnet die verbleibende Zeit bis zum `countdownDate`**  
+✅ **Aktualisiert den Timer jede Sekunde (`setInterval`)**  
+✅ **Zeigt `"Zeit abgelaufen!"`, wenn die Zeit vorbei ist**  
+
+---
+
+### **Erweiterungen**
+🔹 **Live-Anpassung des Enddatums?** – Über ein Eingabefeld setzen  
+🔹 **Animationen hinzufügen?** – `fade-in` Effekt für Sekunden  
+🔹 **Ton abspielen?** – Sound beim Ablauf des Countdowns  
 
   **[⬆ Наверх](#top)** 
 
-103. ### <a name="103"></a> 
+103. ### <a name="103"></a> Modales Fenster
 
+### **Modales Fenster (Modal) in JavaScript**  
+
+Ein **modales Fenster** ist eine UI-Komponente, die sich über den Inhalt legt und Benutzeraktionen erfordert (z. B. Bestätigungen oder Formulareingaben).  
+Hier erstellen wir ein **eigenes modales Fenster mit HTML, CSS & JavaScript**.
+
+---
+
+## **1. HTML-Struktur**
+```html
+<button id="openModal">Öffne Modal</button>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Modales Fenster</h2>
+    <p>Dies ist ein Beispiel für ein modales Fenster.</p>
+  </div>
+</div>
+```
+✅ **Das Modal ist anfangs unsichtbar und wird durch den Button geöffnet**  
+✅ **Das `span.close`-Element schließt das Modal**  
+
+---
+
+## **2. CSS-Styling**
+```css
+/* Modal-Hintergrund */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal-Inhalt */
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  text-align: center;
+  position: relative;
+}
+
+/* Schließen-Button */
+.close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+}
+```
+✅ **Das `modal` ist `display: none`, bis es aktiviert wird**  
+✅ **Der `close`-Button schließt das Modal**  
+✅ **Hintergrund wird abgedunkelt (`rgba(0, 0, 0, 0.5)`)**  
+
+---
+
+## **3. JavaScript für Modal-Funktionalität**
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("modal");
+  const openBtn = document.getElementById("openModal");
+  const closeBtn = document.querySelector(".close");
+
+  // Öffne das Modal
+  openBtn.addEventListener("click", () => {
+    modal.style.display = "flex";
+  });
+
+  // Schließe das Modal
+  closeBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  // Schließen beim Klicken außerhalb des Modal-Inhalts
+  window.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  });
+});
+```
+✅ **`click`-Event öffnet & schließt das Modal**  
+✅ **Modal wird geschlossen, wenn man auf den dunklen Hintergrund klickt**  
+✅ **`window.addEventListener("click", ...)` sorgt für benutzerfreundliches Schließen**  
+
+---
+
+### **Erweiterungen**
+🔹 **Animationen (`opacity`, `transform`) für sanfte Übergänge hinzufügen**  
+🔹 **Tastatursteuerung (`ESC`-Taste zum Schließen)**  
+🔹 **Mehrere Modals in einer Seite verwalten**  
 
   **[⬆ Наверх](#top)** 
 
-104. ### <a name="104"></a> 
+104. ### <a name="104"></a> Slider
 
+### **Bild-Slider (Karussell) in JavaScript**  
+
+Ein **Slider** (Karussell) zeigt mehrere Bilder oder Inhalte **nacheinander**, oft mit Steuerungselementen (Pfeile, Punkte).  
+Hier erstellen wir einen **einfachen und modernen Slider mit HTML, CSS & JavaScript**.
+
+---
+
+## **1. HTML-Struktur**
+```html
+<div class="slider">
+  <div class="slider-container">
+    <div class="slide active"><img src="image1.jpg" alt="Bild 1"></div>
+    <div class="slide"><img src="image2.jpg" alt="Bild 2"></div>
+    <div class="slide"><img src="image3.jpg" alt="Bild 3"></div>
+  </div>
+
+  <button id="prev" class="slider-btn">&#10094;</button>
+  <button id="next" class="slider-btn">&#10095;</button>
+</div>
+```
+✅ **Bilder werden in `.slider-container` platziert**  
+✅ **Vorwärts-/Rückwärtsbuttons mit `id="prev"` & `id="next"`**  
+
+---
+
+## **2. CSS-Styling**
+```css
+.slider {
+  position: relative;
+  max-width: 600px;
+  margin: auto;
+  overflow: hidden;
+}
+
+.slider-container {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.slide {
+  min-width: 100%;
+  transition: opacity 0.5s;
+}
+
+img {
+  width: 100%;
+  display: block;
+}
+
+.slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+}
+
+#prev { left: 10px; }
+#next { right: 10px; }
+```
+✅ **Slider bewegt sich mit `flexbox` & `transform: translateX()`**  
+✅ **Buttons überlagern das Bild für Navigation**  
+
+---
+
+## **3. JavaScript für Slider-Funktionalität**
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+  const slides = document.querySelectorAll(".slide");
+  let index = 0;
+
+  function showSlide(i) {
+    slides.forEach((slide, idx) => {
+      slide.style.display = idx === i ? "block" : "none";
+    });
+  }
+
+  document.getElementById("prev").addEventListener("click", () => {
+    index = (index - 1 + slides.length) % slides.length;
+    showSlide(index);
+  });
+
+  document.getElementById("next").addEventListener("click", () => {
+    index = (index + 1) % slides.length;
+    showSlide(index);
+  });
+
+  showSlide(index);
+});
+```
+✅ **Funktion `showSlide(i)` zeigt nur ein Bild gleichzeitig**  
+✅ **Navigation mit `prev` / `next`-Buttons**  
+✅ **Runde Logik: Letztes Bild → Erstes Bild und umgekehrt**  
+
+---
+
+## **4. Automatischer Slider (`setInterval`)**
+📌 **Lässt den Slider alle 3 Sekunden automatisch wechseln**
+```javascript
+setInterval(() => {
+  index = (index + 1) % slides.length;
+  showSlide(index);
+}, 3000);
+```
+✅ **Verhindert, dass der Nutzer klicken muss**  
+
+---
+
+### **Erweiterungen**
+🔹 **Mit `transform: translateX()` für flüssige Animationen**  
+🔹 **Pagination (Punkte unter den Bildern zum Wechseln)**  
+🔹 **Swipe-Funktion für mobile Geräte (`touchstart`, `touchend`)**  
 
   **[⬆ Наверх](#top)** 
 
-105. ### <a name="105"></a> 
+105. ### <a name="105"></a> Rechner
 
+### **Einfacher Rechner in JavaScript**  
+
+Hier erstellen wir einen **einfachen Taschenrechner** mit **HTML, CSS & JavaScript**, der die Grundrechenarten (`+`, `-`, `*`, `/`) unterstützt.
+
+---
+
+## **1. HTML-Struktur**
+```html
+<div class="calculator">
+  <input type="text" id="display" disabled />
+  <div class="buttons">
+    <button class="btn" data-value="7">7</button>
+    <button class="btn" data-value="8">8</button>
+    <button class="btn" data-value="9">9</button>
+    <button class="btn" data-value="/">÷</button>
+
+    <button class="btn" data-value="4">4</button>
+    <button class="btn" data-value="5">5</button>
+    <button class="btn" data-value="6">6</button>
+    <button class="btn" data-value="*">×</button>
+
+    <button class="btn" data-value="1">1</button>
+    <button class="btn" data-value="2">2</button>
+    <button class="btn" data-value="3">3</button>
+    <button class="btn" data-value="-">−</button>
+
+    <button class="btn" data-value="0">0</button>
+    <button class="btn" data-value=".">.</button>
+    <button class="btn clear" data-value="C">C</button>
+    <button class="btn" data-value="+">+</button>
+
+    <button class="btn equal" data-value="=">=</button>
+  </div>
+</div>
+```
+✅ **`<input>` als Display für die Berechnung**  
+✅ **Buttons für Zahlen & Operatoren mit `data-value`**  
+
+---
+
+## **2. CSS-Styling**
+```css
+.calculator {
+  width: 250px;
+  margin: 50px auto;
+  padding: 10px;
+  background: #222;
+  color: white;
+  border-radius: 10px;
+  text-align: center;
+}
+
+#display {
+  width: 100%;
+  height: 50px;
+  font-size: 24px;
+  text-align: right;
+  padding: 10px;
+  border: none;
+  background: #333;
+  color: white;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.btn {
+  padding: 15px;
+  font-size: 20px;
+  border: none;
+  background: #444;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.btn:hover {
+  background: #666;
+}
+
+.equal {
+  grid-column: span 4;
+  background: #f39c12;
+}
+
+.clear {
+  background: #e74c3c;
+}
+```
+✅ **Raster-Layout mit `grid-template-columns`**  
+✅ **Buttons mit `hover`-Effekt & Highlight-Farben für `=` & `C`**  
+
+---
+
+## **3. JavaScript für die Taschenrechner-Funktionalität**
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+  const display = document.getElementById("display");
+  const buttons = document.querySelectorAll(".btn");
+
+  buttons.forEach(button => {
+    button.addEventListener("click", () => {
+      const value = button.dataset.value;
+
+      if (value === "=") {
+        try {
+          display.value = eval(display.value); // Berechnung
+        } catch {
+          display.value = "Fehler";
+        }
+      } else if (value === "C") {
+        display.value = ""; // Reset
+      } else {
+        display.value += value; // Zahlen & Operatoren hinzufügen
+      }
+    });
+  });
+});
+```
+✅ **`eval()` berechnet den Ausdruck (z. B. `3+5*2`)**  
+✅ **Fehlermeldung bei ungültiger Eingabe (`try...catch`)**  
+✅ **`C` löscht das Eingabefeld**  
+
+---
+
+## **4. Erweiterungen**
+🔹 **Ersetze `eval()` mit `Function()` für mehr Sicherheit**  
+🔹 **Unterstützung für `Backspace` (`←` löschen letzte Zahl)**  
+🔹 **Dunkler/heller Modus mit CSS-Variablen**  
 
   **[⬆ Наверх](#top)** 
 
