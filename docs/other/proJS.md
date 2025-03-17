@@ -4583,28 +4583,581 @@ elemente.forEach(p => document.body.removeChild(p)); // Funktioniert sicher
 
   **[⬆ Наверх](#top)**
 
-51. ### <a name="51"></a> 
+51. ### <a name="51"></a> Spread-Operator (ES6-ES9)
 
+### **Spread-Operator (`...`) in JavaScript (ES6-ES9)**  
+
+Der **Spread-Operator (`...`)** wird in JavaScript verwendet, um **Arrays, Objekte und Funktionsargumente zu "entpacken"**. Er wurde mit **ES6** eingeführt und in späteren Versionen erweitert.
+
+---
+
+## **1. Spread-Operator mit Arrays**  
+
+### **1.1 Array-Kopieren (`Shallow Copy`)**
+```javascript
+const zahlen = [1, 2, 3];
+const kopie = [...zahlen];
+
+kopie.push(4);
+console.log(zahlen); // [1, 2, 3] (unverändert)
+console.log(kopie); // [1, 2, 3, 4]
+```
+✅ **Erstellt eine flache Kopie des Arrays**  
+❌ **Verschachtelte Arrays werden referenziert!**  
+
+---
+
+### **1.2 Arrays zusammenfügen (Alternative zu `concat()`)**
+```javascript
+const a = [1, 2], b = [3, 4];
+const zusammen = [...a, ...b];
+
+console.log(zusammen); // [1, 2, 3, 4]
+```
+
+---
+
+### **1.3 Elemente hinzufügen**
+```javascript
+const zahlen = [1, 2, 3];
+const erweitert = [0, ...zahlen, 4];
+
+console.log(erweitert); // [0, 1, 2, 3, 4]
+```
+
+---
+
+## **2. Spread-Operator mit Objekten (`ES9`)**
+Ab **ES9 (ES2018)** kann der Spread-Operator auch für **Objekte** verwendet werden.
+
+### **2.1 Objekt-Kopieren**
+```javascript
+const person = { name: "Max", alter: 30 };
+const kopie = { ...person };
+
+kopie.alter = 31;
+console.log(person.alter); // 30 (unverändert)
+console.log(kopie.alter); // 31
+```
+✅ **Flache Kopie des Objekts**  
+
+---
+
+### **2.2 Objekte zusammenführen**
+```javascript
+const user = { name: "Anna", alter: 25 };
+const zusatz = { beruf: "Designer" };
+
+const merged = { ...user, ...zusatz };
+console.log(merged); // { name: "Anna", alter: 25, beruf: "Designer" }
+```
+✅ **Alternative zu `Object.assign()`**  
+
+---
+
+### **2.3 Standardwerte überschreiben**
+```javascript
+const defaultSettings = { theme: "light", showSidebar: true };
+const userSettings = { theme: "dark" };
+
+const settings = { ...defaultSettings, ...userSettings };
+console.log(settings); // { theme: "dark", showSidebar: true }
+```
+✅ **Später hinzugefügte Werte überschreiben frühere Werte**  
+
+---
+
+## **3. Spread-Operator in Funktionsaufrufen**
+### **3.1 Argumente an Funktionen übergeben**
+```javascript
+function summe(a, b, c) {
+  return a + b + c;
+}
+
+const zahlen = [1, 2, 3];
+console.log(summe(...zahlen)); // 6
+```
+✅ **Alternative zu `apply()`**  
+```javascript
+console.log(Math.max(...[10, 20, 30])); // 30
+```
+
+---
+
+## **4. Unterschied zwischen Spread (`...`) und Rest-Parameter (`...`)**
+**Spread (`...`)** → **Entpackt** Werte aus Arrays oder Objekten.  
+**Rest (`...`)** → **Sammelt** Werte in Arrays.
+
+```javascript
+function beispiel(a, ...rest) {
+  console.log(a); // Erstes Argument
+  console.log(rest); // Restliche Argumente als Array
+}
+
+beispiel(1, 2, 3, 4);
+// 1
+// [2, 3, 4]
+```
+
+---
+
+### **Zusammenfassung**
+| Feature | Spread (`...`) für Arrays | Spread (`...`) für Objekte |
+|---------|------------------|------------------|
+| **Kopieren** | `const arr2 = [...arr1]` | `const obj2 = { ...obj1 }` |
+| **Zusammenfügen** | `[...arr1, ...arr2]` | `{ ...obj1, ...obj2 }` |
+| **Elemente einfügen** | `[1, ...arr, 4]` | `{ key: "new", ...obj }` |
+| **Funktion Argumente** | `sum(...arr)` | ❌ Nicht möglich |
+
+🔗 [MDN-Dokumentation zum Spread-Operator](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Operators/Spread_syntax)
 
   **[⬆ Наверх](#top)** 
 
-52. ### <a name="52"></a> 
+52. ### <a name="52"></a> Rest-Operator und Standardparameter (ES6)
 
+### **Rest-Operator (`...`) und Standardparameter (ES6) in JavaScript**  
+
+Der **Rest-Operator (`...`)** sammelt mehrere Werte in **einem Array**.  
+Standardparameter (`=`) setzen **Standardwerte für Funktionsargumente**.
+
+---
+
+## **1. Rest-Operator (`...`) – Sammelt Werte in Arrays**  
+
+### **1.1 Funktionsargumente sammeln**
+```javascript
+function summe(...zahlen) {
+  return zahlen.reduce((acc, val) => acc + val, 0);
+}
+
+console.log(summe(1, 2, 3, 4)); // 10
+```
+✅ **Unbegrenzte Argumente als Array empfangen**  
+❌ **Muss am **Ende** der Parameterliste stehen!**  
+
+---
+
+### **1.2 Rest-Parameter mit festen Parametern**
+```javascript
+function ersteUndRest(erstes, ...rest) {
+  console.log(erstes); // Erstes Argument
+  console.log(rest); // Rest als Array
+}
+
+ersteUndRest("A", "B", "C", "D");
+// "A"
+// ["B", "C", "D"]
+```
+
+---
+
+### **1.3 Rest-Operator in Array-Destrukturierung**
+```javascript
+const zahlen = [1, 2, 3, 4, 5];
+const [erstes, zweites, ...rest] = zahlen;
+
+console.log(erstes, zweites); // 1, 2
+console.log(rest); // [3, 4, 5]
+```
+✅ **Perfekt für Teillisten**  
+
+---
+
+### **1.4 Rest-Operator in Objekt-Destrukturierung**
+```javascript
+const person = { name: "Max", alter: 30, beruf: "Entwickler" };
+const { name, ...rest } = person;
+
+console.log(name); // "Max"
+console.log(rest); // { alter: 30, beruf: "Entwickler" }
+```
+✅ **Nützlich für das Entfernen einzelner Eigenschaften**  
+
+---
+
+## **2. Standardparameter – Vorgabewerte für Funktionsargumente**
+Falls ein Parameter **nicht übergeben wird**, erhält er einen **Standardwert**.
+
+```javascript
+function begruessung(name = "Gast") {
+  console.log(`Hallo, ${name}!`);
+}
+
+begruessung("Anna"); // "Hallo, Anna!"
+begruessung(); // "Hallo, Gast!"
+```
+✅ **Verhindert `undefined`-Werte in Funktionen**  
+
+---
+
+### **2.1 Standardwerte mit Berechnung**
+```javascript
+function mult(a, b = a) {
+  return a * b;
+}
+
+console.log(mult(3)); // 9 (b = 3)
+console.log(mult(3, 4)); // 12
+```
+✅ **Ein Parameter kann als Standardwert für einen anderen genutzt werden**  
+
+---
+
+### **2.2 Kombination von Rest-Operator und Standardwerten**
+```javascript
+function summeMitStart(start = 0, ...zahlen) {
+  return zahlen.reduce((acc, val) => acc + val, start);
+}
+
+console.log(summeMitStart(10, 1, 2, 3)); // 16 (10 + 1 + 2 + 3)
+console.log(summeMitStart()); // 0
+```
+
+---
+
+### **Zusammenfassung**
+| Feature | Beschreibung | Beispiel |
+|---------|-------------|----------|
+| **Rest-Operator (`...`)** | Sammelt mehrere Werte als Array | `function test(...args) {}` |
+| **Array-Destrukturierung** | Teilt Array-Werte in Variablen | `[a, ...rest] = [1, 2, 3]` |
+| **Objekt-Destrukturierung** | Entfernt Eigenschaft aus Objekt | `{ key, ...rest } = obj` |
+| **Standardparameter** | Setzt Standardwerte für Argumente | `function(a = 5) {}` |
+
+🔗 [MDN-Dokumentation zu Rest-Operator & Standardparametern](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Functions/Default_parameters)
 
   **[⬆ Наверх](#top)**
 
-53. ### <a name="53"></a> 
+53. ### <a name="53"></a> Symbol
 
+### **`Symbol` in JavaScript (ES6)**  
+
+Ein **`Symbol`** ist ein einzigartiger, unveränderlicher Wert, der als **Schlüssel für Objekte** verwendet werden kann.  
+Es wurde in **ES6 (ECMAScript 2015)** eingeführt und hilft, **Namenskonflikte zu vermeiden**.
+
+---
+
+## **1. Symbol erstellen**
+```javascript
+const id = Symbol();
+console.log(typeof id); // "symbol"
+```
+✅ **Jedes `Symbol()` ist einzigartig!**  
+
+---
+
+## **2. Symbol mit Beschreibung**
+```javascript
+const userID = Symbol("Benutzer-ID");
+console.log(userID.toString()); // "Symbol(Benutzer-ID)"
+```
+✅ **Die Beschreibung dient nur zu Debugging-Zwecken.**  
+
+---
+
+## **3. Symbol als Objekt-Schlüssel**
+```javascript
+const user = {
+  name: "Max",
+  [userID]: 12345 // Symbol als Schlüssel
+};
+
+console.log(user[userID]); // 12345
+console.log(Object.keys(user)); // ["name"] (Symbol wird nicht angezeigt!)
+console.log(Object.getOwnPropertySymbols(user)); // [Symbol(Benutzer-ID)]
+```
+✅ **Verhindert unbeabsichtigten Zugriff auf Eigenschaften**  
+
+❌ **Wird nicht in `Object.keys()` oder `for...in` angezeigt!**  
+
+---
+
+## **4. Globale Symbol-Registrierung mit `Symbol.for()`**
+```javascript
+const sym1 = Symbol.for("globalID");
+const sym2 = Symbol.for("globalID");
+
+console.log(sym1 === sym2); // true
+```
+✅ **`Symbol.for("name")` erstellt ein globales Symbol oder gibt ein existierendes zurück.**  
+
+```javascript
+console.log(Symbol.keyFor(sym1)); // "globalID"
+```
+✅ **`Symbol.keyFor(symbol)` gibt den Symbol-Namen zurück.**  
+
+❌ **Unterschied zu `Symbol()` → `Symbol.for()` erzeugt **KEIN** einzigartiges Symbol!**  
+
+---
+
+## **5. Eingebaute (`Well-Known`) Symbole**
+JavaScript hat **vordefinierte Symbole**, die das Verhalten von Objekten ändern können.
+
+| Symbol | Zweck |
+|--------|--------|
+| `Symbol.iterator` | Definiert eine Iteration für `for...of` |
+| `Symbol.toPrimitive` | Steuert die Typumwandlung eines Objekts |
+| `Symbol.toStringTag` | Ändert den `toString()`-Ausgabe |
+
+### **Beispiel: `Symbol.iterator` für benutzerdefinierte Iterationen**
+```javascript
+const meineZahlen = {
+  werte: [1, 2, 3],
+  [Symbol.iterator]() {
+    let index = 0;
+    return {
+      next: () => ({
+        value: this.werte[index++],
+        done: index > this.werte.length
+      })
+    };
+  }
+};
+
+for (const zahl of meineZahlen) {
+  console.log(zahl); // 1, 2, 3
+}
+```
+✅ **Ermöglicht benutzerdefinierte `for...of`-Schleifen!**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Beschreibung |
+|---------|-------------|
+| **`Symbol()`** | Erzeugt ein einzigartiges Symbol |
+| **`Symbol("beschreibung")`** | Symbol mit Debug-Beschreibung |
+| **`Symbol.for("key")`** | Erstellt oder ruft ein globales Symbol ab |
+| **`Object.getOwnPropertySymbols(obj)`** | Zeigt alle Symbole eines Objekts |
+| **Well-Known Symbols** | `Symbol.iterator`, `Symbol.toPrimitive`, `Symbol.toStringTag` |
+
+🔗 [MDN-Dokumentation zu `Symbol`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
 
   **[⬆ Наверх](#top)**
 
-54. ### <a name="54"></a> 
+54. ### <a name="54"></a> BigInt
 
+### **BigInt in JavaScript (ES11 / ES2020)**  
+
+**BigInt** ist ein spezieller Zahlentyp für sehr große Ganzzahlen, die über den sicheren Bereich von `Number` (`2^53 - 1`) hinausgehen.
+
+---
+
+## **1. Warum BigInt?**  
+
+Die größte sichere Zahl in JavaScript ist:  
+```javascript
+console.log(Number.MAX_SAFE_INTEGER); // 9007199254740991
+```
+Wird eine größere Zahl verwendet, kann es zu **Präzisionsfehlern** kommen:  
+```javascript
+console.log(9007199254740991 + 1); // 9007199254740992 ✅
+console.log(9007199254740991 + 2); // 9007199254740992 ❌ (Fehler!)
+```
+**Lösung:** Verwende `BigInt` für große Zahlen.  
+
+---
+
+## **2. BigInt erstellen**
+```javascript
+const großeZahl = 123456789012345678901234567890n;
+console.log(großeZahl); // 123456789012345678901234567890n
+console.log(typeof großeZahl); // "bigint"
+```
+✅ **BigInt wird mit `n` am Ende geschrieben**  
+
+```javascript
+const andereZahl = BigInt(12345678901234567890);
+console.log(andereZahl); // 12345678901234567890n
+```
+✅ **`BigInt()`-Konstruktor funktioniert ebenfalls**  
+
+---
+
+## **3. Rechnen mit BigInt**
+```javascript
+const a = 10n;
+const b = 20n;
+
+console.log(a + b); // 30n
+console.log(a * b); // 200n
+console.log(a / 3n); // 3n (Abrundung!)
+```
+✅ **Alle arithmetischen Operationen sind möglich**  
+❌ **Division rundet immer ab (kein Gleitkomma!)**  
+
+---
+
+## **4. BigInt und normale Zahlen (`Number`)**
+```javascript
+const big = 100n;
+const num = 50;
+
+console.log(big + BigInt(num)); // ✅ 150n
+console.log(Number(big) + num); // ✅ 150
+```
+❌ **Mischen von `BigInt` und `Number` ist nicht erlaubt!**  
+```javascript
+console.log(big + num); // ❌ TypeError
+```
+✅ **Lösung: `BigInt()` oder `Number()` verwenden**  
+
+---
+
+## **5. Vergleiche mit BigInt**
+Vergleiche (`==` oder `===`) funktionieren wie gewohnt:  
+```javascript
+console.log(10n == 10); // ✅ true (automatische Konvertierung)
+console.log(10n === 10); // ❌ false (unterschiedlicher Typ)
+console.log(10n > 5); // ✅ true
+```
+✅ **`==` vergleicht den Wert, `===` vergleicht auch den Typ**  
+
+---
+
+## **6. BigInt in `Math`-Methoden**
+BigInt **funktioniert nicht** mit `Math`-Funktionen:  
+```javascript
+console.log(Math.sqrt(16n)); // ❌ TypeError
+```
+✅ **Lösung:** `Number(bigInt)` nutzen  
+```javascript
+console.log(Math.sqrt(Number(16n))); // ✅ 4
+```
+
+---
+
+### **Zusammenfassung**
+| Feature | Beschreibung |
+|---------|-------------|
+| **`BigInt(n)` oder `n`-Suffix** | Erstellt eine große Ganzzahl |
+| **Arithmetik (`+`, `-`, `*`, `/`)** | Funktioniert, aber Division rundet ab |
+| **Vergleich (`==`, `===`, `<`, `>`)** | Funktioniert, aber `===` vergleicht auch den Typ |
+| **BigInt & Number mischen** | ❌ Nicht erlaubt (`TypeError`) |
+| **Keine `Math`-Funktionen** | ❌ `Math.sqrt(16n)` funktioniert nicht |
+
+🔗 [MDN-Dokumentation zu BigInt](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/BigInt)
 
   **[⬆ Наверх](#top)**
 
-55. ### <a name="55"></a> 
+55. ### <a name="55"></a> Module import/export (ES6) & CommonJS
 
+### **JavaScript-Module: `import/export` (ES6) & CommonJS**  
+
+JavaScript unterstützt **zwei Modulsysteme**:  
+1. **ES6-Module** (`import/export`) → **Für Browser & moderne JavaScript-Engines**  
+2. **CommonJS** (`require/module.exports`) → **Für Node.js**  
+
+---
+
+## **1. ES6-Module (`import/export`) – Modern**
+### **1.1 Standard-Export (`export default`)**
+```javascript
+// 📁 math.js (Modul)
+export default function add(a, b) {
+  return a + b;
+}
+```
+
+```javascript
+// 📁 main.js
+import add from "./math.js";
+
+console.log(add(2, 3)); // 5
+```
+✅ **`export default` → Import ohne `{}` möglich**  
+
+---
+
+### **1.2 Benannte Exporte (`export`)**
+```javascript
+// 📁 utils.js
+export function greet(name) {
+  return `Hallo, ${name}!`;
+}
+
+export const PI = 3.1415;
+```
+
+```javascript
+// 📁 main.js
+import { greet, PI } from "./utils.js";
+
+console.log(greet("Max")); // "Hallo, Max!"
+console.log(PI); // 3.1415
+```
+✅ **Mehrere benannte Exporte möglich**  
+
+```javascript
+// Alternativer Import (Alias vergeben)
+import { greet as hello } from "./utils.js";
+console.log(hello("Anna")); // "Hallo, Anna!"
+```
+
+---
+
+### **1.3 Alles importieren (`* as`)**
+```javascript
+import * as utils from "./utils.js";
+
+console.log(utils.greet("Lisa")); // "Hallo, Lisa!"
+console.log(utils.PI); // 3.1415
+```
+✅ **Praktisch für Modul-Bündelung**  
+
+---
+
+### **1.4 Dynamischer Import (`import()`)**
+```javascript
+async function ladeModul() {
+  const math = await import("./math.js");
+  console.log(math.default(2, 3)); // 5
+}
+ladeModul();
+```
+✅ **Ermöglicht asynchrones Laden von Modulen**  
+
+---
+
+## **2. CommonJS (`require/module.exports`) – Für Node.js**
+Vor ES6 wurde **CommonJS** in **Node.js** verwendet.
+
+### **2.1 Export (`module.exports`)**
+```javascript
+// 📁 math.js
+module.exports = function add(a, b) {
+  return a + b;
+};
+```
+
+### **2.2 Import (`require()`)**
+```javascript
+// 📁 main.js
+const add = require("./math");
+
+console.log(add(2, 3)); // 5
+```
+✅ **Funktioniert in älteren Node.js-Versionen**  
+❌ **Nicht für Browser geeignet!**  
+
+---
+
+## **3. Unterschiede: ES6 vs. CommonJS**
+| Feature | ES6-Module (`import/export`) | CommonJS (`require/module.exports`) |
+|---------|------------------|-------------------|
+| **Verwendet in** | Browser, Node.js | Nur Node.js |
+| **Synchron / Asynchron** | Asynchron (lazily loaded) | Synchron (blockiert) |
+| **Syntax** | `import/export` | `require/module.exports` |
+| **Standard-Export** | `export default` | `module.exports =` |
+| **Dynamischer Import** | `import()` | `require()` |
+
+---
+
+### **Zusammenfassung**
+1. **ES6-Module** (`import/export`) → Standard für moderne JavaScript-Projekte.  
+2. **CommonJS** (`require/module.exports`) → Wird in **älteren Node.js-Projekten** verwendet.  
+3. **Dynamischer `import()`** ermöglicht **lazy loading** für bessere Performance.  
+
+🔗 [MDN-Dokumentation zu `import/export`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/import)
 
   **[⬆ Наверх](#top)**
 
