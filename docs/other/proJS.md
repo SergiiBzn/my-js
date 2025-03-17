@@ -5186,43 +5186,771 @@ console.log(add(2, 3)); // 5
 
   **[⬆ Наверх](#top)**
 
-61. ### <a name="61"></a> 
+61. ### <a name="61"></a> Ereignisse und ihre Handler
 
+### **Ereignisse und ihre Handler in JavaScript**  
+
+JavaScript-Ereignisse (`events`) ermöglichen **Interaktionen mit der Webseite**.  
+Ein **Ereignis-Handler** (`event handler`) ist eine Funktion, die auf ein Ereignis reagiert.
+
+---
+
+## **1. Ereignisse mit `addEventListener()` (Empfohlene Methode)**  
+```javascript
+document.getElementById("btn").addEventListener("click", function() {
+  console.log("Button wurde geklickt!");
+});
+```
+✅ **Mehrere Event-Listener möglich**  
+✅ **Kann mit `removeEventListener()` entfernt werden**  
+
+```javascript
+function handler() {
+  console.log("Event ausgelöst!");
+}
+
+document.getElementById("btn").addEventListener("click", handler);
+document.getElementById("btn").removeEventListener("click", handler);
+```
+❌ **Funktion muss benannt sein, um sie zu entfernen**  
+
+---
+
+## **2. Direktes Event-Handling (veraltete Methode)**
+```html
+<button onclick="alert('Geklickt!')">Klick mich</button>
+```
+❌ **Nicht empfohlen, da HTML und JS vermischt werden**  
+
+---
+
+## **3. `onEvent`-Eigenschaft (nicht empfohlen)**
+```javascript
+document.getElementById("btn").onclick = function() {
+  console.log("Button geklickt!");
+};
+```
+❌ **Überschreibt vorherige Event-Handler**  
+
+---
+
+## **4. Wichtige Event-Objekte**
+Das **Event-Objekt (`event`)** enthält Informationen über das Ereignis.
+
+### **4.1 `event.target` – Element, das das Ereignis ausgelöst hat**
+```javascript
+document.getElementById("btn").addEventListener("click", function(event) {
+  console.log(event.target); // Gibt das geklickte Element zurück
+});
+```
+
+### **4.2 `event.preventDefault()` – Standardverhalten verhindern**
+```javascript
+document.querySelector("a").addEventListener("click", function(event) {
+  event.preventDefault(); // Verhindert das Laden der Seite
+  console.log("Link wurde geklickt!");
+});
+```
+
+---
+
+## **5. Event-Delegation (Optimierte Event-Behandlung)**
+Anstatt jedem Element einen Event-Listener zuzuweisen, kann das **übergeordnete Element** die Ereignisse abfangen.
+
+```javascript
+document.getElementById("liste").addEventListener("click", function(event) {
+  if (event.target.tagName === "LI") {
+    console.log(`Geklickt: ${event.target.innerText}`);
+  }
+});
+```
+✅ **Weniger Event-Listener → Bessere Performance**  
+
+---
+
+## **6. Bubbling & Capturing (Event Propagation)**
+Ein Ereignis durchläuft **drei Phasen**:  
+1. **Capturing Phase** (`window → Eltern → Kind`)  
+2. **Target Phase** (Event erreicht das Ziel)  
+3. **Bubbling Phase** (Event steigt von **Kind → Eltern → window** auf)
+
+### **6.1 Bubbling (Standardverhalten)**
+```javascript
+document.getElementById("child").addEventListener("click", function() {
+  console.log("Child geklickt!");
+});
+
+document.getElementById("parent").addEventListener("click", function() {
+  console.log("Parent geklickt!");
+});
+```
+Wenn `child` geklickt wird:  
+```
+Child geklickt!
+Parent geklickt!  // (Weil das Event "hochblubbert")
+```
+
+### **6.2 Event nur auf Ziel stoppen**
+```javascript
+document.getElementById("child").addEventListener("click", function(event) {
+  event.stopPropagation(); // Stoppt das Bubbling
+  console.log("Nur Child wird ausgelöst!");
+});
+```
+
+---
+
+### **Zusammenfassung**
+| Methode | Vorteil | Nachteil |
+|---------|---------|---------|
+| **`addEventListener()`** | Mehrere Listener, entfernbare Events | Funktion muss benannt sein zum Entfernen |
+| **`onclick = function`** | Einfach | Überschreibt frühere Handler |
+| **Inline `onclick="..."`** | Schnell | Vermischt HTML & JavaScript |
+| **Event-Delegation** | Spart Ressourcen | Muss `event.target` prüfen |
+| **`stopPropagation()`** | Verhindert Bubbling | Kann ungewollte Effekte haben |
+
+🔗 [MDN-Dokumentation zu `addEventListener()`](https://developer.mozilla.org/de/docs/Web/API/EventTarget/addEventListener)
 
   **[⬆ Наверх](#top)**  
 
-62. ### <a name="62"></a> 
+62. ### <a name="62"></a> Ereignis-Bubbling (event bubbling)
 
+### **Ereignis-Bubbling (`event bubbling`) in JavaScript**  
+
+**Ereignis-Bubbling** beschreibt, wie ein **Ereignis von einem untergeordneten (`child`) Element zu den übergeordneten (`parent`) Elementen "hochblubbert"**.  
+
+---
+
+## **1. Standardverhalten: Bubbling**
+Wenn ein `click`-Event auf einem `child`-Element ausgelöst wird, **wird das Ereignis automatisch an die Eltern weitergegeben**.  
+Das bedeutet: **Erst das geklickte Element verarbeitet das Event, dann seine Eltern (bis zum `document`).**
+
+```html
+<div id="parent">
+  <button id="child">Klick mich</button>
+</div>
+```
+
+```javascript
+document.getElementById("child").addEventListener("click", () => {
+  console.log("Child geklickt!");
+});
+
+document.getElementById("parent").addEventListener("click", () => {
+  console.log("Parent geklickt!");
+});
+```
+
+**Klick auf den Button (`#child`) → Ausgabe:**  
+```
+Child geklickt!
+Parent geklickt!
+```
+✅ **Das `click`-Ereignis "blubbert" vom `child` zum `parent`.**  
+
+---
+
+## **2. `stopPropagation()` – Bubbling verhindern**
+Falls das Ereignis **nicht an Eltern weitergegeben werden soll**, kann `event.stopPropagation()` verwendet werden.
+
+```javascript
+document.getElementById("child").addEventListener("click", (event) => {
+  event.stopPropagation(); // Stoppt das Bubbling
+  console.log("Nur Child wird ausgelöst!");
+});
+```
+**Klick auf `#child` → Ausgabe:**  
+```
+Nur Child wird ausgelöst!
+```
+✅ **Das `click`-Event bleibt auf `child`, `parent` wird nicht aufgerufen.**  
+
+---
+
+## **3. `capture: true` – Capturing-Phase aktivieren**
+Standardmäßig wird ein Event zuerst auf dem `child` ausgeführt.  
+Mit `{ capture: true }` kann das Ereignis zuerst im `parent` verarbeitet werden (Capturing statt Bubbling).
+
+```javascript
+document.getElementById("parent").addEventListener("click", () => {
+  console.log("Parent geklickt (Capturing)!");
+}, { capture: true });
+```
+**Klick auf `#child` → Ausgabe:**  
+```
+Parent geklickt (Capturing)!
+Child geklickt!
+```
+✅ **Das Event wird zuerst im `parent` verarbeitet und dann im `child`.**  
+
+---
+
+## **4. `stopImmediatePropagation()` – Alle weiteren Handler blockieren**
+Falls ein Element mehrere Event-Listener hat, kann **`stopImmediatePropagation()`** verhindern, dass weitere Listener ausgeführt werden.
+
+```javascript
+document.getElementById("child").addEventListener("click", (event) => {
+  event.stopImmediatePropagation();
+  console.log("Erster Listener");
+});
+
+document.getElementById("child").addEventListener("click", () => {
+  console.log("Zweiter Listener");
+});
+```
+✅ **Nur "Erster Listener" wird ausgeführt, der zweite wird blockiert.**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Wirkung |
+|---------|---------|
+| **Bubbling (Standard)** | Event wandert von `child` zu `parent`. |
+| **`event.stopPropagation()`** | Verhindert Bubbling (nur `child` feuert). |
+| **`{ capture: true }`** | Aktiviert **Capturing-Phase** (Eltern zuerst). |
+| **`event.stopImmediatePropagation()`** | Blockiert ALLE Event-Handler auf dem Element. |
+
+🔗 [MDN-Dokumentation zu `event.stopPropagation()`](https://developer.mozilla.org/de/docs/Web/API/Event/stopPropagation)
 
   **[⬆ Наверх](#top)**
 
-63. ### <a name="63"></a> 
+63. ### <a name="63"></a> Ereignis-Delegation
 
+### **Ereignis-Delegation (`event delegation`) in JavaScript**  
+
+**Ereignis-Delegation** bedeutet, dass **ein übergeordnetes Element (`parent`) ein Ereignis für seine untergeordneten (`child`) Elemente verarbeitet**.  
+Das nutzt **Ereignis-Bubbling**, um nicht für jedes Kind-Element einen eigenen Event-Listener zu setzen.
+
+---
+
+## **1. Warum Ereignis-Delegation?**
+✅ **Bessere Performance** (weniger Event-Listener)  
+✅ **Funktioniert auch für dynamisch erstellte Elemente**  
+✅ **Einfacher zu verwalten**  
+
+---
+
+## **2. Beispiel ohne Delegation (Ineffizient)**
+```javascript
+document.querySelectorAll("li").forEach(li => {
+  li.addEventListener("click", () => {
+    console.log("LI geklickt!");
+  });
+});
+```
+❌ **Jedes `li`-Element bekommt einen eigenen Event-Listener!**  
+❌ **Neue `li`-Elemente funktionieren nicht automatisch**  
+
+---
+
+## **3. Ereignis-Delegation (Empfohlene Methode)**
+```javascript
+document.getElementById("liste").addEventListener("click", (event) => {
+  if (event.target.tagName === "LI") {
+    console.log(`Geklickt: ${event.target.innerText}`);
+  }
+});
+```
+✅ **Nur ein Event-Listener für die gesamte Liste (`#liste`)**  
+✅ **Funktioniert auch für später hinzugefügte `li`-Elemente**  
+
+---
+
+## **4. Dynamische Elemente automatisch unterstützen**
+```javascript
+document.getElementById("liste").addEventListener("click", (event) => {
+  if (event.target.matches("li")) {
+    console.log(`Neu geklickt: ${event.target.innerText}`);
+  }
+});
+
+document.getElementById("addItem").addEventListener("click", () => {
+  const neuesLi = document.createElement("li");
+  neuesLi.textContent = "Neues Item";
+  document.getElementById("liste").appendChild(neuesLi);
+});
+```
+✅ **Neue Elemente (`<li>`) funktionieren ohne zusätzlichen Code!**  
+
+---
+
+## **5. `event.target` vs. `event.currentTarget`**
+- **`event.target`** → Das Element, das das Ereignis ausgelöst hat (`<li>`).  
+- **`event.currentTarget`** → Das Element, an dem der Event-Listener hängt (`#liste`).
+
+```javascript
+document.getElementById("liste").addEventListener("click", (event) => {
+  console.log("target:", event.target); // Das geklickte `li`
+  console.log("currentTarget:", event.currentTarget); // `#liste`
+});
+```
+
+---
+
+## **6. `stopPropagation()` verhindern, wenn nötig**
+Falls ein `li` innerhalb eines anderen Elements liegt, kann `event.stopPropagation()` ungewollte Effekte verhindern:
+
+```javascript
+document.getElementById("liste").addEventListener("click", (event) => {
+  if (event.target.matches("button")) {
+    event.stopPropagation(); // Verhindert, dass `li`-Events ebenfalls feuern
+  }
+});
+```
+
+---
+
+### **Zusammenfassung**
+| Methode | Vorteil |
+|---------|---------|
+| **Direkter Event-Listener pro Element** | ❌ Ineffizient bei vielen Elementen |
+| **Event-Delegation (`addEventListener()` am `parent`)** | ✅ Weniger Event-Listener, bessere Performance |
+| **`event.target`** | ✅ Gibt das **eigentliche geklickte Element** zurück |
+| **`event.currentTarget`** | ✅ Gibt das **Element mit dem Event-Listener** zurück |
+| **Dynamische Elemente** | ✅ Funktionieren automatisch |
+
+🔗 [MDN-Dokumentation zu `event delegation`](https://developer.mozilla.org/de/docs/Learn/JavaScript/Building_blocks/Events#event_delegation)
 
   **[⬆ Наверх](#top)**
 
-64. ### <a name="64"></a> 
+64. ### <a name="64"></a> Unterschied zwischen load und DOMContentLoaded
 
+### **Unterschied zwischen `load` und `DOMContentLoaded` in JavaScript**  
+
+Beide Ereignisse werden im **Window- oder Document-Objekt** ausgelöst, aber sie haben unterschiedliche Zeitpunkte und Zwecke.
+
+---
+
+## **1. `DOMContentLoaded` – DOM ist geladen, aber Ressourcen noch nicht**
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM ist vollständig geladen!");
+});
+```
+✅ **Läuft, sobald das HTML-Dokument geparst wurde**  
+✅ **Bilder, Stylesheets & externe Ressourcen können noch laden**  
+✅ **Ideal für DOM-Manipulationen (z. B. `document.querySelector`)**  
+
+---
+
+## **2. `load` – Alles ist vollständig geladen**
+```javascript
+window.addEventListener("load", () => {
+  console.log("Seite und alle Ressourcen sind vollständig geladen!");
+});
+```
+✅ **Läuft erst, wenn ALLE Ressourcen (CSS, Bilder, Skripte) geladen sind**  
+✅ **Gut für Skripte, die auf vollständige Inhalte (z. B. Bilder) angewiesen sind**  
+
+---
+
+## **3. Unterschied in der Praxis**
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("HTML ist fertig!");
+});
+
+window.addEventListener("load", () => {
+  console.log("Alles (inkl. Bilder) ist geladen!");
+});
+```
+**Wenn die Seite lädt:**  
+```
+HTML ist fertig!  // (DOMContentLoaded)
+Alles (inkl. Bilder) ist geladen!  // (load)
+```
+
+---
+
+## **4. Wann welches Event nutzen?**
+| Event | Wann wird es ausgelöst? | Wann verwenden? |
+|-------|-----------------|----------------|
+| **`DOMContentLoaded`** | Sobald das HTML vollständig geladen und geparst ist | Wenn **DOM-Manipulationen** notwendig sind |
+| **`load`** | Wenn **alle Ressourcen (CSS, Bilder, Skripte, Fonts)** geladen sind | Wenn Skripte auf **Bilder oder CSS-Abmessungen** angewiesen sind |
+
+🔗 [MDN-Dokumentation zu `DOMContentLoaded`](https://developer.mozilla.org/de/docs/Web/API/Document/DOMContentLoaded_event)  
+🔗 [MDN-Dokumentation zu `load`](https://developer.mozilla.org/de/docs/Web/API/Window/load_event)
 
   **[⬆ Наверх](#top)**
 
-65. ### <a name="65"></a> 
+65. ### <a name="65"></a> Elemente von der Seite abrufen
 
+### **Elemente von der Seite abrufen in JavaScript**  
+
+JavaScript bietet mehrere Methoden, um **HTML-Elemente** aus dem DOM abzurufen.
+
+---
+
+## **1. `getElementById()` – Einzelnes Element per `id` abrufen**
+```javascript
+const element = document.getElementById("meinElement");
+console.log(element);
+```
+✅ **Schnell und effizient**  
+❌ **Nur für ein einzelnes Element mit `id`**  
+
+---
+
+## **2. `getElementsByClassName()` – Elemente per `class` abrufen (Live Collection)**
+```javascript
+const elements = document.getElementsByClassName("meineKlasse");
+console.log(elements[0]); // Erstes Element mit der Klasse
+```
+✅ **Live Collection → Aktualisiert sich bei DOM-Änderungen**  
+❌ **Keine Array-Methoden (`map()`, `filter()`)** → `Array.from()` verwenden  
+
+---
+
+## **3. `getElementsByTagName()` – Alle Elemente eines bestimmten Tags abrufen (Live Collection)**
+```javascript
+const alleDivs = document.getElementsByTagName("div");
+console.log(alleDivs.length); // Anzahl der <div>-Elemente
+```
+✅ **Schnell für bestimmte Tags (`div`, `p`, `a`)**  
+❌ **Auch eine Live Collection (kein echtes Array)**  
+
+---
+
+## **4. `querySelector()` – Erstes passendes Element per CSS-Selektor abrufen**
+```javascript
+const erstesDiv = document.querySelector("div");
+console.log(erstesDiv);
+```
+✅ **Sehr flexibel (CSS-Selektoren wie `#id`, `.class`, `[attr]`)**  
+✅ **Findet nur das erste passende Element**  
+
+---
+
+## **5. `querySelectorAll()` – Alle passenden Elemente abrufen (Statische `NodeList`)**
+```javascript
+const alleButtons = document.querySelectorAll("button");
+console.log(alleButtons);
+```
+✅ **Erzeugt eine `NodeList` (ähnlich einem Array, aber nicht live)**  
+✅ **Unterstützt `forEach()`, `map()`**  
+❌ **Ändert sich nicht, wenn neue Elemente ins DOM kommen**  
+
+---
+
+## **6. `document.forms` – Alle `<form>`-Elemente abrufen**
+```javascript
+console.log(document.forms);
+console.log(document.forms[0].elements); // Alle Eingabefelder der ersten Form
+```
+✅ **Nützlich für Formulareingaben**  
+
+---
+
+## **7. `document.images`, `document.links` – Spezielle Sammlungen**
+```javascript
+console.log(document.images); // Alle Bilder (`<img>`)
+console.log(document.links); // Alle Links (`<a>`)
+```
+✅ **Schneller Zugriff auf spezielle Elemente**  
+
+---
+
+## **Zusammenfassung**
+| Methode | Rückgabe | Besonderheiten |
+|---------|---------|---------------|
+| **`getElementById("id")`** | Einzelnes Element (`Element`) | Schnell, aber nur für `id` |
+| **`getElementsByClassName("class")`** | Live Collection (`HTMLCollection`) | Kein echtes Array, dynamisch |
+| **`getElementsByTagName("tag")`** | Live Collection (`HTMLCollection`) | Enthält alle Elemente des Typs |
+| **`querySelector("css-selektor")`** | Erstes passendes Element (`Element`) | Flexibel mit CSS-Selektoren |
+| **`querySelectorAll("css-selektor")`** | Statische `NodeList` | Unterstützt `forEach()`, `map()` |
+| **`document.forms`** | `HTMLCollection` | Zugriff auf Formulare |
+| **`document.images`, `document.links`** | `HTMLCollection` | Schneller Zugriff auf Bilder/Links |
+
+🔗 [MDN-Dokumentation zu `document.querySelector()`](https://developer.mozilla.org/de/docs/Web/API/Document/querySelector)  
+🔗 [MDN-Dokumentation zu `getElementById()`](https://developer.mozilla.org/de/docs/Web/API/Document/getElementById)
 
   **[⬆ Наверх](#top)**
 
-66. ### <a name="66"></a> 
+66. ### <a name="66"></a> Methoden zum Abrufen von DOM-Elementen in JavaScript
 
+### **Methoden zum Abrufen von DOM-Elementen in JavaScript**  
+
+JavaScript bietet mehrere **DOM-Methoden**, um Elemente aus dem HTML-Dokument abzurufen.  
+Hier sind die wichtigsten Methoden mit ihren Unterschieden.
+
+---
+
+## **1. `getElementById(id)` – Einzelnes Element per `id`**
+```javascript
+const element = document.getElementById("meinElement");
+console.log(element);
+```
+✅ **Schnell und effizient**  
+✅ **Gibt ein einzelnes Element zurück**  
+❌ **Nur für `id`, keine `class` oder `tag`-Suche**  
+
+---
+
+## **2. `getElementsByClassName(className)` – Alle Elemente mit einer `class` (Live Collection)**
+```javascript
+const elements = document.getElementsByClassName("meineKlasse");
+console.log(elements[0]); // Erstes Element mit der Klasse
+```
+✅ **Findet mehrere Elemente**  
+✅ **Schneller als `querySelectorAll()`**  
+❌ **Live Collection (verändert sich bei DOM-Updates)**  
+❌ **Kein echtes Array (`map()`, `filter()` fehlen)**  
+
+📌 **Lösung: Umwandlung in ein echtes Array**
+```javascript
+const elementsArray = Array.from(document.getElementsByClassName("meineKlasse"));
+```
+
+---
+
+## **3. `getElementsByTagName(tagName)` – Alle Elemente eines bestimmten Tags (Live Collection)**
+```javascript
+const alleDivs = document.getElementsByTagName("div");
+console.log(alleDivs.length); // Anzahl der <div>-Elemente
+```
+✅ **Schnell für bestimmte Tags (`div`, `p`, `a`)**  
+✅ **Gibt eine Live Collection zurück**  
+❌ **Kein echtes Array**  
+
+---
+
+## **4. `querySelector(selector)` – Erstes passendes Element per CSS-Selektor**
+```javascript
+const erstesDiv = document.querySelector("div");
+console.log(erstesDiv);
+```
+✅ **Sehr flexibel (CSS-Selektoren wie `#id`, `.class`, `[attr]`)**  
+✅ **Gibt nur das erste gefundene Element zurück**  
+❌ **Langsamer als `getElementById()`**  
+
+---
+
+## **5. `querySelectorAll(selector)` – Alle passenden Elemente abrufen (`NodeList`)**
+```javascript
+const alleButtons = document.querySelectorAll("button");
+console.log(alleButtons);
+```
+✅ **Erzeugt eine `NodeList` (ähnlich einem Array, aber nicht live)**  
+✅ **Unterstützt `forEach()`, `map()`**  
+❌ **Ändert sich nicht automatisch bei DOM-Updates**  
+
+📌 **Lösung: In ein echtes Array umwandeln**
+```javascript
+const echteArray = [...document.querySelectorAll("button")];
+```
+
+---
+
+## **6. `document.forms`, `document.images`, `document.links` – Spezielle Sammlungen**
+```javascript
+console.log(document.forms); // Alle Formulare
+console.log(document.images); // Alle Bilder (`<img>`)
+console.log(document.links); // Alle Links (`<a>`)
+```
+✅ **Schneller Zugriff auf bestimmte Elemente**  
+
+---
+
+## **7. `document.body`, `document.head`, `document.documentElement`**
+```javascript
+console.log(document.body); // <body>...</body>
+console.log(document.head); // <head>...</head>
+console.log(document.documentElement); // <html>...</html>
+```
+✅ **Direkter Zugriff auf die Hauptbereiche des Dokuments**  
+
+---
+
+## **Zusammenfassung**
+| Methode | Rückgabe | Besonderheiten |
+|---------|---------|---------------|
+| **`getElementById("id")`** | Einzelnes Element (`Element`) | Schnell, nur für `id` |
+| **`getElementsByClassName("class")`** | Live Collection (`HTMLCollection`) | Kein echtes Array |
+| **`getElementsByTagName("tag")`** | Live Collection (`HTMLCollection`) | Enthält alle Elemente des Typs |
+| **`querySelector("css-selektor")`** | Erstes passendes Element (`Element`) | Flexibel mit CSS-Selektoren |
+| **`querySelectorAll("css-selektor")`** | Statische `NodeList` | Unterstützt `forEach()`, `map()` |
+| **`document.forms`** | `HTMLCollection` | Zugriff auf Formulare |
+| **`document.images`, `document.links`** | `HTMLCollection` | Schneller Zugriff auf Bilder/Links |
+
+🔗 [MDN-Dokumentation zu `document.querySelector()`](https://developer.mozilla.org/de/docs/Web/API/Document/querySelector)  
+🔗 [MDN-Dokumentation zu `getElementById()`](https://developer.mozilla.org/de/docs/Web/API/Document/getElementById)
 
   **[⬆ Наверх](#top)**
 
-67. ### <a name="67"></a> 
+67. ### <a name="67"></a> Navigation durch DOM-Elemente
 
+### **Navigation durch DOM-Elemente in JavaScript**  
+
+JavaScript bietet verschiedene Methoden, um durch das **Document Object Model (DOM)** zu navigieren.  
+
+---
+
+## **1. Eltern-Element abrufen (`parentNode` & `parentElement`)**  
+```javascript
+const kind = document.getElementById("child");
+console.log(kind.parentNode); // Gibt das übergeordnete Element zurück
+console.log(kind.parentElement); // Meist dasselbe wie `parentNode`
+```
+✅ **`parentNode` enthält auch `document`, `parentElement` nicht.**  
+
+---
+
+## **2. Kind-Elemente abrufen (`childNodes` & `children`)**  
+```javascript
+const eltern = document.getElementById("parent");
+
+console.log(eltern.childNodes); // NodeList (inkl. Text & Kommentare)
+console.log(eltern.children); // HTMLCollection (nur Elemente)
+```
+✅ **`children` gibt nur echte HTML-Elemente zurück.**  
+
+---
+
+## **3. Erstes & letztes Kind abrufen (`firstChild`, `firstElementChild`)**  
+```javascript
+console.log(eltern.firstChild); // Erstes Node (auch Text!)
+console.log(eltern.firstElementChild); // Erstes echtes Element
+console.log(eltern.lastElementChild); // Letztes echtes Element
+```
+✅ **`firstChild` kann auch Textknoten sein!**  
+
+---
+
+## **4. Geschwister-Elemente abrufen (`nextSibling`, `previousSibling`)**  
+```javascript
+const aktuelles = document.getElementById("item");
+
+console.log(aktuelles.nextSibling); // Nächstes Node (inkl. Text)
+console.log(aktuelles.nextElementSibling); // Nächstes echtes Element
+console.log(aktuelles.previousElementSibling); // Vorheriges echtes Element
+```
+✅ **`nextElementSibling` & `previousElementSibling` ignorieren Textknoten.**  
+
+---
+
+## **5. Alle Nachfahren (`querySelectorAll()`)**  
+```javascript
+const nachfahren = document.getElementById("container").querySelectorAll("p");
+console.log(nachfahren); // Alle <p>-Elemente innerhalb von #container
+```
+✅ **Ideal für selektives Finden von Elementen.**  
+
+---
+
+## **6. Alle Vorfahren (`closest()`)**
+```javascript
+const item = document.getElementById("child");
+console.log(item.closest(".container")); // Nächstes übergeordnetes `.container`
+```
+✅ **Findet das nächste übergeordnete Element mit bestimmtem Selektor.**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Rückgabe | Besonderheiten |
+|---------|---------|---------------|
+| **`parentNode` / `parentElement`** | Übergeordnetes Element | `parentElement` gibt nur HTML-Elemente zurück |
+| **`childNodes`** | Alle Knoten (inkl. Text) | Enthält auch Leerzeichen & Kommentare |
+| **`children`** | Nur HTML-Elemente | Schneller als `childNodes` |
+| **`firstChild` / `firstElementChild`** | Erstes Kind | `firstChild` kann auch ein Textknoten sein |
+| **`nextSibling` / `nextElementSibling`** | Nächstes Geschwister-Element | `nextElementSibling` ignoriert Textknoten |
+| **`closest(selector)`** | Nächstes übergeordnetes Element | Findet den nächsten passenden Vorfahren |
+
+🔗 [MDN-Dokumentation zu `parentElement`](https://developer.mozilla.org/de/docs/Web/API/Node/parentElement)  
+🔗 [MDN-Dokumentation zu `closest()`](https://developer.mozilla.org/de/docs/Web/API/Element/closest)
 
   **[⬆ Наверх](#top)**
 
-68. ### <a name="68"></a> 
+68. ### <a name="68"></a> classList, className und Ereignisdelegation
 
+### **`classList`, `className` und Ereignisdelegation in JavaScript**  
+
+Diese Konzepte helfen, **CSS-Klassen** zu verwalten und **Ereignisse effizient zu handhaben**.
+
+---
+
+## **1. `classList` – Klassen effizient verwalten (Empfohlen)**
+`classList` bietet Methoden, um Klassen hinzuzufügen, zu entfernen oder zu toggeln.
+
+```javascript
+const element = document.getElementById("meinElement");
+
+// Klasse hinzufügen
+element.classList.add("neue-klasse");
+
+// Klasse entfernen
+element.classList.remove("alte-klasse");
+
+// Klasse umschalten (toggle)
+element.classList.toggle("aktiv");
+
+// Prüfen, ob Klasse existiert
+console.log(element.classList.contains("aktiv")); // true oder false
+```
+✅ **Mehrere Klassen gleichzeitig verwalten**  
+✅ **`toggle()` erleichtert Umschalten**  
+
+---
+
+## **2. `className` – Klassen als String verwalten (veraltet)**
+```javascript
+const element = document.getElementById("meinElement");
+
+// Alle Klassen setzen (überschreibt vorhandene Klassen!)
+element.className = "klasse1 klasse2";
+```
+❌ **Überschreibt alle vorhandenen Klassen!**  
+✅ **Praktisch, wenn alle Klassen auf einmal geändert werden müssen.**  
+
+📌 **Lösung zum Hinzufügen mit `className` (unsicher)**  
+```javascript
+element.className += " neue-klasse"; // ❌ Funktioniert, kann aber doppelte Klassen erzeugen
+```
+📌 **Besser mit `classList.add()`**  
+
+---
+
+## **3. Ereignisdelegation – Events effizient verwalten**
+**Ereignisdelegation** ermöglicht es, Ereignisse auf **übergeordnete (`parent`) Elemente** zu setzen, statt auf jedes einzelne Kind-Element (`child`).
+
+```html
+<ul id="liste">
+  <li>Klick mich 1</li>
+  <li>Klick mich 2</li>
+  <li>Klick mich 3</li>
+</ul>
+```
+
+```javascript
+document.getElementById("liste").addEventListener("click", (event) => {
+  if (event.target.tagName === "LI") {
+    event.target.classList.toggle("aktiv"); // Klasse umschalten
+    console.log(`Geklickt: ${event.target.innerText}`);
+  }
+});
+```
+✅ **Nur ein Event-Listener für die gesamte Liste**  
+✅ **Neue `li`-Elemente funktionieren automatisch**  
+
+📌 **Vergleich ohne Delegation (schlecht)**  
+```javascript
+document.querySelectorAll("li").forEach((li) => {
+  li.addEventListener("click", () => console.log("LI geklickt!"));
+});
+```
+❌ **Setzt viele Event-Listener → Langsamer, ineffizient**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Methode | Vorteile | Nachteile |
+|---------|---------|----------|-----------|
+| **Klassen verwalten** | `classList.add()`, `remove()`, `toggle()` | ✅ Sicher & effizient | ❌ Nicht für kompletten Austausch geeignet |
+| **Alle Klassen setzen** | `className = "..."` | ✅ Einfach, wenn alle Klassen überschrieben werden | ❌ Überschreibt bestehende Klassen |
+| **Ereignisdelegation** | `parent.addEventListener("click", callback)` | ✅ Spart Ressourcen, funktioniert mit neuen Elementen | ❌ Muss `event.target` prüfen |
+
+🔗 [MDN-Dokumentation zu `classList`](https://developer.mozilla.org/de/docs/Web/API/Element/classList)  
+🔗 [MDN-Dokumentation zu Ereignisdelegation](https://developer.mozilla.org/de/docs/Learn/JavaScript/Building_blocks/Events#event_delegation)
 
   **[⬆ Наверх](#top)**
 
@@ -5240,3 +5968,103 @@ console.log(add(2, 3)); // 5
 
 
   **[⬆ Наверх](#top)**  
+
+72. ### <a name="72"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+73. ### <a name="73"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+74. ### <a name="74"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+75. ### <a name="75"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+76. ### <a name="76"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+77. ### <a name="77"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+78. ### <a name="78"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+79. ### <a name="79"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+80. ### <a name="80"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+81. ### <a name="81"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+82. ### <a name="82"></a> 
+
+
+  **[⬆ Наверх](#top)**   
+
+83. ### <a name="83"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+84. ### <a name="84"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+85. ### <a name="85"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+86. ### <a name="86"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+87. ### <a name="87"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+88. ### <a name="88"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+89. ### <a name="89"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+90. ### <a name="90"></a> 
+
+
+  **[⬆ Наверх](#top)** 
+
+91. ### <a name="91"></a> 
+
+
+  **[⬆ Наверх](#top)**   
