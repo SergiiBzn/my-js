@@ -5954,23 +5954,471 @@ document.querySelectorAll("li").forEach((li) => {
 
   **[⬆ Наверх](#top)**
 
-69. ### <a name="69"></a> 
+69. ### <a name="69"></a> Manipulation von Seitenelementen
 
+### **Manipulation von Seitenelementen in JavaScript**  
+
+Mit JavaScript können HTML-Elemente dynamisch **geändert, hinzugefügt oder entfernt** werden.
+
+---
+
+## **1. Inhalt ändern (`innerHTML`, `textContent`)**
+### **1.1 `innerHTML` – HTML-Inhalt setzen (nicht sicher!)**
+```javascript
+document.getElementById("element").innerHTML = "<strong>Neuer Text</strong>";
+```
+❌ **Gefährlich: Kann Sicherheitslücken (XSS) verursachen**  
+
+---
+
+### **1.2 `textContent` – Nur Text setzen (sicher!)**
+```javascript
+document.getElementById("element").textContent = "<strong>Nur Text</strong>";
+```
+✅ **Sicherer als `innerHTML` (keine HTML-Ausführung)**  
+
+---
+
+## **2. Attribute ändern (`setAttribute`, `getAttribute`, `removeAttribute`)**
+```javascript
+const link = document.getElementById("meinLink");
+
+link.setAttribute("href", "https://example.com");
+console.log(link.getAttribute("href")); // "https://example.com"
+link.removeAttribute("target");
+```
+✅ **Funktioniert für alle HTML-Attribute**  
+
+---
+
+## **3. CSS-Klassen verwalten (`classList`)**
+```javascript
+const box = document.getElementById("box");
+
+box.classList.add("highlight");  // Klasse hinzufügen
+box.classList.remove("hidden");  // Klasse entfernen
+box.classList.toggle("aktiv");   // Umschalten
+console.log(box.classList.contains("aktiv")); // true oder false
+```
+✅ **Besser als `className` (vermeidet Überschreibung)**  
+
+---
+
+## **4. CSS direkt ändern (`style`)**
+```javascript
+const element = document.getElementById("element");
+element.style.color = "red";
+element.style.fontSize = "20px";
+```
+✅ **Direkte CSS-Änderung möglich**  
+❌ **Nicht für komplexe Stylesheets geeignet**  
+
+📌 **Besser: Klasse hinzufügen statt Inline-Styles**  
+```javascript
+element.classList.add("rote-schrift");
+```
+
+---
+
+## **5. Elemente erstellen, hinzufügen & entfernen**
+### **5.1 Neues Element erstellen (`createElement`)**
+```javascript
+const neuerAbsatz = document.createElement("p");
+neuerAbsatz.textContent = "Ich bin neu!";
+document.body.appendChild(neuerAbsatz);
+```
+
+---
+
+### **5.2 Element an bestimmter Stelle einfügen (`insertBefore`)**
+```javascript
+const liste = document.getElementById("liste");
+const neuerEintrag = document.createElement("li");
+neuerEintrag.textContent = "Neues Item";
+
+liste.insertBefore(neuerEintrag, liste.children[1]); // Vor 2. Element einfügen
+```
+
+---
+
+### **5.3 Element entfernen (`remove`)**
+```javascript
+document.getElementById("zuEntfernen").remove();
+```
+📌 **Ältere Methode (`removeChild`)**
+```javascript
+const parent = document.getElementById("container");
+const kind = document.getElementById("child");
+
+parent.removeChild(kind);
+```
+
+---
+
+### **6. Ereignisse hinzufügen (`addEventListener`)**
+```javascript
+document.getElementById("btn").addEventListener("click", () => {
+  alert("Button wurde geklickt!");
+});
+```
+
+---
+
+### **Zusammenfassung**
+| Aktion | Methode | Beschreibung |
+|--------|---------|-------------|
+| **Inhalt ändern** | `innerHTML`, `textContent` | `innerHTML` für HTML, `textContent` für sicheren Text |
+| **Attribute ändern** | `setAttribute`, `getAttribute`, `removeAttribute` | Manipuliert HTML-Attribute |
+| **CSS-Klassen** | `classList.add()`, `remove()`, `toggle()` | Klassen effizient verwalten |
+| **CSS-Styles** | `element.style.property` | Direktes Ändern von Styles |
+| **Elemente erstellen** | `createElement`, `appendChild`, `insertBefore` | Fügt neue Elemente hinzu |
+| **Elemente entfernen** | `remove()`, `removeChild()` | Entfernt HTML-Elemente |
+| **Ereignisse** | `addEventListener()` | Reagiert auf Benutzeraktionen |
+
+🔗 [MDN-Dokumentation zu `document.createElement()`](https://developer.mozilla.org/de/docs/Web/API/Document/createElement)  
+🔗 [MDN-Dokumentation zu `classList`](https://developer.mozilla.org/de/docs/Web/API/Element/classList)  
 
   **[⬆ Наверх](#top)**
 
-70. ### <a name="70"></a> 
+70. ### <a name="70"></a> Dokument- und Fensterparameter sowie deren Nutzung
 
+### **Dokument- und Fensterparameter sowie deren Nutzung in JavaScript**  
+
+JavaScript bietet verschiedene **Eigenschaften und Methoden**, um Informationen über das **Dokument (HTML-Seite)** und das **Fenster (Browser-Viewport)** zu erhalten und zu manipulieren.
+
+---
+
+## **1. Fenster-Parameter (`window`-Objekt)**  
+Das `window`-Objekt repräsentiert das **Browser-Fenster** und enthält Methoden, um Größe, Position und Verhalten zu steuern.
+
+### **1.1 Fenstergröße (`innerWidth`, `innerHeight`)**
+```javascript
+console.log(window.innerWidth);  // Breite des sichtbaren Bereichs (Viewport)
+console.log(window.innerHeight); // Höhe des Viewports
+```
+✅ **Gibt die Größe des nutzbaren Bereichs im Browser zurück.**  
+
+---
+
+### **1.2 Scroll-Position (`scrollX`, `scrollY`)**
+```javascript
+console.log(window.scrollX); // Horizontale Scroll-Position
+console.log(window.scrollY); // Vertikale Scroll-Position
+```
+✅ **Hilfreich für Sticky-Navigationen oder Lazy Loading.**  
+
+📌 **Scroll-Position ändern:**
+```javascript
+window.scrollTo(0, 100); // Scrollt zur Y-Position 100px
+window.scrollBy(0, 50);  // Scrollt 50px nach unten
+```
+
+---
+
+### **1.3 Bildschirmgröße (`screen`-Objekt)**
+```javascript
+console.log(screen.width, screen.height); // Gesamtbildschirmgröße
+console.log(screen.availWidth, screen.availHeight); // Nutzbare Fläche
+```
+✅ **Zeigt auch verfügbare Fläche ohne Taskleiste.**  
+
+---
+
+### **1.4 Fenster öffnen & schließen (`open()`, `close()`)**
+```javascript
+const neuesFenster = window.open("https://example.com", "_blank", "width=600,height=400");
+neuesFenster.close(); // Schließt das Fenster
+```
+✅ **Ermöglicht das Öffnen neuer Tabs/Fenster.**  
+❌ **Kann durch Pop-up-Blocker verhindert werden.**  
+
+---
+
+## **2. Dokument-Parameter (`document`-Objekt)**
+Das `document`-Objekt repräsentiert die HTML-Seite.
+
+---
+
+### **2.1 Titel und URL abrufen**
+```javascript
+console.log(document.title);  // Gibt den Seitentitel zurück
+console.log(document.URL);    // Aktuelle URL der Seite
+```
+
+📌 **Titel setzen:**
+```javascript
+document.title = "Neuer Titel";
+```
+
+---
+
+### **2.2 Dokumentgröße (`document.documentElement.scrollHeight`)**
+```javascript
+console.log(document.documentElement.scrollHeight); // Gesamte Dokumenthöhe
+console.log(document.documentElement.scrollWidth);  // Gesamte Breite
+```
+✅ **Wichtig für Infinite-Scrolling oder dynamisches Laden.**  
+
+---
+
+### **2.3 Dokument-Elemente abrufen**
+```javascript
+console.log(document.body); // Zugriff auf <body>
+console.log(document.head); // Zugriff auf <head>
+console.log(document.documentElement); // Zugriff auf <html>
+```
+
+---
+
+## **3. Fenster-Ereignisse (`resize`, `scroll`, `load`)**
+```javascript
+window.addEventListener("resize", () => {
+  console.log(`Neue Größe: ${window.innerWidth} x ${window.innerHeight}`);
+});
+
+window.addEventListener("scroll", () => {
+  console.log(`Scroll-Position: ${window.scrollY}`);
+});
+```
+✅ **Ideal für responsives Verhalten & dynamisches Layout.**  
+
+---
+
+## **4. `navigator`-Objekt – Browser-Informationen**
+```javascript
+console.log(navigator.userAgent); // Gibt Browser-Info zurück
+console.log(navigator.language);  // Sprache des Browsers
+console.log(navigator.platform);  // Betriebssystem
+```
+✅ **Wird für Geräte- & Browser-Erkennung genutzt.**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Methode/Eigenschaft | Beschreibung |
+|---------|------------------|-------------|
+| **Fenstergröße** | `window.innerWidth`, `window.innerHeight` | Gibt die Viewport-Größe zurück |
+| **Scroll-Position** | `window.scrollX`, `window.scrollY` | Aktuelle Scroll-Position |
+| **Dokumentgröße** | `document.documentElement.scrollHeight` | Gesamte Höhe des Dokuments |
+| **URL & Titel** | `document.URL`, `document.title` | Zeigt und setzt Seitentitel & URL |
+| **Bildschirmgröße** | `screen.width`, `screen.height` | Bildschirmauflösung |
+| **Browser-Info** | `navigator.userAgent`, `navigator.language` | Browser- und Geräteinformationen |
+| **Fenster-Events** | `resize`, `scroll`, `load` | Reagiert auf Größen- und Scrolländerungen |
+
+🔗 [MDN-Dokumentation zu `window`](https://developer.mozilla.org/de/docs/Web/API/Window)  
+🔗 [MDN-Dokumentation zu `document`](https://developer.mozilla.org/de/docs/Web/API/Document)
 
   **[⬆ Наверх](#top)**
 
-71. ### <a name="71"></a> 
+71. ### <a name="71"></a> Web Animations API
 
+### **Web Animations API in JavaScript**  
+
+Die **Web Animations API (WAAPI)** ermöglicht Animationen direkt mit **JavaScript**, ohne CSS `@keyframes` oder externe Bibliotheken wie jQuery oder GSAP.
+
+---
+
+## **1. Grundlegende Animation mit `element.animate()`**
+```javascript
+const box = document.getElementById("box");
+
+box.animate(
+  [
+    { transform: "translateX(0px)" }, 
+    { transform: "translateX(200px)" }
+  ],
+  {
+    duration: 1000,  // Dauer in ms (1s)
+    iterations: 1,   // Anzahl der Wiederholungen
+    easing: "ease-in-out" // Animationstiming
+  }
+);
+```
+✅ **Direkte Steuerung per JavaScript**  
+✅ **Kein zusätzliches CSS nötig**  
+
+---
+
+## **2. Eigenschaften der Web Animations API**
+Ein `animate()`-Aufruf benötigt **zwei Parameter**:  
+1. **Keyframes** → Eine Liste von Werten, die das Element durchläuft.  
+2. **Timing-Optionen** → Steuerung von Dauer, Wiederholungen & Verzögerung.  
+
+### **2.1 Keyframe-Optionen**
+```javascript
+const keyframes = [
+  { opacity: 0, transform: "translateY(-50px)" },
+  { opacity: 1, transform: "translateY(0px)" }
+];
+```
+
+### **2.2 Timing-Optionen**
+```javascript
+const options = {
+  duration: 1500,  // Animation dauert 1,5 Sekunden
+  iterations: Infinity, // Endlos wiederholen
+  easing: "ease-in-out", // Weiche Bewegung
+  delay: 500, // Verzögerung um 0,5s
+  fill: "forwards" // Bleibt im Endzustand stehen
+};
+```
+
+---
+
+## **3. Animation speichern & steuern (`play()`, `pause()`, `reverse()`)**
+```javascript
+const animation = box.animate(keyframes, options);
+
+// Steuerung der Animation
+animation.pause();   // Stoppt die Animation
+animation.play();    // Startet sie erneut
+animation.reverse(); // Läuft rückwärts
+animation.cancel();  // Setzt sie zurück
+```
+✅ **Manuelle Steuerung möglich**  
+
+---
+
+## **4. Animation mit `finished`-Promise abfragen**
+```javascript
+animation.finished.then(() => {
+  console.log("Animation ist fertig!");
+});
+```
+✅ **Perfekt für Callback-Funktionen**  
+
+---
+
+## **5. Animation mit `animate()` und `addEventListener`**
+```javascript
+document.getElementById("btn").addEventListener("click", () => {
+  box.animate(
+    [
+      { transform: "scale(1)" },
+      { transform: "scale(1.2)" },
+      { transform: "scale(1)" }
+    ],
+    { duration: 500, iterations: 1 }
+  );
+});
+```
+✅ **Event-Listener können Animationen starten**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Methode / Eigenschaft | Beschreibung |
+|---------|-----------------|--------------|
+| **Element animieren** | `element.animate(keyframes, options)` | Startet eine Animation |
+| **Animation stoppen** | `animation.pause()` | Stoppt die Animation |
+| **Animation fortsetzen** | `animation.play()` | Setzt sie fort |
+| **Animation rückgängig** | `animation.reverse()` | Spielt sie rückwärts ab |
+| **Animation nach Fertigstellung** | `animation.finished.then(callback)` | Führt eine Aktion nach Beendigung aus |
+
+🔗 [MDN-Dokumentation zur Web Animations API](https://developer.mozilla.org/de/docs/Web/API/Web_Animations_API)
 
   **[⬆ Наверх](#top)**  
 
-72. ### <a name="72"></a> 
+72. ### <a name="72"></a> requestAnimationFrame
 
+### **`requestAnimationFrame()` in JavaScript**  
+
+Die Methode **`requestAnimationFrame()`** wird verwendet, um **leistungsoptimierte Animationen** zu erstellen. Sie sorgt für eine **flüssige Darstellung**, indem sie Animationen an die Bildwiederholrate (meist **60 FPS**) des Bildschirms anpasst.
+
+---
+
+## **1. Grundlegendes Beispiel – Ein Element bewegen**
+```javascript
+const box = document.getElementById("box");
+
+let position = 0;
+function animate() {
+  position += 2;
+  box.style.transform = `translateX(${position}px)`;
+
+  if (position < 200) {
+    requestAnimationFrame(animate); // Nächsten Frame planen
+  }
+}
+
+animate(); // Animation starten
+```
+✅ **Effizienter als `setInterval()` oder `setTimeout()`**  
+✅ **Wird automatisch gestoppt, wenn der Tab inaktiv ist**  
+
+---
+
+## **2. Vergleich: `setInterval()` vs. `requestAnimationFrame()`**
+### **Mit `setInterval()` (nicht empfohlen)**
+```javascript
+setInterval(() => {
+  box.style.transform = `translateX(${position}px)`;
+  position += 2;
+}, 16); // ~60 FPS (1000ms / 60 = ~16ms)
+```
+❌ **Kann ruckeln, da das Timing nicht an die tatsächliche Framerate angepasst wird.**  
+
+### **Mit `requestAnimationFrame()` (empfohlen)**
+```javascript
+function animate() {
+  position += 2;
+  box.style.transform = `translateX(${position}px)`;
+  requestAnimationFrame(animate);
+}
+animate();
+```
+✅ **Wird synchron zur Bildschirmwiederholrate ausgeführt**  
+
+---
+
+## **3. Animation stoppen (`cancelAnimationFrame()`)**
+```javascript
+let animationId;
+function move() {
+  position += 2;
+  box.style.transform = `translateX(${position}px)`;
+  if (position < 200) {
+    animationId = requestAnimationFrame(move);
+  }
+}
+
+move(); // Startet die Animation
+
+setTimeout(() => {
+  cancelAnimationFrame(animationId); // Stoppt die Animation
+}, 1000);
+```
+✅ **Animation kann jederzeit gestoppt werden**  
+
+---
+
+## **4. FPS messen mit `performance.now()`**
+```javascript
+let lastTime = performance.now();
+
+function trackFPS() {
+  let now = performance.now();
+  let fps = Math.round(1000 / (now - lastTime));
+  console.log(`FPS: ${fps}`);
+  lastTime = now;
+  requestAnimationFrame(trackFPS);
+}
+
+trackFPS();
+```
+✅ **Hilft, die Performance zu analysieren**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Methode | Beschreibung |
+|---------|---------|--------------|
+| **Animation starten** | `requestAnimationFrame(callback)` | Startet eine flüssige Animation |
+| **Animation stoppen** | `cancelAnimationFrame(id)` | Stoppt eine geplante Animation |
+| **Effizienz** | Synchronisiert mit 60 FPS | Verhindert Ruckler und CPU-Überlastung |
+| **Alternative zu** | `setInterval()`, `setTimeout()` | Bessere Performance & Energieeffizienz |
+
+🔗 [MDN-Dokumentation zu `requestAnimationFrame()`](https://developer.mozilla.org/de/docs/Web/API/window/requestAnimationFrame)
 
   **[⬆ Наверх](#top)** 
 
