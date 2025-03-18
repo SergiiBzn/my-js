@@ -834,7 +834,7 @@ In JavaScript gibt es verschiedene Möglichkeiten, Bedingungen zu prüfen und Co
 
 ---
 
-## **1. Truthy- und Falsy-Werte**
+## ** Falsy-Werte**
 Bestimmte Werte werden als **falsch** (`false`) behandelt, wenn sie in einer Bedingung überprüft werden:
 - `0`
 - `""` (leerer String)
@@ -842,476 +842,534 @@ Bestimmte Werte werden als **falsch** (`false`) behandelt, wenn sie in einer Bed
 - `undefined`
 - `NaN`
 
-Alle anderen Werte sind **wahr** (`true`), einschließlich:
-- `"0"` (String mit Null)
-- `"false"` (String mit "false")
-- `[]` (leeres Array)
-- `{}` (leeres Objekt)
-- `function() {}` (leere Funktion)
+### **Bedingungen in JavaScript (`if`, `else`, `switch`, ternärer Operator)** ✅  
 
-**Beispiel:**  
-```js
-if (0) {
-  console.log("Dies wird nicht ausgeführt.");
-} else {
-  console.log("0 ist ein falsy Wert.");
-}
-```
----
-
-## **2. `if`-`else`-Bedingungen**
-Der `if`-Befehl prüft eine Bedingung und führt den zugehörigen Codeblock aus.
-
-### **Syntax:**
-```js
-if (Bedingung) {
-  // Code wird ausgeführt, wenn die Bedingung true ist
-} else if (weitere Bedingung) {
-  // Code für eine alternative Bedingung
-} else {
-  // Code für den Fall, dass keine Bedingung wahr ist
-}
-```
-
-### **Beispiel:**
-```js
-let x = 5;
-
-if (x > 0) {
-  console.log("Die Zahl ist positiv.");
-} else if (x < 0) {
-  console.log("Die Zahl ist negativ.");
-} else {
-  console.log("Die Zahl ist null.");
-}
-```
+📌 **Bedingungen steuern den Programmfluss, indem sie Entscheidungen treffen.**  
+✅ **Ziel:** **Code soll auf Basis von Bedingungen unterschiedliche Aktionen ausführen.**  
 
 ---
 
-## **3. Logische Operatoren in Bedingungen**
-Logische Operatoren werden verwendet, um mehrere Bedingungen zu kombinieren.
+## **1. `if`, `else if`, `else` – Standardbedingungen**
+📌 **`if` prüft eine Bedingung & führt Code aus, wenn sie `true` ist.**  
+📌 **`else if` & `else` ermöglichen mehrere Bedingungen.**  
 
-| Operator | Bedeutung | Beispiel |
-|----------|------------|-------------|
-| `&&`     | UND       | `true && false // false` |
-| `||`     | ODER      | `true || false // true` |
-| `!`      | NICHT     | `!true // false` |
+🔹 **Beispiel: Einfache `if`-Bedingung**
+```javascript
+const age = 18;
 
-**Beispiel mit `&&` (UND):**  
-```js
-let age = 25;
-let hasDriverLicense = true;
-
-if (age >= 18 && hasDriverLicense) {
-  console.log("Du kannst Auto fahren.");
+if (age >= 18) {
+  console.log("Du darfst Auto fahren");
 } else {
-  console.log("Du darfst nicht fahren.");
+  console.log("Du bist zu jung zum Fahren");
 }
 ```
+✅ **Nur eine der Bedingungen wird ausgeführt.**  
 
-**Beispiel mit `||` (ODER):**  
-```js
-let isWeekend = false;
-let isHoliday = true;
+🔹 **Beispiel: `if...else if...else` mit mehreren Bedingungen**
+```javascript
+const temperature = 30;
 
-if (isWeekend || isHoliday) {
-  console.log("Du hast frei!");
+if (temperature > 30) {
+  console.log("Es ist heiß");
+} else if (temperature > 20) {
+  console.log("Angenehme Temperatur");
 } else {
-  console.log("Arbeitstag!");
+  console.log("Es ist kalt");
 }
 ```
+✅ **Der erste `true`-Zweig wird ausgeführt, danach stoppt die Prüfung.**  
 
 ---
 
-## **4. Ternärer Operator (`? :`)**
-Der **ternäre Operator** ist eine Kurzform für `if`-`else`.
+## **2. `switch` – Alternative zu mehreren `if`-Bedingungen**
+📌 **Ideal für mehrere Werte eines einzelnen Ausdrucks.**  
+📌 **Vermeidet viele `if...else if`-Verzweigungen.**  
 
-### **Syntax:**
-```js
-Bedingung ? Ausdruck_wenn_wahr : Ausdruck_wenn_falsch;
-```
-
-### **Beispiel:**
-```js
-let x = 10;
-let isEven = x % 2 === 0 ? "Gerade Zahl" : "Ungerade Zahl";
-console.log(isEven); // "Gerade Zahl"
-```
-
----
-
-## **5. `switch`-Bedingungen**
-Der `switch`-Operator wird verwendet, wenn ein Wert mit mehreren Möglichkeiten verglichen werden soll.  
-🔹 **Vergleich ist strikt (`===`)** – Datentypen müssen übereinstimmen.  
-🔹 **`break` nicht vergessen**, um zu verhindern, dass alle weiteren `case`-Blöcke ausgeführt werden.  
-
-### **Syntax:**
-```js
-switch (Ausdruck) {
-  case Wert1:
-    // Code wenn Ausdruck === Wert1
-    break;
-  case Wert2:
-    // Code wenn Ausdruck === Wert2
-    break;
-  default:
-    // Code wenn kein Fall zutrifft
-}
-```
-
-### **Beispiel:**
-```js
-let day = 2;
-let dayName;
+🔹 **Beispiel: `switch` für Wochentage**
+```javascript
+const day = "Montag";
 
 switch (day) {
-  case 1:
-    dayName = "Montag";
+  case "Montag":
+    console.log("Wochenstart!");
     break;
-  case 2:
-    dayName = "Dienstag";
+  case "Freitag":
+    console.log("Bald Wochenende!");
     break;
-  case 3:
-    dayName = "Mittwoch";
-    break;
-  case 4:
-    dayName = "Donnerstag";
-    break;
-  case 5:
-    dayName = "Freitag";
+  case "Samstag":
+  case "Sonntag":
+    console.log("Wochenende!");
     break;
   default:
-    dayName = "Wochenende";
-}
-
-console.log(dayName); // "Dienstag"
-```
-
-### **Mehrere `case`-Werte gruppieren:**
-```js
-let char = "a";
-
-switch (char) {
-  case "a":
-  case "e":
-  case "i":
-  case "o":
-  case "u":
-    console.log("Vokal");
-    break;
-  default:
-    console.log("Konsonant");
+    console.log("Normaler Tag");
 }
 ```
+✅ **`break` verhindert, dass alle weiteren `case`-Zweige ausgeführt werden.**  
 
 ---
 
-### **Wann `if-else` und wann `switch` verwenden?**
-| Situation | Empfohlene Struktur |
-|-----------|----------------------|
-| Vergleich von Zahlen-/Booleschen Werten | `if-else` |
-| Komplexe Bedingungen mit `&&` oder `||` | `if-else` |
-| Vergleich einer Variable mit mehreren festen Werten | `switch` |
+## **3. Ternärer Operator (`? :`) – Kurzschreibweise für `if...else`**
+📌 **Kurzversion von `if...else` für einfache Bedingungen.**  
+📌 **Ideal für eine schnelle `true`/`false`-Entscheidung.**  
+
+🔹 **Beispiel: `if...else` vs. Ternärer Operator**
+```javascript
+const isMember = true;
+
+// Standard `if...else`
+let discount;
+if (isMember) {
+  discount = "10% Rabatt";
+} else {
+  discount = "Kein Rabatt";
+}
+
+// Kurzform mit `? :`
+const discountTernary = isMember ? "10% Rabatt" : "Kein Rabatt";
+
+console.log(discountTernary); // ✅ "10% Rabatt"
+```
+✅ **Eleganter & kürzer als `if...else`.**  
 
 ---
 
-## **Zusammenfassung**
-✅ **Falsy-Werte**: `0, "", null, undefined, NaN`  
-✅ **`if-else`** für allgemeine Bedingungen  
-✅ **Logische Operatoren (`&&`, `||`, `!`)** für kombinierte Bedingungen  
-✅ **Ternärer Operator (`? :`)** für kurze Bedingungen  
-✅ **`switch`** für mehrere mögliche Werte einer Variablen  
+## **4. Logische Operatoren (`&&`, `||`, `!`) in Bedingungen**
+📌 **Ermöglichen komplexere Bedingungen mit `AND`, `OR` & `NOT`.**  
 
-📖 Weitere Infos: [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/if...else) 🚀
+| Operator | Bedeutung | Beispiel |
+|----------|-----------|------------|
+| `&&` | **AND** (beide müssen `true` sein) | `if (x > 10 && y < 20) {...}` |
+| `||` | **OR** (mindestens eine Bedingung `true`) | `if (x > 10 || y < 20) {...}` |
+| `!` | **NOT** (negiert `true` zu `false`) | `if (!isLoggedIn) {...}` |
+
+🔹 **Beispiel: Mehrere Bedingungen mit `&&` und `||`**
+```javascript
+const userLoggedIn = true;
+const hasPremium = false;
+
+if (userLoggedIn && hasPremium) {
+  console.log("Premium-Inhalte anzeigen");
+} else if (userLoggedIn || hasPremium) {
+  console.log("Normale Inhalte anzeigen");
+} else {
+  console.log("Bitte einloggen");
+}
+```
+✅ **Logische Operatoren kombinieren Bedingungen flexibel.**  
+
+---
+
+## **5. `nullish coalescing` (`??`) & Optional Chaining (`?.`)**
+📌 **Behandelt `null` oder `undefined` auf elegante Weise.**  
+
+🔹 **`??` (`nullish coalescing`) → Fallback-Wert setzen, wenn `null` oder `undefined`**
+```javascript
+const username = null;
+const displayName = username ?? "Gast"; // ✅ "Gast"
+console.log(displayName);
+```
+✅ **Ideal für Standardwerte!**  
+
+🔹 **`?.` (`Optional Chaining`) → Verhindert Fehler bei `undefined`-Werten**
+```javascript
+const user = { profile: { name: "Max" } };
+console.log(user.profile?.name); // ✅ "Max"
+console.log(user.address?.street); // ✅ `undefined` (kein Fehler!)
+```
+✅ **Verhindert `TypeError`, wenn `address` nicht existiert.**  
+
+---
+
+### **Zusammenfassung**
+| Methode | Wann nutzen? | Beispiel |
+|---------|-------------|----------|
+| **`if...else`** | Einfache Bedingungen | `if (age >= 18) {...}` |
+| **`switch`** | Mehrere mögliche Werte | `switch (day) {...}` |
+| **Ternärer Operator** | Kurzform für `if...else` | `const x = condition ? A : B;` |
+| **`&&`, `||`, `!`** | Logische Bedingungen | `if (x > 10 && y < 20) {...}` |
+| **`??` (`nullish coalescing`)** | Standardwert für `null` oder `undefined` | `const x = val ?? "Default";` |
+| **`?.` (`Optional Chaining`)** | Verhindert `undefined`-Fehler | `object?.property?.value` |
+
+✅ **Bedingungen ermöglichen dynamischen & flexiblen Code!** 🚀  
+
+🔗 [MDN: JavaScript `if...else`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else)  
+🔗 [MDN: JavaScript `switch`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch)
 
   **[⬆ Наверх](#top)**
 
 8. ### <a name="8"></a> Schleifen, verschachtelte Schleifen, Labels
 
-### **Schleifen in JavaScript: `for`, `while`, `do...while`**
-Schleifen ermöglichen es, Codeblöcke mehrfach auszuführen, solange eine Bedingung erfüllt ist.
+### **Schleifen in JavaScript (`for`, `while`, `do...while`, verschachtelte Schleifen, Labels)** 🔄  
+
+📌 **Schleifen wiederholen Code-Blöcke, bis eine Bedingung nicht mehr erfüllt ist.**  
+✅ **Ziel:** **Effiziente Iteration über Arrays, Objekte & wiederholte Aktionen.**  
 
 ---
 
-## **1. `for`-Schleife**
-Die `for`-Schleife ist ideal, wenn die Anzahl der Durchläufe bekannt ist.
+## **1. `for`-Schleife – Standard für Iterationen**
+📌 **Beste Wahl, wenn die Anzahl der Wiederholungen bekannt ist.**  
 
-### **Syntax:**
-```js
-for (Start; Bedingung; Inkrement) {
-  // Code, der in jeder Iteration ausgeführt wird
+🔹 **Syntax:**
+```javascript
+for (Initialisierung; Bedingung; Inkrement/Dekrement) {
+  // Code wird wiederholt
 }
 ```
 
-### **Beispiel:**
-```js
-for (let i = 0; i < 5; i++) {
+🔹 **Beispiel: Zahlen von 1 bis 5 ausgeben**
+```javascript
+for (let i = 1; i <= 5; i++) {
   console.log(i);
 }
-// Ausgabe: 0, 1, 2, 3, 4
 ```
+✅ **Läuft von `1` bis `5`, dann stoppt sie.**  
 
 ---
 
-## **2. `while`-Schleife**
-Die `while`-Schleife wird ausgeführt, solange die Bedingung `true` ist.
+## **2. `while`-Schleife – Läuft, solange die Bedingung `true` ist**
+📌 **Nützlich, wenn die Anzahl der Wiederholungen unbekannt ist.**  
 
-### **Beispiel:**
-```js
-let i = 0;
-while (i < 5) {
-  console.log(i);
-  i++;
+🔹 **Beispiel: `while` mit zufälliger Zahl**
+```javascript
+let number = 0;
+
+while (number < 5) {
+  number = Math.floor(Math.random() * 10);
+  console.log("Zufallszahl:", number);
 }
 ```
-
-Falls die Bedingung von Anfang an `false` ist, wird die Schleife **keinmal** ausgeführt.
+✅ **Wird ausgeführt, bis `number >= 5`.**  
 
 ---
 
-## **3. `do...while`-Schleife**
-Diese Schleife wird **mindestens einmal** ausgeführt, da die Bedingung erst nach dem ersten Durchlauf geprüft wird.
+## **3. `do...while`-Schleife – Führt Code **mindestens einmal** aus**
+📌 **Gleiche Logik wie `while`, aber Code läuft mindestens 1x.**  
 
-### **Beispiel:**
-```js
-let i = 0;
+🔹 **Beispiel: `do...while` mit Nutzereingabe**
+```javascript
+let userInput;
+
 do {
+  userInput = prompt("Gib eine Zahl größer als 10 ein:");
+} while (userInput <= 10);
+
+console.log("Danke!");
+```
+✅ **Fordert den Nutzer so lange auf, bis er `>10` eingibt.**  
+
+---
+
+## **4. `for...in`-Schleife – Iteration über Objekte**
+📌 **Durchläuft die Eigenschaften eines Objekts.**  
+
+🔹 **Beispiel: Iteration über ein Objekt**
+```javascript
+const user = { name: "Max", age: 30, city: "Berlin" };
+
+for (let key in user) {
+  console.log(`${key}: ${user[key]}`);
+}
+```
+✅ **Gibt `name: Max`, `age: 30`, `city: Berlin` aus.**  
+
+---
+
+## **5. `for...of`-Schleife – Iteration über Arrays & Iterables**
+📌 **Einfachste Methode, um Arrays zu durchlaufen.**  
+
+🔹 **Beispiel: Durchlaufen eines Arrays**
+```javascript
+const colors = ["Rot", "Grün", "Blau"];
+
+for (let color of colors) {
+  console.log(color);
+}
+```
+✅ **Leichter lesbar als `for` oder `forEach`.**  
+
+---
+
+## **6. Verschachtelte Schleifen – Schleifen in Schleifen**
+📌 **Nützlich für Matrizen & kombinierte Datenstrukturen.**  
+
+🔹 **Beispiel: Multiplikationstabelle**
+```javascript
+for (let i = 1; i <= 3; i++) {
+  for (let j = 1; j <= 3; j++) {
+    console.log(`${i} x ${j} = ${i * j}`);
+  }
+}
+```
+✅ **Für `i = 1` wird `j` von `1` bis `3` iteriert.**  
+
+---
+
+## **7. `break` & `continue` – Schleifen unterbrechen oder überspringen**
+📌 **`break` → Bricht die Schleife ab**  
+📌 **`continue` → Überspringt die aktuelle Iteration**  
+
+🔹 **Beispiel: `break` in einer `for`-Schleife**
+```javascript
+for (let i = 1; i <= 5; i++) {
+  if (i === 3) break; // Stoppt bei 3
   console.log(i);
-  i++;
-} while (i < 5);
-```
-
----
-
-## **4. Verschachtelte Schleifen (Nested Loops)**
-Eine Schleife kann innerhalb einer anderen ausgeführt werden.
-
-### **Beispiel:**
-```js
-for (let i = 0; i < 3; i++) {
-  for (let j = 0; j < 3; j++) {
-    console.log(`i: ${i}, j: ${j}`);
-  }
 }
+// Ausgabe: 1, 2
 ```
-👉 Dies wird für `i = 0` dreimal ausgeführt (`j = 0, 1, 2`), dann für `i = 1` usw.
 
----
-
-## **5. `break` und `continue`**
-- **`break`** → Bricht die Schleife ab.
-- **`continue`** → Überspringt den aktuellen Durchlauf und fährt mit der nächsten Iteration fort.
-
-### **Beispiel für `break`:**
-```js
-for (let i = 0; i < 5; i++) {
-  if (i === 3) {
-    break; // Schleife wird bei i = 3 abgebrochen
-  }
+🔹 **Beispiel: `continue` überspringt eine Iteration**
+```javascript
+for (let i = 1; i <= 5; i++) {
+  if (i === 3) continue; // Überspringt 3
   console.log(i);
 }
-// Ausgabe: 0, 1, 2
+// Ausgabe: 1, 2, 4, 5
 ```
-
-### **Beispiel für `continue`:**
-```js
-for (let i = 0; i < 5; i++) {
-  if (i === 3) {
-    continue; // i = 3 wird übersprungen
-  }
-  console.log(i);
-}
-// Ausgabe: 0, 1, 2, 4
-```
+✅ **Steuert den Ablauf innerhalb der Schleife gezielt.**  
 
 ---
 
-## **6. Labels in Schleifen**
-Labels helfen, **verschachtelte Schleifen gezielt zu unterbrechen**.
+## **8. Labels – Schleifen gezielt abbrechen**
+📌 **Ermöglicht das gezielte `break` für verschachtelte Schleifen.**  
 
-### **Beispiel:**
-```js
-outerLoop: for (let i = 0; i < 3; i++) {
-  for (let j = 0; j < 3; j++) {
-    if (i === 1 && j === 1) {
-      break outerLoop; // Beendet die äußere Schleife komplett
-    }
-    console.log(`i: ${i}, j: ${j}`);
+🔹 **Beispiel: `break` mit Label**
+```javascript
+outerLoop: for (let i = 1; i <= 3; i++) {
+  for (let j = 1; j <= 3; j++) {
+    if (i === 2 && j === 2) break outerLoop;
+    console.log(`${i}, ${j}`);
   }
 }
+// Ausgabe: Bis `1,3` und `2,1`, dann Abbruch
 ```
-👉 Hier würde der `break` normalerweise nur die innere Schleife abbrechen. Durch das **Label `outerLoop`** wird jedoch die äußere Schleife gestoppt.
+✅ **Beendet `outerLoop`, nicht nur die innere Schleife!**  
 
 ---
 
-### **Zusammenfassung**
-✅ **`for`** → Wenn die Anzahl der Durchläufe bekannt ist.  
-✅ **`while`** → Solange eine Bedingung wahr ist.  
-✅ **`do...while`** → Wird **mindestens einmal** ausgeführt.  
-✅ **Verschachtelte Schleifen** für komplexe Strukturen.  
-✅ **`break` & `continue`** zur Steuerung des Ablaufs.  
-✅ **Labels** ermöglichen gezieltes Unterbrechen von verschachtelten Schleifen.
+## **9. Vergleich der Schleifenarten**
+| Schleife | Wann nutzen? | Beispiel |
+|----------|-------------|----------|
+| **`for`** | Feste Anzahl an Wiederholungen | `for (let i = 0; i < 5; i++)` |
+| **`while`** | Unbekannte Anzahl, Bedingung vor Eintritt | `while (x < 10)` |
+| **`do...while`** | Mindestens einmal ausführen | `do { x++ } while (x < 10)` |
+| **`for...in`** | Iteration über Objekte | `for (let key in obj)` |
+| **`for...of`** | Iteration über Arrays | `for (let item of arr)` |
 
-📖 Mehr Infos: [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/for) 🚀
+✅ **Die Wahl der richtigen Schleife verbessert Code-Lesbarkeit & Performance!** 🚀  
+
+🔗 [MDN: JavaScript-Loops](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Loops_and_iteration)  
+🔗 [MDN: break & continue](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break)
 
   **[⬆ Наверх](#top)**
 
 9. ### <a name="9"></a> Hoisting (Hochheben von Variablen und Funktionen)
 
-### **Hoisting in JavaScript (Hochheben von Variablen und Funktionen)**
+### **Hoisting in JavaScript – Variablen & Funktionen "hochheben"** 🚀  
 
-**Hoisting** ist ein Mechanismus in JavaScript, bei dem **Deklarationen von Variablen und Funktionen** vor der Codeausführung an den Anfang ihres Gültigkeitsbereichs (Scope) **verschoben** werden.
-
----
-
-## **1. Hoisting von Variablen**
-### **1.1 `var` (Hoisting mit `undefined`)**
-- Deklaration wird **hochgehoben**, aber die Initialisierung bleibt an der ursprünglichen Stelle.
-- Zugriff vor der Initialisierung gibt `undefined` zurück.
-
-```js
-console.log(x); // undefined
-var x = 10;
-console.log(x); // 10
-```
-🔹 **Warum?** JavaScript behandelt es so:
-```js
-var x;
-console.log(x); // undefined
-x = 10;
-console.log(x);
-```
+📌 **Hoisting bedeutet, dass Variablen & Funktionen in den Speicher geladen werden, bevor der Code ausgeführt wird.**  
+✅ **Ziel:** **Verstehen, wie JavaScript Variablen & Funktionen verarbeitet, um Fehler zu vermeiden.**  
 
 ---
 
-### **1.2 `let` und `const` (Hoisting mit TDZ)**
-- `let` und `const` werden ebenfalls hochgehoben, aber sie bleiben in der **Temporal Dead Zone (TDZ)**.
-- Zugriff vor der Deklaration führt zu **ReferenceError**.
-
-```js
-console.log(y); // ❌ ReferenceError
-let y = 20;
-console.log(y); // ✅ 20
-
-console.log(z); // ❌ ReferenceError
-const z = 30;
-console.log(z); // ✅ 30
-```
-🔹 **Warum?** JavaScript behandelt es so:
-```js
-// Variablen existieren in der TDZ (keine Nutzung möglich)
-let y;
-const z;
-console.log(y, z); // ReferenceError
-y = 20;
-z = 30;
-```
-📌 **Empfehlung:** Nutze `let` oder `const` statt `var`, um unerwartetes Verhalten zu vermeiden.
+## **1. Was ist Hoisting?**
+📌 **JavaScript verarbeitet den Code in zwei Schritten:**
+1️⃣ **Speicherphase (Hoisting):**  
+   - Funktionen & Variablen werden **vor der Code-Ausführung** im Speicher abgelegt.  
+   - **`var`-Variablen werden als `undefined` gespeichert.**  
+   - **`let` & `const` werden zwar reserviert, aber nicht initialisiert (TDZ = Temporal Dead Zone).**  
+2️⃣ **Ausführungsphase:**  
+   - Der eigentliche Code wird von oben nach unten ausgeführt.  
 
 ---
 
-## **2. Hoisting von Funktionen**
-### **2.1 `function` (Function Declaration)**
-- **Wird vollständig hochgehoben**, d.h. Funktionen können **vor ihrer Definition** aufgerufen werden.
+## **2. Hoisting mit `var` – Wird als `undefined` angelegt**
+📌 **`var`-Variablen werden vor ihrer Zuweisung deklariert, aber nicht initialisiert.**  
 
-```js
-myFunction(); // ✅ "Hello, world!"
+🔹 **Beispiel: `var` wird hochgehoben, aber ist `undefined`**
+```javascript
+console.log(name); // ✅ `undefined`
+var name = "Max";
+console.log(name); // ✅ "Max"
+```
+➡ **JavaScript "sieht" den Code intern so:**
+```javascript
+var name; // Hoisting (Speicherung als `undefined`)
+console.log(name); // ✅ `undefined`
+name = "Max"; // Zuweisung erfolgt erst hier
+console.log(name); // ✅ "Max"
+```
+✅ **Vermeide `var`, da es zu unerwarteten Ergebnissen führen kann!**  
 
-function myFunction() {
-  console.log("Hello, world!");
+---
+
+## **3. Hoisting mit `let` & `const` – Gibt einen Fehler (TDZ)**
+📌 **`let` & `const` werden zwar hochgehoben, aber nicht initialisiert!**  
+
+🔹 **Beispiel: Zugriff vor der Deklaration führt zu einem Fehler**
+```javascript
+console.log(age); // ❌ ReferenceError (TDZ!)
+let age = 25;
+```
+➡ **JavaScript "sieht" den Code intern so:**
+```javascript
+// `let` wird hochgehoben, aber nicht initialisiert (TDZ aktiv)
+console.log(age); // ❌ ReferenceError (Zugriff in der TDZ)
+let age = 25; // Erst hier ist die Variable nutzbar
+```
+✅ **Nutze immer `let` oder `const`, um unklare Fehler zu vermeiden!**  
+
+---
+
+## **4. Hoisting mit Funktionen – Funktionserklärungen (`function`) werden vollständig hochgehoben**
+📌 **Funktionsdeklarationen werden komplett hochgehoben & können vor ihrer Definition genutzt werden.**  
+
+🔹 **Beispiel: Funktion vor ihrer Definition aufrufen**
+```javascript
+sayHello(); // ✅ "Hallo!"
+
+function sayHello() {
+  console.log("Hallo!");
 }
 ```
-🔹 **JavaScript behandelt es so:**
-```js
-function myFunction() {
-  console.log("Hello, world!");
+➡ **JavaScript "sieht" den Code intern so:**
+```javascript
+function sayHello() { // Hoisting
+  console.log("Hallo!");
 }
-myFunction();
+
+sayHello(); // ✅ Funktion kann hier bereits genutzt werden
 ```
+✅ **Funktionserklärungen (`function`) werden **vollständig** hochgehoben.**  
 
 ---
 
-### **2.2 `function` als `const` oder `let` (Function Expression)**
-- Wenn eine Funktion als **Variable (`let` oder `const`) gespeichert wird**, gilt **TDZ**.
-- Zugriff vor der Definition führt zu **ReferenceError**.
+## **5. Hoisting mit Funktionsausdrücken (`const function = () => {}`)**
+📌 **Bei Funktionsausdrücken (`const function = () => {}` oder `const function = function() {}`) gibt es ein Problem!**  
 
-```js
-myFunc(); // ❌ ReferenceError
-const myFunc = function () {
-  console.log("Hello!");
+🔹 **Beispiel: Zugriff auf Funktionsausdruck vor der Zuweisung**
+```javascript
+greet(); // ❌ ReferenceError: greet is not defined
+
+const greet = function () {
+  console.log("Hallo!");
 };
 ```
-📌 **Warum?** `const myFunc` wird hochgehoben, aber bleibt in der **Temporal Dead Zone**.
+➡ **JavaScript "sieht" den Code intern so:**
+```javascript
+const greet; // ❌ Variable ist zwar hochgehoben, aber nicht initialisiert (TDZ)
+greet(); // ❌ Fehler: Zugriff in der TDZ
+greet = function () { console.log("Hallo!"); };
+```
+✅ **Lösung: Funktionen als `function name() {}` definieren, wenn sie vorher aufgerufen werden müssen!**  
 
 ---
 
-## **3. Hoisting: Zusammenfassung**
-| Typ | Wird hochgehoben? | Zugriff vor Deklaration? |
-|------|----------------|----------------|
-| `var` | ✅ Ja | `undefined` |
-| `let` | ✅ Ja (aber in TDZ) | ❌ ReferenceError |
-| `const` | ✅ Ja (aber in TDZ) | ❌ ReferenceError |
-| Function Declaration | ✅ Ja | ✅ Funktion kann vorher aufgerufen werden |
-| Function Expression (`let/const`) | ✅ Ja (aber in TDZ) | ❌ ReferenceError |
+## **6. Zusammenfassung: Hoisting-Regeln**
+| Element | Wird hochgehoben? | Initialisiert? | Zugriff vor der Deklaration? |
+|---------|----------------|-----------------|-----------------------------|
+| **`var`** | ✅ Ja | ❌ `undefined` | ⚠ `undefined` |
+| **`let`** | ✅ Ja | ❌ Nein (TDZ!) | ❌ `ReferenceError` |
+| **`const`** | ✅ Ja | ❌ Nein (TDZ!) | ❌ `ReferenceError` |
+| **`function name() {}`** | ✅ Ja | ✅ Ja | ✅ Funktion kann genutzt werden |
+| **`const function = () => {}`** | ✅ Ja | ❌ Nein (TDZ!) | ❌ `ReferenceError` |
 
----
+✅ **Empfohlene Best Practices:**
+- **Nutze `let` & `const` statt `var`.**
+- **Definiere Funktionsausdrücke (`const fn = () => {}`) erst, bevor du sie nutzt.**
+- **Verstehe die `Temporal Dead Zone` (TDZ) bei `let` & `const`.**  
 
-📖 **Empfohlene Praxis**:
-✅ **Immer `let` oder `const` verwenden**  
-✅ **Variablen immer am Anfang des Scopes deklarieren**  
-✅ **Funktionen bevorzugt mit `function myFunc()` deklarieren, wenn sie vor Nutzung verfügbar sein sollen**  
-
-🔗 **Mehr Infos**: [MDN Web Docs](https://developer.mozilla.org/de/docs/Glossary/Hoisting) 🚀
+🔗 [MDN: Hoisting in JavaScript](https://developer.mozilla.org/en-US/docs/Glossary/Hoisting) 🚀
 
   **[⬆ Наверх](#top)**
 
 10. ### <a name="10"></a> Ausführungskontext, Lexikalische Umgebung
 
-### **Ausführungskontext und Lexikalische Umgebung in JavaScript**  
+### **Ausführungskontext & Lexikalische Umgebung in JavaScript** 🚀  
 
-JavaScript verwaltet die Ausführung von Code mithilfe von **Ausführungskontexten (Execution Contexts)** und **lexikalischen Umgebungen (Lexical Environments)**. Diese Mechanismen bestimmen, welche Variablen und Funktionen an einer bestimmten Stelle im Code zugänglich sind.
-
----
-
-## **1. Ausführungskontext (Execution Context)**  
-Ein **Ausführungskontext** ist die Umgebung, in der JavaScript-Code ausgeführt wird. Er enthält:
-- **Variablen** und **Funktionen**, die im aktuellen Kontext definiert sind.
-- Eine **Referenz zur äußeren Umgebung** für den Zugriff auf äußere Variablen.
-
-### **Arten von Ausführungskontexten**  
-1. **Globaler Kontext**:  
-   - Wird automatisch beim Start des Skripts erstellt.
-   - Enthält globale Variablen und Funktionen.
-   - Im Browser ist das `window`-Objekt der globale Kontext.
-
-2. **Funktionskontext**:  
-   - Wird für jede aufgerufene Funktion erstellt.
-   - Jede Funktion hat ihren eigenen lokalen Kontext.
-
-3. **Eval-Kontext** *(selten verwendet)*:  
-   - Entsteht beim Ausführen von Code mit `eval()`.
+📌 **JavaScript führt Code innerhalb eines Kontexts aus & nutzt eine lexikalische Umgebung für Variablen & Funktionen.**  
+✅ **Ziel:** **Verstehen, wie JavaScript Code ausführt & auf Variablen zugreift.**  
 
 ---
 
-## **2. Lexikalische Umgebung (Lexical Environment)**  
-Eine **lexikalische Umgebung** speichert **Variablen und Funktionen** im aktuellen Scope und enthält eine **Referenz zum äußeren Scope**.
+## **1. Was ist der Ausführungskontext (`Execution Context`)?**  
+📌 **Ein Ausführungskontext bestimmt, welche Variablen & Funktionen in einem bestimmten Codeblock verfügbar sind.**  
 
-### **Bestandteile der lexikalischen Umgebung**
-1. **Environment Record** (Speicher für Variablen und Funktionen).
-2. **Outer Environment Reference** (Referenz zur äußeren Umgebung).
+🔹 **Es gibt 3 Hauptarten:**
+| Art des Kontexts | Beschreibung | Beispiel |
+|------------------|-------------|----------|
+| **Global Execution Context (GEC)** | Standardkontext, in dem der Code läuft | `window` (Browser), `global` (Node.js) |
+| **Function Execution Context (FEC)** | Wird für jede Funktionsausführung erstellt | `function myFunc() {...}` |
+| **Eval Execution Context** | Selten genutzt, für `eval()`-Code | `eval("var a = 5");` |
 
-🔹 **Lexikalische Umgebung wird beim Parsen (Code-Analyse) erstellt**, bevor der Code ausgeführt wird.
+✅ **Jede Funktion erstellt ihren eigenen `Execution Context`.**  
 
 ---
 
-## **3. Beispiel für Ausführungskontext & Lexikalische Umgebung**
-```js
+## **2. Ablauf eines Ausführungskontexts**
+📌 **Ein neuer Execution Context wird in 2 Phasen erstellt:**  
+
+1️⃣ **Erstellungsphase (`Creation Phase`)**  
+   - Speicherzuweisung für Variablen, Funktionen & `this`.  
+   - Variablen mit `var` bekommen `undefined`.  
+   - `let` & `const` werden reserviert (TDZ = Temporal Dead Zone).  
+
+2️⃣ **Ausführungsphase (`Execution Phase`)**  
+   - Code wird von oben nach unten ausgeführt.  
+   - Werte werden den Variablen zugewiesen.  
+
+🔹 **Beispiel: Execution Context in Aktion**
+```javascript
+console.log(x); // ✅ `undefined` (Hoisting von `var`)
+console.log(y); // ❌ ReferenceError (TDZ von `let`)
+
+var x = 5;
+let y = 10;
+```
+✅ **`var` wird `undefined`, `let` bleibt in der TDZ & gibt einen Fehler.**  
+
+---
+
+## **3. Der Call Stack & Execution Context**
+📌 **JavaScript verwaltet Execution Contexts mit einem Call Stack (LIFO - Last In, First Out).**  
+
+🔹 **Beispiel: Call Stack in Aktion**
+```javascript
+function first() {
+  console.log("Funktion first");
+  second();
+}
+
+function second() {
+  console.log("Funktion second");
+}
+
+first();
+console.log("Globaler Code");
+```
+🔹 **Call Stack Ablauf:**
+1️⃣ **Global Execution Context (`GEC`) wird erstellt.**  
+2️⃣ **`first()` wird aufgerufen → Neuer `Execution Context` kommt in den Stack.**  
+3️⃣ **`second()` wird von `first()` aufgerufen → Neuer `Execution Context`.**  
+4️⃣ **Nach Beendigung wird `second()` entfernt, dann `first()`, dann `GEC`.**  
+
+✅ **Call Stack verarbeitet Funktionen von innen nach außen!**  
+
+---
+
+## **4. Was ist die lexikalische Umgebung (`Lexical Environment`)?**
+📌 **Die lexikalische Umgebung bestimmt, welche Variablen & Funktionen verfügbar sind.**  
+
+🔹 **Jeder `Execution Context` hat seine eigene lexikalische Umgebung, die enthält:**
+1. **Eigene Variablen & Funktionen.**  
+2. **Verweis auf den übergeordneten (`outer`) Kontext (Scope Chain).**  
+
+🔹 **Beispiel: Verschachtelte Funktionen & lexikalische Umgebung**
+```javascript
 function outer() {
-  const x = 10; // x gehört zur Lexical Environment von outer()
+  let a = "Hallo";
 
   function inner() {
-    const y = 20; // y gehört zur Lexical Environment von inner()
-    console.log(x + y); // Zugriff auf x durch "Outer Environment Reference"
+    console.log(a); // ✅ Greift auf `a` von `outer()` zu
   }
 
   inner();
@@ -1319,161 +1377,150 @@ function outer() {
 
 outer();
 ```
-
-### **Ablauf des Codes**
-1. **Global Execution Context wird erstellt** (`outer` wird definiert).
-2. `outer()` wird aufgerufen:
-   - Neuer **Funktionskontext für `outer()`** wird erstellt.
-   - `x = 10` wird gespeichert.
-3. `inner()` wird aufgerufen:
-   - Neuer **Funktionskontext für `inner()`** wird erstellt.
-   - `y = 20` wird gespeichert.
-   - Zugriff auf `x` durch **Outer Environment Reference**.
-4. Nach der Ausführung werden die **inneren Kontexte gelöscht**, der **globale Kontext bleibt**.
+✅ **`inner()` kann `a` von `outer()` nutzen, weil es im lexikalischen Scope liegt.**  
 
 ---
 
-## **4. Call Stack (Ausführungsstapel)**
-JavaScript verwaltet mehrere Ausführungskontexte mit einem **Stack (Stapelprinzip: LIFO - Last In, First Out)**.
+## **5. Scope Chain – Wie JavaScript Variablen sucht**
+📌 **Scope Chain bedeutet, dass JavaScript Variablen von innen nach außen sucht.**  
 
-**Beispiel Call Stack für obigen Code:**
-1. **Global Execution Context (wird zuerst geladen)**  
-2. `outer()` wird aufgerufen → Neuer **Funktionskontext für `outer()`**  
-3. `inner()` wird aufgerufen → Neuer **Funktionskontext für `inner()`**  
-4. `inner()` beendet → **Wird aus dem Stack entfernt**  
-5. `outer()` beendet → **Wird aus dem Stack entfernt**  
-6. Globaler Kontext bleibt.
+🔹 **Beispiel: Variable nicht im lokalen Scope**
+```javascript
+let x = "Global";
 
----
+function first() {
+  let y = "First Scope";
 
-## **5. Temporal Dead Zone (TDZ) und Scope Chain**
-- **Variablen mit `let` oder `const` befinden sich vor ihrer Initialisierung in der Temporal Dead Zone (TDZ)**.
-- **Scope Chain:** Falls eine Variable nicht im aktuellen Scope gefunden wird, sucht JavaScript in den äußeren Scopes weiter.
-
-**Beispiel für TDZ:**
-```js
-console.log(a); // ❌ ReferenceError (TDZ)
-let a = 5;
-```
-
-**Beispiel für Scope Chain:**
-```js
-const globalVar = "Ich bin global";
-
-function outerFunction() {
-  const outerVar = "Ich bin in outer";
-
-  function innerFunction() {
-    console.log(globalVar); // Zugriff auf globale Variable
-    console.log(outerVar);  // Zugriff auf äußere Funktion
+  function second() {
+    console.log(x); // ✅ "Global" (sucht im äußeren Scope)
+    console.log(y); // ✅ "First Scope"
   }
 
-  innerFunction();
+  second();
 }
 
-outerFunction();
+first();
 ```
-
-🔹 **Hier greift `innerFunction` auf `outerVar` zu, weil es im äußeren Scope existiert.**  
+✅ **JavaScript sucht zuerst in `second()`, dann in `first()`, dann im globalen Scope.**  
 
 ---
 
-### **Zusammenfassung**
-✅ **Execution Context (Ausführungskontext)** verwaltet Codeausführung.  
-✅ **Lexikalische Umgebung (Lexical Environment)** speichert Variablen und Funktionen.  
-✅ **Call Stack (Ausführungsstapel)** verwaltet, welche Funktion gerade läuft.  
-✅ **Scope Chain** bestimmt, wo JavaScript nach Variablen sucht.  
-✅ **TDZ (Temporal Dead Zone)** tritt bei `let` und `const` auf.
+## **6. Fazit: Execution Context vs. Lexical Environment**
+| Konzept | Beschreibung | Beispiel |
+|---------|-------------|----------|
+| **Execution Context** | Wo & wie wird Code ausgeführt? | Global, Function, Eval |
+| **Lexical Environment** | Wo werden Variablen gespeichert? | `function inner() { console.log(a); }` |
+| **Call Stack** | Verwaltung von Execution Contexts | LIFO-Prinzip |
+| **Scope Chain** | Wie Variablen gefunden werden | `console.log(x);` sucht in äußeren Scopes |
 
-📖 Weitere Infos: [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/LexicalEnvironment) 🚀
+✅ **Execution Context = Laufzeitumgebung**  
+✅ **Lexical Environment = Sichtbarkeitsbereich (Scope)**  
+
+🔗 [MDN: Execution Context](https://developer.mozilla.org/en-US/docs/Glossary/Execution_context)  
+🔗 [MDN: Scope & Lexical Environment](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures) 🚀
 
   **[⬆ Наверх](#top)**
 
 11. ### <a name="11"></a> Temporäre Totzone (Temporal Dead Zone)
 
-### **Temporäre Totzone (Temporal Dead Zone, TDZ) in JavaScript**  
+### **Temporäre Totzone (Temporal Dead Zone, TDZ) in JavaScript** ⚠️  
 
-Die **Temporäre Totzone (TDZ)** ist eine Phase, in der eine Variable existiert, aber **noch nicht zugänglich** ist.  
+📌 **Die temporäre Totzone (`Temporal Dead Zone, TDZ`) ist der Zeitraum zwischen der Deklaration & Initialisierung einer `let` oder `const` Variablen, in dem ein Zugriff zu einem `ReferenceError` führt.**  
+✅ **Ziel:** **Verstehen, warum `let` & `const` anders als `var` behandelt werden.**  
 
 ---
 
-## **1. Wann tritt die TDZ auf?**  
-### **⚠️ Die TDZ tritt bei `let` und `const` auf, aber nicht bei `var`.**  
-```js
-console.log(x); // ❌ ReferenceError: x is not defined
-let x = 10;
+## **1. Was ist die Temporäre Totzone (TDZ)?**
+📌 **Variablen mit `let` & `const` sind "gehoistet", aber nicht initialisiert.**  
+- **Der Zugriff darauf, bevor sie initialisiert werden, führt zu einem `ReferenceError`.**  
+- **`var` hingegen wird als `undefined` initialisiert & gibt keinen Fehler.**  
+
+🔹 **Beispiel: Zugriff auf `let` in der TDZ**
+```javascript
+console.log(a); // ❌ ReferenceError: Cannot access 'a' before initialization
+let a = 10;
+console.log(a); // ✅ 10
 ```
-Hier existiert `x` technisch bereits im **Scope**, ist aber noch **nicht nutzbar**, bis die Deklaration tatsächlich erreicht wird.
+✅ **`a` existiert bereits im Scope, aber ist noch nicht nutzbar.**  
 
 ---
 
-## **2. Beispiele für TDZ**
-### **2.1 TDZ in `let` und `const`**
-```js
-{
-  console.log(a); // ❌ ReferenceError: a is not defined
-  let a = 5;
-  console.log(a); // ✅ 5 (ab hier nutzbar)
-}
-```
-**Erklärung:**  
-- `a` existiert im Scope des `{}`-Blocks.
-- Aber **vor der Deklaration (`let a = 5`) befindet sich `a` in der TDZ**.
+## **2. Warum tritt die TDZ auf?**
+📌 **TDZ verhindert unerwartetes Verhalten durch vorzeitigen Zugriff auf Variablen.**  
 
----
-
-### **2.2 TDZ in `if`, `for` oder anderen Blöcken**
-```js
-if (true) {
-  console.log(b); // ❌ ReferenceError
-  let b = 20;
-}
-```
-**Warum?**  
-- `b` wird erst **nach der Deklaration (`let b = 20;`) verwendbar**.
-
----
-
-### **2.3 TDZ bei Funktionsparametern**
-**⚠️ Parameter können auch in der TDZ sein, wenn sie sich auf spätere Parameter beziehen.**  
-```js
-function myFunction(x = y, y = 2) {
-  console.log(x); // ❌ ReferenceError: y is not defined
-  console.log(y); // ✅ 2
-}
-myFunction();
-```
-**Warum?**  
-- `x = y` wird ausgeführt, **bevor** `y` einen Wert erhält → **TDZ für `y`**.
-
----
-
-## **3. Unterschiede zwischen `var`, `let` und `const`**
-| Deklaration | Wird hochgehoben? | Zugriff vor Initialisierung? | Wert in TDZ? |
-|------------|----------------|----------------|-------------|
-| `var`      | ✅ Ja           | ✅ `undefined` | ❌ Keine TDZ |
-| `let`      | ✅ Ja           | ❌ ReferenceError | ✅ TDZ vorhanden |
-| `const`    | ✅ Ja           | ❌ ReferenceError | ✅ TDZ vorhanden |
-
----
-
-## **4. Wie vermeide ich TDZ-Fehler?**
-✅ **Immer `let` oder `const` direkt am Anfang eines Scopes deklarieren.**  
-✅ **Keinen Code schreiben, der auf eine Variable zugreift, bevor sie definiert ist.**  
-
-**🔹 Falsch:**
-```js
-console.log(x); // ❌ ReferenceError
-let x = 5;
-```
-
-**✅ Richtig:**
-```js
-let x = 5;
+🔹 **Vergleich mit `var` (kein TDZ, aber `undefined`)**
+```javascript
+console.log(x); // ✅ undefined (kein Fehler, aber unerwartetes Verhalten)
+var x = 5;
 console.log(x); // ✅ 5
 ```
+🔹 **Gleiches Beispiel mit `let` (führt zu `ReferenceError`)**
+```javascript
+console.log(y); // ❌ ReferenceError (TDZ)
+let y = 5;
+console.log(y); // ✅ 5
+```
+✅ **TDZ macht Fehler früh sichtbar & verhindert ungewollten `undefined`-Zugriff.**  
 
-📖 Weitere Infos: [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/let#temporal_dead_zone_tdz) 🚀
+---
+
+## **3. Wann beginnt & endet die TDZ?**
+📌 **Die TDZ beginnt mit dem Eintritt in den Scope & endet mit der Initialisierung.**  
+
+🔹 **Beispiel: Block-Scoped TDZ in `if`-Blöcken**
+```javascript
+if (true) {
+  console.log(z); // ❌ ReferenceError (TDZ aktiv)
+  let z = 10; // TDZ endet hier
+  console.log(z); // ✅ 10
+}
+```
+✅ **Die TDZ gilt für den gesamten Block, bevor die Variable deklariert wird.**  
+
+---
+
+## **4. TDZ in `const` (Noch strenger als `let`)**
+📌 **`const`-Variablen befinden sich auch in der TDZ, aber zusätzlich müssen sie sofort initialisiert werden.**  
+
+🔹 **Beispiel: `const` ohne Initialisierung**
+```javascript
+console.log(x); // ❌ ReferenceError (TDZ)
+const x = 10;
+```
+🔹 **Beispiel: `const` ohne Initialisierung führt zu SyntaxError**
+```javascript
+const y; // ❌ SyntaxError: Missing initializer in const declaration
+```
+✅ **`const` muss bei der Deklaration sofort einen Wert bekommen.**  
+
+---
+
+## **5. TDZ in Funktionsparametern**
+📌 **`let` & `const` innerhalb einer Funktion befinden sich in der TDZ, bevor sie zugewiesen werden.**  
+
+🔹 **Beispiel: Funktionsparameter beeinflussen TDZ**
+```javascript
+function test(x = y, y = 10) { // ❌ ReferenceError (TDZ für `y`)
+  console.log(x, y);
+}
+
+test();
+```
+✅ **Funktion kann keinen Parameter nutzen, der erst danach deklariert wird.**  
+
+---
+
+## **6. Fazit – TDZ & Hoisting-Vergleich**
+| Feature | `var` | `let` | `const` |
+|---------|-------|-------|---------|
+| **Hoisting?** | ✅ Ja | ✅ Ja | ✅ Ja |
+| **Initialisierung?** | `undefined` | ❌ Nein (TDZ) | ❌ Nein (TDZ) |
+| **Zugriff vor Initialisierung?** | ✅ Ja (`undefined`) | ❌ `ReferenceError` | ❌ `ReferenceError` |
+| **Muss sofort initialisiert werden?** | ❌ Nein | ❌ Nein | ✅ Ja |
+
+✅ **TDZ macht Code sicherer & vermeidet unerwartete `undefined`-Werte!** 🚀  
+
+🔗 [MDN: TDZ & Hoisting](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let#temporal_dead_zone_tdz) 🚀
 
   **[⬆ Наверх](#top)**
 
