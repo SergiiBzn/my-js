@@ -60,8 +60,8 @@
 |50 | [Was ist Progressive Rendering?](#50) |
 |51 | [Wie funktioniert das srcset-Attribut in <img>-Tags für Responsive Images?](#51) |
 |52 | [Welche semantischen HTML-Tags gibt es und warum sind sie wichtig?](#52) |
-|53 | [Wann sollte <article> statt <section> verwendet werden?](#53) |
-|54 | [Dürfen <p>-Tags ineinander verschachtelt werden? Ist <div> in <p> erlaubt?](#54) |
+|53 | [Wann sollte `<article>` statt `<section>` verwendet werden?](#53) |
+|54 | [Dürfen `<p>`-Tags ineinander verschachtelt werden? Ist `<div>` in `<p>` erlaubt?](#54) |
 |55 | [Was ist der Unterschied zwischen id und class in HTML?](#55) |
 |56 | [](#56) |
 |57 | [](#57) |
