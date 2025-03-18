@@ -21,10 +21,10 @@
 |12 | [typeof – wie erkennt man den Typ eines Werts?](#12) |
 |13 | [Warum haben primitive Datentypen Methoden? Was ist Autoboxing?](#13) |
 |14 | [Garbage Collector in JavaScript](#14) |
-|15 | [](#15) |
-|16 | [](#16) |
-|17 | [](#17) |
-|18 | [](#18) |
+|15 | [Unterschied zwischen == und ===](#15) |
+|16 | [Primitive vs. Referenztypen](#16) |
+|17 | [Symbol.iterator und Iterierbare Objekte](#17) |
+|18 | [WeakRef und FinalizationRegistry](#18) |
 |19 | [](#19) |
 |20 | [](#20) |
 |   | Funktionen und ihre Besonderheiten |
@@ -66,7 +66,7 @@
 |53 | [Symbol](#53) |
 |54 | [BigInt](#54) |
 |55 | [Module import/export (ES6) & CommonJS](#55) |
-|56 | [](#56) |
+|56 | [Proxy und Reflect](#56) |
 |57 | [](#57) |
 |58 | [](#58) |
 |59 | [](#59) |
@@ -84,8 +84,8 @@
 |70 | [Dokument- und Fensterparameter sowie deren Nutzung](#70) |
 |71 | [Web Animations API](#71) |
 |72 | [requestAnimationFrame](#72) |
-|73 | [](#73) |
-|74 | [](#74) |
+|73 | [Debouncing und Throttling](#73) |
+|74 | [IntersectionObserver API](#74) |
 |75 | [](#75) |
 |   | Asynchronität und Serverkommunikation |
 |76 | [setTimeout und setInterval, Besonderheiten](#76) |
@@ -100,7 +100,7 @@
 |85 | [Long Polling (Langes Abfragen)](#85) |
 |86 | [Web Socket](#86) |
 |87 | [Was sind Web Workers und wofür braucht man sie?](#87) |
-|88 | [](#88) |
+|88 | [Microtasks vs. Macrotasks](#88) |
 |89 | [](#89) |
 |90 | [](#90) |
 |   | Fortgeschrittene Themen |
@@ -110,7 +110,7 @@
 |94 | [Was ist funktionale Programmierung? Grundlagen (First-Class-Funktionen, Higher-Order-Funktionen, Pure Functions, Immutability, Lazy Evaluation usw.)](#94) |
 |95 | [Reguläre Ausdrücke (RegExp)](#95) |
 |96 | [JSON](#96) |
-|97 | [](#97) |
+|97 | [Design-Patterns in JavaScript (Singleton, Factory, Observer, etc.)](#97) |
 |98 | [](#98) |
 |99 | [](#99) |
 |100 | [](#100) |
