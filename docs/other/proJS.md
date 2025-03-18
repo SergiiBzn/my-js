@@ -1770,23 +1770,400 @@ Obwohl der Garbage Collector automatisch arbeitet, können **Speicherlecks** auf
 
   **[⬆ Наверх](#top)**
 
-15. ### <a name="15"></a> 
+15. ### <a name="15"></a> Unterschied zwischen == und ===
 
+### **Unterschied zwischen `==` und `===` in JavaScript**  
+
+In JavaScript gibt es zwei Arten von Vergleichsoperatoren:  
+
+| Operator | Bedeutung | Typprüfung |
+|----------|------------|------------|
+| **`==` (doppelt gleich)** | **Vergleicht Werte nach Typumwandlung** | ❌ Nein (führt Typkonvertierung durch) |
+| **`===` (dreifach gleich)** | **Vergleicht Werte & Datentypen** | ✅ Ja (kein Typwechsel) |
+
+---
+
+## **1. `==` (Lose Gleichheit – Typumwandlung erlaubt)**
+📌 **JavaScript konvertiert Werte automatisch, wenn sie nicht denselben Typ haben.**  
+```javascript
+console.log(5 == "5");  // ✅ true  (String wird in Zahl umgewandelt)
+console.log(0 == false); // ✅ true  (false wird zu 0)
+console.log(null == undefined); // ✅ true  (beide als "leer" betrachtet)
+console.log("" == false); // ✅ true  ("" wird zu 0)
+```
+✅ **Flexibel, aber kann zu unerwarteten Ergebnissen führen!**  
+
+---
+
+## **2. `===` (Strikte Gleichheit – Typen müssen übereinstimmen)**
+📌 **Vergleicht sowohl Wert als auch Datentyp – kein automatischer Typwechsel.**  
+```javascript
+console.log(5 === "5");  // ❌ false (Zahl vs. String)
+console.log(0 === false); // ❌ false (Zahl vs. Boolean)
+console.log(null === undefined); // ❌ false (unterschiedliche Typen)
+console.log("" === false); // ❌ false (String vs. Boolean)
+```
+✅ **Empfohlen für präzisere Vergleiche!**  
+
+---
+
+## **3. Wann sollte `==` oder `===` verwendet werden?**
+| Situation | Empfohlener Operator |
+|-----------|----------------------|
+| **Vergleich mit strikter Typprüfung** | `===` (empfohlen) |
+| **Prüfen auf `null` oder `undefined`** | `==` (`null == undefined` ist `true`) |
+| **Explizite Konvertierung vor dem Vergleich** | `Number(a) === Number(b)` |
+
+**Beispiel: Korrekte Nutzung**
+```javascript
+const alter = "18";
+
+if (Number(alter) === 18) { 
+  console.log("Volljährig"); // ✅ Explizite Umwandlung
+}
+```
+✅ **Vermeidet unerwartete Typumwandlungen**  
+
+---
+
+### **Zusammenfassung**
+| Operator | Typumwandlung | Beispiel (`5 == "5"`) | Empfehlung |
+|----------|--------------|----------------|------------|
+| `==` | Ja (lose Gleichheit) | ✅ `true` | ❌ Nicht empfohlen |
+| `===` | Nein (strikte Gleichheit) | ❌ `false` | ✅ Empfohlen |
+
+🔗 [MDN-Dokumentation zu `==` & `===`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Operators)
 
   **[⬆ Наверх](#top)**
 
-16. ### <a name="16"></a> 
+16. ### <a name="16"></a> Primitive vs. Referenztypen
 
+### **Primitive vs. Referenztypen in JavaScript**  
+
+In JavaScript gibt es zwei Hauptkategorien von Datentypen:  
+- **Primitive Typen** → **Direkte Werte** (immutable/unveränderlich, gespeichert im **Stack**)  
+- **Referenztypen (Objekte)** → **Referenzen auf Speicheradressen** (mutable/veränderbar, gespeichert im **Heap**)  
+
+---
+
+## **1. Primitive Typen (immutable & im Stack gespeichert)**  
+
+📌 **Folgende Typen gehören zu den primitiven Typen:**  
+| Typ | Beispiel |
+|------|------------|
+| **`string`** | `"Hallo"` |
+| **`number`** | `42`, `3.14`, `NaN` |
+| **`boolean`** | `true`, `false` |
+| **`null`** | `null` |
+| **`undefined`** | `undefined` |
+| **`bigint`** | `9007199254740991n` |
+| **`symbol`** | `Symbol("unique")` |
+
+✅ **Direkte Wertzuweisung (Kopien sind unabhängig voneinander)**  
+```javascript
+let a = 10;
+let b = a; // Kopie des Werts, nicht die gleiche Referenz
+
+b = 20;
+console.log(a); // ✅ 10 (unverändert)
+console.log(b); // ✅ 20 (geändert)
+```
+✅ **Primitiven Werte werden **direkt** im **Stack** gespeichert.**  
+
+---
+
+## **2. Referenztypen (mutable & im Heap gespeichert)**  
+
+📌 **Folgende Typen gehören zu den Referenztypen:**  
+| Typ | Beispiel |
+|------|------------|
+| **`Object`** | `{ name: "Max" }` |
+| **`Array`** | `[1, 2, 3]` |
+| **`Function`** | `function() {}` |
+
+❌ **Referenz wird kopiert, nicht der Wert!**  
+```javascript
+let obj1 = { zahl: 10 };
+let obj2 = obj1; // Beide zeigen auf das gleiche Objekt
+
+obj2.zahl = 20;
+console.log(obj1.zahl); // ❌ 20 (weil `obj1` und `obj2` dieselbe Referenz haben)
+```
+✅ **Objekte werden im **Heap** gespeichert, während die Variable nur eine **Referenz** im Stack enthält.**  
+
+---
+
+## **3. Unterschied zwischen Kopie (primitiv) & Referenz (Objekte)**
+### **Kopie bei primitiven Werten (unabhängig)**
+```javascript
+let x = "Hallo";
+let y = x;
+
+y = "Welt";
+console.log(x); // ✅ "Hallo" (unverändert)
+console.log(y); // ✅ "Welt" (geändert)
+```
+✅ **Bei primitiven Werten werden echte Kopien erstellt.**  
+
+### **Referenz bei Objekten (gemeinsame Nutzung)**
+```javascript
+let person1 = { name: "Max" };
+let person2 = person1;
+
+person2.name = "Anna";
+console.log(person1.name); // ❌ "Anna" (weil person1 und person2 dasselbe Objekt referenzieren)
+```
+❌ **Änderungen an `person2` beeinflussen auch `person1`.**  
+
+---
+
+## **4. Wie vermeidet man unerwünschte Referenzen?**
+📌 **1. Objekte klonen (`Object.assign()` oder `...` Spread)**  
+```javascript
+let person1 = { name: "Max" };
+let person2 = { ...person1 }; // Neuer Speicherplatz
+
+person2.name = "Anna";
+console.log(person1.name); // ✅ "Max" (unverändert)
+```
+📌 **2. Tiefe Kopie mit `JSON.parse(JSON.stringify(obj))` (funktioniert nicht mit Funktionen/Symbolen!)**  
+```javascript
+let person1 = { name: "Max", details: { age: 30 } };
+let person2 = JSON.parse(JSON.stringify(person1));
+
+person2.details.age = 40;
+console.log(person1.details.age); // ✅ 30 (unverändert)
+```
+📌 **3. Mit `structuredClone()` (moderne Alternative)**  
+```javascript
+let person1 = { name: "Max", details: { age: 30 } };
+let person2 = structuredClone(person1);
+
+person2.details.age = 40;
+console.log(person1.details.age); // ✅ 30 (unverändert)
+```
+
+---
+
+### **Zusammenfassung**
+| Typ | Eigenschaften | Speicherort |
+|------|--------------|-------------|
+| **Primitive Typen** | Immutable (unveränderlich), Kopien sind unabhängig | **Stack** |
+| **Referenztypen** | Mutable (veränderbar), Kopien sind **Referenzen** auf dasselbe Objekt | **Heap** |
+
+🔗 [MDN-Dokumentation zu Datenstrukturen](https://developer.mozilla.org/de/docs/Web/JavaScript/Data_structures)
 
   **[⬆ Наверх](#top)**
 
-17. ### <a name="17"></a> 
+17. ### <a name="17"></a> Symbol.iterator und Iterierbare Objekte
 
+### **`Symbol.iterator` und Iterierbare Objekte in JavaScript**  
+
+In JavaScript sind **iterierbare Objekte** Objekte, die mit `for...of` oder anderen Iterationsmethoden durchlaufen werden können.  
+Das geschieht über die **`Symbol.iterator`-Schnittstelle**, die definiert, wie sich ein Objekt iterieren lässt.
+
+---
+
+## **1. Was ist `Symbol.iterator`?**
+📌 **`Symbol.iterator` ist ein spezielles Symbol, das definiert, wie ein Objekt iteriert wird.**  
+- Es muss eine **Methode** zurückgeben, die einen **Iterator** erzeugt (`next()`-Methode).  
+
+✅ **Beispiel: `Array` ist iterierbar**  
+```javascript
+const arr = [10, 20, 30];
+const iterator = arr[Symbol.iterator]();
+
+console.log(iterator.next()); // ✅ { value: 10, done: false }
+console.log(iterator.next()); // ✅ { value: 20, done: false }
+console.log(iterator.next()); // ✅ { value: 30, done: false }
+console.log(iterator.next()); // ✅ { value: undefined, done: true }
+```
+✅ **`done: false` → Iteration läuft noch**  
+✅ **`done: true` → Keine Werte mehr verfügbar**  
+
+---
+
+## **2. `for...of` für iterierbare Objekte**
+📌 **`for...of` nutzt `Symbol.iterator`, um Elemente abzurufen.**
+```javascript
+const zahlen = [1, 2, 3];
+
+for (let zahl of zahlen) {
+  console.log(zahl); // ✅ 1, 2, 3
+}
+```
+✅ **Funktioniert mit allen eingebauten iterierbaren Objekten (`Array`, `Set`, `Map`)**  
+
+---
+
+## **3. Eigene Objekte iterierbar machen**
+📌 **Ein benutzerdefiniertes Objekt iterierbar machen, indem `Symbol.iterator` definiert wird.**
+```javascript
+const benutzer = {
+  namen: ["Max", "Anna", "Tom"],
+  [Symbol.iterator]() {
+    let index = 0;
+    return {
+      next: () => {
+        if (index < this.namen.length) {
+          return { value: this.namen[index++], done: false };
+        }
+        return { done: true };
+      }
+    };
+  }
+};
+
+for (let name of benutzer) {
+  console.log(name); // ✅ "Max", "Anna", "Tom"
+}
+```
+✅ **Das Objekt verhält sich jetzt wie ein Array mit `for...of`.**  
+
+---
+
+## **4. `Set` und `Map` sind iterierbar**
+```javascript
+const zahlenSet = new Set([1, 2, 3]);
+for (let zahl of zahlenSet) {
+  console.log(zahl); // ✅ 1, 2, 3
+}
+
+const map = new Map([
+  ["a", 1],
+  ["b", 2]
+]);
+for (let [key, value] of map) {
+  console.log(`${key}: ${value}`); // ✅ "a: 1", "b: 2"
+}
+```
+✅ **`Set` und `Map` implementieren `Symbol.iterator`, daher direkt iterierbar.**  
+
+---
+
+## **5. Manuelles Nutzen von `Symbol.iterator`**
+📌 **Ein Objekt kann direkt über den Iterator durchlaufen werden.**
+```javascript
+const iterator = benutzer[Symbol.iterator]();
+console.log(iterator.next().value); // ✅ "Max"
+console.log(iterator.next().value); // ✅ "Anna"
+console.log(iterator.next().value); // ✅ "Tom"
+console.log(iterator.next().done);  // ✅ true
+```
+✅ **Direkter Zugriff auf Iterationswerte ohne `for...of`**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Beschreibung |
+|---------|-------------|
+| **`Symbol.iterator`** | Definiert, wie ein Objekt iteriert wird |
+| **`next()`-Methode** | Gibt `{ value, done }` zurück |
+| **`for...of`** | Nutzt `Symbol.iterator`, um Objekte zu durchlaufen |
+| **Iterierbare Objekte** | `Array`, `Set`, `Map` sind von Haus aus iterierbar |
+| **Eigene Iteratoren** | Durch Implementieren von `Symbol.iterator` |
+
+🔗 [MDN-Dokumentation zu `Symbol.iterator`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Symbol/iterator)
 
   **[⬆ Наверх](#top)**
 
-18. ### <a name="18"></a> 
+18. ### <a name="18"></a> WeakRef und FinalizationRegistry
 
+### **`WeakRef` und `FinalizationRegistry` in JavaScript (ES2021)**  
+
+Ab **ES2021** gibt es zwei neue Speicherverwaltungsfunktionen in JavaScript:  
+- **`WeakRef`** (Schwache Referenzen) → Erlaubt Referenzen auf Objekte, die vom Garbage Collector entfernt werden können.  
+- **`FinalizationRegistry`** → Benachrichtigt, wenn ein Objekt vom Speicher entfernt wurde.  
+
+Diese sind nützlich für **optimierte Speicherverwaltung**, aber sollten **mit Vorsicht** verwendet werden!  
+
+---
+
+## **1. `WeakRef` – Schwache Referenzen**
+📌 **`WeakRef` speichert eine schwache Referenz auf ein Objekt.**  
+- Das Objekt kann **vom Garbage Collector gelöscht werden**, wenn keine andere starke Referenz existiert.  
+
+```javascript
+let obj = { name: "Test" };
+const weakRef = new WeakRef(obj);
+
+console.log(weakRef.deref()); // ✅ { name: "Test" }
+
+obj = null; // Objekt wird nun potenziell vom GC gelöscht
+
+console.log(weakRef.deref()); // ❌ Möglicherweise `undefined` (wenn GC es entfernt hat)
+```
+✅ **Nützlich für Caching-Mechanismen**  
+❌ **Kein sicherer Zugriff (kann `undefined` zurückgeben)**  
+
+---
+
+## **2. `FinalizationRegistry` – Speicherbereinigung verfolgen**
+📌 **`FinalizationRegistry` erlaubt es, eine Callback-Funktion zu registrieren, die aufgerufen wird, wenn ein Objekt gelöscht wird.**  
+
+```javascript
+const registry = new FinalizationRegistry((heldValue) => {
+  console.log(`Objekt mit Wert "${heldValue}" wurde gelöscht`);
+});
+
+let obj = { name: "Test" };
+registry.register(obj, "Test-Objekt");
+
+obj = null; // Nach dem Löschen kann der GC das Objekt entfernen
+```
+✅ **Ideal für Debugging & Cleanup-Tasks**  
+❌ **Keine Garantie, wann der Garbage Collector es ausführt!**  
+
+---
+
+## **3. Verwendung in Kombination**
+📌 **Man kann `WeakRef` & `FinalizationRegistry` zusammen verwenden.**  
+
+```javascript
+const cache = new Map();
+const registry = new FinalizationRegistry((key) => {
+  cache.delete(key);
+});
+
+function addToCache(key, value) {
+  const ref = new WeakRef(value);
+  cache.set(key, ref);
+  registry.register(value, key);
+}
+
+let obj = { data: "Wichtig" };
+addToCache("objKey", obj);
+
+console.log(cache.get("objKey").deref()); // ✅ { data: "Wichtig" }
+
+obj = null; // Objekt wird gelöscht
+setTimeout(() => console.log(cache.get("objKey")), 1000); // ❌ Wahrscheinlich `undefined`
+```
+✅ **Effiziente Speicherverwaltung für Caching**  
+❌ **GC-Zeitpunkt nicht vorhersehbar!**  
+
+---
+
+## **4. Wann `WeakRef` & `FinalizationRegistry` verwenden?**
+| Situation | **Empfohlen?** |
+|-----------|--------------|
+| **Cache für selten genutzte Objekte** | ✅ Ja |
+| **Event-Listener oder Timer automatisch entfernen** | ✅ Ja |
+| **Normale Objektreferenzen in Anwendungen** | ❌ Nein |
+| **Datenbank-/Sitzungscache, der immer bestehen soll** | ❌ Nein |
+
+---
+
+### **Zusammenfassung**
+| Feature | Beschreibung |
+|---------|-------------|
+| **`WeakRef(obj)`** | Erstellt eine schwache Referenz auf ein Objekt |
+| **`.deref()`** | Holt das Objekt, falls noch vorhanden |
+| **`FinalizationRegistry(callback)`** | Meldet, wenn ein Objekt vom GC gelöscht wird |
+| **`.register(obj, value)`** | Registriert ein Objekt zur Überwachung |
+
+🔗 [MDN-Dokumentation zu `WeakRef`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakRef)  
+🔗 [MDN-Dokumentation zu `FinalizationRegistry`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry)
 
   **[⬆ Наверх](#top)**
 
@@ -1800,7 +2177,7 @@ Obwohl der Garbage Collector automatisch arbeitet, können **Speicherlecks** auf
 
   **[⬆ Наверх](#top)**
 
-21. ### <a name="21"></a> Funktionen, Pfeilfunktionen, IIFE
+21. ### <a name="21"></a> Funktionen, Pfeilfunktionen, IIFE, Unterschied zwischen Funktionsdeklaration und Funktionsausdruck
 
 ### **Funktionen, Pfeilfunktionen und IIFE in JavaScript**
 
@@ -1901,6 +2278,94 @@ Oder mit **Pfeilfunktion**:
 - **IIFE (`(function() {})()`)** werden sofort ausgeführt und kapseln Variablen.
 
 🔗 [MDN-Dokumentation zu Funktionen](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Functions)
+
+### **Unterschied zwischen Funktionsdeklaration und Funktionsausdruck in JavaScript**  
+
+In JavaScript gibt es zwei Möglichkeiten, eine Funktion zu definieren:  
+1. **Funktionsdeklaration (`function name() {}`)**  
+2. **Funktionsausdruck (`const name = function() {}` oder `const name = () => {}`)**  
+
+---
+
+## **1. Funktionsdeklaration (`Function Declaration`)**
+📌 **Definiert eine Funktion mit `function` und einem Namen.**  
+📌 **Wird vor der Ausführung "gehoisted"** – also nach oben verschoben.  
+
+```javascript
+console.log(begrüßen()); // ✅ "Hallo!"
+
+function begrüßen() {
+  return "Hallo!";
+}
+```
+✅ **Kann vor der Definition aufgerufen werden (Hoisting)**  
+✅ **Bietet eine klare Struktur**  
+❌ **Nicht flexibel für anonyme Funktionen**  
+
+---
+
+## **2. Funktionsausdruck (`Function Expression`)**
+📌 **Funktion wird einer Variable zugewiesen.**  
+📌 **Nicht "gehoisted"** – kann nur nach der Definition verwendet werden.  
+
+```javascript
+console.log(begrüßen()); // ❌ Fehler: Cannot access 'begrüßen' before initialization
+
+const begrüßen = function () {
+  return "Hallo!";
+};
+
+console.log(begrüßen()); // ✅ "Hallo!"
+```
+✅ **Funktion kann anonym sein (`const begr = function() {}`)**  
+✅ **Flexibler, kann leicht als Callback oder Argument genutzt werden**  
+❌ **Muss vor der Verwendung definiert werden**  
+
+---
+
+## **3. Unterschied bei Hoisting**
+```javascript
+// Funktionsdeklaration (hoisted)
+test(); // ✅ Kein Fehler
+
+function test() {
+  console.log("Ich bin eine Deklaration!");
+}
+
+// Funktionsausdruck (nicht hoisted)
+test2(); // ❌ Fehler: Cannot access 'test2' before initialization
+
+const test2 = function () {
+  console.log("Ich bin ein Funktionsausdruck!");
+};
+```
+✅ **Funktionsdeklarationen können vor ihrer Definition aufgerufen werden**  
+❌ **Funktionsausdrücke nicht – sie verhalten sich wie `let/const` Variablen**  
+
+---
+
+## **4. Arrow Functions als Funktionsausdruck**
+📌 **Arrow Functions (`=>`) sind eine kompakte Form von Funktionsausdrücken.**  
+
+```javascript
+const add = (a, b) => a + b;
+
+console.log(add(2, 3)); // ✅ 5
+```
+✅ **Kürzere Syntax**  
+✅ **Kein eigenes `this` (nützlich in Callbacks & Methoden)**  
+❌ **Kann nicht als Konstruktor (`new`) verwendet werden**  
+
+---
+
+### **Zusammenfassung**
+| Typ | Hoisting? | Syntax | Verwendung |
+|------|----------|--------|------------|
+| **Funktionsdeklaration** | ✅ Ja | `function name() {}` | Standard, wenn keine flexible Zuweisung nötig ist |
+| **Funktionsausdruck** | ❌ Nein | `const name = function() {};` | Nützlich für anonyme Funktionen, Callbacks |
+| **Arrow Function** | ❌ Nein | `const name = () => {};` | Kürzere Schreibweise, kein `this` |
+
+🔗 [MDN-Dokumentation zu Funktionen](https://developer.mozilla.org/de/docs/Web/JavaScript/Guide/Functions)
 
   **[⬆ Наверх](#top)**
 
@@ -5161,8 +5626,126 @@ console.log(add(2, 3)); // 5
 
   **[⬆ Наверх](#top)**
 
-56. ### <a name="56"></a> 
+56. ### <a name="56"></a> Proxy und Reflect
 
+### **`Proxy` und `Reflect` in JavaScript**  
+
+**`Proxy` und `Reflect`** sind zwei moderne APIs in JavaScript, die es ermöglichen, das Verhalten von Objekten zu **überwachen und zu manipulieren**.  
+- **`Proxy`**: Erstellt eine "Zwischenschicht" zwischen einem Objekt und seinem Zugriff.  
+- **`Reflect`**: Bietet Methoden zur Interaktion mit Objekten, ähnlich wie `Object`-Methoden, aber mit besserer Kontrolle.  
+
+---
+
+## **1. `Proxy` – Objekte abfangen und modifizieren**
+📌 **Mit `new Proxy(target, handler)` kann das Verhalten eines Objekts verändert werden.**  
+- `target`: Das zu überwachende Objekt  
+- `handler`: Ein Objekt mit "Traps" (Methoden zur Abfangung von Aktionen)  
+
+```javascript
+const person = { name: "Max", alter: 30 };
+
+const proxy = new Proxy(person, {
+  get(target, prop) {
+    return prop in target ? target[prop] : "Eigenschaft existiert nicht";
+  }
+});
+
+console.log(proxy.name); // ✅ "Max"
+console.log(proxy.alter); // ✅ 30
+console.log(proxy.geburtsjahr); // ✅ "Eigenschaft existiert nicht"
+```
+✅ **Verhindert `undefined`, wenn eine Eigenschaft nicht existiert**  
+
+---
+
+## **2. `Proxy` für Validierung (`set`-Trap)**
+📌 **Kann Werte vor der Speicherung überprüfen.**  
+```javascript
+const benutzer = {
+  name: "Anna",
+  alter: 25
+};
+
+const proxy = new Proxy(benutzer, {
+  set(target, prop, value) {
+    if (prop === "alter" && value < 0) {
+      console.log("Alter kann nicht negativ sein!");
+      return false;
+    }
+    target[prop] = value;
+    return true;
+  }
+});
+
+proxy.alter = 30; // ✅ OK
+proxy.alter = -5; // ❌ "Alter kann nicht negativ sein!"
+console.log(proxy.alter); // ✅ 30 (alte Wert bleibt erhalten)
+```
+✅ **Erlaubt Validierungen & verhindert ungültige Daten**  
+
+---
+
+## **3. `Reflect` – Objektinteraktionen mit weniger Fehlern**
+📌 **`Reflect` ist eine Sammlung von Methoden zur Interaktion mit Objekten.**  
+
+### **Warum `Reflect`?**
+- Ersetzt direkte Methodenaufrufe (`Object.getOwnPropertyDescriptor()`, `delete obj.prop` etc.)
+- Gibt immer einen Rückgabewert (`true` oder `false` statt Fehler)
+- Wird oft mit `Proxy` kombiniert
+
+```javascript
+const benutzer = { name: "Tom" };
+
+console.log(Reflect.get(benutzer, "name")); // ✅ "Tom"
+Reflect.set(benutzer, "name", "Alex");
+console.log(benutzer.name); // ✅ "Alex"
+
+Reflect.deleteProperty(benutzer, "name");
+console.log(benutzer.name); // ✅ undefined
+```
+✅ **Mehr Kontrolle und weniger Fehler als direkte `delete`-Befehle**  
+
+---
+
+## **4. Kombination: `Proxy` + `Reflect`**
+📌 **Verwenden von `Reflect` innerhalb eines `Proxy` für sauberen Code.**  
+```javascript
+const produkt = { preis: 10 };
+
+const proxy = new Proxy(produkt, {
+  get(target, prop) {
+    console.log(`Zugriff auf ${prop}`);
+    return Reflect.get(target, prop);
+  },
+  set(target, prop, value) {
+    if (prop === "preis" && value < 0) {
+      console.log("Preis kann nicht negativ sein!");
+      return false;
+    }
+    return Reflect.set(target, prop, value);
+  }
+});
+
+console.log(proxy.preis); // ✅ Zugriff auf preis → 10
+proxy.preis = -5; // ❌ "Preis kann nicht negativ sein!"
+proxy.preis = 20; // ✅ OK
+console.log(proxy.preis); // ✅ 20
+```
+✅ **Sauberer Code durch `Reflect.get()` & `Reflect.set()`**  
+
+---
+
+### **Zusammenfassung**
+| Feature | `Proxy` | `Reflect` |
+|---------|--------|----------|
+| **Hauptzweck** | Abfangen & Manipulieren von Objekten | Methoden zur Objektmanipulation |
+| **Zugriff auf Eigenschaften (`get`)** | `Proxy.get()` | `Reflect.get()` |
+| **Eigenschaften setzen (`set`)** | `Proxy.set()` | `Reflect.set()` |
+| **Eigenschaft löschen (`delete`)** | `delete obj.key` | `Reflect.deleteProperty()` |
+| **Einsatzgebiet** | Kontrolle über Objekte (Validierung, Logging) | Saubere & sichere Methoden |
+
+🔗 [MDN-Dokumentation zu `Proxy`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Proxy)  
+🔗 [MDN-Dokumentation zu `Reflect`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Reflect)
 
   **[⬆ Наверх](#top)**
 
@@ -6422,13 +7005,233 @@ trackFPS();
 
   **[⬆ Наверх](#top)** 
 
-73. ### <a name="73"></a> 
+73. ### <a name="73"></a> Debouncing und Throttling
 
+### **Debouncing & Throttling in JavaScript**  
+Diese beiden Techniken optimieren die Performance von Funktionen, die oft aufgerufen werden, z. B. bei:  
+- **Scroll-Events**
+- **Resize-Events**
+- **Suchfeld-Eingaben**
+- **Button-Klicks**
+
+---
+
+## **1. Debouncing (Verzögertes Ausführen)**
+📌 **Debouncing sorgt dafür, dass eine Funktion erst nach einer bestimmten Wartezeit (`delay`) ausgeführt wird.**  
+- **Gut für Suchfelder:** Verhindert mehrfaches Senden von API-Anfragen beim Tippen.  
+- **Wird bei jeder neuen Eingabe zurückgesetzt (letzter Aufruf zählt).**  
+
+### **Beispiel: Debouncing mit `setTimeout()`**
+```javascript
+function debounce(func, delay) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
+}
+
+// Anwendung: Verhindert mehrfaches Auslösen bei Eingaben
+const searchInput = document.getElementById("search");
+
+searchInput.addEventListener("input", debounce((event) => {
+  console.log("Suche:", event.target.value); // Wird erst nach `delay` ms ausgeführt
+}, 500));
+```
+✅ **Verhindert zu viele API-Anfragen beim schnellen Tippen**  
+✅ **Nur der letzte Aufruf wird ausgeführt**  
+
+---
+
+## **2. Throttling (Begrenztes Ausführen)**
+📌 **Throttling stellt sicher, dass eine Funktion nur in festen Zeitintervallen (`limit`) aufgerufen wird.**  
+- **Gut für Scroll- oder Resize-Events:** Verhindert zu häufige Funktionsaufrufe.  
+- **Reduziert die Anzahl der Funktionsaufrufe auf einen bestimmten Zeitraum.**  
+
+### **Beispiel: Throttling mit `setTimeout()`**
+```javascript
+function throttle(func, limit) {
+  let lastCall = 0;
+  return function (...args) {
+    const now = Date.now();
+    if (now - lastCall >= limit) {
+      lastCall = now;
+      func(...args);
+    }
+  };
+}
+
+// Anwendung: Scroll-Event nur alle 300ms ausführen
+window.addEventListener("scroll", throttle(() => {
+  console.log("Scroll-Event ausgelöst");
+}, 300));
+```
+✅ **Verhindert zu viele Aufrufe bei schnellen Scrollbewegungen**  
+✅ **Stellt sicher, dass die Funktion in regelmäßigen Abständen ausgeführt wird**  
+
+---
+
+## **3. Unterschied zwischen Debouncing & Throttling**
+| Technik | Wann wird die Funktion ausgeführt? | Anwendung |
+|---------|--------------------------------|------------|
+| **Debouncing** | **Nur nach Verzögerung, wenn keine neue Aktion erfolgt** | **Suchfelder, Formularvalidierung** |
+| **Throttling** | **In festen Intervallen, unabhängig von der Aktion** | **Scroll-, Resize-Events, Button-Klicks** |
+
+---
+
+### **Zusammenfassung**
+- **Debouncing:** Führt die Funktion **nur aus, wenn kein neuer Aufruf innerhalb des Intervalls erfolgt**.  
+- **Throttling:** Führt die Funktion **in festen Zeitabständen aus**, unabhängig davon, wie oft das Event ausgelöst wird.  
+
+🔗 [MDN-Dokumentation zu `setTimeout()`](https://developer.mozilla.org/en-US/docs/Web/API/setTimeout)  
+🔗 [MDN-Dokumentation zu `requestAnimationFrame()` (Alternative für Throttling)](https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame)
 
   **[⬆ Наверх](#top)** 
 
-74. ### <a name="74"></a> 
+74. ### <a name="74"></a> IntersectionObserver API
 
+### **`IntersectionObserver` API in JavaScript**  
+
+Die **`IntersectionObserver` API** ermöglicht es, Elemente zu beobachten und zu erkennen, ob sie **sichtbar im Viewport sind**.  
+Das ist nützlich für:
+- **Lazy Loading (Bilder erst laden, wenn sichtbar)**
+- **Unendliches Scrollen (Infinite Scroll)**
+- **Animationen beim Scrollen starten**
+- **SEO-Optimierung (Content erst sichtbar machen, wenn nötig)**
+
+---
+
+## **1. Grundlegendes Beispiel: Ein Element beobachten**
+```javascript
+const element = document.querySelector(".box");
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      console.log("Das Element ist sichtbar!");
+    }
+  });
+}, {
+  root: null, // `null` = gesamter Viewport als Referenz
+  threshold: 0.5 // 50% des Elements müssen sichtbar sein
+});
+
+observer.observe(element);
+```
+✅ **`entry.isIntersecting` ist `true`, wenn das Element sichtbar ist.**  
+✅ **Das `threshold: 0.5` bedeutet, dass **50% des Elements sichtbar sein müssen**, um das Event auszulösen.**  
+
+---
+
+## **2. Lazy Loading mit `IntersectionObserver`**
+📌 **Bilder erst laden, wenn sie in den Viewport kommen**  
+
+```javascript
+const images = document.querySelectorAll("img[data-src]");
+
+const lazyLoad = new IntersectionObserver((entries, observer) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.src = entry.target.dataset.src; // Bildquelle aktualisieren
+      observer.unobserve(entry.target); // Stoppt das Beobachten
+    }
+  });
+});
+
+images.forEach(img => lazyLoad.observe(img));
+```
+✅ **Lädt nur Bilder, wenn sie wirklich sichtbar sind → bessere Performance!**  
+✅ **Bilder werden nach dem Laden nicht weiter beobachtet (`unobserve()`).**  
+
+---
+
+## **3. Animation beim Scrollen starten**
+📌 **Elemente erst animieren, wenn sie sichtbar werden**  
+
+```javascript
+const boxes = document.querySelectorAll(".box");
+
+const animateOnScroll = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add("visible");
+    }
+  });
+}, { threshold: 0.2 });
+
+boxes.forEach(box => animateOnScroll.observe(box));
+```
+📌 **CSS für die Animation:**
+```css
+.box {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.5s, transform 0.5s;
+}
+
+.box.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+```
+✅ **Funktioniert besser als `onscroll`, da es nur aktiviert wird, wenn das Element sichtbar ist!**  
+
+---
+
+## **4. `rootMargin` für Performance-Optimierung**
+📌 **`rootMargin` kann das Beobachtungsfenster erweitern/verkleinern.**  
+- `rootMargin: "0px 0px -50px 0px"` → **Früher auslösen, bevor das Element ganz sichtbar ist.**  
+- `rootMargin: "100px"` → **Lädt Elemente 100px vorher ein.**  
+
+```javascript
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      console.log("Element wurde sichtbar!");
+    }
+  });
+}, {
+  root: null, // Standard: gesamter Viewport
+  threshold: 0.5, // 50% des Elements sichtbar
+  rootMargin: "100px" // Lädt schon 100px vorher
+});
+
+observer.observe(document.querySelector(".box"));
+```
+✅ **Verhindert, dass Elemente zu spät geladen werden**  
+✅ **Besonders nützlich für Lazy Loading & Infinite Scroll**  
+
+---
+
+## **5. Unendliches Scrollen (Infinite Scroll)**
+📌 **Neue Inhalte laden, wenn das Ende erreicht ist**  
+
+```javascript
+const loadMoreTrigger = document.querySelector("#loadMore");
+
+const infiniteScroll = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting) {
+    console.log("Mehr Inhalte laden...");
+    // API-Anfrage oder neue Elemente hinzufügen
+  }
+}, { rootMargin: "100px" });
+
+infiniteScroll.observe(loadMoreTrigger);
+```
+✅ **Verhindert unnötige Anfragen bei jedem Scrollen**  
+✅ **Ersetzt manuelles `scroll`-Event**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Beschreibung |
+|---------|-------------|
+| **`isIntersecting`** | Prüft, ob ein Element im Viewport ist |
+| **`threshold`** | Wert zwischen `0` (sichtbar) und `1` (voll sichtbar) |
+| **`rootMargin`** | Abstand zum Viewport (z. B. `100px`) |
+| **`unobserve()`** | Stoppt das Beobachten eines Elements |
+
+🔗 [MDN-Dokumentation zu `IntersectionObserver`](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
 
   **[⬆ Наверх](#top)** 
 
@@ -7933,8 +8736,149 @@ sharedWorker.port.postMessage("Hallo Worker!");
 
   **[⬆ Наверх](#top)** 
 
-88. ### <a name="88"></a> 
+88. ### <a name="88"></a> Microtasks vs. Macrotasks
 
+### **Microtasks vs. Macrotasks in JavaScript**  
+
+In JavaScript gibt es zwei Arten von asynchronen Aufgaben:  
+- **Microtasks** (höhere Priorität, laufen zuerst)  
+- **Macrotasks** (laufen nach den Microtasks)  
+
+Diese Aufgaben beeinflussen die **Reihenfolge der Ausführung** im **Event Loop**.
+
+---
+
+## **1. Microtasks (`Promise.then`, `queueMicrotask`, `MutationObserver`)**
+📌 **Microtasks haben eine höhere Priorität und werden direkt nach dem aktuellen Callstack ausgeführt.**  
+**Beispiele:**  
+✅ **`Promise.then()`**  
+✅ **`queueMicrotask()`** (direkt auszuführender Microtask)  
+✅ **`MutationObserver`** (Beobachtung von DOM-Änderungen)  
+
+```javascript
+console.log("Start");
+
+Promise.resolve().then(() => console.log("Microtask 1"));
+queueMicrotask(() => console.log("Microtask 2"));
+
+console.log("End");
+```
+**Erwartete Ausgabe:**  
+```
+Start
+End
+Microtask 1
+Microtask 2
+```
+✅ **Microtasks laufen sofort nach `console.log("End")`, weil sie vor Macrotasks priorisiert werden.**  
+
+---
+
+## **2. Macrotasks (`setTimeout`, `setImmediate`, `setInterval`, `requestAnimationFrame`)**
+📌 **Macrotasks werden nach der aktuellen Ausführung & allen Microtasks ausgeführt.**  
+**Beispiele:**  
+✅ **`setTimeout()`**  
+✅ **`setImmediate()`** (Node.js)  
+✅ **`setInterval()`**  
+✅ **`requestAnimationFrame()`** (für Animationen im Browser)  
+
+```javascript
+console.log("Start");
+
+setTimeout(() => console.log("Macrotask 1"), 0);
+setTimeout(() => console.log("Macrotask 2"), 0);
+
+console.log("End");
+```
+**Erwartete Ausgabe:**  
+```
+Start
+End
+Macrotask 1
+Macrotask 2
+```
+✅ **Obwohl `setTimeout(..., 0)` sofort ausgelöst wird, wird es erst nach allen synchronen Aufgaben und Microtasks ausgeführt.**  
+
+---
+
+## **3. Microtasks vs. Macrotasks im Event Loop**
+📌 **Microtasks haben immer Vorrang vor Macrotasks!**  
+
+```javascript
+console.log("Start");
+
+setTimeout(() => console.log("Macrotask"), 0);
+
+Promise.resolve().then(() => console.log("Microtask"));
+
+console.log("End");
+```
+**Erwartete Ausgabe:**  
+```
+Start
+End
+Microtask
+Macrotask
+```
+✅ **Der Microtask (`Promise.then`) wird vor der Macrotask (`setTimeout`) ausgeführt!**  
+
+---
+
+## **4. Reihenfolge in einer Kombination von Microtasks & Macrotasks**
+```javascript
+console.log("Start");
+
+setTimeout(() => console.log("Macrotask 1"), 0);
+
+Promise.resolve().then(() => console.log("Microtask 1"));
+Promise.resolve().then(() => console.log("Microtask 2"));
+
+setTimeout(() => console.log("Macrotask 2"), 0);
+
+console.log("End");
+```
+**Erwartete Ausgabe:**  
+```
+Start
+End
+Microtask 1
+Microtask 2
+Macrotask 1
+Macrotask 2
+```
+✅ **Microtasks (Promises) laufen vor den Macrotasks (setTimeout).**  
+
+---
+
+## **5. `queueMicrotask()` – Ein sicherer Microtask**
+📌 **`queueMicrotask()` ermöglicht das Hinzufügen von Microtasks innerhalb einer Funktion.**  
+
+```javascript
+console.log("Start");
+
+queueMicrotask(() => console.log("Microtask"));
+
+console.log("End");
+```
+**Erwartete Ausgabe:**  
+```
+Start
+End
+Microtask
+```
+✅ **`queueMicrotask()` hat die gleiche Priorität wie `Promise.then()`.**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Microtask (`Promise.then`, `queueMicrotask`) | Macrotask (`setTimeout`, `setInterval`) |
+|---------|--------------------------------|------------------------------|
+| **Priorität** | Höher (läuft vor Macrotasks) | Niedriger (läuft nach Microtasks) |
+| **Beispiele** | `Promise.then()`, `queueMicrotask()` | `setTimeout()`, `setInterval()` |
+| **Wann ausgeführt?** | Direkt nach dem Callstack | Nach allen Microtasks |
+| **Typische Verwendung** | **Datenverarbeitung, kleine Updates** | **Timer, UI-Updates, Netzwerkanfragen** |
+
+🔗 [MDN-Dokumentation zum Event Loop](https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop)
 
   **[⬆ Наверх](#top)** 
 
@@ -8788,8 +9732,182 @@ const unsicher = eval("(" + jsonString + ")"); // ❌ Kann schädlichen Code aus
 
   **[⬆ Наверх](#top)**
 
-97. ### <a name="97"></a> 
+97. ### <a name="97"></a> Design-Patterns in JavaScript (Singleton, Factory, Observer, etc.)
 
+### **Design Patterns in JavaScript**  
+Design-Patterns sind bewährte **Lösungsmuster** für wiederkehrende Probleme in der Softwareentwicklung.  
+Hier sind einige der **wichtigsten Design-Patterns in JavaScript**:
+
+---
+
+## **1. Singleton (Nur eine Instanz)**
+📌 **Stellt sicher, dass eine Klasse nur eine einzige Instanz hat.**  
+📌 **Gut für: Datenbankverbindungen, Konfigurationsobjekte, globale Caches**  
+
+```javascript
+class Singleton {
+  constructor() {
+    if (!Singleton.instance) {
+      Singleton.instance = this;
+    }
+    return Singleton.instance;
+  }
+
+  getData() {
+    return "Ich bin die einzige Instanz!";
+  }
+}
+
+const obj1 = new Singleton();
+const obj2 = new Singleton();
+
+console.log(obj1 === obj2); // ✅ true (beide sind dieselbe Instanz)
+```
+✅ **Verhindert mehrere Instanzen**  
+
+---
+
+## **2. Factory (Objekterstellung nach Typ)**
+📌 **Erzeugt Objekte, ohne direkt den Konstruktor zu verwenden.**  
+📌 **Gut für: Erstellen vieler ähnlicher Objekte mit unterschiedlichen Konfigurationen**  
+
+```javascript
+class Auto {
+  constructor(typ) {
+    this.typ = typ;
+  }
+
+  info() {
+    console.log(`Das ist ein ${this.typ}`);
+  }
+}
+
+class AutoFactory {
+  static createAuto(typ) {
+    return new Auto(typ);
+  }
+}
+
+const bmw = AutoFactory.createAuto("BMW");
+const audi = AutoFactory.createAuto("Audi");
+
+bmw.info(); // ✅ "Das ist ein BMW"
+audi.info(); // ✅ "Das ist ein Audi"
+```
+✅ **Ermöglicht eine flexible Objekterstellung**  
+
+---
+
+## **3. Observer (Event Listener)**
+📌 **Ein Objekt (Subscriber) kann Änderungen eines anderen Objekts (Publisher) beobachten.**  
+📌 **Gut für: Event-Systeme, Redux, Live-Daten-Updates**  
+
+```javascript
+class EventManager {
+  constructor() {
+    this.subscribers = [];
+  }
+
+  subscribe(callback) {
+    this.subscribers.push(callback);
+  }
+
+  notify(data) {
+    this.subscribers.forEach(callback => callback(data));
+  }
+}
+
+const eventManager = new EventManager();
+
+eventManager.subscribe((message) => console.log("Listener 1:", message));
+eventManager.subscribe((message) => console.log("Listener 2:", message));
+
+eventManager.notify("Neues Event!"); 
+// ✅ "Listener 1: Neues Event!"
+// ✅ "Listener 2: Neues Event!"
+```
+✅ **Perfekt für asynchrone Event-Handling-Systeme**  
+
+---
+
+## **4. Module Pattern (Privatsphäre für Variablen)**
+📌 **Schützt Variablen mit Closures und gibt nur notwendige Methoden frei.**  
+📌 **Gut für: Code-Kapselung, Verhindern von globalen Variablen**  
+
+```javascript
+const CounterModule = (function () {
+  let count = 0;
+
+  return {
+    increment: () => ++count,
+    decrement: () => --count,
+    getCount: () => count,
+  };
+})();
+
+console.log(CounterModule.increment()); // ✅ 1
+console.log(CounterModule.increment()); // ✅ 2
+console.log(CounterModule.getCount());  // ✅ 2
+```
+✅ **Variablen (`count`) sind nicht von außen zugänglich**  
+
+---
+
+## **5. Prototype (Objektbasierte Vererbung)**
+📌 **Ermöglicht das Erstellen von Objekten basierend auf einem vorhandenen Objekt.**  
+📌 **Gut für: Speicheroptimierung, Vererbung ohne Klassen**  
+
+```javascript
+const AutoPrototype = {
+  info() {
+    console.log(`Das ist ein ${this.typ}`);
+  }
+};
+
+const bmw = Object.create(AutoPrototype);
+bmw.typ = "BMW";
+bmw.info(); // ✅ "Das ist ein BMW"
+```
+✅ **Spart Speicher durch geteilte Methoden in `Prototype`**  
+
+---
+
+## **6. Decorator (Funktionalität erweitern)**
+📌 **Ermöglicht das Hinzufügen von Verhalten zu Objekten ohne deren Originalcode zu ändern.**  
+📌 **Gut für: Logging, Performance-Tracking, erweiterbare Klassen**  
+
+```javascript
+function logger(func) {
+  return function (...args) {
+    console.log(`Aufruf mit: ${args}`);
+    return func(...args);
+  };
+}
+
+function add(a, b) {
+  return a + b;
+}
+
+const loggedAdd = logger(add);
+
+console.log(loggedAdd(5, 3)); // ✅ "Aufruf mit: 5,3" → 8
+```
+✅ **Erweitert Funktionen, ohne deren Code zu ändern**  
+
+---
+
+### **Zusammenfassung**
+| Pattern | Beschreibung | Anwendung |
+|---------|-------------|-----------|
+| **Singleton** | Stellt sicher, dass es nur eine Instanz gibt | Globale Caches, Datenbankverbindungen |
+| **Factory** | Erstellt Objekte flexibel, ohne `new` | Dynamische Objekterstellung |
+| **Observer** | Beobachtet Änderungen (Events) | Event-Handling, Redux |
+| **Module** | Kapselt Code & verhindert globale Variablen | Sichere API-Module |
+| **Prototype** | Nutzt Prototypen für Vererbung | Speicheroptimierung |
+| **Decorator** | Fügt Funktionen zu Objekten hinzu | Logging, Performance-Tracking |
+
+🔗 [MDN: JavaScript Design Patterns](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Design_Patterns)  
+🔗 [Refactoring Guru: Design Patterns](https://refactoring.guru/design-patterns/javascript)
 
   **[⬆ Наверх](#top)**
 
