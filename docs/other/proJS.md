@@ -37,7 +37,7 @@
 |27 | [Getter und Setter (Objekteigenschaften)](#27) |
 |28 | [Generatorfunktionen](#28) |
 |29 | [Rekursion](#29) |
-|30 | [](#30) |
+|30 | [Memoization](#30) |
 |   | Arbeiten mit Objekten |
 |31 | [Objekte, Destrukturierung von Objekten (ES6)](#31) |
 |32 | [Methoden Object, Object.prototype](#32) |
@@ -3223,8 +3223,100 @@ console.log(summe(10000)); // Kein Stack Overflow in TCO-fähigen Umgebungen
 
   **[⬆ Наверх](#top)**
 
-30. ### <a name="30"></a> 
+30. ### <a name="30"></a> Memoization
 
+### **Memoization in JavaScript**  
+
+📌 **Memoization ist eine Optimierungstechnik**, bei der **Funktionen Zwischenergebnisse speichern**, um wiederholte Berechnungen zu vermeiden.  
+Das verbessert die **Performance**, insbesondere bei **teuren Berechnungen oder rekursiven Funktionen**.
+
+---
+
+## **1. Einfache Memoization mit einem Objekt (`{}`)**  
+📌 **Speichert bereits berechnete Ergebnisse in einem Cache (Objekt).**  
+```javascript
+function memoize(fn) {
+  const cache = {};
+  return function (...args) {
+    const key = JSON.stringify(args);
+    if (cache[key]) {
+      console.log("Cache-Hit:", key);
+      return cache[key]; // Gibt das gespeicherte Ergebnis zurück
+    }
+    console.log("Cache-Miss:", key);
+    const result = fn(...args);
+    cache[key] = result;
+    return result;
+  };
+}
+
+// Beispiel: Teure Berechnung
+function teureBerechnung(x) {
+  console.log("Teure Berechnung für:", x);
+  return x * x;
+}
+
+const memoizedBerechnung = memoize(teureBerechnung);
+
+console.log(memoizedBerechnung(5)); // ✅ Teure Berechnung → 25
+console.log(memoizedBerechnung(5)); // ✅ Cache-Hit → 25 (ohne Berechnung)
+console.log(memoizedBerechnung(10)); // ✅ Teure Berechnung → 100
+```
+✅ **Reduziert wiederholte Berechnungen & spart Rechenzeit**  
+
+---
+
+## **2. Memoization für Rekursion (Fibonacci-Funktion)**
+📌 **Memoization ist besonders nützlich für rekursive Funktionen, wie Fibonacci.**  
+```javascript
+function memoize(fn) {
+  const cache = {};
+  return function (n) {
+    if (n in cache) return cache[n]; // Cache-Hit
+    cache[n] = fn(n);
+    return cache[n];
+  };
+}
+
+const fibonacci = memoize(function (n) {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+});
+
+console.log(fibonacci(10)); // ✅ Schneller als normale Rekursion
+console.log(fibonacci(40)); // ✅ Ohne Memoization extrem langsam!
+```
+✅ **Verringert exponentielle Rekursionszeit → von `O(2^n)` auf `O(n)`**  
+
+---
+
+## **3. Memoization mit `Map()` für besseren Cache**
+📌 **Verwendet `Map()`, um Objekte als Schlüssel zu unterstützen.**  
+```javascript
+function memoize(fn) {
+  const cache = new Map();
+  return function (...args) {
+    const key = args.join(",");
+    if (cache.has(key)) return cache.get(key);
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  };
+}
+```
+✅ **Bessere Performance als `{}` durch `Map()` für komplexe Schlüssel.**  
+
+---
+
+### **Zusammenfassung**
+| Feature | Vorteile |
+|---------|----------|
+| **Memoization** | Speichert Ergebnisse für wiederholte Berechnungen |
+| **Cache mit `{}`** | Einfach, aber nur für Strings als Schlüssel |
+| **Cache mit `Map()`** | Besser für komplexe Schlüssel |
+| **Besonders nützlich für** | Rekursion, teure API-Calls, komplexe Berechnungen |
+
+🔗 [MDN-Dokumentation zu Memoization](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management)
 
   **[⬆ Наверх](#top)**
 
