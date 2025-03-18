@@ -18,119 +18,143 @@
 |9 | [Welche Softwareentwicklungsmethoden gibt es? (Agile, Scrum, Kanban, Waterfall)](#9) |
 |10 | [Was sind Entwurfsmuster in der Softwareentwicklung?](#10) |
 |11 | [Welche Datenstrukturen und Algorithmen sollte ein Webentwickler kennen? (Suchalgorithmen, Sortieralgorithmen, Algorithmische Komplexität)](#11) |
-|12 | [](#12) |
-|13 | [](#13) |
-|14 | [Garbage Collector in JavaScript](#14) |
-|15 | [Unterschied zwischen == und ===](#15) |
-|16 | [Primitive vs. Referenztypen](#16) |
-|17 | [Symbol.iterator und Iterierbare Objekte](#17) |
-|18 | [WeakRef und FinalizationRegistry](#18) |
-|19 | [](#19) |
-|20 | [](#20) |
-|   | Funktionen und ihre Besonderheiten |
-|21 | [Funktionen, Pfeilfunktionen, IIFE](#21) |
-|22 | [Methoden zur Kontextbindung (call, apply, bind)](#22) |
-|23 | [Closures (Abschlüsse)](#23) |
-|24 | [Callback-Funktionen](#24) |
-|25 | [Konstruktor-Funktionen](#25) |
-|26 | [Aufrufkontext (this)](#26) |
-|27 | [Getter und Setter (Objekteigenschaften)](#27) |
-|28 | [Generatorfunktionen](#28) |
-|29 | [Rekursion](#29) |
-|30 | [Memoization](#30) |
-|   | Arbeiten mit Objekten |
-|31 | [Objekte, Destrukturierung von Objekten (ES6)](#31) |
-|32 | [Methoden Object, Object.prototype](#32) |
-|33 | [Möglichkeiten zur Objekterstellung](#33) |
-|34 | [Kopieren von Objekten](#34) |
-|35 | [Property Descriptors (Eigenschaftsbeschreibungen)](#35) |
-|36 | [Private und geschützte Eigenschaften von Objekten](#36) |
-|37 | [Prototypen, Prototypen-Kette](#37) |
-|38 | [Object.create()](#38) |
-|39 | [Unterschied zwischen klassischer und prototypischer Vererbung](#39) |
+|12 | [Was sind Unit-Tests und welche Frameworks gibt es?](#12) |
+|13 | [Wie kann man eine Performance-Analyse mit Google Lighthouse durchführen?](#13) |
+|14 | [Was sind die Grundmodelle des Software Development Life Cycle (SDLC)?](#14) |
+|15 | [Wie funktioniert die Aufwandsschätzung mit einer Work Breakdown Structure (WBS)?](#15) |
+|16 | [Was ist reaktive Programmierung? Konzepte: Stream, Observable, Subscription](#16) |
+|17 | [Welche Build-Tools gibt es? (Gulp, Grunt, Webpack, Bazel)](#17) |
+|18 | [Wie werden Passwörter sicher gespeichert? Unterschiede zwischen Hash und HMAC](#18) |
+|19 | [Welche Sicherheitsangriffe gibt es? (CSRF, XSS, semantische URLs, Input-Sanitization)](#19) |
+|20 | [Was sind die Best Practices für Code-Refactoring?](#20) |
+|21 | [Welche Arten von Softwaretests gibt es? (Unit-, Integrations-, Funktionstests)](#21) |
+|22 | [Was sind die Prinzipien der objektorientierten Programmierung (OOP)?](#22) |
+|23 | [Wie wird OOP in JavaScript umgesetzt?](#23) |
+|24 | [Was sind Continuous Delivery, Continuous Deployment & Continuous Integration (CI/CD)?](#24) |
+|25 | [Welche Methoden und Tools gibt es für Code Debugging?](#25) |
+|26 | [Welche Projektmanagement-Tools werden in der Softwareentwicklung genutzt? (Jira, Redmine, TFS)](#26) |
+|27 | [Wie funktioniert die Datenpersistenz im Browser? (Cookies, LocalStorage, SessionStorage, IndexedDB))](#27) |
+|28 | [Was ist der kritische Rendering-Pfad und wie kann man ihn optimieren?](#28) |
+|29 | [Welche Caching-Mechanismen gibt es und wie funktionieren sie?](#29) |
+|30 | [](#30) |
+|31 | [](#31) |
+|32 | [](#32) |
+|33 | [](#33) |
+|34 | [](#34) |
+|35 | [](#35) |
+|36 | [](#36) |
+|37 | [](#37) |
+|38 | [](#38) |
+|39 | [](#39) |
 |40 | [](#40) |
-|   | Arrays und Sammlungen |
-|41 | [Arrays und Pseudo-Arrays, Array-Destrukturierung](#41) |
-|42 | [Methoden Array, Array.prototype](#42) |
-|43 | [Kopieren von Arrays](#43) |
-|44 | [Map, Set, WeakSet, WeakMap](#44) |
-|45 | [Live Collections (lebendige Sammlungen)](#45) |
-|46 | [](#46) |
-|47 | [](#47) |
-|48 | [](#48) |
-|49 | [](#49) |
-|50 | [](#50) |
-|   | Moderne JavaScript-Funktionen |
-|51 | [Spread-Operator (ES6-ES9)](#51) |
-|52 | [Rest-Operator und Standardparameter (ES6)](#52) |
-|53 | [Symbol](#53) |
-|54 | [BigInt](#54) |
-|55 | [Module import/export (ES6) & CommonJS](#55) |
-|56 | [Proxy und Reflect](#56) |
+|   | HTML |
+|41 | [Wie ist die Grundstruktur eines HTML-Dokuments aufgebaut?](#41) |
+|42 | [Was ist der Unterschied zwischen Block- und Inline-Elementen?](#42) |
+|43 | [Welche Bedeutung hat <!DOCTYPE html>?](#43) |
+|44 | [Welche Herausforderungen gibt es bei der Entwicklung mehrsprachiger Webseiten?](#44) |
+|45 | [Was sind data--Attribute in HTML und wofür werden sie genutzt?](#45) |
+|46 | [Welche Kerntechnologien gehören zu HTML5 als offene Webplattform?](#46) |
+|47 | [Was sind die Unterschiede zwischen Cookies, sessionStorage und localStorage?](#47) |
+|48 | [Wie unterscheiden sich <script>, <script async> und <script defer>?](#48) |
+|49 | [Warum sollte CSS im <head> platziert und JavaScript am Ende des <body>-Tags eingebunden werden? Gibt es Ausnahmen?](#49) |
+|50 | [Was ist Progressive Rendering?](#50) |
+|51 | [Wie funktioniert das srcset-Attribut in <img>-Tags für Responsive Images?](#51) |
+|52 | [Welche semantischen HTML-Tags gibt es und warum sind sie wichtig?](#52) |
+|53 | [Wann sollte <article> statt <section> verwendet werden?](#53) |
+|54 | [Dürfen <p>-Tags ineinander verschachtelt werden? Ist <div> in <p> erlaubt?](#54) |
+|55 | [Was ist der Unterschied zwischen id und class in HTML?](#55) |
+|56 | [](#56) |
 |57 | [](#57) |
 |58 | [](#58) |
 |59 | [](#59) |
 |60 | [](#60) |
-|   | Ereignisse und DOM-Manipulation |
-|61 | [Ereignisse und ihre Handler](#61) |
-|62 | [Ereignis-Bubbling (event bubbling)](#62) |
-|63 | [Ereignis-Delegation](#63) |
-|64 | [Unterschied zwischen load und DOMContentLoaded](#64) |
-|65 | [Elemente von der Seite abrufen](#65) |
-|66 | [Methoden zum Abrufen von DOM-Elementen in JavaScript](#66) |
-|67 | [Navigation durch DOM-Elemente](#67) |
-|68 | [classList, className und Ereignisdelegation](#68) |
-|69 | [Manipulation von Seitenelementen](#69) |
-|70 | [Dokument- und Fensterparameter sowie deren Nutzung](#70) |
-|71 | [Web Animations API](#71) |
-|72 | [requestAnimationFrame](#72) |
-|73 | [Debouncing und Throttling](#73) |
-|74 | [IntersectionObserver API](#74) |
-|75 | [Unterschied zwischen innerHTML, textContent und innerText](#75) |
-|   | Asynchronität und Serverkommunikation |
-|76 | [setTimeout und setInterval, Besonderheiten](#76) |
-|77 | [AJAX und XMLHttpRequest](#77) |
-|78 | [Promise (ES6)](#78) |
-|79 | [Fetch API](#79) |
-|80 | [Async/Await (ES8)](#80) |
-|81 | [try...catch, throw-Anweisung](#81) |
-|82 | [Axios-Bibliothek](#82) |
-|83 | [Event Loop, synchrone und asynchrone Operationen](#83) |
-|84 | [Möglichkeiten zum Senden von Serveranfragen](#84) |
-|85 | [Long Polling (Langes Abfragen)](#85) |
-|86 | [Web Socket](#86) |
-|87 | [Was sind Web Workers und wofür braucht man sie?](#87) |
-|88 | [Microtasks vs. Macrotasks](#88) |
-|89 | [](#89) |
-|90 | [](#90) |
-|   | Fortgeschrittene Themen |
-|91 | [Klassen (ES6)](#91) |
-|92 | [Klassenvererbung, private und geschützte Eigenschaften](#92) |
-|93 | [Kapselung (Encapsulation)](#93) |
-|94 | [Was ist funktionale Programmierung? Grundlagen (First-Class-Funktionen, Higher-Order-Funktionen, Pure Functions, Immutability, Lazy Evaluation usw.)](#94) |
-|95 | [Reguläre Ausdrücke (RegExp)](#95) |
-|96 | [JSON](#96) |
-|97 | [Design-Patterns in JavaScript (Singleton, Factory, Observer, etc.)](#97) |
-|98 | [](#98) |
-|99 | [](#99) |
-|100 | [](#100) |
-|   | Praktische Aufgaben |
-|101 | [Erstellen von Tabs in einem Projekt](#101) |
-|102 | [Countdown-Timer](#102) |
-|103 | [Modales Fenster](#103) |
-|104 | [Slider](#104) |
-|105 | [Rechner](#105) |
-|106 | [](#106) |
-|107 | [](#107) |
-|108 | [](#108) |
-|109 | [](#109) |
-|110 | [](#110) |
+|61 | [](#61) |
+|62 | [](#62) |
+|63 | [](#63) |
+|64 | [](#64) |
+|65 | [](#65) |
+|66 | [](#66) |
+|67 | [](#67) |
+|68 | [](#68) |
+|69 | [](#69) |
+|70 | [](#70) |
+|71 | [](#71) |
+|72 | [](#72) |
+|73 | [](#73) |
+|74 | [](#74) |
+|75 | [](#75) |
+|   | CSS |
+|76 | [Welche Möglichkeiten gibt es, CSS in eine Webseite einzubinden?](#76) |
+|77 | [Was sind die Vorteile und Anwendungen von CSS-Modulen?](#77) |
+|78 | [Was sind CSS-Selektoren und wie funktioniert die Spezifität?](#78) |
+|79 | [Welche Positionierungsarten gibt es in CSS? (static, relative, absolute, fixed, sticky)](#79) |
+|80 | [Was sind die Unterschiede zwischen margin und padding?](#80) |
+|81 | [Wie kann man Schriftarten in CSS einbinden?](#81) |
+|82 | [Welche Methoden gibt es, um Elemente auszublenden? (display: none, visibility: hidden, opacity, etc.)](#82) |
+|83 | [Wie funktioniert der z-index und wann wird er verwendet?](#83) |
+|84 | [Was sind data--Attribute und wie werden sie genutzt?](#84) |
+|85 | [Was sind die Unterschiede zwischen float, flexbox und grid?](#85) |
+|86 | [Was sind die Grundlagen von Flexbox? (Achsen, flex-grow, flex-shrink, flex-basis)](#86) |
+|87 | [Was sind die Unterschiede zwischen display: flex und display: grid?](#87) |
+|88 | [Können Flexbox und Grid zusammen verwendet werden?](#88) |
+|89 | [Wie bestimmen Browser, welche Elemente CSS-Regeln erhalten?](#89) |
+|90 | [Was sind CSS-Pseudoelemente und wie werden sie verwendet?](#90) |
+|91 | [Was macht * { box-sizing: border-box; } und warum ist es nützlich?](#91) |
+|92 | [Was sind die Unterschiede zwischen Inline-, Block- und Inline-Block-Elementen in CSS?](#92) |
+|93 | [Was sind die wichtigsten Prinzipien von Responsive Design und Mobile-First-Ansätzen?](#93) |
+|94 | [Welche display-Eigenschaften gibt es und was sind ihre Anwendungsfälle?](#94) |
+|95 | [Wie funktionieren Keyframe-Animationen in CSS (@keyframes)?](#95) |
+|96 | [Wie lassen sich CSS-Dateien optimieren, um die Ladegeschwindigkeit zu verbessern?](#96) |
+|97 | [Was sind CSS-Sprites und wofür werden sie verwendet?](#97) |
+|98 | [Wie funktioniert Lazy Loading für CSS?](#98) |
+|99 | [Welche Methoden gibt es, um CSS für verschiedene Medien anzupassen?](#99) |
+|100 | [Welche Sicherheitsrisiken gibt es bei CSS und wie kann man sie vermeiden?](#100) |
+|101 | [Was ist prefers-reduced-motion und wofür wird es genutzt?](#101) |
+|102 | [Wie funktionieren ::before und ::after in CSS?](#102) |
+|103 | [Wie definiert man Fallbacks für ältere Browser?](#103) |
+|104 | [Wie kann CSS zur Verbesserung der Barrierefreiheit beitragen?](#104) |
+|105 | [Was sind Best Practices für eine saubere CSS-Architektur?](#105) |
+|106 | [Wie funktioniert die aspect-ratio-Eigenschaft?](#106) |
+|107 | [Was sind Utility-Klassen in CSS und wann sollten sie verwendet werden?](#107) |
+|108 | [Welche Tools helfen bei der Analyse und Optimierung von CSS?](#108) |
+|109 | [Wie können CSS-Dateien modularisiert werden?](#109) |
+|110 | [Was ist der Unterschied zwischen @import und link für CSS?](#110) |
+|111 | [Wie kann man CSS-Transitions mit JavaScript steuern?](#111) |
+|112 | [Was bewirkt scroll-behavior: smooth in CSS?](#112) |
+|113 | [Welche modernen CSS-Techniken sollte man heute kennen?](#113) |
+|114 | [Wie funktioniert die line-clamp-Eigenschaft?](#114) |
+|115 | [Was sind Container Queries und warum sind sie wichtig?](#115) |
+|116 | [](#116) |
+|117 | [](#117) |
+|118 | [](#118) |
+|119 | [](#119) |
+|120 | [](#120) |
+|121 | [](#121) |
+|122 | [](#122) |
+|123 | [](#123) |
+|124 | [](#124) |
+|125 | [](#125) |
+|126 | [](#126) |
+|127 | [](#127) |
+|128 | [](#128) |
+|129 | [](#129) |
+|130 | [](#130) |
+|131 | [](#131) |
+|132 | [](#132) |
+|133 | [](#133) |
+|134 | [](#134) |
+|135 | [](#135) |
+|136 | [](#136) |
+|137 | [](#137) |
+|138 | [](#138) |
+|139 | [](#139) |
+|140 | [](#140) |
 
 
 
 <a name="questions"></a>
 
-## Base Grundlagen, HTML, CSS
+## Base Grundlagen
 
   **[⬆ Наверх](#top)**
   
