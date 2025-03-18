@@ -86,7 +86,7 @@
 |72 | [requestAnimationFrame](#72) |
 |73 | [Debouncing und Throttling](#73) |
 |74 | [IntersectionObserver API](#74) |
-|75 | [](#75) |
+|75 | [Unterschied zwischen innerHTML, textContent und innerText](#75) |
 |   | Asynchronität und Serverkommunikation |
 |76 | [setTimeout und setInterval, Besonderheiten](#76) |
 |77 | [AJAX und XMLHttpRequest](#77) |
@@ -7327,8 +7327,60 @@ infiniteScroll.observe(loadMoreTrigger);
 
   **[⬆ Наверх](#top)** 
 
-75. ### <a name="75"></a> 
+75. ### <a name="75"></a> Unterschied zwischen innerHTML, textContent und innerText
 
+### **Unterschied zwischen `innerHTML`, `textContent` und `innerText` in JavaScript**  
+
+📌 **Diese drei Methoden werden verwendet, um den Inhalt eines HTML-Elements zu lesen oder zu ändern, haben aber unterschiedliche Eigenschaften.**
+
+---
+
+## **1. `innerHTML` – HTML als String interpretieren**  
+📌 **Liest oder setzt den kompletten HTML-Inhalt eines Elements, einschließlich HTML-Tags.**  
+```javascript
+const div = document.getElementById("test");
+div.innerHTML = "<strong>Fett</strong> und <em>Kursiv</em>";
+console.log(div.innerHTML); // ✅ "<strong>Fett</strong> und <em>Kursiv</em>"
+```
+✅ **Kann HTML interpretieren (z. B. `<strong>` bleibt erhalten)**  
+❌ **Kann ein Sicherheitsrisiko sein (`XSS-Angriffe` durch `innerHTML = userInput`)**  
+
+---
+
+## **2. `textContent` – Reiner Text, ignoriert HTML**  
+📌 **Setzt oder liest den reinen Text, ohne HTML zu interpretieren.**  
+```javascript
+const div = document.getElementById("test");
+div.textContent = "<strong>Fett</strong> und <em>Kursiv</em>";
+console.log(div.textContent); // ✅ "<strong>Fett</strong> und <em>Kursiv</em>"
+```
+✅ **Sicher vor XSS-Angriffen (keine HTML-Verarbeitung)**  
+✅ **Nimmt auch versteckten Text (`display: none`) mit**  
+
+---
+
+## **3. `innerText` – Sichtbarer Text (beachtet CSS)**  
+📌 **Liest oder setzt nur den sichtbaren Text (CSS-`display: none` wird ignoriert).**  
+```javascript
+const div = document.getElementById("test");
+div.innerText = "<strong>Fett</strong> und <em>Kursiv</em>";
+console.log(div.innerText); // ✅ "<strong>Fett</strong> und <em>Kursiv</em>"
+```
+✅ **Beachtet CSS (`display: none`-Texte werden ignoriert)**  
+✅ **Performance kann schlechter sein, da CSS beachtet wird**  
+
+---
+
+### **Unterschiede zusammengefasst**
+| Methode | HTML wird interpretiert? | `display: none`-Text sichtbar? | Sicher gegen XSS? |
+|---------|------------------|----------------------|----------------|
+| **`innerHTML`** | ✅ Ja | ✅ Ja | ❌ Nein |
+| **`textContent`** | ❌ Nein | ✅ Ja | ✅ Ja |
+| **`innerText`** | ❌ Nein | ❌ Nein | ✅ Ja |
+
+🔗 [MDN-Dokumentation zu `innerHTML`](https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML)  
+🔗 [MDN-Dokumentation zu `textContent`](https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent)  
+🔗 [MDN-Dokumentation zu `innerText`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/innerText)
 
   **[⬆ Наверх](#top)** 
 
