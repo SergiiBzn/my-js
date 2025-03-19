@@ -6167,8 +6167,55 @@ document.querySelectorAll(".box").forEach(box => {
 
   **[⬆ Наверх](#top)**
 
-60. ### <a name="60"></a> 
+60. ### <a name="60"></a> HTML – Grundlagen und Best Practices
 
+### **Fragen zu HTML**
+
+21. **HTML**  
+   - Strukturierung einer Webseite mit Tags wie `<header>`, `<section>`, `<footer>`.  
+
+22. **HTML4 vs. HTML5**  
+   - HTML5 unterstützt semantische Tags, native Video-/Audio-Elemente und bessere Formular-Features.  
+
+23. **Neue semantische Elemente in HTML5**  
+   - `<article>`, `<section>`, `<aside>`, `<nav>`, `<header>`, `<footer>`.  
+
+24. **Strukturierungselemente**  
+   - `<div>` für Layout-Blöcke, `<section>` für thematische Abschnitte.  
+
+25. **<div> vs. <span>**  
+   - `<div>` ist ein Block-Element, `<span>` ein Inline-Element.  
+
+26. **Meta-Tags**  
+   - Definieren Metadaten, z. B. `<meta name="description" content="Beschreibung">`.  
+
+27. **alt-Attribut**  
+   - Alternative Bildbeschreibung für Screenreader und SEO.  
+
+28. **<form>-Element**  
+   - Erstellt Eingabeformulare für Benutzer.  
+   ```html
+   <form>
+     <input type="text" name="name" placeholder="Ihr Name">
+   </form>
+   ```
+
+29. **Input-Typen**  
+   - `text`, `email`, `password`, `checkbox`, `radio`, `number`, `date`.  
+
+30. **placeholder-Attribut**  
+   - Zeigt Platzhaltertext in Eingabefeldern.  
+
+31. **Relative vs. absolute Links**  
+   - Relativ: `href="seite.html"`, Absolut: `href="https://example.com"`.  
+
+32. **Tabelle in HTML**  
+   ```html
+   <table>
+     <tr><th>Name</th><th>Alter</th></tr>
+     <tr><td>Max</td><td>25</td></tr>
+   </table>
+   ```
 
   **[⬆ Наверх](#top)**
 
@@ -9756,8 +9803,282 @@ import styles from './styles.module.css';
 
   **[⬆ Наверх](#top)**
 
-110. ### <a name="110"></a> 
+110. ### <a name="110"></a> CSS – Grundlagen und Best Practices
 
+### **Fragen zu CSS**
+
+41. **CSS**  
+   - Styles für Webseiten, definiert Farben, Abstände, Positionierung.  
+
+42. **Inline, Intern, Extern**  
+   ```html
+   <style>p { color: red; }</style> <!-- Intern -->
+   <link rel="stylesheet" href="style.css"> <!-- Extern -->
+   <p style="color: blue;">Inline</p> <!-- Inline -->
+   ```
+
+43. **CSS-Selektoren**  
+   - `#id`, `.class`, `element`, `[attribute]`.  
+
+44. **Pseudoklasse**  
+   - Definiert Zustände (`:hover`, `:focus`).  
+
+45. **nth-child() vs. nth-of-type()**  
+   - `nth-child()` zählt alle Elemente, `nth-of-type()` nur bestimmte.  
+
+46. **Pseudoelemente**  
+   - `::before`, `::after` fügen Inhalte hinzu.  
+
+47. **Box-Modell**  
+   - `margin`, `border`, `padding`, `content`.  
+
+48. **z-index**  
+   - Bestimmt die Stapelreihenfolge von Elementen.  
+
+49. **position**  
+   - `relative`, `absolute`, `fixed`, `sticky`.  
+
+50. **Flexbox**  
+   ```css
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   ```
+
+51. **Grid-Modell**  
+   ```css
+   display: grid;
+   grid-template-columns: 1fr 2fr;
+   ```
+
+52. **grid-template-areas vs. grid-template-columns**  
+   - `grid-template-areas` gibt Namen für Bereiche, `grid-template-columns` definiert Spalten.  
+
+53. **Einheiten**  
+   - `px`, `em`, `rem`, `%`, `vh`, `vw`.  
+
+54. **Media Queries**  
+   ```css
+   @media (max-width: 600px) {
+     body { background: lightgray; }
+   }
+   ```
+
+55. **CSS-Variablen**  
+   ```css
+   :root { --main-color: blue; }
+   p { color: var(--main-color); }
+   ```
+
+56. **visibility: hidden vs. display: none**  
+   - `hidden` versteckt das Element, `none` entfernt es aus dem Layout.  
+
+57. **CSS-Animation**  
+   ```css
+   @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+   ```
+
+58. **CSS-Transitions**  
+   - Erlauben weiche Übergänge (`transition: all 0.3s ease;`).  
+
+61. **inline-block vs. block**  
+   - `inline-block` verhält sich wie `inline`, kann aber Breite und Höhe annehmen. `block` nimmt die gesamte verfügbare Breite ein.  
+
+62. **Vermeidung von !important**  
+   - Durch gezielte Spezifität, Vermeidung von zu vielen verschachtelten Selektoren und Verwendung von Variablen.  
+
+63. **Navigation mit reinem CSS**  
+   ```css
+   nav ul {
+     display: flex;
+     list-style: none;
+   }
+   nav li:hover {
+     background-color: lightgray;
+   }
+   ```
+
+64. **min-width, max-width, width**  
+   - `min-width`: minimale Breite, `max-width`: maximale Breite, `width`: feste Breite.  
+
+65. **object-fit bei Bildern**  
+   ```css
+   img {
+     width: 100%;
+     height: 200px;
+     object-fit: cover; /* Schneidet das Bild passend zu */
+   }
+   ```
+
+66. **overflow: auto, hidden, scroll**  
+   - `auto`: Scrollbalken nur wenn nötig, `hidden`: Inhalt wird abgeschnitten, `scroll`: Scrollbalken immer sichtbar.  
+
+67. **CSS-Shapes**  
+   - Ermöglichen nicht-rechteckige Layouts (`shape-outside`).  
+   ```css
+   img {
+     float: left;
+     shape-outside: circle();
+   }
+   ```
+
+68. **clip-path in CSS**  
+   - Schneidet Elemente in bestimmte Formen.  
+   ```css
+   div {
+     clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+   }
+   ```
+
+69. **Sticky-Scrolling**  
+   - `position: sticky;` hält ein Element an einer bestimmten Position, wenn gescrollt wird.  
+
+70. **CSS Blend Modes**  
+   - `mix-blend-mode` und `background-blend-mode` verändern, wie Farben übereinandergelegt werden.  
+
+71. **CSS-Dateien minimieren**  
+   - Verwendung von `cssnano`, `Gzip` oder `purgeCSS` zur Reduzierung der Dateigröße.  
+
+72. **SCSS vs. CSS**  
+   - SCSS bietet Variablen, Mixins und Nesting, CSS ist die Basis-Sprache.  
+
+73. **backdrop-filter**  
+   - Fügt Weichzeichner- oder Farbfilter auf den Hintergrund hinzu.  
+   ```css
+   div {
+     backdrop-filter: blur(5px);
+   }
+   ```
+
+74. **contain in CSS**  
+   - Optimiert das Rendering von Elementen (`contain: layout;`).  
+
+75. **Dark Mode-Design**  
+   ```css
+   @media (prefers-color-scheme: dark) {
+     body { background: black; color: white; }
+   }
+   ```
+
+76. **will-change in CSS**  
+   - Gibt dem Browser einen Hinweis, welche Eigenschaften sich ändern werden, um Performance zu verbessern.  
+
+77. **Best Practices für Responsive Webdesign**  
+   - Flexibles Layout mit `rem`, `em`, `vw/vh`, Media Queries, Mobile-First-Ansatz.  
+
+78. **Schriftart in CSS einbinden**  
+   ```css
+   @font-face {
+     font-family: 'MeineSchrift';
+     src: url('schrift.woff2') format('woff2');
+   }
+   body { font-family: 'MeineSchrift', sans-serif; }
+   ```
+
+79. **CSS-Techniken für Animationen**  
+   - `@keyframes`, `transition`, `transform`, `animation`.  
+
+80. **rem vs. vh/vw**  
+   - `rem` basiert auf `html`, `vh/vw` auf der Viewport-Größe.
+
+### **Allgemeine Best Practices & Performance**
+
+81. **Ladezeit-Optimierung von CSS**  
+   - Minifizierung, Entfernen ungenutzter Stile, Asynchrones Laden (`media="print"`).  
+
+82. **CSS-Sprites**  
+   - Mehrere Bilder in einer Datei kombinieren und per `background-position` anzeigen.  
+   ```css
+   .icon {
+     background: url(sprite.png) no-repeat;
+     background-position: -50px -50px;
+   }
+   ```
+
+83. **Lazy Loading für CSS**  
+   - Verzögertes Laden über `media="print"` und anschließendes Aktivieren per JavaScript.  
+
+84. **CSS für verschiedene Medien anpassen**  
+   ```css
+   @media print {
+     body { background: white; color: black; }
+   }
+   ```
+
+85. **Sicherheitsrisiken in CSS**  
+   - `CSS Injection`, `@import` aus unsicheren Quellen vermeiden.  
+
+86. **prefers-reduced-motion in CSS**  
+   - Deaktiviert Animationen für Nutzer mit Bewegungseinschränkungen.  
+   ```css
+   @media (prefers-reduced-motion: reduce) {
+     * { animation: none; transition: none; }
+   }
+   ```
+
+87. **::before vs. ::after**  
+   - `::before` fügt Inhalte vor einem Element hinzu, `::after` danach.  
+
+88. **Fallback für ältere Browser**  
+   - Moderne Features mit `@supports` prüfen oder alternative Stile setzen.  
+
+89. **CSS für Barrierefreiheit**  
+   - Hoher Kontrast, Fokus-Stile (`outline`), `aria-*` Attribute.  
+
+90. **Best Practices für CSS-Architektur**  
+   - BEM-Methodik, Modularisierung, Utility-Klassen.  
+
+91. **aspect-ratio in CSS**  
+   - Definiert das Seitenverhältnis eines Elements.  
+   ```css
+   div {
+     aspect-ratio: 16 / 9;
+   }
+   ```
+
+92. **Utility-Klassen in CSS**  
+   - Kleine, wiederverwendbare Klassen (`.text-center`, `.mt-4`).  
+
+93. **Tools zur Optimierung von CSS**  
+   - PurgeCSS, PostCSS, Lighthouse, WebPageTest.  
+
+94. **CSS-Dateien modularisieren**  
+   - Mit SCSS-`@import` oder Webpack CSS-Module verwenden.  
+
+95. **@import vs. <link> für CSS**  
+   - `@import` verlangsamt das Laden, `<link>` ist performanter.  
+
+96. **CSS-Transitions mit JavaScript steuern**  
+   ```js
+   element.style.transition = "opacity 0.5s";
+   element.style.opacity = "1";
+   ```
+
+97. **scroll-behavior: smooth**  
+   ```css
+   html { scroll-behavior: smooth; }
+   ```
+
+98. **Moderne CSS-Techniken**  
+   - Flexbox, Grid, Container Queries, `clamp()`, `aspect-ratio`, `subgrid`.  
+
+99. **line-clamp in CSS**  
+   ```css
+   p {
+     display: -webkit-box;
+     -webkit-line-clamp: 3;
+     -webkit-box-orient: vertical;
+     overflow: hidden;
+   }
+   ```
+
+100. **Container Queries**  
+   - Anpassung des Layouts basierend auf der Größe eines Containers statt des Viewports.  
+   ```css
+   @container (min-width: 500px) {
+     div { font-size: 2rem; }
+   }
+   ```
 
   **[⬆ Наверх](#top)**
 
