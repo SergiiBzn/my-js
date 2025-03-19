@@ -6175,77 +6175,1616 @@ document.querySelectorAll(".box").forEach(box => {
 
   **[⬆ Наверх](#top)**
 
-76. ### <a name="76"></a> 
+76. ### <a name="76"></a> Welche Möglichkeiten gibt es, CSS in eine Webseite einzubinden?
 
+### **Möglichkeiten, CSS in eine Webseite einzubinden** 🎨  
+
+📌 **CSS kann auf verschiedene Arten in eine Webseite integriert werden, je nach Anwendungsfall.**  
+✅ **Ziel:** **Optimale Performance, Wartbarkeit & Struktur der Webseite.**  
+
+---
+
+## **1. Externe CSS-Datei (`<link>`)**  
+📌 **Trennung von HTML & Styling für bessere Wartbarkeit & Performance.**  
+✅ **Beste Wahl für größere Webseiten & Wiederverwendbarkeit.**  
+
+🔹 **Beispiel: Externes CSS in `<head>` einbinden**
+```html
+<head>
+  <link rel="stylesheet" href="styles.css">
+</head>
+```
+🔹 **Beispiel: `styles.css` (externe Datei)**
+```css
+body {
+  background-color: lightgray;
+  font-family: Arial, sans-serif;
+}
+```
+✅ **Vorteile:**  
+✔ Bessere Performance (Browser-Caching)  
+✔ Verbesserte Wartbarkeit (Trennung von Struktur & Design)  
+✔ Wiederverwendbar für mehrere Seiten  
+
+❌ **Nachteile:**  
+- Zusätzliche HTTP-Requests für das Laden der CSS-Datei  
+
+---
+
+## **2. Internes CSS (`<style>` im `<head>`)**  
+📌 **CSS direkt im HTML-Dokument für einzelne Seiten.**  
+✅ **Geeignet für kleine Projekte oder spezifische Styles.**  
+
+🔹 **Beispiel: Internes CSS**
+```html
+<head>
+  <style>
+    body {
+      background-color: lightblue;
+      font-family: Verdana, sans-serif;
+    }
+  </style>
+</head>
+```
+✅ **Vorteile:**  
+✔ Kein zusätzliches Laden externer Dateien  
+✔ Nützlich für spezifische Styles, z. B. Landing Pages  
+
+❌ **Nachteile:**  
+- Schwer wartbar, wenn Styles wachsen  
+- Kein Wiederverwenden der Styles auf mehreren Seiten  
+
+---
+
+## **3. Inline-CSS (`style`-Attribut im HTML-Element)**  
+📌 **Direktes Styling einzelner Elemente.**  
+✅ **Geeignet für dynamische Anpassungen per JavaScript.**  
+
+🔹 **Beispiel: Inline-CSS**
+```html
+<p style="color: red; font-size: 18px;">Dieser Text ist rot.</p>
+```
+✅ **Vorteile:**  
+✔ Schnell für spezifische Anpassungen  
+✔ Gut für dynamische Änderungen mit JavaScript  
+
+❌ **Nachteile:**  
+- Schwer wartbar bei vielen Inline-Styles  
+- Kein Caching oder Wiederverwendung  
+- Trennung von Struktur & Design wird verletzt  
+
+---
+
+## **4. CSS per JavaScript (`element.style`)**  
+📌 **CSS dynamisch über JavaScript ändern.**  
+✅ **Gut für interaktive Webseiten & Benutzeranpassungen.**  
+
+🔹 **Beispiel: JavaScript setzt CSS-Eigenschaft**
+```html
+<button onclick="document.body.style.backgroundColor = 'yellow'">Hintergrund ändern</button>
+```
+🔹 **Beispiel: CSS-Klasse über JavaScript ändern**
+```javascript
+document.querySelector("p").classList.add("highlight");
+```
+✅ **Vorteile:**  
+✔ Dynamische Anpassungen je nach Benutzerinteraktion  
+✔ Erlaubt Theme-Switching & Animationen  
+
+❌ **Nachteile:**  
+- Nicht so performant wie reines CSS  
+- Kann zu unübersichtlichem Code führen  
+
+---
+
+## **5. CSS mit `@import` in einer CSS-Datei**  
+📌 **Importiert eine andere CSS-Datei in eine bestehende CSS-Datei.**  
+✅ **Gut für modulare CSS-Strukturen.**  
+
+🔹 **Beispiel: `@import` in `styles.css`**
+```css
+@import url("theme.css");
+
+body {
+  font-family: sans-serif;
+}
+```
+✅ **Vorteile:**  
+✔ Ermöglicht modulare CSS-Architekturen  
+✔ Gut für große Projekte mit vielen Styles  
+
+❌ **Nachteile:**  
+- `@import`-Regeln verlangsamen das Laden der Seite  
+- Nicht so effizient wie `<link>`  
+
+---
+
+## **6. Fazit: Wann welche Methode nutzen?**
+| Methode | Wann verwenden? | Vorteile | Nachteile |
+|---------|----------------|----------|-----------|
+| **Externe CSS-Datei (`<link>`)** | Große Projekte, Wiederverwendbarkeit | Caching, bessere Wartbarkeit | Zusätzliche HTTP-Requests |
+| **Internes CSS (`<style>`)** | Einzelne Seiten, kleine Projekte | Kein zusätzlicher HTTP-Request | Schwer skalierbar |
+| **Inline-CSS (`style`-Attribut)** | Einzelne Elemente, schnelle Anpassungen | Einfach, schnell | Schwer wartbar, kein Caching |
+| **JavaScript (`element.style`)** | Dynamische Styles, interaktive Elemente | Flexible Anpassungen | Weniger performant |
+| **CSS `@import`** | Modulare CSS-Dateien | Strukturierte Trennung | Langsamer als `<link>` |
+
+✅ **Empfohlene Strategie:**  
+- **Externe CSS-Dateien (`<link>`) für sauberes & performantes Styling nutzen.**  
+- **Internes CSS nur für einzelne Seiten, nicht für große Projekte.**  
+- **Inline-CSS nur für dynamische Anpassungen per JavaScript.**  
+- **`@import` vermeiden, wenn `<link>` möglich ist.**  
+
+🔗 [MDN: CSS-Einbindungsmethoden](https://developer.mozilla.org/en-US/docs/Learn/CSS/First_steps/How_CSS_is_structured) 🚀
 
   **[⬆ Наверх](#top)**
 
-77. ### <a name="77"></a> 
+77. ### <a name="77"></a> Was sind die Vorteile und Anwendungen von CSS-Modulen?
 
+### **CSS-Module: Vorteile & Anwendungen** 🎨🛠️  
+
+📌 **CSS-Module sind eine Technik, um CSS isoliert & modular in modernen Webanwendungen zu verwenden.**  
+✅ **Ziel:** **Vermeidung von Namenskonflikten, bessere Skalierbarkeit & Wiederverwendbarkeit.**  
+
+---
+
+## **1. Was sind CSS-Module?**
+📌 **CSS-Module sind lokalisierte CSS-Dateien, in denen alle Klassennamen standardmäßig nur für das jeweilige Modul gelten.**  
+✔ Verhindert Stilüberschneidungen zwischen Komponenten.  
+✔ Erfordert einen Build-Prozess (z. B. mit Webpack, Vite oder Next.js).  
+
+🔹 **Beispiel: `Button.module.css` (CSS-Module Datei)**
+```css
+/* Gilt nur für dieses Modul */
+.button {
+  background-color: blue;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+}
+```
+🔹 **Beispiel: Nutzung in React**
+```jsx
+import styles from "./Button.module.css";
+
+function Button() {
+  return <button className={styles.button}>Klick mich</button>;
+}
+```
+✅ **Die CSS-Klasse `.button` wird automatisch zu einem eindeutigen Namen kompiliert, z. B. `Button_button__3Xyz`.**  
+
+---
+
+## **2. Vorteile von CSS-Modulen**
+| Vorteil | Beschreibung |
+|---------|-------------|
+| **🔹 Lokale Styles** | CSS ist automatisch **modular & scoped** (keine globalen Überschreibungen). |
+| **🔹 Kein Namenskonflikt** | Klassen werden einzigartig umbenannt (`.button → Button_button__3Xyz`). |
+| **🔹 Wiederverwendbar** | Module können einfach in verschiedene Komponenten importiert werden. |
+| **🔹 Bessere Wartbarkeit** | Kein "CSS-Spaghetti-Code" durch globale Stile. |
+| **🔹 Perfekt für komponentenbasierte Frameworks** | Besonders gut für **React, Vue, Svelte** & andere moderne Web-Frameworks. |
+
+---
+
+## **3. Anwendungen von CSS-Modulen**
+📌 **Wann & wo sind CSS-Module sinnvoll?**  
+
+| Anwendung | Warum CSS-Module? |
+|-----------|----------------|
+| **Komponentenbasiertes Styling in React/Vue/Svelte** | Isolation von Stilen für einzelne Komponenten |
+| **Große Projekte mit vielen Entwicklern** | Verhindert Stilüberschreibungen & Namenskonflikte |
+| **Dynamische Styles mit JavaScript** | Leicht in Code integrierbar & manipulierbar |
+| **Design-Systeme & UI-Bibliotheken** | Wiederverwendbare Module für einheitliches Styling |
+
+🔹 **Beispiel: CSS-Module mit mehreren Klassen**
+```css
+/* Card.module.css */
+.card {
+  border: 1px solid gray;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.highlight {
+  background-color: yellow;
+}
+```
+```jsx
+import styles from "./Card.module.css";
+
+function Card({ highlighted }) {
+  return (
+    <div className={`${styles.card} ${highlighted ? styles.highlight : ""}`}>
+      Inhalt der Karte
+    </div>
+  );
+}
+```
+✅ **Flexibel kombinierbare Klassen durch `className={`${styles.card} ${highlighted ? styles.highlight : ""}`} `**  
+
+---
+
+## **4. Vergleich: CSS-Module vs. Andere CSS-Techniken**
+| Technik | Vorteile | Nachteile |
+|---------|----------|-----------|
+| **CSS-Module** | Isolierte Styles, keine Konflikte, ideal für Komponenten | Benötigt Build-Tool (z. B. Webpack) |
+| **Globales CSS** | Einfach & direkt nutzbar | Namenskonflikte, schwer skalierbar |
+| **Inline-CSS (`style`-Attribut)** | Direkt in JSX/HTML verwendbar | Keine Wiederverwendbarkeit, schlechte Performance |
+| **Styled Components (CSS-in-JS)** | Dynamische Styles, JavaScript-integriert | Höherer Overhead, Abhängigkeit von JS |
+
+✅ **CSS-Module sind ein idealer Mittelweg zwischen globalem CSS & CSS-in-JS!**  
+
+---
+
+## **5. Fazit: Warum CSS-Module nutzen?**
+✔ **Verhindert CSS-Namenskonflikte & überschreibende Stile**  
+✔ **Ideal für komponentenbasierte Anwendungen (React, Vue, Svelte)**  
+✔ **Einfach skalierbar & wiederverwendbar**  
+✔ **Bessere Performance als CSS-in-JS-Ansätze**  
+
+✅ **CSS-Module verbessern Wartbarkeit & Struktur in modernen Webprojekten!** 🚀  
+
+🔗 [MDN: CSS Modules](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Modules)  
+🔗 [CSS Modules in React](https://react.dev/learn/importing-and-exporting-components#using-css-modules)
 
   **[⬆ Наверх](#top)**
 
-78. ### <a name="78"></a> 
+78. ### <a name="78"></a> Was sind CSS-Selektoren und wie funktioniert die Spezifität?
 
+### **CSS-Selektoren & Spezifität – Wie Styles angewendet werden** 🎨🔍  
+
+📌 **CSS-Selektoren bestimmen, welche HTML-Elemente gestylt werden, und die Spezifität entscheidet, welche Regel Vorrang hat.**  
+✅ **Ziel:** **CSS gezielt anwenden & Konflikte zwischen Regeln verstehen.**  
+
+---
+
+## **1. Arten von CSS-Selektoren**  
+📌 **CSS-Selektoren definieren, auf welche Elemente Styles angewendet werden.**  
+
+| Selektor | Beschreibung | Beispiel |
+|----------|-------------|----------|
+| **Element-Selektor** | Wählt alle `<h1>`, `<p>`, `<div>`-Elemente | `p { color: blue; }` |
+| **ID-Selektor (`#`)** | Wählt ein Element mit einer bestimmten `id` | `#header { background: gray; }` |
+| **Klassen-Selektor (`.`)** | Wählt alle Elemente mit einer bestimmten `class` | `.btn { padding: 10px; }` |
+| **Attribut-Selektor (`[attr]`)** | Wählt Elemente mit bestimmten Attributen | `input[type="text"] { border: 1px solid; }` |
+| **Kind-Selektor (`>`)** | Wählt direkte Kinder eines Elements | `div > p { color: red; }` |
+| **Nachkomme-Selektor (Leerzeichen)** | Wählt alle inneren Elemente | `div p { color: green; }` |
+| **Pseudoklassen (`:`)** | Selektiert Elemente in einem bestimmten Zustand | `a:hover { color: red; }` |
+| **Pseudoelemente (`::`)** | Selektiert bestimmte Teile eines Elements | `p::first-line { font-weight: bold; }` |
+
+✅ **Selektoren kombinieren ermöglicht gezieltes Styling!**  
+
+---
+
+## **2. CSS-Spezifität: Welche Regel gewinnt?**  
+📌 **Spezifität bestimmt, welche CSS-Regel Vorrang hat, wenn mehrere Regeln auf das gleiche Element zutreffen.**  
+
+🔹 **Spezifitätswerte basieren auf:**  
+- **Inline-Stile (`style="..."`)** → 🏆 Höchste Priorität  
+- **ID-Selektoren (`#id`)** → Sehr hoch (100 Punkte)  
+- **Klassen, Attribute, Pseudoklassen (`.class`, `[attr]`, `:hover`)** → Mittel (10 Punkte)  
+- **Element- & Pseudoelement-Selektoren (`h1`, `::before`)** → Niedrig (1 Punkt)  
+
+🔹 **Beispiel: Spezifitätsberechnung**  
+```css
+h1 { color: blue; }          /* 1 Punkt */
+.title { color: red; }        /* 10 Punkte */
+#main-title { color: green; } /* 100 Punkte */
+```
+```html
+<h1 id="main-title" class="title">Überschrift</h1>
+```
+🎯 **Ergebnis: `#main-title` (100) gewinnt über `.title` (10) & `h1` (1) → Text wird grün!**  
+
+---
+
+## **3. Wann wird eine Regel überschrieben?**  
+📌 **Regeln mit höherer Spezifität überschreiben schwächere Regeln.**  
+
+🔹 **Beispiel: Konflikt zwischen Regeln**  
+```css
+p { color: black; }            /* 1 Punkt */
+.special { color: blue; }       /* 10 Punkte */
+p.special { color: green; }     /* 11 Punkte */
+```
+```html
+<p class="special">Text</p>
+```
+✅ **Ergebnis: `p.special` (11) gewinnt über `.special` (10) & `p` (1) → Text wird grün!**  
+
+---
+
+## **4. `!important` – Wann sollte es genutzt werden?**  
+📌 **`!important` überschreibt ALLE anderen Regeln, egal welche Spezifität sie haben.**  
+
+🔹 **Beispiel: `!important` setzt sich durch**
+```css
+p { color: blue !important; }
+p.special { color: red; }
+```
+✅ **Text bleibt blau, weil `!important` alle anderen Regeln übertrumpft.**  
+
+❌ **Achtung:** `!important` sollte nur in Ausnahmefällen genutzt werden, da es Debugging erschwert.  
+
+---
+
+## **5. Fazit: Wie Spezifität optimal nutzen?**  
+✔ **Nutze ID-Selektoren sparsam → Sie sind schwer überschreibbar.**  
+✔ **Bevorzuge Klassen (`.class`) für Wiederverwendbarkeit.**  
+✔ **Strukturiere CSS sauber, um Kollisionen zu vermeiden.**  
+✔ **Nutze `!important` nur, wenn wirklich notwendig.**  
+
+✅ **Sauberer & durchdachter CSS-Code sorgt für bessere Wartbarkeit & weniger Konflikte!** 🚀  
+
+🔗 [MDN: CSS-Spezifität](https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity)  
+🔗 [CSS-Selektoren Übersicht](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors)
 
   **[⬆ Наверх](#top)**
 
-79. ### <a name="79"></a> 
+79. ### <a name="79"></a> Welche Positionierungsarten gibt es in CSS? (static, relative, absolute, fixed, sticky)
 
+### **CSS-Positionierung: `static`, `relative`, `absolute`, `fixed`, `sticky`** 📌  
+
+📌 **CSS bietet verschiedene Positionierungsarten, um Elemente flexibel zu platzieren.**  
+✅ **Ziel:** **Verstehen, wann welche Positionierung verwendet werden sollte.**  
+
+---
+
+## **1. `static` (Standard) – Normale Dokumentfluss-Positionierung**  
+📌 **Das Element bleibt in der natürlichen Reihenfolge der Seite.**  
+- Kein Einfluss durch `top`, `left`, `right`, `bottom`.  
+- **Standardverhalten** für alle HTML-Elemente.  
+
+🔹 **Beispiel:**  
+```css
+.box {
+  position: static; /* Standard (auch ohne Angabe) */
+  top: 50px; /* ❌ Hat keine Wirkung */
+}
+```
+✅ **Gut für normale Layouts ohne spezielle Anpassungen.**  
+
+---
+
+## **2. `relative` – Position relativ zur normalen Position**  
+📌 **Element bleibt im normalen Fluss, kann aber verschoben werden.**  
+- `top`, `left`, `right`, `bottom` verschieben das Element relativ zur ursprünglichen Position.  
+- **Andere Elemente bleiben unberührt!**  
+
+🔹 **Beispiel:**  
+```css
+.box {
+  position: relative;
+  top: 20px;  /* Verschiebt das Element 20px nach unten */
+  left: 10px; /* Verschiebt das Element 10px nach rechts */
+}
+```
+✅ **Ideal für kleine Verschiebungen ohne andere Elemente zu beeinflussen.**  
+
+---
+
+## **3. `absolute` – Position relativ zum nächsten `relative`-Elternteil**  
+📌 **Element wird aus dem normalen Dokumentfluss entfernt.**  
+- Wird relativ zum nächstgelegenen `relative`-Element positioniert.  
+- Wenn kein `relative`-Elternteil existiert, wird es relativ zum `<html>` positioniert.  
+
+🔹 **Beispiel:**  
+```css
+.container {
+  position: relative; /* Setzt den Bezugspunkt */
+}
+
+.box {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+}
+```
+✅ **Gut für Overlays, Tooltips & verschachtelte Layouts.**  
+
+---
+
+## **4. `fixed` – Fixiert relativ zum Viewport (Bildschirm)**  
+📌 **Element bleibt an einer festen Position, selbst beim Scrollen.**  
+- Wird relativ zum **Viewport (Fenster)** positioniert.  
+- **Gut für Header, Menüs oder "Zurück nach oben"-Buttons.**  
+
+🔹 **Beispiel: Fixiertes Header-Menü**
+```css
+.fixed-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: black;
+  color: white;
+  padding: 10px;
+}
+```
+✅ **Ideal für Navigationen, Floating-Buttons & feststehende Elemente.**  
+
+---
+
+## **5. `sticky` – Bleibt erst normal, dann fixiert beim Scrollen**  
+📌 **Element verhält sich zuerst normal (`relative`), wird dann `fixed`, wenn eine Scroll-Grenze erreicht ist.**  
+- Braucht eine `top`-, `left`-, `right`- oder `bottom`-Angabe.  
+
+🔹 **Beispiel: Sticky Header**
+```css
+.sticky-header {
+  position: sticky;
+  top: 0; /* Fixiert das Element, sobald es den oberen Rand erreicht */
+  background: yellow;
+  padding: 10px;
+}
+```
+✅ **Perfekt für fixierte Überschriften oder Navigationen innerhalb einer Seite.**  
+
+---
+
+## **6. Vergleich: Wann welche Positionierung nutzen?**  
+| **Position** | **Bleibt im normalen Layoutfluss?** | **Kann mit `top`, `left`, etc. verschoben werden?** | **Reagiert auf Scrollen?** | **Bezugspunkt** |
+|-------------|-----------------------------------|---------------------------------|-------------------|---------------|
+| `static` | ✅ Ja (Standard) | ❌ Nein | ❌ Nein | Normaler Dokumentfluss |
+| `relative` | ✅ Ja | ✅ Ja (relativ zur eigenen Position) | ❌ Nein | Eigene ursprüngliche Position |
+| `absolute` | ❌ Nein | ✅ Ja (relativ zum nächsten `relative`-Elternteil) | ❌ Nein | Nächstes `relative`-Element oder `<html>` |
+| `fixed` | ❌ Nein | ✅ Ja (relativ zum Viewport) | ✅ Bleibt fixiert | Browser-Fenster (Viewport) |
+| `sticky` | ✅ Ja (bis Scrollgrenze erreicht) | ✅ Ja (wird dann `fixed`) | ✅ Fixiert sich beim Scrollen | Nächstes Scroll-Elternelement |
+
+---
+
+## **7. Fazit: Wann welche Positionierung nutzen?**
+✔ **`static` (Standard)** → Wenn keine besondere Positionierung nötig ist.  
+✔ **`relative`** → Für kleine Anpassungen ohne andere Elemente zu beeinflussen.  
+✔ **`absolute`** → Für Overlays, Modals oder UI-Elemente mit festem Bezugspunkt.  
+✔ **`fixed`** → Für Header, Menüs oder Scroll-Buttons.  
+✔ **`sticky`** → Wenn ein Element erst mit scrollt & dann fixiert bleibt.  
+
+✅ **Richtig eingesetzt verbessern CSS-Positionierungen das Layout & die UX!** 🚀  
+
+🔗 [MDN: CSS Positionierung](https://developer.mozilla.org/en-US/docs/Web/CSS/position)
 
   **[⬆ Наверх](#top)**
 
-80. ### <a name="80"></a> 
+80. ### <a name="80"></a> Was sind die Unterschiede zwischen margin und padding?
 
+### **Unterschied zwischen `margin` und `padding` in CSS** 🎨📏  
+
+📌 **Beide steuern den Abstand von HTML-Elementen, aber auf unterschiedliche Weise.**  
+✅ **Ziel:** **Verstehen, wann `margin` oder `padding` genutzt werden sollte.**  
+
+---
+
+## **1. Grundlegender Unterschied: Außen- vs. Innenabstand**
+| Eigenschaft | Beschreibung | Abstand von? | Beeinflusst Hintergrundfarbe? |
+|------------|-------------|--------------|-------------------------------|
+| **`margin`** | Abstand zwischen Elementen | Außen (um das Element herum) | ❌ Nein |
+| **`padding`** | Abstand zwischen Inhalt & Rahmen | Innen (innerhalb des Elements) | ✅ Ja |
+
+🔹 **Visuelle Darstellung:**  
+```
++------------------------------------+
+|         Margin (Außenabstand)      |
+|  +----------------------------+   |
+|  |  Padding (Innenabstand)    |   |
+|  |  +----------------------+  |   |
+|  |  |   Inhalt (Text)      |  |   |
+|  |  +----------------------+  |   |
+|  +----------------------------+   |
++------------------------------------+
+```
+
+✅ **`margin` beeinflusst den Abstand zwischen Elementen, `padding` vergrößert den Innenraum eines Elements.**  
+
+---
+
+## **2. `margin` – Abstand nach außen**
+📌 **Bestimmt den äußeren Abstand zwischen einem Element & seinen Nachbarn.**  
+
+🔹 **Beispiel: `margin`-Abstand zwischen zwei `<div>`**
+```css
+.box {
+  width: 100px;
+  height: 100px;
+  background-color: lightblue;
+  margin: 20px; /* Abstand nach außen */
+}
+```
+🔹 **HTML**
+```html
+<div class="box"></div>
+<div class="box"></div>
+```
+✅ **Elemente haben nun 20px Abstand voneinander.**  
+
+🔹 **Besonderheit: Negative `margin`**  
+```css
+.box {
+  margin-top: -10px; /* Element rückt nach oben */
+}
+```
+✅ **`margin` kann negativ sein, um Elemente näher zusammenzuschieben!**  
+
+---
+
+## **3. `padding` – Abstand nach innen**
+📌 **Vergrößert den Innenraum zwischen Inhalt & Rand eines Elements.**  
+
+🔹 **Beispiel: `padding` innerhalb eines `<div>`**
+```css
+.box {
+  width: 100px;
+  height: 100px;
+  background-color: lightgreen;
+  padding: 20px; /* Innenabstand */
+}
+```
+✅ **Text oder Inhalt bekommt mehr "Luft" im Element.**  
+
+🔹 **Besonderheit: `padding` beeinflusst die Größe!**
+```css
+.box {
+  width: 100px;
+  padding: 20px;
+}
+```
+**🚨 Ergebnis:** Das Element ist jetzt **140px breit** (`100px` + `20px` links + `20px` rechts).  
+
+✅ **Lösung: `box-sizing: border-box;` setzen, damit `padding` in der Breite enthalten ist.**  
+```css
+.box {
+  width: 100px;
+  padding: 20px;
+  box-sizing: border-box; /* Breite bleibt bei 100px */
+}
+```
+
+---
+
+## **4. Vergleich: Wann `margin` oder `padding` nutzen?**
+| Situation | Verwende `margin` | Verwende `padding` |
+|-----------|----------------|----------------|
+| **Abstand zwischen zwei Elementen** | ✅ Ja | ❌ Nein |
+| **Mehr Platz innerhalb eines Elements** | ❌ Nein | ✅ Ja |
+| **Verhindern, dass Text am Rand klebt** | ❌ Nein | ✅ Ja |
+| **Äußeren Abstand zum Layout behalten** | ✅ Ja | ❌ Nein |
+| **Negative Werte möglich?** | ✅ Ja | ❌ Nein |
+| **Beeinflusst Hintergrundfarbe?** | ❌ Nein | ✅ Ja |
+
+✅ **Nutze `margin` für Außenabstand & `padding` für Innenabstand!** 🚀  
+
+🔗 [MDN: CSS `margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin)  
+🔗 [MDN: CSS `padding`](https://developer.mozilla.org/en-US/docs/Web/CSS/padding)  
 
   **[⬆ Наверх](#top)**
 
-81. ### <a name="81"></a> 
+81. ### <a name="81"></a> Wie kann man Schriftarten in CSS einbinden?
 
+### **Schriftarten in CSS einbinden – Methoden & Best Practices** 🖋️🎨  
+
+📌 **CSS bietet verschiedene Möglichkeiten, Schriftarten in Webseiten zu integrieren.**  
+✅ **Ziel:** **Optimale Darstellung mit Webfonts & Fallbacks für bessere Benutzererfahrung.**  
+
+---
+
+## **1. Standard-Schriftarten nutzen (`font-family`)**  
+📌 **Browser haben vorinstallierte System-Schriftarten wie Arial, Times New Roman & Verdana.**  
+
+🔹 **Beispiel: Standard-Schriftarten mit Fallbacks**
+```css
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+```
+✅ **Vorteile:**  
+✔ Schnelle Ladezeit (da lokal installiert)  
+✔ Gute Browser-Kompatibilität  
+
+❌ **Nachteile:**  
+- Begrenzte Auswahl, keine individuelle Gestaltung  
+
+---
+
+## **2. Webfonts mit Google Fonts einbinden (`<link>` im `<head>`)**  
+📌 **Google Fonts bietet eine einfache Möglichkeit, Web-Schriftarten zu nutzen.**  
+
+🔹 **Schritt 1: Link im `<head>` einfügen**
+```html
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+```
+🔹 **Schritt 2: Schriftart in CSS nutzen**
+```css
+body {
+  font-family: 'Roboto', sans-serif;
+}
+```
+✅ **Vorteile:**  
+✔ Große Auswahl an kostenlosen Schriftarten  
+✔ Einfach zu integrieren  
+
+❌ **Nachteile:**  
+- Externer Server → Verzögerung beim Laden  
+- Datenschutzbedenken (Google-Server)  
+
+🔗 **Google Fonts:** [https://fonts.google.com](https://fonts.google.com)  
+
+---
+
+## **3. Eigene Schriftarten per `@font-face` einbinden**  
+📌 **Lädt benutzerdefinierte Schriftarten vom eigenen Server.**  
+
+🔹 **Beispiel: Lokale Schriftart mit `@font-face`**
+```css
+@font-face {
+  font-family: 'MeineSchrift';
+  src: url('/fonts/meine-schrift.woff2') format('woff2'),
+       url('/fonts/meine-schrift.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'MeineSchrift', sans-serif;
+}
+```
+✅ **Vorteile:**  
+✔ Läuft unabhängig von Drittanbietern  
+✔ Datenschutzfreundlich  
+
+❌ **Nachteile:**  
+- Schriftart-Dateien müssen auf dem eigenen Server liegen  
+- Höhere Ladezeiten, wenn schlecht optimiert  
+
+🔹 **Empfohlene Formate für maximale Kompatibilität:**  
+| Format | Unterstützung |
+|--------|--------------|
+| **WOFF2** | Modernste Browser, beste Performance |
+| **WOFF** | Ältere Browser (Fallback) |
+| **TTF/OTF** | Selten genutzt, hohe Dateigröße |
+
+---
+
+## **4. System-Schriftarten (`system-ui`) verwenden**  
+📌 **System-Schriftarten passen sich automatisch dem Betriebssystem des Nutzers an.**  
+
+🔹 **Beispiel: System-Font-Stack**
+```css
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+```
+✅ **Vorteile:**  
+✔ Schnelle Ladezeit (da keine externe Schrift geladen wird)  
+✔ Passt sich dem Betriebssystem-Design an  
+
+❌ **Nachteile:**  
+- Keine individuelle Gestaltungsmöglichkeiten  
+
+---
+
+## **5. Schriftart-Fallbacks definieren**  
+📌 **Falls die primäre Schrift nicht geladen wird, nutzt der Browser Alternativen.**  
+
+🔹 **Beispiel: Font-Fallbacks**
+```css
+body {
+  font-family: 'Lato', Arial, sans-serif;
+}
+```
+✅ **Verhindert unerwartete Darstellungsfehler.**  
+
+---
+
+## **6. Welche Methode wann nutzen?**  
+| Methode | Vorteil | Nachteil | Beste Anwendung |
+|---------|---------|----------|----------------|
+| **System-Schriftarten** | Schnell & flexibel | Keine Design-Kontrolle | Performance-optimierte Webseiten |
+| **Google Fonts (`<link>`)** | Einfach & viele Optionen | Abhängig von Google | Design-lastige Webseiten |
+| **`@font-face` (lokal)** | Datenschutzfreundlich | Höhere Ladezeit | Individuelle Schriftarten |
+| **Standard-Fonts (`font-family`)** | Sehr schnell | Begrenzte Auswahl | Grundlegende Webseiten |
+
+✅ **Empfohlene Strategie:**  
+1. **Nutze System-Schriftarten, wenn Performance wichtig ist.**  
+2. **Falls nötig, Google Fonts oder `@font-face` für individuelles Design.**  
+3. **Immer Fallback-Schriftarten angeben!**  
+
+🔗 [MDN: CSS `@font-face`](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face) 🚀
 
   **[⬆ Наверх](#top)** 
 
-82. ### <a name="82"></a> 
+82. ### <a name="82"></a> Welche Methoden gibt es, um Elemente auszublenden? (display: none, visibility: hidden, opacity, etc.)
 
+### **Methoden zum Ausblenden von Elementen in CSS** 👀🔍  
+
+📌 **Es gibt verschiedene Techniken, um HTML-Elemente auszublenden, je nach gewünschtem Verhalten.**  
+✅ **Ziel:** **Elemente entfernen oder verstecken, ohne sie komplett aus dem DOM zu löschen.**  
+
+---
+
+## **1. `display: none;` – Komplett ausblenden & aus dem Layout entfernen**  
+📌 **Das Element wird unsichtbar & nimmt keinen Platz mehr im Layout ein.**  
+
+🔹 **Beispiel:**
+```css
+.box {
+  display: none;
+}
+```
+✅ **Vorteile:**  
+✔ Element existiert nicht mehr im Layout  
+✔ Kein Einfluss auf andere Elemente  
+
+❌ **Nachteile:**  
+- Nicht per `tab` erreichbar  
+- Nicht für Screenreader sichtbar  
+
+🔹 **Wann nutzen?**  
+✅ Elemente komplett verstecken (z. B. Dropdown-Menüs, Modale)  
+
+---
+
+## **2. `visibility: hidden;` – Unsichtbar, aber Platz bleibt**  
+📌 **Das Element bleibt im Layout, wird aber unsichtbar.**  
+
+🔹 **Beispiel:**
+```css
+.box {
+  visibility: hidden;
+}
+```
+✅ **Vorteile:**  
+✔ Behält den Platz im Layout  
+✔ Kann per JavaScript wieder sichtbar gemacht werden  
+
+❌ **Nachteile:**  
+- Element ist immer noch da, aber unsichtbar  
+- Screenreader können das Element immer noch "sehen"  
+
+🔹 **Wann nutzen?**  
+✅ Wenn das Element weiterhin Platz beanspruchen soll (z. B. animiertes Einblenden).  
+
+---
+
+## **3. `opacity: 0;` – Unsichtbar, aber klickbar & im Layout**  
+📌 **Das Element wird transparent, bleibt aber interaktiv & im Layout.**  
+
+🔹 **Beispiel:**
+```css
+.box {
+  opacity: 0;
+}
+```
+✅ **Vorteile:**  
+✔ Platz bleibt erhalten  
+✔ Kann mit `transition` animiert werden  
+
+❌ **Nachteile:**  
+- Unsichtbar, aber interaktiv (z. B. anklickbar)  
+- Screenreader erkennen das Element noch  
+
+🔹 **Wann nutzen?**  
+✅ Für sanftes Ein- & Ausblenden mit Animationen.  
+
+---
+
+## **4. `clip-path: circle(0);` – Element visuell abschneiden**  
+📌 **Das Element wird beschnitten & ist nicht mehr sichtbar.**  
+
+🔹 **Beispiel:**
+```css
+.box {
+  clip-path: circle(0);
+}
+```
+✅ **Vorteile:**  
+✔ Animierbar  
+✔ Platz bleibt erhalten  
+
+❌ **Nachteile:**  
+- Kann schwer zu debuggen sein  
+
+🔹 **Wann nutzen?**  
+✅ Für kreative Effekte & animiertes Einblenden.  
+
+---
+
+## **5. `position: absolute; left: -9999px;` – Element außerhalb des Viewports verschieben**  
+📌 **Das Element bleibt erhalten, wird aber für Nutzer nicht sichtbar.**  
+
+🔹 **Beispiel:**
+```css
+.box {
+  position: absolute;
+  left: -9999px;
+}
+```
+✅ **Vorteile:**  
+✔ Für Screenreader noch vorhanden  
+✔ Kein `display: none;` nötig  
+
+❌ **Nachteile:**  
+- Kann für große Elemente problematisch sein  
+
+🔹 **Wann nutzen?**  
+✅ Für versteckte Texte für Screenreader.  
+
+---
+
+## **6. `height: 0; overflow: hidden;` – Inhalt verstecken, aber Platz flexibel halten**  
+📌 **Versteckt den Inhalt, ohne das gesamte Element zu entfernen.**  
+
+🔹 **Beispiel:**
+```css
+.box {
+  height: 0;
+  overflow: hidden;
+}
+```
+✅ **Vorteile:**  
+✔ Für aufklappbare Elemente (Accordion-Menüs)  
+✔ Platz bleibt steuerbar  
+
+❌ **Nachteile:**  
+- Muss explizit eine `height` bekommen  
+
+🔹 **Wann nutzen?**  
+✅ Für animierbare Bereiche wie Dropdown-Menüs.  
+
+---
+
+## **7. Vergleichstabelle: Welche Methode wofür nutzen?**
+| Methode | Entfernt aus dem Layout? | Interaktiv? | Platz bleibt? | Screenreader sichtbar? | Beste Anwendung |
+|---------|----------------|------------|--------------|----------------|-------------------|
+| **`display: none;`** | ✅ Ja | ❌ Nein | ❌ Nein | ❌ Nein | Elemente komplett verstecken |
+| **`visibility: hidden;`** | ❌ Nein | ❌ Nein | ✅ Ja | ✅ Ja | Platzhalten, aber unsichtbar |
+| **`opacity: 0;`** | ❌ Nein | ✅ Ja | ✅ Ja | ✅ Ja | Animiertes Ein-/Ausblenden |
+| **`clip-path: circle(0);`** | ❌ Nein | ✅ Ja | ✅ Ja | ✅ Ja | Visuelles Verstecken mit Animation |
+| **`position: absolute; left: -9999px;`** | ✅ Ja | ❌ Nein | ❌ Nein | ✅ Ja | Inhalte für Screenreader verstecken |
+| **`height: 0; overflow: hidden;`** | ❌ Nein | ✅ Ja | ✅ Ja | ✅ Ja | Akkordeons & Dropdowns |
+
+✅ **Beste Wahl hängt von der gewünschten Wirkung ab!**  
+
+🔗 [MDN: `display`](https://developer.mozilla.org/en-US/docs/Web/CSS/display)  
+🔗 [MDN: `visibility`](https://developer.mozilla.org/en-US/docs/Web/CSS/visibility) 🚀
 
   **[⬆ Наверх](#top)**
 
-83. ### <a name="83"></a> 
+83. ### <a name="83"></a> Wie funktioniert der z-index und wann wird er verwendet?
 
+### **Wie funktioniert der `z-index` in CSS?** 🎨📌  
+
+📌 **Der `z-index` steuert die Stapelreihenfolge (Z-Achse) von HTML-Elementen.**  
+✅ **Ziel:** **Bestimmen, welches Element „vorne“ oder „hinten“ angezeigt wird.**  
+
+---
+
+## **1. Grundprinzip von `z-index`**
+📌 **Höhere `z-index`-Werte erscheinen VOR niedrigeren Werten.**  
+📌 **Funktioniert nur mit `position: relative;`, `absolute;`, `fixed;` oder `sticky;`.**  
+
+🔹 **Beispiel: Ein Element über ein anderes legen**
+```css
+.box1 {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  width: 100px;
+  height: 100px;
+  background: red;
+  z-index: 1;
+}
+
+.box2 {
+  position: absolute;
+  top: 70px;
+  left: 70px;
+  width: 100px;
+  height: 100px;
+  background: blue;
+  z-index: 2; /* Höher als box1 → erscheint darüber */
+}
+```
+✅ **Das blaue `box2`-Element wird über `box1` angezeigt.**  
+
+---
+
+## **2. Wann `z-index` nicht funktioniert**
+📌 **`z-index` funktioniert nur für Elemente mit `position` außer `static`!**  
+
+🔹 **Fehlerhaft (z-index ohne Wirkung)** ❌  
+```css
+.box {
+  position: static; /* Standardwert → Kein z-index-Effekt */
+  z-index: 10;
+}
+```
+✅ **Lösung: `position` setzen (`relative`, `absolute`, `fixed`, `sticky`)**  
+
+---
+
+## **3. Stapelkontext (`stacking context`)**
+📌 **Ein neues "Stapel-Level" wird erstellt, wenn bestimmte Eigenschaften gesetzt werden.**  
+
+🔹 **Wann entsteht ein neuer Stapelkontext?**
+- Ein Element mit `position: absolute;` oder `relative;` + `z-index` ≠ `auto`
+- Ein Element mit `opacity < 1`
+- Ein Element mit `transform`, `filter`, `perspective`
+- `fixed` oder `sticky` Positionierung
+
+🔹 **Beispiel: Neues `z-index`-Kontext**
+```css
+.container {
+  position: relative;
+  z-index: 5; /* Neue Ebene */
+}
+
+.box {
+  position: absolute;
+  z-index: 1; /* Bleibt innerhalb des .container */
+}
+```
+✅ **`box` kann nur innerhalb von `.container` über andere Elemente gelegt werden.**  
+
+---
+
+## **4. Negative `z-index` – Element nach hinten verschieben**
+📌 **Negative Werte platzieren ein Element hinter andere.**  
+
+🔹 **Beispiel: Hintergrund hinter allen anderen Elementen**
+```css
+.bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: gray;
+  z-index: -1;
+}
+```
+✅ **Das Hintergrund-Element bleibt hinter allen anderen.**  
+
+---
+
+## **5. Vergleich: Wann `z-index` nutzen?**
+| Anwendung | `z-index` nötig? | Alternative Lösung |
+|-----------|----------------|------------------|
+| **Modale & Overlays** | ✅ Ja | `position: fixed; z-index: 1000;` |
+| **Dropdown-Menüs** | ✅ Ja | `position: absolute; z-index: 10;` |
+| **Tooltips & Popups** | ✅ Ja | `position: absolute; z-index: 20;` |
+| **Bilder hinter Text legen** | ✅ Ja | `z-index: -1;` |
+| **Flexbox- oder Grid-Anordnung** | ❌ Nein | `order` in `flexbox` nutzen |
+
+✅ **Nutze `z-index`, wenn Elemente sich überlappen sollen!**  
+
+---
+
+## **6. Fazit: Best Practices für `z-index`**
+✔ **Immer eine `position` (außer `static`) setzen!**  
+✔ **Niedrige Werte für Hintergrundelemente, hohe Werte für Vordergrund.**  
+✔ **`z-index: -1` für Hintergrundgrafiken.**  
+✔ **Vermeide zu viele hohe `z-index`-Werte (Chaos im Layout!).**  
+✔ **Nutze `stacking context`, um Layout-Fehler zu vermeiden.**  
+
+✅ **Mit `z-index` steuerst du, welche Elemente "oben" oder "unten" erscheinen!** 🚀  
+
+🔗 [MDN: `z-index`](https://developer.mozilla.org/en-US/docs/Web/CSS/z-index)
 
   **[⬆ Наверх](#top)**
 
-84. ### <a name="84"></a> 
+84. ### <a name="84"></a> Was sind data--Attribute und wie werden sie genutzt?
 
+### **Was sind `data-*`-Attribute und wie werden sie genutzt?** 🏷️🔍  
+
+📌 **`data-*`-Attribute sind benutzerdefinierte HTML-Attribute, um eigene Daten in HTML-Elementen zu speichern.**  
+✅ **Ziel:** **Zusätzliche Informationen für JavaScript bereitstellen, ohne die HTML-Struktur zu beeinflussen.**  
+
+---
+
+## **1. Syntax & Verwendung von `data-*`-Attributen**  
+📌 **Jedes `data-*`-Attribut beginnt mit `data-` und kann einen beliebigen Namen haben.**  
+
+🔹 **Beispiel: Ein Button mit benutzerdefinierten Daten**
+```html
+<button data-user-id="123" data-role="admin">Benutzerinfo</button>
+```
+✅ **Hier werden `user-id` und `role` direkt im HTML gespeichert.**  
+
+---
+
+## **2. `data-*`-Attribute mit JavaScript auslesen**  
+📌 **JavaScript kann `data-*`-Attribute einfach abrufen & manipulieren.**  
+
+🔹 **Daten abrufen**
+```javascript
+const button = document.querySelector("button");
+
+console.log(button.dataset.userId); // ✅ "123"
+console.log(button.dataset.role);   // ✅ "admin"
+```
+✅ **`dataset` macht aus `data-user-id` → `dataset.userId` (CamelCase).**  
+
+🔹 **Daten ändern**
+```javascript
+button.dataset.userId = "456";
+console.log(button.dataset.userId); // ✅ "456"
+```
+✅ **`data-*`-Werte können dynamisch gesetzt werden.**  
+
+---
+
+## **3. Typische Anwendungsfälle für `data-*`**  
+📌 **Wann nutzt man `data-*`-Attribute?**  
+
+| Anwendungsfall | Beispiel |
+|---------------|----------|
+| **Dynamische Inhalte speichern** | `data-price="9.99"` für Produktpreise |
+| **Benutzerdaten verwalten** | `data-user-id="123"` für User-Tracking |
+| **JavaScript-Interaktion** | `data-toggle="modal"` für UI-Elemente |
+| **Einfache Konfigurationen** | `data-theme="dark"` für Themes |
+
+🔹 **Beispiel: Produktdaten in einer E-Commerce-Seite**
+```html
+<div class="product" data-id="1001" data-price="19.99">
+  <h2>Produktname</h2>
+</div>
+```
+```javascript
+const product = document.querySelector(".product");
+console.log(`Produkt-ID: ${product.dataset.id}, Preis: ${product.dataset.price} €`);
+```
+✅ **Daten können im HTML gespeichert & per JS ausgelesen werden.**  
+
+---
+
+## **4. `data-*` vs. andere Methoden**
+📌 **Wann sollte man `data-*` nutzen & wann nicht?**  
+
+| Methode | Vorteile | Nachteile |
+|---------|----------|-----------|
+| **`data-*`-Attribute** | Einfach & direkt in HTML speicherbar | Kein langfristiger Speicher |
+| **`id` / `class`** | Gut für CSS & JS | Nicht für Werte gedacht |
+| **`localStorage` / `sessionStorage`** | Persistente Speicherung | Keine direkte HTML-Anbindung |
+| **Backend-Datenbank** | Sicher & skalierbar | Höherer Implementierungsaufwand |
+
+✅ **`data-*`-Attribute sind ideal für temporäre, frontendseitige Daten!** 🚀  
+
+🔗 [MDN: `data-*` Attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/data-*)
 
   **[⬆ Наверх](#top)**
 
-85. ### <a name="85"></a> 
+85. ### <a name="85"></a> Was sind die Unterschiede zwischen float, flexbox und grid?
 
+### **Unterschiede zwischen `float`, `flexbox` & `grid` in CSS** 🎨📏  
+
+📌 **Alle drei Techniken helfen, Layouts zu gestalten, aber sie haben unterschiedliche Anwendungsfälle.**  
+✅ **Ziel:** **Verstehen, wann `float`, `flexbox` oder `grid` verwendet werden sollte.**  
+
+---
+
+## **1. `float` – Alte Methode für Layouts**  
+📌 **Ursprünglich für Textfluss um Bilder gedacht, aber lange Zeit für Layouts genutzt.**  
+✔ Gut für einfache Layouts (z. B. Text neben einem Bild).  
+❌ Nicht flexibel, umständlich für komplexe Layouts.  
+
+🔹 **Beispiel: Text um ein Bild herumfließen lassen**
+```css
+.img {
+  float: left;
+  margin-right: 10px;
+}
+```
+🔹 **HTML**
+```html
+<img class="img" src="bild.jpg" alt="Beispiel">
+<p>Dieser Text fließt um das Bild herum.</p>
+```
+✅ **Gut für kleine Layout-Anpassungen, aber nicht für moderne Weblayouts.**  
+
+---
+
+## **2. `flexbox` – Flexible Anordnung in einer Achse**  
+📌 **Ideal für flexible & dynamische Layouts entlang einer Zeile oder Spalte.**  
+✔ Einfache Anordnung von Elementen in einer Richtung (`row` oder `column`).  
+✔ Flexibel für zentrierte oder verteilte Inhalte.  
+❌ Nicht ideal für komplexe, zweidimensionale Layouts.  
+
+🔹 **Beispiel: Elemente nebeneinander anordnen & ausrichten**
+```css
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+```
+🔹 **HTML**
+```html
+<div class="container">
+  <div class="box">1</div>
+  <div class="box">2</div>
+  <div class="box">3</div>
+</div>
+```
+✅ **Perfekt für Menüs, Buttons, Formulare & einfache Zeilen-/Spalten-Layouts.**  
+
+---
+
+## **3. `grid` – Zweidimensionales Layout-System**  
+📌 **Ideal für komplexe Layouts mit mehreren Zeilen & Spalten.**  
+✔ Erlaubt die Positionierung in **beiden Richtungen (row & column)**.  
+✔ Perfekt für Seitenlayouts & komplexe Designs.  
+❌ Nicht so dynamisch für einfache Inline-Elemente wie `flexbox`.  
+
+🔹 **Beispiel: Ein Raster mit 3 Spalten & 2 Zeilen**
+```css
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto;
+  gap: 10px;
+}
+```
+🔹 **HTML**
+```html
+<div class="container">
+  <div class="box">1</div>
+  <div class="box">2</div>
+  <div class="box">3</div>
+  <div class="box">4</div>
+  <div class="box">5</div>
+  <div class="box">6</div>
+</div>
+```
+✅ **Optimal für komplexe Layout-Strukturen wie Dashboard-Designs oder Webseiten-Raster.**  
+
+---
+
+## **4. Vergleich: Wann `float`, `flexbox` oder `grid`?**
+| Eigenschaft | `float` 🏛 | `flexbox` 🏗 | `grid` 📊 |
+|------------|-----------|-------------|----------|
+| **Hauptzweck** | Textfluss um Bilder | Elemente in einer Reihe/Spalte anordnen | Komplexe 2D-Layouts |
+| **Einfach zu lernen?** | ❌ Nein | ✅ Ja | ❌ Mittelschwer |
+| **Flexibel anpassbar?** | ❌ Nein | ✅ Ja | ✅ Ja |
+| **2D-Anordnung (Zeilen + Spalten)?** | ❌ Nein | ❌ Nein | ✅ Ja |
+| **Unterstützt `gap`?** | ❌ Nein | ✅ Ja | ✅ Ja |
+| **Beste Anwendung** | Textfluss, Bilder | Navigationen, Formulare, Buttons | Webseiten, Layouts, Dashboards |
+
+✅ **Empfohlene Strategie:**  
+- **`float`** → Nur für Bilder & kleine Layout-Anpassungen.  
+- **`flexbox`** → Für zeilen- oder spaltenbasierte Layouts (z. B. Navigationen).  
+- **`grid`** → Für komplexe Layouts mit mehreren Zeilen & Spalten.  
+
+🚀 **Moderne Webseiten nutzen `flexbox` & `grid`, `float` ist veraltet!**  
+
+🔗 [MDN: `float`](https://developer.mozilla.org/en-US/docs/Web/CSS/float)  
+🔗 [MDN: `flexbox`](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout)  
+🔗 [MDN: `grid`](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout)
 
   **[⬆ Наверх](#top)**
 
-86. ### <a name="86"></a> 
+86. ### <a name="86"></a> Was sind die Grundlagen von Flexbox? (Achsen, flex-grow, flex-shrink, flex-basis)
 
+### **Grundlagen von Flexbox – Achsen, `flex-grow`, `flex-shrink`, `flex-basis`** 📏🎨  
+
+📌 **Flexbox (`display: flex;`) ist ein flexibles Layout-System für einachsige Layouts.**  
+✅ **Ziel:** **Verstehen, wie Achsen & Flex-Parameter funktionieren.**  
+
+---
+
+## **1. Haupt- und Kreuzachse in Flexbox**
+📌 **Flexbox arbeitet mit zwei Achsen:**  
+- **Hauptachse (Main Axis)** → Bestimmt durch `flex-direction` (`row` oder `column`).  
+- **Kreuzachse (Cross Axis)** → Senkrecht zur Hauptachse.  
+
+🔹 **Beispiel: Zeilen-Layout (`row`)**
+```css
+.container {
+  display: flex;
+  flex-direction: row; /* Hauptachse von links nach rechts */
+}
+```
+📌 **Hauptachse = Horizontal, Kreuzachse = Vertikal**  
+📌 **Reihenfolge kann mit `flex-direction: row-reverse;` umgedreht werden.**  
+
+🔹 **Beispiel: Spalten-Layout (`column`)**
+```css
+.container {
+  display: flex;
+  flex-direction: column; /* Hauptachse von oben nach unten */
+}
+```
+📌 **Hauptachse = Vertikal, Kreuzachse = Horizontal**  
+
+✅ **Steuert, wie Elemente in `flexbox`-Containern angeordnet werden.**  
+
+---
+
+## **2. `flex-grow` – Wie stark ein Element wächst**
+📌 **Bestimmt, wie stark ein Flex-Element im Verhältnis zu anderen wächst.**  
+
+🔹 **Beispiel: Ein Element wächst doppelt so stark wie die anderen**
+```css
+.container {
+  display: flex;
+}
+
+.box {
+  flex-grow: 1; /* Alle wachsen gleich */
+}
+
+.box.big {
+  flex-grow: 2; /* Wächst doppelt so stark */
+}
+```
+✅ **Verhindert leeren Platz & verteilt die Breite dynamisch.**  
+
+---
+
+## **3. `flex-shrink` – Wie stark ein Element schrumpft**
+📌 **Steuert, wie stark Elemente verkleinert werden, wenn der Platz knapp ist.**  
+
+🔹 **Beispiel: Ein Element soll weniger schrumpfen**
+```css
+.container {
+  display: flex;
+}
+
+.box {
+  flex-shrink: 1; /* Standard: schrumpft gleichmäßig */
+}
+
+.box.no-shrink {
+  flex-shrink: 0; /* Dieses Element schrumpft nicht */
+}
+```
+✅ **Sorgt dafür, dass wichtige Elemente sichtbar bleiben.**  
+
+---
+
+## **4. `flex-basis` – Ausgangsgröße eines Elements**
+📌 **Setzt die Startbreite (bei `row`) oder Starthöhe (bei `column`) eines Elements.**  
+
+🔹 **Beispiel: Festlegen der Startgröße**
+```css
+.container {
+  display: flex;
+}
+
+.box {
+  flex-basis: 100px; /* Jedes Element startet mit 100px */
+}
+```
+✅ **Ersetzt `width` oder `height` in `flex`-Layouts.**  
+
+---
+
+## **5. Die Kurzform `flex: grow shrink basis;`**
+📌 **`flex` ist die Kurzschreibweise für `flex-grow flex-shrink flex-basis`.**  
+
+🔹 **Beispiel: Einheitliche Kurzform**
+```css
+.box {
+  flex: 1 1 100px; /* Wächst, schrumpft & startet mit 100px */
+}
+```
+✅ **Reduziert Code & sorgt für klare Layouts.**  
+
+---
+
+## **6. Fazit: Wann nutzt man welche Eigenschaft?**
+| Eigenschaft | Bedeutung | Typische Anwendung |
+|-------------|-----------|----------------|
+| **`flex-grow`** | Bestimmt, wie viel ein Element wächst | Dynamische Layouts mit variabler Breite |
+| **`flex-shrink`** | Bestimmt, wie stark ein Element schrumpft | Verhindert, dass wichtige Elemente zu klein werden |
+| **`flex-basis`** | Setzt die Startgröße eines Elements | Standardgröße unabhängig von `width` oder `height` |
+
+✅ **Mit `flexbox` lassen sich flexible, responsive Layouts einfach umsetzen!** 🚀  
+
+🔗 [MDN: Flexbox](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout)
 
   **[⬆ Наверх](#top)**
 
-87. ### <a name="87"></a> 
+87. ### <a name="87"></a> Was sind die Unterschiede zwischen display: flex und display: grid?
 
+### **Unterschiede zwischen `display: flex` und `display: grid`** 🎨📏  
+
+📌 **Beide sind moderne CSS-Layout-Techniken, aber sie haben unterschiedliche Anwendungsfälle.**  
+✅ **Ziel:** **Verstehen, wann `flexbox` oder `grid` verwendet werden sollte.**  
+
+---
+
+## **1. Grundprinzip: Einachsig vs. Zweiachsig**  
+| Layout-Methode | Achsen | Beste Anwendung |
+|---------------|--------|----------------|
+| **Flexbox (`display: flex`)** | **Eine Achse** (horizontal ODER vertikal) | Navigationen, Formulare, einfache Layouts |
+| **Grid (`display: grid`)** | **Zwei Achsen** (Zeilen + Spalten) | Komplexe Seitenlayouts, Dashboards |
+
+✅ **Flexbox → Zeilen/Spalten anordnen.**  
+✅ **Grid → Raster-Layouts mit Zeilen & Spalten.**  
+
+---
+
+## **2. `display: flex` – Flexibles Layout in einer Richtung**  
+📌 **Flexbox ordnet Elemente entlang einer Hauptachse an.**  
+
+🔹 **Beispiel: Elemente horizontal anordnen**
+```css
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+```
+🔹 **HTML**
+```html
+<div class="container">
+  <div class="box">1</div>
+  <div class="box">2</div>
+  <div class="box">3</div>
+</div>
+```
+✅ **Perfekt für Navigationen, Buttons & Zeilen-Layouts.**  
+
+---
+
+## **3. `display: grid` – Zweidimensionales Layout**  
+📌 **Grid organisiert Elemente in Zeilen & Spalten.**  
+
+🔹 **Beispiel: Ein 3x2-Grid (3 Spalten, 2 Zeilen)**
+```css
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto;
+  gap: 10px;
+}
+```
+🔹 **HTML**
+```html
+<div class="container">
+  <div class="box">1</div>
+  <div class="box">2</div>
+  <div class="box">3</div>
+  <div class="box">4</div>
+  <div class="box">5</div>
+  <div class="box">6</div>
+</div>
+```
+✅ **Perfekt für komplexe Layouts mit mehreren Spalten & Zeilen.**  
+
+---
+
+## **4. Vergleich: Wann `flexbox` oder `grid` nutzen?**
+| Eigenschaft | **Flexbox** 🏗 | **Grid** 📊 |
+|------------|----------------|--------------|
+| **Layout-Typ** | Eine Achse (Zeile ODER Spalte) | Zwei Achsen (Zeilen & Spalten) |
+| **Flexibel?** | ✅ Sehr dynamisch | ✅ Strukturiert & präzise |
+| **Einfache Anordnung?** | ✅ Ja | ❌ Etwas komplexer |
+| **Automatische Größenanpassung?** | ✅ Gut mit `flex-grow` | ✅ Gut mit `fr`-Einheiten |
+| **Beste Anwendung** | Navigationen, Formulare, einfache Layouts | Webseiten, Dashboards, Raster-Designs |
+
+✅ **Flexbox für einfache Reihen & Spalten.**  
+✅ **Grid für komplexe Layouts mit mehreren Zeilen & Spalten.**  
+
+---
+
+## **5. Kombination von Flexbox & Grid**
+📌 **Oft ist eine Kombination sinnvoll!**  
+
+🔹 **Beispiel: Grid für das Hauptlayout + Flexbox für die Navigation**
+```css
+.container {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-around;
+}
+```
+✅ **Nutze `grid` für das Seitenlayout & `flexbox` für Unterelemente!** 🚀  
+
+🔗 [MDN: Flexbox](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout)  
+🔗 [MDN: Grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout)
 
   **[⬆ Наверх](#top)**
 
-88. ### <a name="88"></a> 
+88. ### <a name="88"></a> Können Flexbox und Grid zusammen verwendet werden?
 
+### **Können Flexbox und Grid zusammen verwendet werden?** ✅🎨  
+
+📌 **Ja! Flexbox & Grid lassen sich kombinieren, um flexible & skalierbare Layouts zu erstellen.**  
+✅ **Ziel:** **Flexibilität von Flexbox + Struktur von Grid nutzen.**  
+
+---
+
+## **1. Warum Flexbox & Grid kombinieren?**  
+
+🔹 **Grid** → Perfekt für das **Gesamt-Layout** (Seitenstruktur mit Header, Main, Sidebar).  
+🔹 **Flexbox** → Ideal für **Unterelemente** (z. B. Navigation, Buttons, Formulare).  
+
+✅ **So nutzt du beide optimal!**  
+
+---
+
+## **2. Beispiel: Grid für das Hauptlayout, Flexbox für Navigation & Inhalt**
+📌 **Grid für das übergeordnete Layout, Flexbox für flexible Elemente innerhalb der Abschnitte.**  
+
+🔹 **CSS**
+```css
+.container {
+  display: grid;
+  grid-template-columns: 1fr 3fr; /* 2 Spalten: Sidebar (1fr) + Main Content (3fr) */
+  grid-template-rows: auto auto; /* Header + Inhalt */
+  gap: 20px;
+}
+
+.header {
+  grid-column: span 2;
+  display: flex;
+  justify-content: space-between; /* Flexbox für Navigation */
+  background: lightblue;
+  padding: 10px;
+}
+
+.sidebar {
+  background: lightgray;
+}
+
+.main {
+  display: flex; /* Flexbox für Inhalt */
+  flex-direction: column;
+  align-items: center;
+  background: lightgreen;
+}
+```
+
+🔹 **HTML**
+```html
+<div class="container">
+  <header class="header">
+    <div>Logo</div>
+    <nav class="nav">
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </nav>
+  </header>
+  <aside class="sidebar">Sidebar</aside>
+  <main class="main">
+    <p>Inhalt</p>
+    <button>Click</button>
+  </main>
+</div>
+```
+
+✅ **Hier nutzt Grid das Hauptlayout & Flexbox gestaltet die Navigation & den Main-Content!**  
+
+---
+
+## **3. Wann macht die Kombination Sinn?**
+| **Situation** | **Nutze Grid für…** | **Nutze Flexbox für…** |
+|--------------|---------------------|----------------------|
+| **Hauptlayout der Seite** | Seitenstruktur (Header, Sidebar, Main) | ❌ Nicht nötig |
+| **Navigation** | ❌ Nicht nötig | Horizontale/vertikale Anordnung von Links |
+| **Buttons & Karten** | ❌ Nicht nötig | Zentrierte oder verteilte Elemente |
+| **Produktliste (variable Anzahl)** | Grid für Raster | Flexbox für flexible Anordnung in den Items |
+| **Formulare** | ❌ Nicht nötig | Label & Inputs nebeneinander |
+
+✅ **Grid für Hauptlayouts, Flexbox für Inhalt & kleine Layouts!** 🚀  
+
+---
+
+## **4. Fazit: Wann Flexbox & Grid zusammen verwenden?**  
+✔ **Grid** → Für **große, strukturierte Layouts** (Seitenaufbau, Dashboard).  
+✔ **Flexbox** → Für **dynamische, flexible Inhalte** innerhalb der Grid-Bereiche.  
+✔ **Gemeinsam unschlagbar für responsive & skalierbare Webseiten!** 🚀  
+
+🔗 [MDN: Grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout)  
+🔗 [MDN: Flexbox](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout)
 
   **[⬆ Наверх](#top)**
 
-89. ### <a name="89"></a> 
+89. ### <a name="89"></a> Wie bestimmen Browser, welche Elemente CSS-Regeln erhalten?
 
+### **Wie bestimmen Browser, welche Elemente CSS-Regeln erhalten?** 🔍🎨  
+
+📌 **Der Browser verwendet den CSS-Kaskadenprozess, um zu entscheiden, welche Styles auf ein Element angewendet werden.**  
+✅ **Ziel:** **Verstehen, wie Browser CSS-Regeln verarbeiten & welche Priorität sie haben.**  
+
+---
+
+## **1. Der Kaskaden-Prozess (CSS-Cascade)**
+📌 **Die Reihenfolge der CSS-Anwendung basiert auf:**
+1️⃣ **Herkunft der CSS-Regeln**  
+2️⃣ **Spezifität der Selektoren**  
+3️⃣ **Quellcode-Reihenfolge**  
+
+✅ **So entscheidet der Browser, welche Regel gewinnt!**  
+
+---
+
+## **2. Herkunft der CSS-Regeln (Cascade Layers)**
+📌 **Der Browser berücksichtigt verschiedene Quellen von CSS-Regeln:**  
+
+🔹 **Reihenfolge der Priorität (von schwach → stark):**  
+1. **Browser-Standard-Stile** (z. B. `button` hat Standard-Styling)  
+2. **Externe Stylesheets (`<link>` in `<head>`)**  
+3. **Interne Styles (`<style>` im `<head>`)**  
+4. **Inline-Styles (`style="..."` direkt im HTML) → Höchste Priorität**  
+5. **`!important` → Überschreibt ALLES**  
+
+🔹 **Beispiel: Wer gewinnt?**  
+```html
+<head>
+  <link rel="stylesheet" href="styles.css"> <!-- Externe CSS -->
+  <style>
+    p { color: blue; } /* Interne CSS */
+  </style>
+</head>
+<body>
+  <p style="color: red;">Text</p> <!-- Inline CSS -->
+</body>
+```
+✅ **Ergebnis:** `color: red;` wird angewendet, weil Inline-Styles Vorrang haben!  
+
+---
+
+## **3. Spezifität: Welche Regel gewinnt?**
+📌 **Regeln mit höherer Spezifität überschreiben schwächere Regeln.**  
+
+| Selektor | Spezifitätswert |
+|----------|----------------|
+| **Element (`p`)** | `1` |
+| **Klasse (`.box`)** | `10` |
+| **ID (`#header`)** | `100` |
+| **Inline-Stil (`style="..."`)** | `1000` |
+
+🔹 **Beispiel: Welche Regel gewinnt?**
+```css
+p { color: blue; }         /* Spezifität = 1 */
+.box { color: green; }     /* Spezifität = 10 */
+#header { color: red; }    /* Spezifität = 100 */
+```
+```html
+<p id="header" class="box">Text</p>
+```
+✅ **Ergebnis:** `color: red;` gewinnt, weil `#header` die höchste Spezifität hat!  
+
+🔹 **Achtung bei `!important`**  
+```css
+p { color: blue !important; } /* Überschreibt ALLES */
+```
+✅ **`!important` setzt sich durch, egal welche Spezifität eine andere Regel hat.**  
+
+---
+
+## **4. Reihenfolge im Quellcode**
+📌 **Bei gleicher Spezifität gewinnt die zuletzt geladene Regel.**  
+
+🔹 **Beispiel: Zwei identische Selektoren**
+```css
+h1 { color: red; }
+h1 { color: blue; }
+```
+✅ **Ergebnis:** Text wird **blau**, weil die zweite Regel später im Code steht.  
+
+---
+
+## **5. Fazit: Wie bestimmen Browser CSS-Regeln?**
+✔ **1️⃣ Kaskade** → **Welche Quelle ist wichtiger? (`inline` > `external` > `browser`)**  
+✔ **2️⃣ Spezifität** → **Welcher Selektor ist stärker? (`#id` > `.class` > `element`)**  
+✔ **3️⃣ Quellcode-Reihenfolge** → **Letzte Regel gewinnt bei Gleichstand.**  
+
+✅ **Browser verwenden diesen Prozess, um das finale Styling zu bestimmen!** 🚀  
+
+🔗 [MDN: CSS Cascade](https://developer.mozilla.org/en-US/docs/Web/CSS/Cascade)
 
   **[⬆ Наверх](#top)**
 
-90. ### <a name="90"></a> 
+90. ### <a name="90"></a> Was sind CSS-Pseudoelemente und wie werden sie verwendet?
 
 
   **[⬆ Наверх](#top)**
