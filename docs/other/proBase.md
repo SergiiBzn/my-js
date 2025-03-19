@@ -46,7 +46,7 @@
 |37 | [](#37) |
 |38 | [](#38) |
 |39 | [](#39) |
-|40 | [](#40) |
+|40 | [Allgemeine Fragen zur Webentwicklung](#40) |
 |   | HTML |
 |41 | [Wie ist die Grundstruktur eines HTML-Dokuments aufgebaut?](#41) |
 |42 | [Was ist der Unterschied zwischen Block- und Inline-Elementen?](#42) |
@@ -67,7 +67,7 @@
 |57 | [](#57) |
 |58 | [](#58) |
 |59 | [](#59) |
-|60 | [](#60) |
+|60 | [HTML – Grundlagen und Best Practices](#60) |
 |61 | [](#61) |
 |62 | [](#62) |
 |63 | [](#63) |
@@ -108,22 +108,22 @@
 |97 | [Was sind CSS-Sprites und wofür werden sie verwendet?](#97) |
 |98 | [Wie funktioniert Lazy Loading für CSS?](#98) |
 |99 | [Welche Methoden gibt es, um CSS für verschiedene Medien anzupassen?](#99) |
-|100 | [Welche Sicherheitsrisiken gibt es bei CSS und wie kann man sie vermeiden?](#100) |
-|101 | [Was ist prefers-reduced-motion und wofür wird es genutzt?](#101) |
-|102 | [Wie funktionieren ::before und ::after in CSS?](#102) |
-|103 | [Wie definiert man Fallbacks für ältere Browser?](#103) |
-|104 | [Wie kann CSS zur Verbesserung der Barrierefreiheit beitragen?](#104) |
-|105 | [Was sind Best Practices für eine saubere CSS-Architektur?](#105) |
-|106 | [Wie funktioniert die aspect-ratio-Eigenschaft?](#106) |
-|107 | [Was sind Utility-Klassen in CSS und wann sollten sie verwendet werden?](#107) |
-|108 | [Welche Tools helfen bei der Analyse und Optimierung von CSS?](#108) |
-|109 | [Wie können CSS-Dateien modularisiert werden?](#109) |
-|110 | [Was ist der Unterschied zwischen @import und link für CSS?](#110) |
-|111 | [Wie kann man CSS-Transitions mit JavaScript steuern?](#111) |
-|112 | [Was bewirkt scroll-behavior: smooth in CSS?](#112) |
-|113 | [Welche modernen CSS-Techniken sollte man heute kennen?](#113) |
-|114 | [Wie funktioniert die line-clamp-Eigenschaft?](#114) |
-|115 | [Was sind Container Queries und warum sind sie wichtig?](#115) |
+|100 | [Wie funktionieren ::before und ::after in CSS?](#100) |
+|101 | [Was sind Best Practices für eine saubere CSS-Architektur?](#101) |
+|102 | [Welche Tools helfen bei der Analyse und Optimierung von CSS?](#102) |
+|103 | [Wie können CSS-Dateien modularisiert werden?](#103) |
+|104 | [Was ist der Unterschied zwischen @import und link für CSS?](#104) |
+|105 | [](#105) |
+|106 | [](#106) |
+|107 | [](#107) |
+|108 | [](#108) |
+|109 | [](#109) |
+|110 | [CSS – Grundlagen und Best Practices](#110) |
+|111 | [](#111) |
+|112 | [](#112) |
+|113 | [](#113) |
+|114 | [](#114) |
+|115 | [](#115) |
 |116 | [](#116) |
 |117 | [](#117) |
 |118 | [](#118) |
