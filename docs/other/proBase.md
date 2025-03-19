@@ -7786,76 +7786,1876 @@ h1 { color: blue; }
 
 90. ### <a name="90"></a> Was sind CSS-Pseudoelemente und wie werden sie verwendet?
 
+### **Was sind CSS-Pseudoelemente & wie werden sie verwendet?** 🎨🔍  
+
+📌 **Pseudoelemente in CSS ermöglichen das Stylen bestimmter Teile eines Elements oder das Einfügen von Inhalten, ohne das HTML zu ändern.**  
+✅ **Ziel:** **Styling gezielt auf Textbereiche oder Elemente anwenden, ohne zusätzliches HTML.**  
+
+---
+
+## **1. Syntax von Pseudoelementen**
+📌 **Pseudoelemente werden mit `::` definiert (z. B. `::before`, `::after`).**  
+📌 **Alte Syntax `:` (z. B. `:first-letter`) wird noch unterstützt.**  
+
+🔹 **Beispiel: Standard-Syntax**
+```css
+selector::pseudoelement {
+  property: value;
+}
+```
+
+---
+
+## **2. Wichtige Pseudoelemente & ihre Nutzung**
+| Pseudoelement | Beschreibung | Beispiel |
+|--------------|-------------|---------|
+| `::before` | Fügt Inhalt VOR einem Element hinzu | Tooltip-Symbole, Dekorationen |
+| `::after` | Fügt Inhalt NACH einem Element hinzu | Buttons, visuelle Effekte |
+| `::first-letter` | Stilt den ersten Buchstaben eines Elements | Große Anfangsbuchstaben (Drop Caps) |
+| `::first-line` | Stilt die erste Zeile eines Textblocks | Headlines, Absätze |
+| `::selection` | Stilt den markierten Text | Eigene Auswahlfarben |
+| `::placeholder` | Stilt den Platzhaltertext eines Inputs | Formulare |
+
+✅ **Ermöglicht zusätzliche Styles ohne zusätzliches HTML.**  
+
+---
+
+## **3. `::before` & `::after` – Inhalte per CSS hinzufügen**
+📌 **Diese Pseudoelemente fügen Inhalte vor oder nach einem Element ein.**  
+📌 **Sie erfordern `content: ""`!**  
+
+🔹 **Beispiel: Dekorative Anführungszeichen**
+```css
+blockquote::before {
+  content: "“";
+  font-size: 24px;
+  color: gray;
+}
+
+blockquote::after {
+  content: "”";
+  font-size: 24px;
+  color: gray;
+}
+```
+🔹 **HTML**
+```html
+<blockquote>Das ist ein Zitat.</blockquote>
+```
+✅ **Fügt Anführungszeichen hinzu, ohne HTML zu ändern.**  
+
+---
+
+## **4. `::first-letter` – Ersten Buchstaben stylen**
+📌 **Nützlich für dekorative Texte, z. B. Drop Caps.**  
+
+🔹 **Beispiel: Erster Buchstabe größer & fett**
+```css
+p::first-letter {
+  font-size: 2em;
+  font-weight: bold;
+  color: red;
+}
+```
+🔹 **HTML**
+```html
+<p>Dies ist ein Absatz.</p>
+```
+✅ **Perfekt für Magazin- oder Blog-Designs.**  
+
+---
+
+## **5. `::first-line` – Erste Zeile eines Elements stylen**
+📌 **Nur für Block-Elemente wie `<p>` oder `<div>` sinnvoll.**  
+
+🔹 **Beispiel: Erste Zeile fett & farbig**
+```css
+p::first-line {
+  font-weight: bold;
+  color: blue;
+}
+```
+✅ **Nur die erste Zeile wird gestylt!**  
+
+---
+
+## **6. `::selection` – Markierten Text anpassen**
+📌 **Steuert das Aussehen von markiertem Text (z. B. mit der Maus).**  
+
+🔹 **Beispiel: Eigene Auswahlfarbe**
+```css
+::selection {
+  background: yellow;
+  color: black;
+}
+```
+✅ **Ändert das Markierungs-Design für besseren Kontrast.**  
+
+---
+
+## **7. `::placeholder` – Platzhalter in Input-Feldern stylen**
+📌 **Verändert das Styling des `placeholder`-Texts in Formularen.**  
+
+🔹 **Beispiel: Platzhalter grau & kursiv**
+```css
+input::placeholder {
+  color: gray;
+  font-style: italic;
+}
+```
+✅ **Nützlich für bessere Lesbarkeit von Formularen.**  
+
+---
+
+## **8. Vergleich: Pseudoelemente vs. Pseudoklassen**
+| Typ | Syntax | Beispiel | Wann nutzen? |
+|------|--------|----------|--------------|
+| **Pseudoelemente** | `::` | `::before`, `::after` | Fügt Inhalte oder Styling für Teile eines Elements hinzu |
+| **Pseudoklassen** | `:` | `:hover`, `:focus` | Styling basierend auf dem Zustand eines Elements |
+
+✅ **Pseudoelemente ändern das Layout eines Elements, Pseudoklassen reagieren auf Nutzeraktionen!**  
+
+---
+
+## **9. Fazit: Wann Pseudoelemente nutzen?**
+✔ **`::before` / `::after`** → Zusätzliche Inhalte einfügen (z. B. Symbole, Effekte).  
+✔ **`::first-letter` / `::first-line`** → Spezielle Textformatierung (z. B. Drop Caps).  
+✔ **`::selection`** → Benutzererfahrung verbessern (angepasste Textmarkierung).  
+✔ **`::placeholder`** → Formulare übersichtlicher gestalten.  
+
+✅ **Pseudoelemente machen CSS leistungsfähiger & vermeiden unnötigen HTML-Code!** 🚀  
+
+🔗 [MDN: CSS-Pseudoelemente](https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements)
 
   **[⬆ Наверх](#top)**
 
-91. ### <a name="91"></a> 
+91. ### <a name="91"></a> Was macht * { box-sizing: border-box; } und warum ist es nützlich?
 
+### **Was macht `* { box-sizing: border-box; }` und warum ist es nützlich?** 📏🎨  
+
+📌 **Die Eigenschaft `box-sizing: border-box;` steuert, wie die Gesamtgröße eines Elements berechnet wird.**  
+✅ **Ziel:** **Einfachere Layout-Kontrolle & Vermeidung unerwarteter Größenänderungen.**  
+
+---
+
+## **1. Was macht `box-sizing`?**
+📌 **Es gibt zwei Hauptwerte für `box-sizing`:**  
+
+| Wert | Berechnung der Größe | Verhalten |
+|------|----------------------|-----------|
+| **`content-box` (Standard)** | `width` & `height` **beinhalten NICHT** `padding` & `border` | Element wird größer als erwartet |
+| **`border-box`** | `width` & `height` **beinhalten** `padding` & `border` | Element bleibt genau in der definierten Größe |
+
+✅ **Mit `border-box` bleibt das Layout stabil, unabhängig von Padding & Border!**  
+
+---
+
+## **2. Unterschied: `content-box` vs. `border-box`**
+📌 **Ohne `box-sizing: border-box;` (Standard `content-box`):**  
+
+🔹 **CSS**
+```css
+.box {
+  width: 100px;
+  padding: 10px;
+  border: 5px solid black;
+}
+```
+🔹 **Gesamtgröße des Elements:**
+```
+100px (width) + 10px (left padding) + 10px (right padding) 
++ 5px (left border) + 5px (right border) = 130px
+```
+❌ **Element ist größer als erwartet!**  
+
+📌 **Mit `box-sizing: border-box;`:**  
+```css
+.box {
+  width: 100px;
+  padding: 10px;
+  border: 5px solid black;
+  box-sizing: border-box;
+}
+```
+✅ **Gesamtbreite bleibt exakt `100px`, weil `padding` & `border` darin enthalten sind.**  
+
+---
+
+## **3. Warum ist `box-sizing: border-box;` nützlich?**
+✔ **Bessere Kontrolle über Layouts** → Keine ungewollten Größenveränderungen.  
+✔ **Erleichtert responsive Designs** → Elemente skalieren konsistent.  
+✔ **Reduziert Berechnungen** → Kein manuelles Subtrahieren von `padding` & `border`.  
+✔ **Verhindert Überlauf-Probleme** → Besonders hilfreich für flexible `width: 100%`.  
+
+---
+
+## **4. Universelle Anwendung mit `* { box-sizing: border-box; }`**
+📌 **Durch `*` wird `border-box` für ALLE Elemente gesetzt.**  
+
+🔹 **Empfohlene globale Regel:**
+```css
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+```
+✅ **Verhindert unerwartete Layout-Probleme für das gesamte Projekt.**  
+
+---
+
+## **5. Fazit: Wann `box-sizing: border-box;` verwenden?**
+✔ **Immer für moderne Layouts empfohlen**  
+✔ **Verhindert ungewolltes Größenwachstum durch `padding` & `border`**  
+✔ **Erleichtert responsive Designs & komplexe Grid-/Flexbox-Layouts**  
+
+✅ **Setze `box-sizing: border-box;` als globale Regel für konsistente Layouts!** 🚀  
+
+🔗 [MDN: `box-sizing`](https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing)
 
   **[⬆ Наверх](#top)** 
 
-92. ### <a name="92"></a> 
+92. ### <a name="92"></a> Was sind die Unterschiede zwischen Inline-, Block- und Inline-Block-Elementen in CSS?
 
+### **Unterschiede zwischen Inline-, Block- und Inline-Block-Elementen in CSS** 📏📌  
+
+📌 **HTML-Elemente haben standardmäßig unterschiedliche Anzeigearten (`display`).**  
+✅ **Ziel:** **Verstehen, wann `inline`, `block` & `inline-block` verwendet werden sollten.**  
+
+---
+
+## **1. Vergleich: `inline` vs. `block` vs. `inline-block`**
+| Eigenschaft | `inline` 🎭 | `block` 📦 | `inline-block` 🎭📦 |
+|------------|------------|-----------|-----------------|
+| **Startet eine neue Zeile?** | ❌ Nein | ✅ Ja | ❌ Nein |
+| **Breite anpassbar? (`width` & `height`)?** | ❌ Nein | ✅ Ja | ✅ Ja |
+| **Mehrere Elemente in einer Zeile?** | ✅ Ja | ❌ Nein | ✅ Ja |
+| **Padding & Margin beeinflussen Nachbarelemente?** | ❌ Nur horizontal | ✅ Ja | ❌ Nur horizontal |
+
+✅ **Nutze `inline`, wenn Elemente nebeneinander bleiben sollen.**  
+✅ **Nutze `block`, wenn das Element den gesamten Platz einnehmen soll.**  
+✅ **Nutze `inline-block`, wenn `inline`-Verhalten mit Größenanpassung nötig ist.**  
+
+---
+
+## **2. `inline` – Elemente in einer Zeile**
+📌 **Belegt nur so viel Platz wie nötig & ignoriert `width` & `height`.**  
+
+🔹 **Beispiel: `inline`-Elemente**
+```html
+<span>Text 1</span>
+<span>Text 2</span>
+```
+🔹 **CSS**
+```css
+span {
+  display: inline;
+  width: 200px; /* ❌ Hat keine Wirkung */
+}
+```
+✅ **Typische Inline-Elemente:** `<a>`, `<span>`, `<strong>`, `<em>`  
+
+---
+
+## **3. `block` – Volle Breite einnehmen**
+📌 **Startet in einer neuen Zeile & füllt standardmäßig die gesamte Breite.**  
+
+🔹 **Beispiel: `block`-Elemente**
+```html
+<div>Box 1</div>
+<div>Box 2</div>
+```
+🔹 **CSS**
+```css
+div {
+  display: block;
+  width: 300px; /* ✅ Funktioniert */
+}
+```
+✅ **Typische Block-Elemente:** `<div>`, `<p>`, `<h1>` – `<h6>`, `<section>`  
+
+---
+
+## **4. `inline-block` – Mischung aus `inline` & `block`**
+📌 **Bleibt in einer Zeile, aber akzeptiert `width` & `height`.**  
+
+🔹 **Beispiel: `inline-block`**
+```html
+<span class="box">Box 1</span>
+<span class="box">Box 2</span>
+```
+🔹 **CSS**
+```css
+.box {
+  display: inline-block;
+  width: 100px;  /* ✅ Funktioniert */
+  height: 50px;  /* ✅ Funktioniert */
+  background: lightblue;
+}
+```
+✅ **Typische Nutzung:** Buttons, Menüs, Karten (`<button>`, `<img>`, `<input>`)  
+
+---
+
+## **5. Wann welches `display` nutzen?**
+| Situation | Beste Wahl |
+|-----------|------------|
+| **Text & Links nebeneinander** | `inline` |
+| **Absätze, Container, Layouts** | `block` |
+| **Buttons mit definierter Größe nebeneinander** | `inline-block` |
+
+✅ **Verstehe `display`, um saubere Layouts zu bauen!** 🚀  
+
+🔗 [MDN: CSS `display`](https://developer.mozilla.org/en-US/docs/Web/CSS/display)
 
   **[⬆ Наверх](#top)**
 
-93. ### <a name="93"></a> 
+93. ### <a name="93"></a> Was sind die wichtigsten Prinzipien von Responsive Design und Mobile-First-Ansätzen?
 
+### **Wichtigste Prinzipien von Responsive Design & Mobile-First-Ansätzen** 📱💡  
+
+📌 **Responsive Design & Mobile-First ermöglichen Webseiten, sich an verschiedene Bildschirmgrößen anzupassen.**  
+✅ **Ziel:** **Optimale Benutzererfahrung auf allen Geräten (Smartphone, Tablet, Desktop).**  
+
+---
+
+## **1. Responsive Design – Grundlagen**  
+📌 **Eine Webseite passt sich flexibel an verschiedene Bildschirmgrößen an.**  
+
+🔹 **Wichtige Techniken:**
+- **Flexible Layouts** → Nutzung von `flexbox`, `grid` & `width: 100%`
+- **Relative Einheiten** → `rem`, `em`, `%`, `vh`, `vw` statt `px`
+- **Media Queries** → CSS-Regeln für verschiedene Displaygrößen
+- **Flexible Bilder & Medien** → `max-width: 100%` für skalierbare Inhalte
+
+✅ **Das Layout bleibt lesbar & benutzbar auf kleinen & großen Bildschirmen.**  
+
+---
+
+## **2. Mobile-First-Ansatz – Warum wichtig?**
+📌 **Mobile-First bedeutet, das Design zuerst für Smartphones zu optimieren & dann für größere Geräte anzupassen.**  
+
+🔹 **Warum Mobile-First?**
+✔ Mehrheit der Nutzer kommt über mobile Geräte  
+✔ Performance-Optimierung für schnellere Ladezeiten  
+✔ Bessere Benutzerfreundlichkeit auf kleinen Bildschirmen  
+
+🔹 **Typischer Mobile-First-Code:**
+```css
+/* Standard für mobile Geräte */
+body {
+  font-size: 16px;
+}
+
+/* Anpassung für größere Bildschirme */
+@media (min-width: 768px) {
+  body {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 1200px) {
+  body {
+    font-size: 20px;
+  }
+}
+```
+✅ **Design beginnt klein & wird für größere Screens erweitert.**  
+
+---
+
+## **3. Wichtige Prinzipien für Responsive Design**  
+
+| Prinzip | Beschreibung |
+|---------|-------------|
+| **Flexibles Layout** | Nutzung von `flexbox` & `grid`, um Layouts anpassbar zu machen |
+| **Relative Einheiten** | `em`, `rem`, `%`, `vh`, `vw` statt fixer `px`-Werte |
+| **Media Queries** | Anpassung des Layouts für verschiedene Bildschirmgrößen |
+| **Flexible Bilder & Videos** | `max-width: 100%` & `object-fit: cover` für skalierbare Medien |
+| **Touch-Optimierung** | Größere Buttons, keine zu kleinen Interaktionselemente |
+
+✅ **Diese Techniken sorgen für eine perfekte Darstellung auf allen Geräten.**  
+
+---
+
+## **4. Beispiel: Responsive Navigation mit Flexbox & Media Queries**
+🔹 **HTML**
+```html
+<nav class="nav">
+  <a href="#">Home</a>
+  <a href="#">Über uns</a>
+  <a href="#">Kontakt</a>
+</nav>
+```
+🔹 **CSS (Mobile-First)**
+```css
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Desktop-Version */
+@media (min-width: 768px) {
+  .nav {
+    flex-direction: row;
+    justify-content: space-around;
+  }
+}
+```
+✅ **Navigation wird mobil als Spalte & auf größeren Screens als Zeile angezeigt.**  
+
+---
+
+## **5. Fazit: Wann Mobile-First & Responsive Design?**  
+✔ **Mobile-First → Wenn die Mehrheit der Nutzer mobile Geräte verwendet**  
+✔ **Responsive Design → Wenn die Webseite auf allen Geräten perfekt aussehen soll**  
+✔ **Moderne Webseiten nutzen eine Kombination aus beidem!** 🚀  
+
+🔗 [MDN: Responsive Design](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Responsive_Design)
 
   **[⬆ Наверх](#top)**
 
-94. ### <a name="94"></a> 
+94. ### <a name="94"></a> Welche display-Eigenschaften gibt es und was sind ihre Anwendungsfälle?
 
+### **Übersicht über `display`-Eigenschaften & ihre Anwendungsfälle** 🎨📏  
+
+📌 **Die CSS-Eigenschaft `display` steuert, wie HTML-Elemente gerendert & dargestellt werden.**  
+✅ **Ziel:** **Verstehen, welche `display`-Werte es gibt & wann sie genutzt werden sollten.**  
+
+---
+
+## **1. Wichtige `display`-Werte & ihre Anwendungsfälle**
+| `display`-Wert | Beschreibung | Typische Anwendung |
+|---------------|-------------|--------------------|
+| **`block`** | Startet in einer neuen Zeile & nimmt die volle Breite ein | `<div>`, `<p>`, `<section>` |
+| **`inline`** | Nimmt nur so viel Platz wie nötig, bleibt in einer Zeile | `<span>`, `<a>`, `<strong>` |
+| **`inline-block`** | Bleibt in einer Zeile, aber akzeptiert `width` & `height` | Buttons, Menüs, Icons |
+| **`flex`** | Flexibles Layout mit `flexbox` | Navigationen, Formulare, Layouts |
+| **`grid`** | Rasterbasiertes Layout | Komplexe Seitenlayouts, Dashboards |
+| **`none`** | Versteckt das Element komplett (wird nicht gerendert) | Dropdowns, modale Fenster |
+| **`table`** | Verhält sich wie eine HTML-Tabelle | CSS-Tabellenlayouts |
+| **`contents`** | Entfernt das Element, behält aber die Kinder im DOM | Strukturierung ohne zusätzliches Markup |
+
+✅ **Je nach Layout & Funktionalität sollte der passende `display`-Wert gewählt werden.**  
+
+---
+
+## **2. Wichtige `display`-Werte im Detail**
+### **1️⃣ `display: block;` → Ganze Zeile einnehmen**
+📌 **Elemente mit `block` nehmen die gesamte Breite ein & starten in einer neuen Zeile.**  
+
+🔹 **Beispiel: Block-Elemente**
+```css
+.block {
+  display: block;
+  width: 200px;
+  background: lightblue;
+}
+```
+🔹 **HTML**
+```html
+<div class="block">Block 1</div>
+<div class="block">Block 2</div>
+```
+✅ **Perfekt für Layout-Container & Absätze.**  
+
+---
+
+### **2️⃣ `display: inline;` → Innerhalb einer Zeile**
+📌 **Nimmt nur die notwendige Breite ein & akzeptiert kein `width` oder `height`.**  
+
+🔹 **Beispiel: Inline-Elemente**
+```css
+.inline {
+  display: inline;
+  background: yellow;
+}
+```
+🔹 **HTML**
+```html
+<span class="inline">Inline 1</span>
+<span class="inline">Inline 2</span>
+```
+✅ **Geeignet für Links, Textelemente (`<span>`, `<a>`).**  
+
+---
+
+### **3️⃣ `display: inline-block;` → Kombination aus `inline` & `block`**
+📌 **Bleibt in einer Zeile, aber erlaubt `width` & `height`.**  
+
+🔹 **Beispiel: Inline-Block für Buttons**
+```css
+.button {
+  display: inline-block;
+  width: 120px;
+  height: 40px;
+  background: blue;
+  color: white;
+  text-align: center;
+  line-height: 40px;
+}
+```
+🔹 **HTML**
+```html
+<a href="#" class="button">Klick mich</a>
+```
+✅ **Ideal für Buttons & Navigationselemente.**  
+
+---
+
+### **4️⃣ `display: flex;` → Flexible Anordnung in einer Zeile oder Spalte**
+📌 **Flexbox für moderne, responsive Layouts.**  
+
+🔹 **Beispiel: Navigation mit `flexbox`**
+```css
+.nav {
+  display: flex;
+  justify-content: space-between;
+}
+```
+🔹 **HTML**
+```html
+<nav class="nav">
+  <a href="#">Home</a>
+  <a href="#">Über</a>
+  <a href="#">Kontakt</a>
+</nav>
+```
+✅ **Perfekt für Navigationen, Formulare & flexible Layouts.**  
+
+---
+
+### **5️⃣ `display: grid;` → Rasterbasiertes Layout**
+📌 **Ermöglicht komplexe Layouts mit Zeilen & Spalten.**  
+
+🔹 **Beispiel: 3-Spalten-Layout**
+```css
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+```
+✅ **Ideal für Webseiten-Layouts & Dashboards.**  
+
+---
+
+### **6️⃣ `display: none;` → Element ausblenden**
+📌 **Das Element wird entfernt & nimmt keinen Platz mehr ein.**  
+
+🔹 **Beispiel: Verstecktes Element**
+```css
+.hidden {
+  display: none;
+}
+```
+✅ **Gut für modale Fenster, Dropdowns & versteckte Inhalte.**  
+
+---
+
+## **3. Fazit: Wann welchen `display`-Wert nutzen?**
+✔ **`block`** → Strukturierung von Inhalten (`<div>`, `<section>`)  
+✔ **`inline`** → Kleine Elemente innerhalb von Text (`<a>`, `<span>`)  
+✔ **`inline-block`** → Buttons, Icons, Navigationen  
+✔ **`flex`** → Flexible Reihen-/Spaltenanordnung (`nav`, `form`)  
+✔ **`grid`** → Strukturierte Rasterlayouts  
+✔ **`none`** → Elemente verstecken (Modals, Dropdowns)  
+
+✅ **Richtige `display`-Werte verbessern Layouts & Benutzerfreundlichkeit!** 🚀  
+
+🔗 [MDN: CSS `display`](https://developer.mozilla.org/en-US/docs/Web/CSS/display)
 
   **[⬆ Наверх](#top)**
 
-95. ### <a name="95"></a> 
+95. ### <a name="95"></a> Wie funktionieren Keyframe-Animationen in CSS (@keyframes)?
 
+### **Keyframe-Animationen in CSS (`@keyframes`)** 🎬✨  
+
+📌 **Mit `@keyframes` lassen sich CSS-Animationen definieren, um Elemente über Zeit hinweg zu verändern.**  
+✅ **Ziel:** **Flüssige & interaktive Animationen erstellen, ohne JavaScript.**  
+
+---
+
+## **1. Grundstruktur einer `@keyframes`-Animation**
+📌 **Ein `@keyframes`-Block definiert eine Animation mit mehreren Zuständen.**  
+
+🔹 **Syntax:**
+```css
+@keyframes animation-name {
+  from { /* Startzustand */ }
+  to { /* Endzustand */ }
+}
+```
+✅ **Die Animation läuft von `from` (0%) bis `to` (100%).**  
+
+🔹 **Beispiel: Farbe ändern**
+```css
+@keyframes colorChange {
+  from {
+    background-color: blue;
+  }
+  to {
+    background-color: red;
+  }
+}
+
+.box {
+  width: 100px;
+  height: 100px;
+  animation: colorChange 2s linear infinite;
+}
+```
+✅ **Element wechselt in 2s von Blau zu Rot & wiederholt sich unendlich.**  
+
+---
+
+## **2. Erweiterte Keyframes mit mehreren Stufen**
+📌 **Mehrere `keyframes` können genutzt werden (`0%`, `50%`, `100%`).**  
+
+🔹 **Beispiel: Element bewegt sich & ändert Farbe**
+```css
+@keyframes moveAndColor {
+  0% { transform: translateX(0); background: blue; }
+  50% { transform: translateX(100px); background: green; }
+  100% { transform: translateX(0); background: red; }
+}
+```
+✅ **Erlaubt komplexe Übergänge in mehreren Stufen.**  
+
+---
+
+## **3. Anwendung einer Animation**
+📌 **Eine Animation wird mit `animation` auf ein Element angewendet.**  
+
+🔹 **Eigenschaften von `animation`:**
+```css
+animation: name duration timing-function delay iteration-count direction;
+```
+
+| Eigenschaft | Bedeutung | Beispiel |
+|------------|-----------|----------|
+| `name` | Name der `@keyframes` | `fadeIn` |
+| `duration` | Dauer der Animation | `2s`, `500ms` |
+| `timing-function` | Geschwindigkeit der Animation | `ease`, `linear`, `ease-in` |
+| `delay` | Wartezeit vor Start | `1s`, `0ms` |
+| `iteration-count` | Anzahl der Wiederholungen | `infinite`, `3` |
+| `direction` | Animationsrichtung | `normal`, `reverse`, `alternate` |
+
+🔹 **Beispiel mit allen Parametern**
+```css
+.box {
+  animation: moveAndColor 3s ease-in-out 1s infinite alternate;
+}
+```
+✅ **Läuft 3s, startet nach 1s, wiederholt sich unendlich & kehrt um (`alternate`).**  
+
+---
+
+## **4. Animation mit `@keyframes` stoppen & pausieren**
+📌 **Mit `animation-play-state` kann eine Animation pausiert werden.**  
+
+🔹 **Beispiel: Pause bei Hover**
+```css
+.box {
+  animation: moveAndColor 2s infinite;
+  animation-play-state: running;
+}
+
+.box:hover {
+  animation-play-state: paused;
+}
+```
+✅ **Animation stoppt, wenn die Maus über das Element fährt.**  
+
+---
+
+## **5. Kombination mit `transform` & `opacity`**
+📌 **Effekte wie Skalierung, Rotation & Transparenz lassen sich kombinieren.**  
+
+🔹 **Beispiel: Einblenden & Skalieren**
+```css
+@keyframes fadeInScale {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.box {
+  animation: fadeInScale 1.5s ease-out;
+}
+```
+✅ **Element erscheint sanft & wächst gleichzeitig.**  
+
+---
+
+## **6. Fazit: Wann `@keyframes` nutzen?**
+✔ **Für flüssige, CSS-basierte Animationen**  
+✔ **Buttons, Effekte, interaktive UI-Elemente**  
+✔ **Bessere Performance als JavaScript-Animationen**  
+
+🚀 **`@keyframes` macht Webseiten dynamischer & benutzerfreundlicher!**  
+
+🔗 [MDN: CSS `@keyframes`](https://developer.mozilla.org/en-US/docs/Web/CSS/@keyframes)
 
   **[⬆ Наверх](#top)**
 
-96. ### <a name="96"></a> 
+96. ### <a name="96"></a> Wie lassen sich CSS-Dateien optimieren, um die Ladegeschwindigkeit zu verbessern?
 
+### **Wie kann man CSS optimieren, um die Ladegeschwindigkeit zu verbessern?** 🚀📏  
+
+📌 **Optimiertes CSS sorgt für schnellere Ladezeiten, bessere Performance & SEO-Vorteile.**  
+✅ **Ziel:** **CSS-Dateien so effizient wie möglich machen, ohne die Funktionalität zu verlieren.**  
+
+---
+
+## **1. Unnötige CSS-Regeln entfernen (CSS-Minimierung)**
+📌 **Unbenutztes oder redundantes CSS erhöht die Dateigröße & Ladezeit.**  
+
+🔹 **Tools für automatische Bereinigung:**  
+- **[PurgeCSS](https://purgecss.com/)** → Entfernt ungenutztes CSS  
+- **[UnCSS](https://github.com/giakki/uncss)** → Löscht nicht verwendete Styles  
+- **[CSSNano](https://cssnano.co/)** → Minimiert CSS-Dateien  
+
+✅ **Tipp:** Unnötige `!important`-Regeln vermeiden & nicht benötigte Klassen entfernen.  
+
+---
+
+## **2. CSS-Minifizierung (Minification)**
+📌 **Minifizierte CSS-Dateien reduzieren die Dateigröße durch Entfernen von Leerzeichen & Kommentaren.**  
+
+🔹 **Beispiel: Vorher (unminifiziert)**
+```css
+body {
+  background-color: white;
+  font-size: 16px;
+}
+```
+🔹 **Nach Minifizierung**
+```css
+body{background-color:#fff;font-size:16px}
+```
+🔹 **Tools zur Minifizierung:**  
+- **[CSSNano](https://cssnano.co/)**  
+- **[Terser](https://terser.org/)**  
+- **[UglifyCSS](https://www.npmjs.com/package/uglifycss)**  
+
+✅ **Kleinere Dateien = schnellere Ladezeit!**  
+
+---
+
+## **3. `critical CSS` nutzen (Above-the-Fold CSS)**
+📌 **Lädt zuerst nur das CSS, das für den sichtbaren Bereich nötig ist.**  
+
+🔹 **Schritt-für-Schritt-Ansatz:**  
+1️⃣ Kritisches CSS direkt im `<head>` als `<style>` einfügen  
+2️⃣ Restliche CSS-Dateien asynchron laden  
+
+🔹 **Beispiel: Kritisches CSS inline setzen**
+```html
+<style>
+  body { font-family: sans-serif; background: white; }
+  h1 { color: blue; }
+</style>
+<link rel="stylesheet" href="styles.css" media="print" onload="this.media='all'">
+```
+✅ **Beschleunigt den sichtbaren Seitenaufbau & verbessert Core Web Vitals.**  
+
+---
+
+## **4. Asynchrones Laden von CSS (`media`-Attribute)**
+📌 **Lädt nicht sofort benötigtes CSS erst später.**  
+
+🔹 **Beispiel: CSS mit `media="print"` laden & später aktivieren**
+```html
+<link rel="stylesheet" href="styles.css" media="print" onload="this.media='all'">
+```
+✅ **Reduziert das Render-Blocking & verbessert die Ladezeit.**  
+
+---
+
+## **5. `font-display: swap;` für schnellere Schriftarten-Ladezeit**
+📌 **Webfonts können das Rendern blockieren → `swap` zeigt eine Fallback-Schrift an.**  
+
+🔹 **Beispiel: Font optimieren**
+```css
+@font-face {
+  font-family: 'Roboto';
+  src: url('roboto.woff2') format('woff2');
+  font-display: swap;
+}
+```
+✅ **Kein unsichtbarer Text beim Laden (`FOIT` vermeiden).**  
+
+---
+
+## **6. Vermeiden von `@import` (stattdessen `<link>` verwenden)**
+📌 **`@import` blockiert das Laden weiterer Stylesheets & verlangsamt die Seite.**  
+
+🔹 **Vermeiden:**
+```css
+@import url('styles.css');
+```
+🔹 **Besser:**
+```html
+<link rel="stylesheet" href="styles.css">
+```
+✅ **`<link>` lädt schneller & blockiert nicht das Rendering.**  
+
+---
+
+## **7. `box-sizing: border-box;` als globale Regel**
+📌 **Verhindert unerwartete Größenänderungen durch `padding` & `border`.**  
+
+🔹 **Empfohlene Regel:**
+```css
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+```
+✅ **Erleichtert das Layout-Management & reduziert Berechnungen.**  
+
+---
+
+## **8. CSS-Dateien kombinieren & HTTP-Requests minimieren**
+📌 **Mehrere kleine CSS-Dateien erzeugen unnötige HTTP-Anfragen.**  
+
+🔹 **Besser: Eine einzige, optimierte Datei statt viele kleine.**  
+✔ **Tools:** Webpack, Gulp, Parcel  
+
+✅ **Weniger Anfragen = schnellere Ladezeit!**  
+
+---
+
+## **9. Unnötige CSS-Animationen vermeiden**
+📌 **Zu viele Animationen (z. B. `box-shadow`, `background-image`) verlangsamen das Rendering.**  
+
+🔹 **Empfohlene Optimierung:**
+✔ Nutze `transform` & `opacity` statt `top/left/margin`  
+✔ Nutze `will-change`, um Animationen zu optimieren  
+```css
+.element {
+  will-change: transform;
+}
+```
+✅ **Smoother Performance, bessere UX.**  
+
+---
+
+## **10. Fazit: Beste Methoden zur CSS-Optimierung**
+| Technik | Vorteil |
+|---------|---------|
+| **Unnötiges CSS entfernen (PurgeCSS, UnCSS)** | Kleinere CSS-Dateien |
+| **CSS minifizieren (CSSNano, Terser)** | Schnellere Ladezeit |
+| **Critical CSS laden (Above-the-Fold CSS)** | Schneller sichtbarer Bereich |
+| **Asynchrones Laden (`media`-Attribute nutzen)** | Render-Blocking reduzieren |
+| **`font-display: swap;` für Webfonts** | Vermeidet unsichtbaren Text |
+| **Verzicht auf `@import`** | Schnellere Stylesheet-Ladezeit |
+| **Globale `box-sizing: border-box;` Regel** | Einfacheres Layout-Management |
+| **CSS-Dateien kombinieren** | Weniger HTTP-Requests |
+| **Optimierte CSS-Animationen** | Bessere Rendering-Performance |
+
+🚀 **Gut optimiertes CSS verbessert Ladezeiten, Core Web Vitals & UX!**  
+
+🔗 [MDN: CSS-Optimierung](https://developer.mozilla.org/en-US/docs/Learn/Performance/CSS)  
+🔗 [Google PageSpeed Insights](https://pagespeed.web.dev/)
 
   **[⬆ Наверх](#top)**
 
-97. ### <a name="97"></a> 
+97. ### <a name="97"></a> Was sind CSS-Sprites und wofür werden sie verwendet?
 
+### **Was sind CSS-Sprites & wofür werden sie verwendet?** 🎨📦  
+
+📌 **CSS-Sprites kombinieren mehrere kleine Bilder in eine einzige Bilddatei, um HTTP-Requests zu reduzieren & die Ladezeit zu verbessern.**  
+✅ **Ziel:** **Weniger Serveranfragen, bessere Performance & optimierte Darstellung von Icons & Grafiken.**  
+
+---
+
+## **1. Was ist ein CSS-Sprite?**
+📌 **Anstatt viele einzelne Bilder zu laden, wird ein großes Bild mit mehreren Icons oder Grafiken genutzt.**  
+
+🔹 **Beispiel: Einzelne Icons vs. Sprite-Bild**
+| Ohne Sprite | Mit Sprite |
+|------------|-----------|
+| ![img1](https://via.placeholder.com/32) ![img2](https://via.placeholder.com/32) | ![sprite](https://via.placeholder.com/128x32) |
+
+✅ **Sprite spart Ladezeit, weil nur eine Bilddatei geladen wird.**  
+
+---
+
+## **2. Warum CSS-Sprites nutzen?**
+✔ **Weniger HTTP-Requests** → Nur eine Bilddatei statt vieler kleiner Bilder  
+✔ **Schnellere Ladezeit** → Besonders nützlich für Icons & UI-Elemente  
+✔ **Konsistentes Design** → Alle Icons sind gleichmäßig skaliert & positioniert  
+✔ **Bessere Performance auf mobilen Geräten** → Spart Bandbreite  
+
+✅ **Perfekt für Navigationen, Icon-Sets, Buttons & Logos!**  
+
+---
+
+## **3. Wie funktionieren CSS-Sprites?**
+📌 **Mit `background-position` wird der sichtbare Bereich innerhalb des Sprite-Bildes verschoben.**  
+
+🔹 **Sprite-Bild (z. B. `icons.png`)**
+```
++-------------------+
+| [🏠] [📩] [⚙️] |
++-------------------+
+```
+🔹 **CSS-Sprite-Technik**
+```css
+.sprite {
+  background-image: url('icons.png');
+  background-repeat: no-repeat;
+  width: 32px;
+  height: 32px;
+  display: inline-block;
+}
+
+/* Verschieben, um das richtige Icon anzuzeigen */
+.home { background-position: 0px 0px; }   /* Erstes Icon */
+.mail { background-position: -32px 0px; } /* Zweites Icon */
+.settings { background-position: -64px 0px; } /* Drittes Icon */
+```
+🔹 **HTML**
+```html
+<span class="sprite home"></span>
+<span class="sprite mail"></span>
+<span class="sprite settings"></span>
+```
+✅ **Nur ein Bild wird geladen, aber verschiedene Icons angezeigt.**  
+
+---
+
+## **4. Vorteile & Nachteile von CSS-Sprites**
+| **Vorteile** | **Nachteile** |
+|-------------|--------------|
+| ✅ Weniger HTTP-Anfragen | ❌ Manuelles Zuschneiden & Positionieren |
+| ✅ Schnellere Ladezeit | ❌ Änderungen am Sprite-Bild erfordern Anpassung im CSS |
+| ✅ Bessere Performance für UI-Icons | ❌ Nicht ideal für responsive Bilder |
+
+✅ **CSS-Sprites sind perfekt für statische Icons & Grafiken!**  
+
+---
+
+## **5. Wann sind CSS-Sprites sinnvoll?**
+✔ **Für Icon-Sets & UI-Elemente (z. B. Navigation, Buttons, Logos)**  
+✔ **Bei wiederverwendbaren, kleinen Bildern**  
+✔ **Wenn Performance optimiert werden soll**  
+
+❌ **Nicht sinnvoll für große Bilder oder responsives Design → Alternativen:**  
+- **SVG-Sprites** → Besser für skalierbare Vektorgrafiken  
+- **Webfont-Icons (z. B. FontAwesome)** → Perfekt für Icons mit flexibler Skalierung  
+
+---
+
+## **6. Fazit: Warum CSS-Sprites nutzen?**
+🚀 **Reduziert HTTP-Requests, verbessert Ladezeiten & ist ideal für kleine Icons & UI-Elemente.**  
+📌 **Nutze `background-position`, um verschiedene Teile des Sprite-Bildes anzuzeigen.**  
+
+🔗 [MDN: CSS-Sprites](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Images/Using_CSS_sprites)  
+🔗 [CSS Sprite Generator](https://www.toptal.com/developers/css/sprite-generator)
 
   **[⬆ Наверх](#top)**
 
-98. ### <a name="98"></a> 
+98. ### <a name="98"></a> Wie funktioniert Lazy Loading für CSS?
 
+### **Wie funktioniert Lazy Loading für CSS?** 🎨🚀  
+
+📌 **Lazy Loading für CSS bedeutet, dass Stylesheets nur bei Bedarf geladen werden, um die anfängliche Ladezeit der Seite zu verkürzen.**  
+✅ **Ziel:** **Render-Blocking reduzieren & CSS effizient nachladen.**  
+
+---
+
+## **1. Warum Lazy Loading für CSS?**  
+📌 **CSS-Dateien können das Rendering blockieren** (der Browser wartet, bis das CSS geladen ist).  
+
+🔹 **Vorteile von Lazy Loading:**  
+✔ Schnellere erste Ladezeit (`First Contentful Paint` verbessert)  
+✔ Weniger HTTP-Requests bei Seitenaufruf  
+✔ Reduziert unnötiges Laden von CSS für nicht sichtbare Inhalte  
+
+✅ **Perfekt für nicht kritische Styles wie Themes, Modale oder Animationen.**  
+
+---
+
+## **2. Methoden für Lazy Loading von CSS**
+📌 **Folgende Methoden ermöglichen das verzögerte Laden von CSS:**  
+
+---
+
+### **1️⃣ `media="print"` + `onload` (Beste Methode)**
+📌 **CSS zuerst als "print" laden, dann umschalten.**  
+✔ Funktioniert in modernen Browsern  
+✔ Verzögert das Laden ohne `render-blocking`  
+
+🔹 **Beispiel:**
+```html
+<link rel="stylesheet" href="styles.css" media="print" onload="this.media='all'">
+```
+✅ **Das Stylesheet wird erst nach dem Rendering aktiviert.**  
+
+---
+
+### **2️⃣ Dynamisches Laden per JavaScript (`link`-Tag erzeugen)**
+📌 **JavaScript kann CSS gezielt nachladen, wenn es benötigt wird.**  
+
+🔹 **Beispiel: Lazy Loading mit JS**
+```javascript
+function loadCSS(href) {
+  let link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  document.head.appendChild(link);
+}
+
+loadCSS("theme.css"); // Lädt CSS erst, wenn die Funktion aufgerufen wird
+```
+✅ **Gut für Themes, Dark-Mode oder Modale.**  
+
+---
+
+### **3️⃣ CSS nur laden, wenn ein Element sichtbar wird (`IntersectionObserver`)**
+📌 **Nützlich für große Stylesheets, die nur gebraucht werden, wenn der Nutzer scrollt.**  
+
+🔹 **Beispiel: CSS erst laden, wenn ein bestimmtes Element sichtbar ist**
+```javascript
+let observer = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting) {
+    loadCSS("lazy-styles.css");
+  }
+});
+
+observer.observe(document.querySelector("#lazy-section"));
+```
+✅ **Perfekt für nicht sichtbare Inhalte, z. B. Footer oder Modale.**  
+
+---
+
+## **3. Fazit: Wann welches Lazy Loading nutzen?**
+| **Methode** | **Vorteile** | **Beste Anwendung** |
+|-------------|-------------|---------------------|
+| **`media="print"` + `onload`** | Einfach, effizient, kein JavaScript nötig | Für nicht kritische Styles |
+| **JavaScript `link`-Tag** | Vollständige Kontrolle über das Nachladen | Themes, Dark-Mode, Modale |
+| **`IntersectionObserver`** | Nur laden, wenn nötig (scrollbasiert) | Später sichtbare Inhalte (Footer, Off-Canvas-Menüs) |
+
+✅ **Lazy Loading optimiert Ladezeiten & verbessert die UX!** 🚀  
+
+🔗 [MDN: Lazy Loading CSS](https://developer.mozilla.org/en-US/docs/Web/Performance/Lazy_loading)  
 
   **[⬆ Наверх](#top)**
 
-99. ### <a name="99"></a> 
+99. ### <a name="99"></a> Welche Methoden gibt es, um CSS für verschiedene Medien anzupassen?
 
+### **Methoden zur Anpassung von CSS für verschiedene Medien** 🎨📱🖥️  
+
+📌 **CSS kann für verschiedene Geräte, Bildschirmgrößen & Medien optimiert werden.**  
+✅ **Ziel:** **Optimale Darstellung auf Smartphones, Tablets, Desktops & Druckern.**  
+
+---
+
+## **1. Media Queries (`@media`) – Anpassung nach Bildschirmgröße**
+📌 **Media Queries erlauben gezielte CSS-Regeln für verschiedene Geräte.**  
+
+🔹 **Beispiel: Mobiles Styling ab 768px**
+```css
+@media (max-width: 768px) {
+  body {
+    background-color: lightgray;
+  }
+}
+```
+✅ **Mobile-first Ansatz → Erst für Mobilgeräte designen, dann für größere Screens erweitern.**  
+
+---
+
+## **2. `media`-Attribute in `<link>` für stylesheets**
+📌 **Lädt Stylesheets nur für bestimmte Medien (z. B. Druck, Bildschirm).**  
+
+🔹 **Beispiel: Unterschiedliche Stylesheets für Bildschirm & Druck**
+```html
+<link rel="stylesheet" href="screen.css" media="screen">
+<link rel="stylesheet" href="print.css" media="print">
+```
+✅ **Vermeidet unnötige CSS-Regeln beim Laden.**  
+
+---
+
+## **3. `@import` mit Media Queries (weniger empfohlen)**
+📌 **Kann CSS nur für bestimmte Medien laden, aber blockiert das Rendering.**  
+
+🔹 **Beispiel: Media Query innerhalb von `@import`**
+```css
+@import url("mobile.css") screen and (max-width: 768px);
+```
+❌ **Besser `media`-Attribute in `<link>` nutzen!**  
+
+---
+
+## **4. `@media` für Dark Mode (`prefers-color-scheme`)**
+📌 **Erlaubt automatische Anpassung basierend auf Systemeinstellungen.**  
+
+🔹 **Beispiel: Dark Mode Styling**
+```css
+@media (prefers-color-scheme: dark) {
+  body {
+    background: black;
+    color: white;
+  }
+}
+```
+✅ **Ideal für Themes ohne zusätzlichen JavaScript-Code.**  
+
+---
+
+## **5. `@media` für Touchscreens (`pointer: coarse`)**
+📌 **Spezielles Styling für Touch-Geräte mit dicken Fingern.**  
+
+🔹 **Beispiel: Größere Buttons für Touch-Geräte**
+```css
+@media (pointer: coarse) {
+  button {
+    padding: 20px;
+  }
+}
+```
+✅ **Verbessert die Benutzerfreundlichkeit auf Smartphones & Tablets.**  
+
+---
+
+## **6. `@media` für Drucker (`print`)**
+📌 **Styles für den Druckmodus (`Ctrl + P`).**  
+
+🔹 **Beispiel: Druckfreundliche Version**
+```css
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  nav {
+    display: none;
+  }
+}
+```
+✅ **Verhindert unnötige Elemente im Ausdruck.**  
+
+---
+
+## **7. Vergleich der Methoden: Welche nutzen?**
+| Methode | Beste Anwendung |
+|---------|----------------|
+| **`@media` Queries** | Responsives Design für verschiedene Bildschirmgrößen |
+| **`media`-Attribute in `<link>`** | Spezielle Stylesheets für Druck, Bildschirm etc. |
+| **`@import` mit Media Queries** | Veraltet, vermeiden! |
+| **Dark Mode mit `prefers-color-scheme`** | Automatisches Dark-/Light-Mode-Design |
+| **`pointer: coarse` für Touch-Geräte** | Optimierung für mobile Benutzerfreundlichkeit |
+| **Druck-Styles mit `@media print`** | Druckfreundliche Webseiten |
+
+✅ **Media Queries & `media`-Attribute sind die besten Methoden!** 🚀  
+
+🔗 [MDN: Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries)
 
   **[⬆ Наверх](#top)**
 
-100. ### <a name="100"></a> 
+100. ### <a name="100"></a> Wie funktionieren ::before und ::after in CSS?
 
+### **Wie funktionieren `::before` und `::after` in CSS?** 🎨✨  
+
+📌 **`::before` und `::after` sind Pseudoelemente, die Inhalt vor oder nach einem Element einfügen.**  
+✅ **Ziel:** **Zusätzliche Styles & Inhalte ohne zusätzliches HTML erstellen.**  
+
+---
+
+## **1. Syntax & Grundprinzip**
+📌 **`::before` fügt Inhalt VOR dem Element hinzu, `::after` NACH dem Element.**  
+📌 **Erfordert `content: "";` (sonst wird nichts angezeigt).**  
+
+🔹 **Beispiel: Einfacher Text mit Pseudoelementen**
+```css
+.element::before {
+  content: "★ ";
+  color: gold;
+}
+
+.element::after {
+  content: " ✔";
+  color: green;
+}
+```
+🔹 **HTML**
+```html
+<p class="element">CSS ist cool</p>
+```
+✅ **Ergebnis:** `★ CSS ist cool ✔`  
+
+---
+
+## **2. Styling mit `::before` & `::after`**
+📌 **Kann mit CSS formatiert & positioniert werden.**  
+
+🔹 **Beispiel: Dekorativer Balken vor einer Überschrift**
+```css
+h1::before {
+  content: "";
+  display: block;
+  width: 50px;
+  height: 5px;
+  background: red;
+  margin-bottom: 5px;
+}
+```
+✅ **Nützlich für UI-Elemente wie Trennlinien oder Symbole.**  
+
+---
+
+## **3. Nutzung für Icons & Symbole**
+📌 **CSS-Pseudoelemente eignen sich für visuelle Effekte ohne extra HTML.**  
+
+🔹 **Beispiel: Pfeil vor Links**
+```css
+a::before {
+  content: "→ ";
+  color: blue;
+}
+```
+✅ **Verbessert die Benutzerführung & Lesbarkeit.**  
+
+---
+
+## **4. Positionierung & Styling**
+📌 **Kann mit `position: absolute;` überlagert werden.**  
+
+🔹 **Beispiel: Badge oder Label an Buttons**
+```css
+.button {
+  position: relative;
+  padding: 10px 20px;
+  background: blue;
+  color: white;
+}
+
+.button::after {
+  content: "Neu!";
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background: red;
+  color: white;
+  padding: 3px 5px;
+  font-size: 10px;
+  border-radius: 3px;
+}
+```
+✅ **Perfekt für Badges, Labels & Markierungen.**  
+
+---
+
+## **5. Unterschied `::before` vs. `::after`**
+| **Pseudoelement** | **Position** | **Anwendung** |
+|-------------------|-------------|--------------|
+| **`::before`** | Vor dem Element | Dekorative Elemente, Icons |
+| **`::after`** | Nach dem Element | Labels, Badges, Effekte |
+
+✅ **Beide sind nützlich, um HTML sauber & flexibel zu halten!**  
+
+---
+
+## **6. Wann `::before` & `::after` nutzen?**
+✔ **Icons, Pfeile & visuelle Effekte**  
+✔ **Trennlinien & Dekorationen**  
+✔ **Labels, Badges & Markierungen**  
+✔ **Kein zusätzliches HTML nötig!**  
+
+🚀 **Pseudoelemente machen das Styling flexibler & effizienter!**  
+
+🔗 [MDN: `::before` & `::after`](https://developer.mozilla.org/en-US/docs/Web/CSS/::before)
 
   **[⬆ Наверх](#top)**
 
-101. ### <a name="101"></a> 
+101. ### <a name="101"></a> Was sind Best Practices für eine saubere CSS-Architektur?
 
+### **Best Practices für eine saubere CSS-Architektur** 🎨📏  
+
+📌 **Eine gut strukturierte CSS-Architektur erleichtert Wartung, Skalierbarkeit & Performance.**  
+✅ **Ziel:** **Modulares, übersichtliches & performantes CSS.**  
+
+---
+
+## **1. Verwende ein konsistentes Namensschema (BEM, SMACSS, OOCSS)**
+📌 **Vermeide globale Styles & nutze Namenskonventionen für Klarheit.**  
+
+### **BEM (Block Element Modifier)**
+🔹 **Struktur:**  
+```css
+.block { } /* Hauptkomponente */
+.block__element { } /* Unterelement */
+.block--modifier { } /* Variante */
+```
+🔹 **Beispiel: Button mit BEM**
+```css
+.button { background: blue; }
+.button--large { padding: 20px; }
+.button__icon { margin-right: 5px; }
+```
+✅ **Klar verständliche Struktur für Komponenten.**  
+
+---
+
+## **2. Modulares CSS mit Komponenten**
+📌 **Jede Komponente sollte eigenständig & wiederverwendbar sein.**  
+
+🔹 **Beispiel: Card-Komponente**
+```css
+.card {
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.card__title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.card__content {
+  font-size: 14px;
+}
+```
+✅ **Modularität verbessert Wartbarkeit & Wiederverwendbarkeit.**  
+
+---
+
+## **3. CSS in sinnvolle Dateien aufteilen**
+📌 **Vermeide eine riesige `style.css`, sondern nutze modularen Aufbau.**  
+
+🔹 **Empfohlene Struktur:**
+```
+/css
+  ├── base.css      (Allgemeine Styles, Resets)
+  ├── layout.css    (Grid, Flexbox, Container)
+  ├── components.css (Buttons, Cards, Modals)
+  ├── utilities.css (Helper-Klassen)
+  ├── themes.css    (Dark/Light Mode)
+  ├── responsive.css (Media Queries)
+```
+✅ **Saubere Trennung erleichtert die Wartung.**  
+
+---
+
+## **4. Verwende `:root` für globale Variablen**
+📌 **CSS-Variablen (`custom properties`) erleichtern Theme-Änderungen.**  
+
+🔹 **Beispiel: Farb- & Spacing-Variablen**
+```css
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2ecc71;
+  --spacing: 10px;
+}
+
+.button {
+  background: var(--primary-color);
+  padding: var(--spacing);
+}
+```
+✅ **Themes & Farbschemata lassen sich leichter anpassen.**  
+
+---
+
+## **5. Nutze `box-sizing: border-box;` für konsistente Layouts**
+📌 **Verhindert, dass `padding` & `border` die Breite verändern.**  
+
+🔹 **Globale Regel**
+```css
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+```
+✅ **Vereinheitlicht das Layout & vermeidet unerwartete Breitenänderungen.**  
+
+---
+
+## **6. Halte CSS-Klassen schlank & vermeide ID-Selektoren**
+📌 **ID-Selektoren haben hohe Spezifität & erschweren Änderungen.**  
+
+❌ **Schlecht:**  
+```css
+#header { background: blue; }
+```
+✅ **Besser:**  
+```css
+.header { background: blue; }
+```
+✅ **Flexibler & einfacher zu überschreiben.**  
+
+---
+
+## **7. Vermeide zu viele `!important`-Regeln**
+📌 **`!important` kann Styles schwer überschreibbar machen.**  
+
+❌ **Schlecht:**  
+```css
+.button {
+  background: red !important;
+}
+```
+✅ **Besser:**  
+- Verwende eine klar definierte Spezifität.  
+- Nutze Variablen oder Utility-Klassen für überschreibbare Werte.  
+
+---
+
+## **8. Responsives Design mit `em`, `rem` & `vw`**
+📌 **Nutze relative Einheiten für bessere Skalierbarkeit.**  
+
+🔹 **Beispiel: Flexible Schriftgrößen**
+```css
+html { font-size: 16px; }
+h1 { font-size: 2rem; } /* 32px */
+```
+✅ **Einheitliche Größenanpassung auf allen Geräten.**  
+
+---
+
+## **9. Nutze Utility-Klassen für häufige Styles**
+📌 **Vermeide redundante CSS-Regeln & nutze Hilfsklassen.**  
+
+🔹 **Beispiel: Margin- & Padding-Utilities**
+```css
+.m-0 { margin: 0; }
+.p-10 { padding: 10px; }
+```
+✅ **Ermöglicht schnelle Anpassungen ohne doppelten Code.**  
+
+---
+
+## **10. Lade CSS asynchron & minifiziere es**
+📌 **Reduziert Ladezeit & verbessert die Performance.**  
+
+🔹 **Asynchrones Laden mit `media="print"`**
+```html
+<link rel="stylesheet" href="styles.css" media="print" onload="this.media='all'">
+```
+🔹 **Minifizierung mit CSSNano**
+```bash
+npm install cssnano
+```
+✅ **Schnellere Ladezeiten & bessere Performance.**  
+
+---
+
+## **11. Nutze CSS-Methodologien (BEM, SMACSS, OOCSS)**
+📌 **Strukturierte CSS-Architektur vermeidet Spaghetti-Code.**  
+
+🔹 **Vergleich der Methoden**
+| Methode | Prinzip | Beste Anwendung |
+|---------|--------|----------------|
+| **BEM** | Komponentenbasiert (`block__element--modifier`) | Skalierbare UI-Designs |
+| **SMACSS** | Modulare Trennung (`Base`, `Layout`, `Module`) | Große Projekte |
+| **OOCSS** | Trennung von Struktur & Design | Wiederverwendbare Komponenten |
+
+✅ **BEM ist die am weitesten verbreitete Methode.**  
+
+---
+
+## **12. Fazit: Saubere CSS-Architektur sorgt für bessere Skalierbarkeit!**
+✔ **Modulare Komponenten mit BEM oder OOCSS verwenden**  
+✔ **Klare Datei-Struktur (`base.css`, `components.css`)**  
+✔ **CSS-Variablen für Farben & Abstände nutzen (`:root`)**  
+✔ **Globale `box-sizing: border-box;` Regel setzen**  
+✔ **Minifizieren & asynchron laden für Performance**  
+
+🚀 **Gut strukturiertes CSS spart Zeit & verbessert die Wartung!**  
+
+🔗 [MDN: CSS Best Practices](https://developer.mozilla.org/en-US/docs/Learn/CSS/Best_practices)  
+🔗 [BEM Methodologie](https://getbem.com/)
 
   **[⬆ Наверх](#top)**  
 
-102. ### <a name="102"></a> 
+102. ### <a name="102"></a> Welche Tools helfen bei der Analyse und Optimierung von CSS?
 
+### **Tools zur Analyse & Optimierung von CSS** 🛠️🚀  
+
+📌 **CSS kann durch verschiedene Tools analysiert, optimiert & minimiert werden.**  
+✅ **Ziel:** **Bessere Performance, geringere Ladezeit & saubere Styles.**  
+
+---
+
+## **1. CSS-Analyse-Tools (Fehler finden & Optimierungsmöglichkeiten)**
+| **Tool** | **Funktion** | **Link** |
+|----------|-------------|----------|
+| **[CSSLint](https://csslint.net/)** | Findet Fehler & ineffiziente Regeln | [🔗 CSSLint](https://csslint.net/) |
+| **[Stylelint](https://stylelint.io/)** | Linter für konsistente CSS-Code-Qualität | [🔗 Stylelint](https://stylelint.io/) |
+| **[PurgeCSS](https://purgecss.com/)** | Entfernt ungenutztes CSS | [🔗 PurgeCSS](https://purgecss.com/) |
+| **[PostCSS](https://postcss.org/)** | Automatische CSS-Optimierung | [🔗 PostCSS](https://postcss.org/) |
+
+✅ **Perfekt, um redundantes CSS zu erkennen & Fehler zu beheben.**  
+
+---
+
+## **2. CSS-Minifizierung (Dateigröße reduzieren)**
+📌 **Minifizierte CSS-Dateien laden schneller & sparen Bandbreite.**  
+
+🔹 **Tools zur Minifizierung:**
+| **Tool** | **Funktion** | **Link** |
+|----------|-------------|----------|
+| **[CSSNano](https://cssnano.co/)** | Minifiziert CSS & entfernt unnötige Zeichen | [🔗 CSSNano](https://cssnano.co/) |
+| **[Terser](https://terser.org/)** | Komprimiert CSS & JS-Dateien | [🔗 Terser](https://terser.org/) |
+| **[CleanCSS](https://www.npmjs.com/package/clean-css)** | Entfernt unnötigen Code | [🔗 CleanCSS](https://www.npmjs.com/package/clean-css) |
+
+🔹 **Beispiel: Minifizierung mit CSSNano (Node.js)**
+```bash
+npm install cssnano
+```
+✅ **Sorgt für schnellere Ladezeiten & weniger Bandbreite.**  
+
+---
+
+## **3. Unnötiges CSS entfernen (Tree Shaking)**
+📌 **Viele Webseiten laden CSS-Regeln, die nie verwendet werden.**  
+
+🔹 **Tools zur Reduzierung von ungenutztem CSS:**
+| **Tool** | **Funktion** | **Link** |
+|----------|-------------|----------|
+| **[PurgeCSS](https://purgecss.com/)** | Entfernt ungenutzte CSS-Klassen | [🔗 PurgeCSS](https://purgecss.com/) |
+| **[UnCSS](https://github.com/giakki/uncss)** | Scannt HTML & entfernt unbenutztes CSS | [🔗 UnCSS](https://github.com/giakki/uncss) |
+
+✅ **Reduziert unnötige CSS-Last & verbessert die Performance.**  
+
+---
+
+## **4. Ladezeit & Performance-Analyse (PageSpeed Insights, Lighthouse)**
+📌 **Diese Tools analysieren, ob CSS die Ladezeit verlangsamt.**  
+
+🔹 **Beste Performance-Tools:**
+| **Tool** | **Funktion** | **Link** |
+|----------|-------------|----------|
+| **[Google Lighthouse](https://developers.google.com/web/tools/lighthouse/)** | Performance-Check mit Optimierungsvorschlägen | [🔗 Lighthouse](https://developers.google.com/web/tools/lighthouse/) |
+| **[PageSpeed Insights](https://pagespeed.web.dev/)** | Prüft CSS-Optimierung & Ladegeschwindigkeit | [🔗 PageSpeed Insights](https://pagespeed.web.dev/) |
+| **[GTmetrix](https://gtmetrix.com/)** | Detaillierte Performance-Analyse | [🔗 GTmetrix](https://gtmetrix.com/) |
+
+✅ **Hilft, render-blocking CSS & langsame Ladezeiten zu optimieren.**  
+
+---
+
+## **5. Responsives CSS testen (Breakpoints & Mobile-First)**
+📌 **Diese Tools helfen, CSS für verschiedene Bildschirmgrößen zu optimieren.**  
+
+🔹 **Beste Responsive-Design-Tester:**
+| **Tool** | **Funktion** | **Link** |
+|----------|-------------|----------|
+| **[Responsinator](https://www.responsinator.com/)** | Testet Webseiten auf verschiedenen Geräten | [🔗 Responsinator](https://www.responsinator.com/) |
+| **[Google Mobile-Friendly Test](https://search.google.com/test/mobile-friendly)** | Prüft, ob CSS mobilfreundlich ist | [🔗 Mobile-Friendly Test](https://search.google.com/test/mobile-friendly) |
+| **Chrome DevTools (`Ctrl + Shift + M`)** | Simuliert verschiedene Bildschirmgrößen | In Chrome integriert |
+
+✅ **Erkennt Probleme mit flexiblen Layouts & Media Queries.**  
+
+---
+
+## **6. Farb- & Design-Analyse (CSS-Farben & Kontrast prüfen)**
+📌 **Tools zur Überprüfung von Farben, Kontrasten & Barrierefreiheit.**  
+
+🔹 **Beste Tools für Farboptimierung:**
+| **Tool** | **Funktion** | **Link** |
+|----------|-------------|----------|
+| **[Color Contrast Checker](https://webaim.org/resources/contrastchecker/)** | Testet Kontrast für Barrierefreiheit | [🔗 Contrast Checker](https://webaim.org/resources/contrastchecker/) |
+| **[Coolors](https://coolors.co/)** | Erstellt harmonische Farbschemata | [🔗 Coolors](https://coolors.co/) |
+| **[CSS Gradient](https://cssgradient.io/)** | Erstellt CSS-Gradients | [🔗 CSS Gradient](https://cssgradient.io/) |
+
+✅ **Wichtig für Accessibility (`WCAG 2.0`) & gutes Design.**  
+
+---
+
+## **7. CSS-Debugging & DevTools**
+📌 **Bietet Einblick in das angewendete CSS & Layout-Probleme.**  
+
+🔹 **Beste Debugging-Tools:**
+| **Tool** | **Funktion** | **Link** |
+|----------|-------------|----------|
+| **Chrome DevTools (`F12`)** | Live-CSS-Inspektion & Debugging | In Chrome integriert |
+| **Firefox DevTools (`F12`)** | Erweiterte CSS-Analyse & Grid-Tools | In Firefox integriert |
+| **[CSS Stats](https://cssstats.com/)** | Zeigt CSS-Statistiken & Fehler | [🔗 CSS Stats](https://cssstats.com/) |
+
+✅ **Ermöglicht präzises Debugging & Optimierung.**  
+
+---
+
+## **8. Fazit: Welche Tools sollte man nutzen?**
+| **Zweck** | **Beste Tools** |
+|-----------|---------------|
+| **CSS-Fehler analysieren** | CSSLint, Stylelint |
+| **CSS minimieren** | CSSNano, Terser |
+| **Unnötiges CSS entfernen** | PurgeCSS, UnCSS |
+| **Ladezeit & Performance testen** | Google Lighthouse, PageSpeed Insights |
+| **Responsives Design prüfen** | Chrome DevTools, Responsinator |
+| **Farben & Kontraste testen** | Color Contrast Checker, Coolors |
+| **CSS live debuggen** | Chrome DevTools, Firefox DevTools |
+
+🚀 **Diese Tools verbessern Performance, Wartbarkeit & Benutzerfreundlichkeit!**  
+
+🔗 [MDN: CSS Performance Optimization](https://developer.mozilla.org/en-US/docs/Learn/Performance/CSS)  
+🔗 [Google Lighthouse](https://developers.google.com/web/tools/lighthouse/)  
 
   **[⬆ Наверх](#top)**
 
-103. ### <a name="103"></a> 
+103. ### <a name="103"></a> Wie können CSS-Dateien modularisiert werden?
 
+### **Wie können CSS-Dateien modularisiert werden?** 📂🎨  
+
+📌 **Modulares CSS verbessert Wartbarkeit, Skalierbarkeit & Performance.**  
+✅ **Ziel:** **Strukturierte & wiederverwendbare Styles für große Projekte.**  
+
+---
+
+## **1. Warum Modularisierung von CSS?**  
+✔ **Bessere Übersichtlichkeit & Wartbarkeit**  
+✔ **Wiederverwendbare Komponenten**  
+✔ **Vermeidung von Stilkonflikten**  
+✔ **Effiziente Skalierbarkeit für große Projekte**  
+
+✅ **Ideal für größere Projekte mit vielen Styles & Komponenten.**  
+
+---
+
+## **2. Methoden zur Modularisierung von CSS**
+| **Methode** | **Kurzbeschreibung** | **Beste Anwendung** |
+|------------|----------------------|---------------------|
+| **CSS-Dateien aufteilen** | Trennung nach Funktion (Base, Layout, Komponenten) | Kleine bis mittlere Projekte |
+| **BEM (Block Element Modifier)** | Strukturierte Namensgebung für Komponenten | Skalierbare UI-Designs |
+| **SMACSS (Scalable and Modular Architecture for CSS)** | Trennung in Base, Layout, Module, State & Theme | Große, wachsende Projekte |
+| **OOCSS (Object-Oriented CSS)** | Trennung von Struktur & Design | Komponentenbasierte Systeme |
+| **ITCSS (Inverted Triangle CSS)** | Klares Hierarchiesystem für große Stylesheets | Enterprise-Projekte |
+| **CSS-Module (SCSS, PostCSS, Tailwind)** | Moderne Modulsysteme für CSS | Moderne Webentwicklung |
+
+✅ **Die Wahl hängt von Projektgröße & Komplexität ab.**  
+
+---
+
+## **3. 1️⃣ CSS-Dateien sinnvoll aufteilen**
+📌 **Trenne Stylesheets in verschiedene Bereiche.**  
+
+🔹 **Empfohlene Struktur:**
+```
+/css
+  ├── base.css      (Reset, globale Variablen, Schriftarten)
+  ├── layout.css    (Grid, Flexbox, Container)
+  ├── components.css (Buttons, Cards, Formulare)
+  ├── utilities.css (Helper-Klassen wie `.hidden`)
+  ├── themes.css    (Dark-/Light-Mode)
+  ├── responsive.css (Media Queries)
+```
+✅ **Jede Datei hat eine klare Funktion, vermeidet Chaos in `style.css`.**  
+
+---
+
+## **4. 2️⃣ BEM (Block Element Modifier) für klare Klassennamen**
+📌 **Verhindert Klassennamens-Konflikte durch klare Struktur.**  
+
+🔹 **Struktur:**
+```css
+.block { } /* Hauptkomponente */
+.block__element { } /* Unterelement */
+.block--modifier { } /* Variante */
+```
+🔹 **Beispiel: Button-Komponente**
+```css
+.button { background: blue; }
+.button--large { padding: 20px; }
+.button__icon { margin-right: 5px; }
+```
+✅ **Einfach verständlich & wiederverwendbar.**  
+
+---
+
+## **5. 3️⃣ SMACSS – Scalable and Modular Architecture for CSS**
+📌 **Teilt CSS in fünf Kategorien:**
+- **Base:** Reset, grundlegende Stile  
+- **Layout:** Grid, Flexbox, Container  
+- **Modules:** Buttons, Cards, Formulare  
+- **State:** `.is-active`, `.hidden`, `.disabled`  
+- **Theme:** Dark-/Light-Modus  
+
+🔹 **Beispiel: Module + State-Klassen**
+```css
+.card { border: 1px solid #ddd; }
+.card.is-active { border-color: blue; }
+```
+✅ **Flexibel für wachsende Projekte.**  
+
+---
+
+## **6. 4️⃣ OOCSS – Trennung von Struktur & Design**
+📌 **Verhindert doppelten Code durch wiederverwendbare Styles.**  
+
+🔹 **Struktur:**
+```css
+.button {
+  display: inline-block;
+  padding: 10px;
+}
+
+.button-primary {
+  background: blue;
+  color: white;
+}
+```
+✅ **Kombiniert Struktur (`.button`) & Design (`.button-primary`).**  
+
+---
+
+## **7. 5️⃣ ITCSS – Hierarchische Struktur für große Projekte**
+📌 **ITCSS nutzt eine Pyramidenstruktur für CSS-Regeln.**  
+
+🔹 **ITCSS-Hierarchie:**
+```
+/css
+  ├── settings.css    (Variablen, Farben, Schriftarten)
+  ├── tools.css       (Mixins, Funktionen)
+  ├── generic.css     (Resets, Normalisierung)
+  ├── elements.css    (h1, p, a, etc.)
+  ├── objects.css     (Layout-Patterns wie Grids)
+  ├── components.css  (Buttons, Modals, Formulare)
+  ├── utilities.css   (Helper-Klassen)
+```
+✅ **Bessere Performance & klare Struktur für große Apps.**  
+
+---
+
+## **8. 6️⃣ CSS-Module & moderne Alternativen**
+📌 **Vermeidet globale Klassennamen durch Scope-Isolation.**  
+
+🔹 **Beispiel: CSS-Module (`styles.module.css` in React)**
+```css
+.button {
+  background: blue;
+  padding: 10px;
+}
+```
+🔹 **Import in React-Komponente**
+```javascript
+import styles from './styles.module.css';
+
+<button className={styles.button}>Click me</button>
+```
+✅ **Ideal für React, Vue & moderne Web-Apps.**  
+
+---
+
+## **9. 7️⃣ Utility-First-Ansatz mit Tailwind CSS**
+📌 **Statt klassischem CSS nutzt man kleine Utility-Klassen direkt im HTML.**  
+
+🔹 **Beispiel: Buttons mit Tailwind CSS**
+```html
+<button class="bg-blue-500 text-white px-4 py-2 rounded">Click me</button>
+```
+✅ **Schnelle Entwicklung & weniger eigene CSS-Regeln nötig.**  
+
+---
+
+## **10. Fazit: Welche Methode für welches Projekt?**
+| **Methode** | **Beste Anwendung** |
+|------------|---------------------|
+| **Dateien aufteilen** | Kleine bis mittlere Projekte |
+| **BEM** | Skalierbare UI-Komponenten |
+| **SMACSS** | Große Projekte mit vielen Modulen |
+| **OOCSS** | Wiederverwendbare Komponenten |
+| **ITCSS** | Komplexe Enterprise-Projekte |
+| **CSS-Module** | React, Vue, moderne Web-Apps |
+| **Tailwind CSS** | Utility-First-Ansatz für schnelle Entwicklung |
+
+🚀 **Modulares CSS macht Code wartbarer, skalierbarer & performanter!**  
+
+🔗 [MDN: CSS Best Practices](https://developer.mozilla.org/en-US/docs/Learn/CSS/Best_practices)  
+🔗 [BEM Methodologie](https://getbem.com/)  
+🔗 [Tailwind CSS](https://tailwindcss.com/)
 
   **[⬆ Наверх](#top)**
 
-104. ### <a name="104"></a> 
+104. ### <a name="104"></a> Was ist der Unterschied zwischen @import und link für CSS?
 
+### **Unterschied zwischen `@import` und `<link>` für CSS** 🆚🎨  
+
+📌 **Sowohl `@import` als auch `<link>` dienen dazu, externe CSS-Dateien einzubinden, haben aber unterschiedliche Auswirkungen.**  
+✅ **Ziel:** **Verstehen, wann `@import` oder `<link>` verwendet werden sollte.**  
+
+---
+
+## **1. Unterschiede auf einen Blick**
+| **Eigenschaft** | **`@import`** | **`<link>`** |
+|--------------|------------|-----------|
+| **Einbindung** | Innerhalb von CSS (`@import url("style.css");`) | Direkt im HTML (`<link rel="stylesheet">`) |
+| **Ladegeschwindigkeit** | ⛔ Blockiert Rendering & langsamer | ✅ Lädt parallel & schneller |
+| **Unterstützung in HTML** | ❌ Funktioniert nur in CSS-Dateien | ✅ Funktioniert direkt in HTML |
+| **Media Queries** | ✅ Kann `@media` innerhalb von `@import` nutzen | ✅ Kann `media="screen"` nutzen |
+| **Browser-Support** | ❌ Ältere Browser haben Probleme | ✅ Alle Browser unterstützen `<link>` |
+| **Performance** | ❌ Läd sequentiell, nicht parallel | ✅ Läd alle CSS-Dateien parallel |
+
+✅ **Empfohlen: `<link>` → Schnellere Ladezeit & bessere Browserkompatibilität!**  
+
+---
+
+## **2. Wie funktioniert `@import`?**
+📌 **`@import` wird in einer CSS-Datei verwendet, um eine weitere CSS-Datei einzubinden.**  
+
+🔹 **Syntax:**
+```css
+@import url("styles.css");
+```
+✅ **Kann innerhalb einer CSS-Datei genutzt werden.**  
+❌ **Blockiert das Laden anderer Styles, bis das `@import` verarbeitet wurde.**  
+
+---
+
+## **3. Wie funktioniert `<link>`?**
+📌 **Das `<link>`-Tag wird im HTML `<head>` genutzt, um CSS zu laden.**  
+
+🔹 **Syntax:**
+```html
+<link rel="stylesheet" href="styles.css">
+```
+✅ **Lädt das CSS parallel, wodurch die Seite schneller rendert.**  
+
+🔹 **Beispiel mit `media`-Attribut (Lazy Loading)**
+```html
+<link rel="stylesheet" href="print.css" media="print">
+```
+✅ **Optimiert für spezielle Medientypen (z. B. Druck-Styles).**  
+
+---
+
+## **4. Performance-Vergleich**
+📌 **Warum `<link>` besser als `@import` ist:**  
+1️⃣ **`@import` blockiert das Rendern** → Browser lädt CSS sequentiell.  
+2️⃣ **`<link>` lädt parallel** → Schnellere Ladezeit.  
+3️⃣ **`@import` erschwert Debugging** → Fehlerhafte Styles schwerer zu finden.  
+
+🔹 **Messbare Unterschiede (Chrome DevTools, Lighthouse-Analyse)**  
+✅ **`<link>` verbessert den `First Contentful Paint (FCP)`, `LCP` & `Core Web Vitals`.**  
+
+---
+
+## **5. Wann sollte `@import` verwendet werden?**
+✅ **Wenn du Styles modular halten willst, z. B. für Theme-Switching.**  
+✅ **Wenn eine Stylesheet-Datei von einer anderen abhängig ist.**  
+❌ **Nicht für Haupt-CSS-Dateien → `<link>` ist schneller!**  
+
+---
+
+## **6. Fazit: Welche Methode wählen?**
+| **Situation** | **Beste Methode** |
+|--------------|------------------|
+| **Externe CSS-Dateien laden** | ✅ `<link>` (schneller & paralleles Laden) |
+| **CSS in einer anderen CSS-Datei einbinden** | ✅ `@import` (aber langsamer) |
+| **Media Queries für Lazy Loading nutzen** | ✅ `<link media="...">` |
+| **Modularisierung in CSS (Themes, Variablen)** | ✅ `@import`, wenn notwendig |
+
+🚀 **Empfohlen: Immer `<link>` für bessere Performance & schnelleres Rendering!**  
+
+🔗 [MDN: @import](https://developer.mozilla.org/en-US/docs/Web/CSS/@import)  
+🔗 [MDN: `<link>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link)
 
   **[⬆ Наверх](#top)**
 
