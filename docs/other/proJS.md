@@ -124,7 +124,7 @@
 |107 | [](#107) |
 |108 | [](#108) |
 |109 | [](#109) |
-|110 | [](#110) |
+|110 | [Zusammenfassung JavaScript](#110) |
 
 
 
@@ -10691,7 +10691,1344 @@ document.addEventListener("DOMContentLoaded", () => {
 
   **[⬆ Наверх](#top)** 
 
-110. ### <a name="110"></a> 
+110. ### <a name="110"></a> Zusammenfassung JavaScript
+
+### **Grundlagen (Основen)**
+
+#### **Was ist JavaScript und wofür wird es verwendet?**  
+JavaScript ist eine Programmiersprache, die zur Erstellung interaktiver Webseiten verwendet wird. Sie ermöglicht die Manipulation des DOM, die Verarbeitung von Ereignissen, die Arbeit mit APIs und die Ausführung asynchroner Operationen.
+
+#### **Was ist der Unterschied zwischen let, const und var?**  
+- `var`: Hat Function Scope, kann überschrieben und erneut deklariert werden.  
+- `let`: Hat Block Scope, kann überschrieben, aber nicht erneut deklariert werden.  
+- `const`: Hat Block Scope, kann nicht überschrieben oder erneut deklariert werden.  
+
+```js
+var x = 10;  // Kann überschrieben und erneut deklariert werden
+let y = 20;  // Kann überschrieben, aber nicht erneut deklariert werden
+const z = 30; // Kann nicht geändert werden
+```
+
+#### **Was sind primitive Datentypen in JavaScript?**  
+Primitive Datentypen:  
+1. `string`  
+2. `number`  
+3. `boolean`  
+4. `null`  
+5. `undefined`  
+6. `bigint`  
+7. `symbol`  
+
+#### **Was bedeutet "dynamische Typisierung" in JavaScript?**  
+JavaScript bestimmt den Typ einer Variablen automatisch zur Laufzeit.  
+
+```js
+let a = 5;  // number
+a = "Hallo"; // jetzt string
+```
+
+#### **Was ist der Unterschied zwischen == und ===?**  
+- `==` – lockerer Vergleich (Konvertiert Typen).  
+- `===` – strikter Vergleich (Berücksichtigt Typen).  
+
+```js
+console.log(5 == "5");  // true
+console.log(5 === "5"); // false
+```
+
+#### **Wie funktioniert typeof und welche Werte kann es zurückgeben?**  
+`typeof` gibt den Datentyp eines Werts zurück.  
+
+```js
+console.log(typeof 42); // "number"
+console.log(typeof "hallo"); // "string"
+console.log(typeof null); // "object" (JS-Fehler)
+console.log(typeof undefined); // "undefined"
+```
+
+#### **Was sind Falsy- und Truthy-Werte in JavaScript?**  
+Falsy-Werte: `false, 0, "", null, undefined, NaN`  
+Truthy-Werte: Alle anderen Werte.  
+
+```js
+if ("hallo") console.log("Truthy"); // Wird ausgeführt
+if (0) console.log("Falsy"); // Wird nicht ausgeführt
+```
+
+#### **Wie funktioniert Type Coercion in JavaScript?**  
+JS wandelt Typen automatisch um.  
+
+```js
+console.log(5 + "5"); // "55" (number -> string)
+console.log("5" - 2); // 3 (string -> number)
+console.log(true + 1); // 2 (true -> 1)
+```
+
+#### **Was sind die Hauptunterschiede zwischen null und undefined?**  
+- `null`: Wert ist explizit gesetzt.  
+- `undefined`: Wert wurde nicht zugewiesen.  
+
+```js
+let a;  // undefined
+let b = null; // null
+```
+
+#### **Wie werden Objekte in JavaScript erstellt?**  
+1. **Mit Objektliteralen:**  
+   ```js
+   let obj = { name: "John", alter: 30 };
+   ```
+2. **Mit `new Object()`:**  
+   ```js
+   let obj = new Object();
+   obj.name = "John";
+   ```
+3. **Mit einer Konstruktorfunktion:**  
+   ```js
+   function Person(name) {
+       this.name = name;
+   }
+   let user = new Person("Alice");
+   ```
+---
+
+### **Funktionen & Closures**
+
+#### **Was sind Higher-Order Functions in JavaScript?**  
+Funktionen, die andere Funktionen als Argumente akzeptieren oder Funktionen zurückgeben.  
+
+```js
+function hof(callback) {
+    return callback(5);
+}
+console.log(hof(x => x * 2)); // 10
+```
+
+#### **Was ist eine Closure und wie funktioniert sie?**  
+Eine Closure ist eine Funktion, die sich den Scope merkt, in dem sie erstellt wurde.  
+
+```js
+function outer() {
+    let count = 0;
+    return function inner() {
+        count++;
+        console.log(count);
+    };
+}
+const counter = outer();
+counter(); // 1
+counter(); // 2
+```
+
+#### **Was bedeutet "IIFE" (Immediately Invoked Function Expression)?**  
+Eine sofort ausgeführte Funktion.  
+
+```js
+(function() {
+    console.log("Hallo!");
+})(); 
+```
+
+#### **Was ist der Unterschied zwischen einer normalen Funktion und einer Arrow-Funktion?**  
+- **Normale Funktion:** Hat ihr eigenes `this`.  
+- **Arrow-Funktion:** Hat kein eigenes `this`, sondern übernimmt es aus dem äußeren Kontext.  
+
+```js
+const obj = {
+    value: 10,
+    func: function() { console.log(this.value); }, // 10
+    arrow: () => { console.log(this.value); } // undefined
+};
+obj.func();
+obj.arrow();
+```
+
+#### **Was sind Callback-Funktionen und wann werden sie verwendet?**  
+Funktionen, die als Argument an andere Funktionen übergeben werden. Wird oft in asynchronem Code verwendet.  
+
+```js
+function fetchData(callback) {
+    setTimeout(() => {
+        callback("Daten geladen");
+    }, 1000);
+}
+fetchData(console.log);
+```
+
+#### **Wie funktioniert this in JavaScript?**  
+`this` hängt vom Aufrufkontext ab.  
+
+```js
+const obj = {
+    name: "John",
+    sayHi() { console.log(this.name); }
+};
+obj.sayHi(); // "John"
+```
+
+#### **Was sind Funktionsdeklaration und Funktionsausdruck?**  
+- **Function Declaration:** Kann vor der Deklaration aufgerufen werden.  
+- **Function Expression:** Kann nicht vor der Deklaration aufgerufen werden.  
+
+```js
+sayHi(); // Funktioniert
+function sayHi() { console.log("Hallo"); }
+
+// Funktioniert nicht:
+// sayHello(); 
+const sayHello = function() { console.log("Hi"); };
+```
+
+#### **Wie funktioniert bind(), call() und apply()?**  
+- **`call()`** Ruft eine Funktion mit übergebenem `this` und Argumenten nacheinander auf.  
+- **`apply()`** Dasselbe, aber Argumente werden als Array übergeben.  
+- **`bind()`** Erstellt eine neue Funktion mit festgelegtem `this`.  
+
+```js
+function greet(greeting) {
+    console.log(greeting + ", " + this.name);
+}
+
+const user = { name: "Alice" };
+
+greet.call(user, "Hi");  // "Hi, Alice"
+greet.apply(user, ["Hallo"]); // "Hallo, Alice"
+const boundGreet = greet.bind(user, "Hey");
+boundGreet(); // "Hey, Alice"
+```
+
+#### **Was ist Currying in JavaScript?**  
+Umwandlung einer Funktion mit mehreren Argumenten in eine Kette von Aufrufen.  
+
+```js
+function curry(a) {
+    return function(b) {
+        return function(c) {
+            return a + b + c;
+        };
+    };
+}
+console.log(curry(1)(2)(3)); // 6
+```
+
+#### **Was ist Rekursion und wie kann sie in JavaScript verwendet werden?**  
+Rekursion ist eine Funktion, die sich selbst aufruft.  
+
+```js
+function factorial(n) {
+    return n === 1 ? 1 : n * factorial(n - 1);
+}
+console.log(factorial(5)); // 120
+```
+
+### **ES6+ Features**
+
+#### **Was ist Destructuring in JavaScript?**  
+Destructuring ermöglicht es, Werte aus Arrays oder Objekten zu extrahieren und in Variablen zu speichern.  
+
+```js
+const person = { name: "John", age: 30 };
+const { name, age } = person;
+console.log(name, age); // "John", 30
+
+const arr = [1, 2, 3];
+const [a, b, c] = arr;
+console.log(a, b, c); // 1, 2, 3
+```
+
+---
+
+#### **Wie funktioniert der Spread-Operator (...)?**  
+Der Spread-Operator `...` erweitert Arrays oder Objekte.  
+
+```js
+const numbers = [1, 2, 3];
+const newNumbers = [...numbers, 4, 5];
+console.log(newNumbers); // [1, 2, 3, 4, 5]
+
+const obj = { a: 1, b: 2 };
+const newObj = { ...obj, c: 3 };
+console.log(newObj); // { a: 1, b: 2, c: 3 }
+```
+
+---
+
+#### **Was ist der Unterschied zwischen map(), filter() und reduce()?**  
+- **`map()`**: Erstellt ein neues Array durch Transformation der Werte.  
+- **`filter()`**: Erstellt ein neues Array mit Werten, die eine Bedingung erfüllen.  
+- **`reduce()`**: Reduziert ein Array auf einen einzigen Wert.  
+
+```js
+const numbers = [1, 2, 3, 4];
+
+const doubled = numbers.map(num => num * 2); // [2, 4, 6, 8]
+const even = numbers.filter(num => num % 2 === 0); // [2, 4]
+const sum = numbers.reduce((acc, num) => acc + num, 0); // 10
+```
+
+---
+
+#### **Was ist ein Template Literal und warum ist es nützlich?**  
+Template Literals (`` ` ` ``) erlauben mehrzeilige Strings und Variablen-Einbindung.  
+
+```js
+const name = "Alice";
+console.log(`Hallo, mein Name ist ${name}.`);
+```
+
+---
+
+#### **Was sind Default Parameter in JavaScript?**  
+Default Parameter setzen Standardwerte für Funktionsargumente.  
+
+```js
+function greet(name = "Gast") {
+    console.log(`Hallo, ${name}`);
+}
+greet(); // "Hallo, Gast"
+```
+
+---
+
+#### **Was sind Set und Map in JavaScript?**  
+- **`Set`**: Speichert einzigartige Werte.  
+- **`Map`**: Speichert Schlüssel-Wert-Paare.  
+
+```js
+const set = new Set([1, 2, 2, 3]);
+console.log(set); // Set {1, 2, 3}
+
+const map = new Map();
+map.set("key", "value");
+console.log(map.get("key")); // "value"
+```
+
+---
+
+#### **Was ist Symbol in JavaScript?**  
+Ein `Symbol` ist ein einzigartiger und unveränderlicher Wert.  
+
+```js
+const sym = Symbol("id");
+console.log(sym); // Symbol(id)
+```
+
+---
+
+#### **Was ist der Unterschied zwischen forEach() und map()?**  
+- **`forEach()`** führt eine Funktion für jedes Element aus, gibt aber kein neues Array zurück.  
+- **`map()`** gibt ein neues Array mit veränderten Werten zurück.  
+
+```js
+const arr = [1, 2, 3];
+
+arr.forEach(num => console.log(num * 2)); // Gibt Werte aus, verändert aber nicht das Array
+const newArr = arr.map(num => num * 2); // Gibt neues Array zurück
+console.log(newArr); // [2, 4, 6]
+```
+
+---
+
+#### **Wie funktionieren Generators in JavaScript?**  
+Ein Generator ist eine spezielle Funktion, die `yield` verwendet und ihren Zustand speichert.  
+
+```js
+function* generator() {
+    yield 1;
+    yield 2;
+    yield 3;
+}
+const gen = generator();
+console.log(gen.next().value); // 1
+console.log(gen.next().value); // 2
+```
+
+---
+
+#### **Was ist das Konzept der "Rest Parameter" (...args)?**  
+Rest-Parameter sammeln mehrere Argumente in einem Array.  
+
+```js
+function sum(...nums) {
+    return nums.reduce((acc, num) => acc + num, 0);
+}
+console.log(sum(1, 2, 3, 4)); // 10
+```
+
+---
+
+### **Asynchrones JavaScript & Promises**
+
+#### **Was sind Promises und wie funktionieren sie?**  
+Ein `Promise` repräsentiert eine asynchrone Operation.  
+
+```js
+const promise = new Promise((resolve, reject) => {
+    setTimeout(() => resolve("Daten geladen"), 1000);
+});
+promise.then(data => console.log(data));
+```
+
+---
+
+#### **Was ist der Unterschied zwischen async und await?**  
+`async/await` vereinfacht das Arbeiten mit Promises.  
+
+```js
+async function fetchData() {
+    return "Daten geladen";
+}
+fetchData().then(console.log);
+```
+
+---
+
+#### **Wie behandelt man Fehler in async/await?**  
+Mit `try...catch`.  
+
+```js
+async function fetchData() {
+    try {
+        let data = await Promise.reject("Fehler!");
+    } catch (error) {
+        console.log(error);
+    }
+}
+fetchData();
+```
+
+---
+
+#### **Was ist das Event Loop in JavaScript?**  
+Die Event Loop verwaltet asynchrone Operationen.  
+
+```js
+console.log("Start");
+setTimeout(() => console.log("Timeout"), 0);
+console.log("End");
+
+// Ausgabe:
+// Start
+// End
+// Timeout
+```
+
+---
+
+#### **Was ist der Unterschied zwischen setTimeout() und setInterval()?**  
+- `setTimeout()`: Führt eine Funktion einmal nach einer Verzögerung aus.  
+- `setInterval()`: Führt eine Funktion wiederholt aus.  
+
+```js
+setTimeout(() => console.log("Einmal"), 1000);
+setInterval(() => console.log("Wiederholt"), 1000);
+```
+
+---
+
+#### **Was sind Web APIs und warum sind sie wichtig für asynchrones JavaScript?**  
+Web APIs (z.B. `fetch()`, `localStorage`) ermöglichen Interaktion mit dem Browser.  
+
+```js
+console.log(navigator.userAgent); // Gibt Browser-Informationen aus
+```
+
+---
+
+#### **Wie funktioniert die Fetch-API in JavaScript?**  
+`fetch()` ermöglicht HTTP-Anfragen.  
+
+```js
+fetch("https://jsonplaceholder.typicode.com/todos/1")
+    .then(response => response.json())
+    .then(data => console.log(data));
+```
+
+---
+
+#### **Was ist der Unterschied zwischen XMLHttpRequest und fetch()?**  
+- `XMLHttpRequest`: Alte API, komplexer.  
+- `fetch()`: Neuer, moderner Ansatz.  
+
+```js
+// Mit XMLHttpRequest
+const xhr = new XMLHttpRequest();
+xhr.open("GET", "https://jsonplaceholder.typicode.com/todos/1");
+xhr.onload = () => console.log(xhr.response);
+xhr.send();
+
+// Mit fetch()
+fetch("https://jsonplaceholder.typicode.com/todos/1")
+    .then(response => response.json())
+    .then(data => console.log(data));
+```
+
+---
+
+#### **Was sind Microtasks und Macrotasks in JavaScript?**  
+- **Microtasks** (`Promise.then()`, `queueMicrotask()`) haben höhere Priorität.  
+- **Macrotasks** (`setTimeout()`, `setInterval()`) werden später ausgeführt.  
+
+```js
+console.log("Start");
+
+setTimeout(() => console.log("Macrotask"), 0);
+Promise.resolve().then(() => console.log("Microtask"));
+
+console.log("End");
+
+// Ausgabe:
+// Start
+// End
+// Microtask
+// Macrotask
+```
+
+---
+
+#### **Was ist Promise.all(), Promise.race() und Promise.allSettled()?**  
+- **`Promise.all()`**: Wartet auf alle Promises.  
+- **`Promise.race()`**: Gibt das erste abgeschlossene Promise zurück.  
+- **`Promise.allSettled()`**: Wartet auf alle, gibt Status zurück.  
+
+```js
+const p1 = Promise.resolve("A");
+const p2 = new Promise(res => setTimeout(() => res("B"), 1000));
+
+Promise.all([p1, p2]).then(console.log); // ["A", "B"]
+Promise.race([p1, p2]).then(console.log); // "A"
+```
+
+### **OOP & Prototypen**
+
+#### **Wie funktioniert das Prototypenmodell in JavaScript?**  
+Jedes Objekt in JavaScript hat eine `__proto__`-Eigenschaft, die auf ein anderes Objekt verweist (sein Prototyp). Methoden und Eigenschaften können von Prototypen geerbt werden.
+
+```js
+const person = { greet() { console.log("Hallo!"); } };
+const user = Object.create(person);
+user.greet(); // "Hallo!" (geerbt vom Prototypen)
+```
+
+---
+
+#### **Was ist der Unterschied zwischen Klassen und Prototypen?**  
+- **Prototypen** sind die ursprüngliche Methode zur Vererbung in JS.  
+- **Klassen** (`class`) sind syntaktischer Zucker über Prototypen, um OOP-ähnlichen Code zu schreiben.
+
+```js
+// Prototypen
+function User(name) {
+    this.name = name;
+}
+User.prototype.sayHello = function() {
+    console.log(`Hallo, ${this.name}`);
+};
+const u1 = new User("Alice");
+u1.sayHello();
+
+// Klasse
+class UserClass {
+    constructor(name) {
+        this.name = name;
+    }
+    sayHello() {
+        console.log(`Hallo, ${this.name}`);
+    }
+}
+const u2 = new UserClass("Bob");
+u2.sayHello();
+```
+
+---
+
+#### **Wie erstellt man eine Klasse in JavaScript?**  
+Mit `class` und einem `constructor`.  
+
+```js
+class Person {
+    constructor(name, age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+const user = new Person("Alice", 25);
+console.log(user.name); // "Alice"
+```
+
+---
+
+#### **Was bedeutet `super` in JavaScript?**  
+`super` ruft die Methoden oder den Konstruktor der Elternklasse auf.  
+
+```js
+class Parent {
+    constructor(name) {
+        this.name = name;
+    }
+}
+class Child extends Parent {
+    constructor(name, age) {
+        super(name); // Ruft den Parent-Konstruktor auf
+        this.age = age;
+    }
+}
+const c = new Child("Tom", 10);
+console.log(c.name, c.age); // "Tom", 10
+```
+
+---
+
+#### **Was sind Getter und Setter in JavaScript?**  
+Getter und Setter ermöglichen kontrollierten Zugriff auf Objekt-Eigenschaften.  
+
+```js
+class Person {
+    constructor(name) {
+        this._name = name;
+    }
+    get name() {
+        return this._name.toUpperCase();
+    }
+    set name(value) {
+        this._name = value;
+    }
+}
+const user = new Person("Alice");
+console.log(user.name); // "ALICE"
+user.name = "Bob";
+console.log(user.name); // "BOB"
+```
+
+---
+
+#### **Was ist der Unterschied zwischen Object.create() und Klasseninstanzen?**  
+- **`Object.create(proto)`** erstellt ein Objekt mit einem bestimmten Prototypen.  
+- **Klasseninstanzen (`new Class()`)** erstellen Objekte mit eigener Logik.  
+
+```js
+const proto = { greet() { console.log("Hallo!"); } };
+const obj = Object.create(proto);
+obj.greet(); // "Hallo!"
+```
+
+---
+
+#### **Wie funktioniert Vererbung in JavaScript?**  
+Mit `extends` für Klassen oder Prototypen.  
+
+```js
+class Animal {
+    speak() { console.log("Geräusch!"); }
+}
+class Dog extends Animal {
+    speak() { console.log("Wuff!"); }
+}
+const d = new Dog();
+d.speak(); // "Wuff!"
+```
+
+---
+
+#### **Was ist Polymorphismus in JavaScript?**  
+Eine Methode kann in verschiedenen Klassen unterschiedlich implementiert werden.  
+
+```js
+class Shape {
+    draw() { console.log("Zeichne eine Form"); }
+}
+class Circle extends Shape {
+    draw() { console.log("Zeichne einen Kreis"); }
+}
+const s = new Circle();
+s.draw(); // "Zeichne einen Kreis"
+```
+
+---
+
+#### **Was ist der Unterschied zwischen einer Factory Function und einer Constructor Function?**  
+- **Factory Function** gibt ein Objekt zurück.  
+- **Constructor Function** wird mit `new` aufgerufen.  
+
+```js
+// Factory Function
+function createUser(name) {
+    return { name, greet() { console.log(`Hallo, ${name}`); } };
+}
+const user1 = createUser("Alice");
+user1.greet();
+
+// Constructor Function
+function User(name) {
+    this.name = name;
+    this.greet = function() { console.log(`Hallo, ${this.name}`); };
+}
+const user2 = new User("Bob");
+user2.greet();
+```
+
+---
+
+#### **Was bedeutet "Encapsulation" in JavaScript?**  
+Encapsulation versteckt interne Details einer Klasse.  
+
+```js
+class Person {
+    #privateField = "Geheim";
+    
+    getSecret() {
+        return this.#privateField;
+    }
+}
+const p = new Person();
+console.log(p.getSecret()); // "Geheim"
+```
+
+---
+
+### **DOM-Manipulation & Events**
+
+#### **Wie wählt man ein Element mit JavaScript aus?**  
+```js
+document.getElementById("id");
+document.querySelector(".class");
+document.querySelectorAll("div");
+```
+
+---
+
+#### **Was ist der Unterschied zwischen innerHTML und textContent?**  
+- `innerHTML` enthält HTML-Tags.  
+- `textContent` enthält nur Text.  
+
+```js
+document.getElementById("test").innerHTML = "<b>Fett</b>";
+document.getElementById("test").textContent = "<b>Kein HTML</b>";
+```
+
+---
+
+#### **Wie fügt man ein Event Listener zu einem Element hinzu?**  
+```js
+document.getElementById("btn").addEventListener("click", () => alert("Geklickt!"));
+```
+
+---
+
+#### **Was ist Event Bubbling und Event Capturing?**  
+- **Bubbling**: Ereignis steigt von unten nach oben.  
+- **Capturing**: Ereignis geht von oben nach unten.  
+
+```js
+document.body.addEventListener("click", () => console.log("Body"), true);
+document.getElementById("child").addEventListener("click", () => console.log("Child"));
+```
+
+---
+
+#### **Was bedeutet preventDefault() und stopPropagation()?**  
+- **`preventDefault()`** verhindert Standardaktionen (z.B. Link-Klick).  
+- **`stopPropagation()`** stoppt Event-Bubbling.  
+
+```js
+document.getElementById("link").addEventListener("click", (e) => {
+    e.preventDefault(); // Kein Seitenwechsel
+});
+```
+
+---
+
+#### **Was sind data-attributes und wie kann man sie mit JavaScript auslesen?**  
+```html
+<div data-id="123"></div>
+```
+
+```js
+const div = document.querySelector("div");
+console.log(div.dataset.id); // "123"
+```
+
+---
+
+#### **Wie entfernt man ein Element mit JavaScript?**  
+```js
+document.getElementById("test").remove();
+```
+
+---
+
+#### **Wie erstellt man ein neues DOM-Element mit JavaScript?**  
+```js
+const el = document.createElement("div");
+el.textContent = "Hallo!";
+document.body.appendChild(el);
+```
+
+---
+
+#### **Wie funktioniert debounce() und throttle() für Event Listener?**  
+- **Debounce**: Verzögert die Ausführung.  
+- **Throttle**: Begrenzte Ausführung innerhalb eines Zeitraums.  
+
+```js
+function debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), delay);
+    };
+}
+```
+
+---
+
+#### **Was sind MutationObserver und IntersectionObserver?**  
+- **MutationObserver** überwacht DOM-Änderungen.  
+- **IntersectionObserver** überwacht Element-Sichtbarkeit.  
+
+```js
+const observer = new MutationObserver(mutations => console.log(mutations));
+observer.observe(document.body, { childList: true });
+
+const io = new IntersectionObserver(entries => console.log(entries));
+io.observe(document.getElementById("target"));
+```
+
+### **Module & Bundling**
+
+#### **Was ist der Unterschied zwischen CommonJS und ES6-Modulen?**  
+- **CommonJS (CJS)**: Wird in Node.js verwendet, nutzt `require()` und `module.exports`.  
+- **ES6-Module (ESM)**: Wird in modernen Browsern verwendet, nutzt `import` und `export`.  
+
+```js
+// CommonJS
+const fs = require("fs");
+
+// ES6-Module
+import fs from "fs";
+```
+
+---
+
+#### **Wie importiert und exportiert man Module in JavaScript?**  
+
+```js
+// Named Export
+export const sayHello = () => console.log("Hallo");
+import { sayHello } from "./module.js";
+
+// Default Export
+export default function greet() { console.log("Hallo"); }
+import greet from "./module.js";
+```
+
+---
+
+#### **Was ist der Unterschied zwischen default export und named export?**  
+- **Default Export**: Nur eine Hauptfunktion oder Klasse pro Datei.  
+- **Named Export**: Mehrere exportierbare Funktionen oder Variablen.  
+
+```js
+export default function() {};  // Import: import x from "./file.js"
+export const test = () => {};  // Import: import { test } from "./file.js"
+```
+
+---
+
+#### **Was ist Webpack und warum wird es verwendet?**  
+Webpack ist ein **Modul-Bundler**, der JavaScript-Dateien zu einer optimierten Datei zusammenfasst.  
+
+```js
+// Webpack ermöglicht das Importieren von CSS, Bildern etc.
+import "./style.css";
+```
+
+---
+
+#### **Wie funktioniert Tree Shaking?**  
+Nicht genutzter Code wird bei der Bündelung entfernt.  
+
+```js
+// Unbenutzte Funktion wird entfernt
+export function unused() {}
+export function used() { console.log("Ich werde genutzt"); }
+```
+
+---
+
+#### **Was ist ein Polyfill und wann wird er benötigt?**  
+Ein **Polyfill** fügt neue Funktionen für alte Browser hinzu.  
+
+```js
+import "core-js/stable"; // Fügt ES6+ Funktionen für ältere Browser hinzu
+```
+
+---
+
+#### **Was ist ein Transpiler (z. B. Babel)?**  
+Ein Transpiler konvertiert modernen JavaScript-Code in ältere Versionen für ältere Browser.  
+
+```json
+// Babel in package.json
+"browserslist": "> 0.5%, last 2 versions, not dead"
+```
+
+---
+
+#### **Was sind Code-Splitting und Lazy Loading?**  
+- **Code-Splitting**: Teilt JavaScript in kleinere Dateien.  
+- **Lazy Loading**: Lädt Code nur bei Bedarf.  
+
+```js
+// Lazy Loading mit Dynamic Import
+import("./module.js").then(module => module.default());
+```
+
+---
+
+#### **Wie funktioniert Dynamic Import (`import()`) in JavaScript?**  
+Lädt Module **dynamisch** zur Laufzeit.  
+
+```js
+if (condition) {
+    import("./extra.js").then(module => module.default());
+}
+```
+
+---
+
+#### **Warum ist es wichtig, `defer` und `async` in `<script>`-Tags zu verwenden?**  
+- **`async`**: Script wird parallel geladen und sofort ausgeführt.  
+- **`defer`**: Script wird parallel geladen, aber erst nach dem Parsen von HTML ausgeführt.  
+
+```html
+<script src="script.js" defer></script>
+```
+
+---
+
+### **Leistung & Optimierung**
+
+#### **Was ist der Unterschied zwischen Call Stack und Memory Heap?**  
+- **Call Stack**: Hält die Reihenfolge der ausgeführten Funktionen.  
+- **Memory Heap**: Speichert Objekte und Variablen im Speicher.  
+
+```js
+function foo() {
+    console.log("Start");
+}
+foo(); // Call Stack: foo -> console.log -> (leert sich)
+```
+
+---
+
+#### **Was ist Memory Leak in JavaScript und wie kann man es vermeiden?**  
+**Memory Leaks** entstehen, wenn Speicher nicht freigegeben wird.  
+
+```js
+let obj = {};
+setInterval(() => obj = { data: new Array(1000000) }, 1000); // Leak
+```
+
+💡 **Vermeidung:**  
+- **Event Listener entfernen** (`removeEventListener()`).  
+- **Unnötige globale Variablen vermeiden**.  
+- **WeakMap/WeakSet für Speicheroptimierung nutzen**.
+
+---
+
+#### **Wie funktioniert Garbage Collection in JavaScript?**  
+**Garbage Collection** entfernt ungenutzte Objekte aus dem Memory Heap, wenn sie nicht mehr referenziert werden.  
+
+```js
+let obj = { name: "Alice" };
+obj = null; // Wird von Garbage Collector entfernt
+```
+
+---
+
+#### **Was ist der Unterschied zwischen Deep Copy und Shallow Copy?**  
+- **Shallow Copy**: Kopiert nur die Referenz auf Objekte.  
+- **Deep Copy**: Erstellt eine echte Kopie eines Objekts.  
+
+```js
+const obj = { name: "Alice", details: { age: 25 } };
+const shallowCopy = { ...obj }; // Shallow Copy
+const deepCopy = JSON.parse(JSON.stringify(obj)); // Deep Copy
+```
+
+---
+
+#### **Wie kann man die Performance einer JavaScript-Anwendung optimieren?**  
+✅ **Minimierung von DOM-Manipulationen**  
+✅ **Verwendung von Web Workers für Hintergrundaufgaben**  
+✅ **Debounce und Throttle für Event-Handling**  
+✅ **Bilder optimieren und Lazy Loading nutzen**  
+✅ **Caching und lokale Speicherung verwenden (localStorage, IndexedDB)**  
+
+---
+
+#### **Was ist `requestAnimationFrame()` und wann wird es verwendet?**  
+`requestAnimationFrame()` sorgt für **performante Animationen**, die mit der **Bildwiederholrate des Monitors** synchronisiert sind.  
+
+```js
+function animate() {
+    console.log("Frame update");
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+```
+
+---
+
+#### **Was ist der Unterschied zwischen `console.log()` und `console.table()`?**  
+- `console.log()` gibt Werte aus.  
+- `console.table()` zeigt **Objekte oder Arrays als Tabelle**.  
+
+```js
+const users = [{ name: "Alice" }, { name: "Bob" }];
+console.table(users);
+```
+
+---
+
+#### **Wie kann man asynchrone Funktionen debuggen?**  
+✅ `console.log()` innerhalb von `async`-Funktionen nutzen.  
+✅ `try...catch` für Fehlermanagement.  
+✅ `debugger;` im Code einfügen und DevTools nutzen.  
+
+```js
+async function fetchData() {
+    try {
+        let response = await fetch("https://jsonplaceholder.typicode.com/posts");
+        let data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.error("Fehler:", error);
+    }
+}
+fetchData();
+```
+
+---
+
+#### **Was ist ein Web Worker und wann sollte man ihn verwenden?**  
+Ein **Web Worker** führt Code in einem separaten Thread aus, um die Haupt-Thread-Performance nicht zu blockieren.  
+
+```js
+// worker.js
+onmessage = function(e) {
+    postMessage(e.data * 2);
+};
+
+// main.js
+const worker = new Worker("worker.js");
+worker.postMessage(10);
+worker.onmessage = function(e) {
+    console.log(e.data); // 20
+};
+```
+
+✅ **Verwendung:** Für **CPU-intensive Aufgaben** wie Bildbearbeitung, große Berechnungen.  
+
+---
+
+#### **Was sind die besten Methoden zur Reduzierung der Reflow/Repaint-Probleme?**  
+🚀 **Vermeidung von häufigen DOM-Manipulationen:**  
+- **Mehrere Änderungen in einem einzigen Batch vornehmen**.  
+- **CSS-Klassen statt Inline-Styles ändern**.  
+- **`requestAnimationFrame()` für Animationen nutzen**.  
+- **Grid und Flexbox bevorzugen** (statt `float` oder `position: absolute`).  
+- **Vermeiden von `offsetWidth`, `offsetHeight`, da sie Reflow auslösen**.  
+
+```js
+document.body.classList.add("hidden");
+```
+
+---
+
+### **Zusammenfassung**  
+✅ **Module optimieren (Tree Shaking, Code-Splitting, Lazy Loading)**  
+✅ **Speicher effizient verwalten (Garbage Collection, Memory Leaks vermeiden)**  
+✅ **Performance steigern (Web Worker, `requestAnimationFrame()`, Debounce/Throttle)**  
+✅ **Effiziente Debugging-Techniken nutzen (`console.table()`, DevTools, `debugger`)**  
+
+### **Sonstiges & Best Practices**
+
+#### **Was ist strict mode in JavaScript?**  
+Der **Strict Mode** (`"use strict"`) erhöht die Sicherheit von JavaScript, indem er bestimmte unsichere Praktiken verbietet.
+
+```js
+"use strict";
+x = 10; // Fehler: x ist nicht deklariert
+```
+
+---
+
+#### **Warum sollte man `use strict` verwenden?**  
+✅ Verhindert das Erstellen globaler Variablen  
+✅ Erzwingt saubere Syntax  
+✅ Reduziert Sicherheitsrisiken  
+
+---
+
+#### **Was sind JavaScript-Design-Patterns?**  
+Wiederverwendbare Muster zur Lösung gängiger Probleme. Beispiele:  
+- **Singleton** (nur eine Instanz)  
+- **Factory Pattern** (Erstellung von Objekten)  
+- **Observer Pattern** (Event-basierte Architektur)  
+
+```js
+const Singleton = (function() {
+    let instance;
+    function createInstance() {
+        return { name: "Ich bin einzigartig!" };
+    }
+    return {
+        getInstance: function() {
+            if (!instance) instance = createInstance();
+            return instance;
+        }
+    };
+})();
+console.log(Singleton.getInstance());
+```
+
+---
+
+#### **Was ist Functional Programming und warum ist es in JavaScript beliebt?**  
+Ein Paradigma, das Funktionen als erste Klasse behandelt. Vorteile:  
+✅ **Pure Functions** (keine Seiteneffekte)  
+✅ **Immutability** (keine Veränderung von Daten)  
+✅ **Höhere Wiederverwendbarkeit**  
+
+```js
+const add = (x, y) => x + y;
+const multiply = (x, y) => x * y;
+console.log(add(2, multiply(3, 4))); // 14
+```
+
+---
+
+#### **Was sind WeakMap und WeakSet?**  
+- **WeakMap** speichert Schlüssel-Wert-Paare, wobei die Schlüssel nur Objekte sein können.  
+- **WeakSet** speichert nur Objekte.  
+
+💡 **Vorteil:** Verhindert Memory Leaks, da Elemente automatisch gelöscht werden, wenn keine Referenz mehr existiert.  
+
+```js
+let wm = new WeakMap();
+let obj = {};
+wm.set(obj, "Wert");
+obj = null; // Automatische Löschung aus WeakMap
+```
+
+---
+
+#### **Was ist Tail Call Optimization in JavaScript?**  
+Optimierung rekursiver Funktionen zur Speicherersparnis.
+
+```js
+"use strict";
+function factorial(n, acc = 1) {
+    if (n === 1) return acc;
+    return factorial(n - 1, n * acc); // Tail Call
+}
+console.log(factorial(5)); // 120
+```
+
+---
+
+#### **Was ist der Unterschied zwischen einer Callback-Hell und Promises?**  
+- **Callback-Hell:** Verschachtelte Callbacks machen Code schwer lesbar.  
+- **Promises:** Vereinfachen asynchronen Code.  
+
+```js
+// Callback-Hell
+fetch("data.json", function(response) {
+    parseJSON(response, function(data) {
+        processData(data, function(result) {
+            console.log(result);
+        });
+    });
+});
+
+// Mit Promises
+fetch("data.json")
+    .then(response => response.json())
+    .then(data => processData(data))
+    .then(result => console.log(result));
+```
+
+---
+
+#### **Was ist die Bedeutung von NaN in JavaScript?**  
+`NaN` (Not a Number) zeigt ungültige numerische Berechnungen an.
+
+```js
+console.log(0 / 0); // NaN
+console.log(Number.isNaN("abc" / 2)); // true
+```
+
+---
+
+#### **Warum sollte man globale Variablen vermeiden?**  
+❌ Kann zu Namenskonflikten führen  
+❌ Erschwert Debugging  
+❌ Reduziert Modularität  
+
+✅ **Besser:** Lokale Variablen oder `const` und `let` verwenden.
+
+---
+
+#### **Was sind Service Worker und wie funktionieren sie?**  
+Ein **Service Worker** ermöglicht Offline-Funktionalität und Hintergrundprozesse.
+
+```js
+navigator.serviceWorker.register("sw.js");
+```
+
+**Nutzen:**  
+✅ **Caching** für Offline-Modus  
+✅ **Hintergrundsynchronisation**  
+
+---
+
+### **Sicherheitsfragen**
+
+#### **Was ist Cross-Site Scripting (XSS) und wie kann man es verhindern?**  
+XSS erlaubt es Angreifern, schädliches JavaScript in Webseiten einzufügen.
+
+🔒 **Schutzmaßnahmen:**  
+✅ **Eingaben escapen/sanitizen**  
+✅ **Content Security Policy (CSP) verwenden**  
+✅ **Keine ungesicherten `innerHTML`-Manipulationen**  
+
+```js
+element.textContent = userInput; // Sicherer als innerHTML
+```
+
+---
+
+#### **Was ist CSRF (Cross-Site Request Forgery)?**  
+CSRF nutzt Authentifizierungs-Sitzungen aus, um unerwünschte Aktionen im Namen eines Benutzers auszuführen.
+
+🔒 **Schutzmaßnahmen:**  
+✅ **CSRF-Tokens verwenden**  
+✅ **SameSite-Cookies setzen**  
+
+---
+
+#### **Wie kann man sich gegen SQL-Injection schützen?**  
+SQL-Injection erlaubt Angreifern, Datenbanken zu manipulieren.
+
+🔒 **Schutz:**  
+✅ **Prepared Statements verwenden**  
+✅ **Eingaben validieren und escapen**  
+
+```sql
+SELECT * FROM users WHERE username = ?; 
+```
+
+---
+
+#### **Was ist CORS und warum ist es wichtig?**  
+CORS (Cross-Origin Resource Sharing) erlaubt oder blockiert Anfragen zwischen unterschiedlichen Ursprüngen.
+
+🔒 **Lösung:**  
+✅ Server muss `Access-Control-Allow-Origin` Header setzen.
+
+```js
+res.setHeader("Access-Control-Allow-Origin", "*");
+```
+
+---
+
+#### **Was ist Content Security Policy (CSP)?**  
+CSP verhindert XSS-Angriffe durch Kontrolle, welche Ressourcen geladen werden dürfen.
+
+🔒 **Beispiel:**  
+
+```html
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'">
+```
+
+---
+
+#### **Warum ist `eval()` gefährlich?**  
+❌ Führt beliebigen Code aus und kann zu Sicherheitslücken führen.  
+❌ Verlangsamt die Performance.  
+
+🔒 **Alternative:** `JSON.parse()`, `Function()`  
+
+```js
+// Unsicher:
+eval("alert('Gefährlich!')");
+
+// Sicher:
+const safeFunction = new Function("return 2 + 2;");
+console.log(safeFunction()); // 4
+```
+
+---
+
+#### **Wie kann man mit Secure Cookies und HTTPOnly umgehen?**  
+- **Secure Cookies**: Werden nur über HTTPS gesendet.  
+- **HTTPOnly Cookies**: Können nicht von JavaScript gelesen werden.  
+
+🔒 **Beispiel-Header:**  
+
+```
+Set-Cookie: session=abc123; Secure; HttpOnly; SameSite=Strict
+```
+
+---
+
+#### **Was ist Clickjacking und wie kann man es verhindern?**  
+Clickjacking manipuliert Benutzer, versteckte Buttons zu klicken.
+
+🔒 **Schutz:**  
+✅ **X-Frame-Options Header setzen:**  
+
+```
+X-Frame-Options: DENY
+```
+
+✅ **`frame-ancestors` in CSP verwenden:**  
+
+```
+Content-Security-Policy: frame-ancestors 'none';
+```
+
+---
+
+#### **Was sind Same-Origin Policy und wie beeinflussen sie Webanwendungen?**  
+Die **Same-Origin Policy (SOP)** blockiert Anfragen zwischen verschiedenen Ursprüngen.  
+
+✅ **Lösung:**  
+- CORS aktivieren  
+- JSONP für einfache GET-Anfragen nutzen  
+
+---
+
+#### **Was sind JSON Web Tokens (JWT) und wie werden sie verwendet?**  
+JWTs sind sichere, signierte Tokens für Authentifizierung.
+
+```js
+const token = jwt.sign({ userId: 123 }, "secret", { expiresIn: "1h" });
+```
+
+✅ **Verwendung:**  
+- Sicherer Login  
+- API-Authentifizierung  
+
+---
+
+### **Zusammenfassung**  
+✅ **Best Practices in JavaScript einhalten**  
+✅ **Sicherheitslücken vermeiden (XSS, CSRF, SQL-Injection)**  
+✅ **Web-Performance optimieren**  
+✅ **Moderne Technologien wie Service Worker & JWT nutzen**  
 
 
   **[⬆ Наверх](#top)** 
