@@ -6417,7 +6417,7 @@ HTML (**HyperText Markup Language**) ist die standardisierte Sprache zur Struktu
 ---
 
 #### **2. Welche Version von HTML wird derzeit verwendet?**  
-Die aktuelle Version ist **HTML5**, eingeführt 2014. Sie bringt neue semantische Tags (<article>, <section>), Multimedia-Elemente (<audio>, <video>) und APIs (Geolocation, Web Storage).
+Die aktuelle Version ist **HTML5**, eingeführt 2014. Sie bringt neue semantische Tags (<article, <section), Multimedia-Elemente (<audio, <video) und APIs (Geolocation, Web Storage).
 
 ---
 
