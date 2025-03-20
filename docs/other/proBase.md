@@ -68,7 +68,7 @@
 |58 | [](#58) |
 |59 | [](#59) |
 |60 | [HTML – Grundlagen und Best Practices](#60) |
-|61 | [](#61) |
+|61 | [HTML-Fragen](#61) |
 |62 | [](#62) |
 |63 | [](#63) |
 |64 | [](#64) |
@@ -6407,8 +6407,258 @@ document.querySelectorAll(".box").forEach(box => {
 
   **[⬆ Наверх](#top)**
 
-61. ### <a name="61"></a> 
+61. ### <a name="61"></a> HTML-Fragen
 
+### **HTML-Fragen (Вопросы по HTML)**
+
+#### **1. Was ist HTML und wofür wird es verwendet?**  
+HTML (**HyperText Markup Language**) ist die standardisierte Sprache zur Strukturierung von Webseiten. Es definiert das Grundgerüst einer Website mit Elementen wie Text, Links, Bildern und Formularen.
+
+---
+
+#### **2. Welche Version von HTML wird derzeit verwendet?**  
+Die aktuelle Version ist **HTML5**, eingeführt 2014. Sie bringt neue semantische Tags (<article>, <section>), Multimedia-Elemente (<audio>, <video>) und APIs (Geolocation, Web Storage).
+
+---
+
+#### **3. Was sind die wichtigsten HTML-Tags?**  
+- **Struktur:** `<html>`, `<head>`, `<body>`  
+- **Textelemente:** `<h1>-<h6>`, `<p>`, `<a>`, `<span>`, `<strong>`, `<em>`  
+- **Listen:** `<ul>`, `<ol>`, `<li>`  
+- **Tabellen:** `<table>`, `<tr>`, `<td>`, `<th>`  
+- **Formulare:** `<form>`, `<input>`, `<button>`, `<label>`  
+- **Medien:** `<img>`, `<audio>`, `<video>`  
+
+---
+
+#### **4. Was ist der Unterschied zwischen Block- und Inline-Elementen?**  
+- **Block-Elemente** nehmen die volle Breite ein, z. B. `<div>`, `<p>`, `<h1>`.  
+- **Inline-Elemente** nehmen nur so viel Platz wie nötig, z. B. `<a>`, `<span>`, `<strong>`.  
+
+**Beispiel:**  
+```html
+<p>Dies ist ein <span style="color: red;">Inline-Element</span> in einem Block-Element.</p>
+```
+
+---
+
+#### **5. Wozu dient das `<head>`-Element?**  
+Das `<head>`-Element enthält Metainformationen einer Webseite, z. B. den Titel, Links zu CSS-Dateien und Skripten.  
+
+**Beispiel:**  
+```html
+<head>
+  <title>Meine Webseite</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="styles.css">
+</head>
+```
+
+---
+
+#### **6. Was ist der Zweck des `<meta>`-Tags?**  
+Es definiert Metadaten wie Zeichencodierung, Beschreibung und Autor.  
+
+**Beispiel:**  
+```html
+<meta charset="UTF-8">
+<meta name="description" content="Dies ist eine Beispielseite">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+```
+
+---
+
+#### **7. Wie bindet man externe Stylesheets und Skripte in HTML ein?**  
+- **CSS:**  
+```html
+<link rel="stylesheet" href="styles.css">
+```
+- **JavaScript:**  
+```html
+<script src="script.js"></script>
+```
+
+---
+
+#### **8. Was ist der Unterschied zwischen dem `<div>`- und dem `<span>`-Tag?**  
+- **`<div>`:** Block-Element, dient zur Gruppierung von Elementen.  
+- **`<span>`:** Inline-Element, zur Hervorhebung von Textteilen.  
+
+**Beispiel:**  
+```html
+<div class="container">
+  <span style="color: blue;">Blauer Text</span>
+</div>
+```
+
+---
+
+#### **9. Was bedeutet „semantisches HTML“? Können Sie einige Beispiele nennen?**  
+Semantisches HTML verwendet sinnvolle Tags für Inhalte.  
+
+**Beispiele:**  
+- `<header>` für Kopfzeilen  
+- `<nav>` für Navigation  
+- `<section>` für Abschnitte  
+- `<article>` für eigenständige Inhalte  
+- `<footer>` für Fußbereiche  
+
+**Nicht-semantisch:**  
+```html
+<div class="navigation">Navigation</div>
+```
+**Semantisch:**  
+```html
+<nav>Navigation</nav>
+```
+
+---
+
+#### **10. Welche Bedeutung hat das `<article>`-Tag?**  
+Es steht für eigenständige, wiederverwendbare Inhalte wie Blog-Posts oder News-Artikel.  
+
+**Beispiel:**  
+```html
+<article>
+  <h2>HTML lernen</h2>
+  <p>HTML ist die Grundlage des Webs.</p>
+</article>
+```
+
+---
+
+#### **11. Wofür wird das `<section>`-Tag verwendet?**  
+Zur Gruppierung verwandter Inhalte innerhalb einer Seite.  
+
+**Beispiel:**  
+```html
+<section>
+  <h2>Über uns</h2>
+  <p>Wir sind ein innovatives Unternehmen.</p>
+</section>
+```
+
+---
+
+#### **12. Was ist der Unterschied zwischen `<b>` und `<strong>`?**  
+- **`<b>`:** Fettgedruckter Text, ohne Bedeutung.  
+- **`<strong>`:** Bedeutender Text (wichtig für Screenreader).  
+
+**Beispiel:**  
+```html
+<p>Das ist <b>fett</b>, aber das ist <strong>wichtig</strong>.</p>
+```
+
+---
+
+#### **13. Was ist der Unterschied zwischen `<i>` und `<em>`?**  
+- **`<i>`:** Kursiv, ohne Bedeutung.  
+- **`<em>`:** Betonung (wichtig für Barrierefreiheit).  
+
+**Beispiel:**  
+```html
+<p>Das ist <i>kursiv</i> und das ist <em>betont</em>.</p>
+```
+
+---
+
+#### **14. Welche Arten von Listen gibt es in HTML?**  
+- **Geordnete Liste (`<ol>`)**:  
+```html
+<ol>
+  <li>Erster Punkt</li>
+  <li>Zweiter Punkt</li>
+</ol>
+```
+- **Ungeordnete Liste (`<ul>`)**:  
+```html
+<ul>
+  <li>Ein Element</li>
+  <li>Noch ein Element</li>
+</ul>
+```
+- **Definitionsliste (`<dl>`)**:  
+```html
+<dl>
+  <dt>HTML</dt>
+  <dd>HyperText Markup Language</dd>
+</dl>
+```
+
+---
+
+#### **15. Wie erstellt man eine Tabelle in HTML?**  
+```html
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Alter</th>
+  </tr>
+  <tr>
+    <td>Sergii</td>
+    <td>30</td>
+  </tr>
+</table>
+```
+
+---
+
+#### **16. Was ist das `<iframe>`-Element und wann sollte es verwendet werden?**  
+Es bettet externe Inhalte ein, z. B. YouTube-Videos oder Google Maps.  
+
+**Beispiel:**  
+```html
+<iframe src="https://www.example.com" width="600" height="400"></iframe>
+```
+
+---
+
+#### **17. Was ist das `alt`-Attribut in `<img>`-Tags und warum ist es wichtig?**  
+Es beschreibt ein Bild für Screenreader und SEO.  
+
+**Beispiel:**  
+```html
+<img src="bild.jpg" alt="Eine schöne Landschaft">
+```
+
+---
+
+#### **18. Was ist das `placeholder`-Attribut in Formularfeldern?**  
+Es zeigt einen Platzhaltertext in einem Eingabefeld.  
+
+**Beispiel:**  
+```html
+<input type="text" placeholder="Geben Sie Ihren Namen ein">
+```
+
+---
+
+#### **19. Was ist der Unterschied zwischen dem `<form>`-Tag und dem `<fieldset>`-Tag?**  
+- **`<form>`**: Container für ein Formular.  
+- **`<fieldset>`**: Gruppiert verwandte Eingabefelder.  
+
+**Beispiel:**  
+```html
+<form>
+  <fieldset>
+    <legend>Persönliche Daten</legend>
+    <label>Name: <input type="text"></label>
+  </fieldset>
+</form>
+```
+
+---
+
+#### **20. Wie funktioniert das `<video>`-Element?**  
+Es ermöglicht das Einbetten von Videos.  
+
+**Beispiel:**  
+```html
+<video controls>
+  <source src="video.mp4" type="video/mp4">
+  Ihr Browser unterstützt kein Video.
+</video>
+```
 
   **[⬆ Наверх](#top)** 
 
