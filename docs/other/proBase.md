@@ -45,7 +45,7 @@
 |36 | [](#36) |
 |37 | [](#37) |
 |38 | [](#38) |
-|39 | [](#39) |
+|39 | [Allgemeine Fragen zur Webentwicklung](#39) |
 |40 | [Allgemeine Fragen zur Webentwicklung](#40) |
 |   | HTML |
 |41 | [Wie ist die Grundstruktur eines HTML-Dokuments aufgebaut?](#41) |
@@ -4412,16 +4412,204 @@ app.use((req, res, next) => {
 
   **[⬆ Наверх](#top)**
 
-39. ### <a name="39"></a> 
+39. ### <a name="39"></a> Allgemeine Fragen zur Webentwicklung
 
+### **Allgemeine Fragen zur Webentwicklung**
+
+#### **1. Was versteht man unter Webentwicklung?**  
+Webentwicklung umfasst die Erstellung, Pflege und Optimierung von Websites und Webanwendungen. Sie beinhaltet Frontend (Benutzeroberfläche), Backend (Server-Logik) und Datenbanken.
+
+---
+
+#### **2. Was sind die wichtigsten Technologien für die Webentwicklung?**  
+- **Frontend:** HTML, CSS, JavaScript  
+- **Backend:** Node.js, PHP, Python, Java  
+- **Datenbanken:** MySQL, PostgreSQL, MongoDB  
+- **Tools:** Git, Webpack, Docker  
+- **APIs:** REST, GraphQL  
+
+---
+
+#### **3. Was ist der Unterschied zwischen Frontend und Backend?**  
+- **Frontend:** Teil der Website, den der Benutzer sieht und mit dem er interagiert (HTML, CSS, JavaScript).  
+- **Backend:** Serverlogik, Datenbank, APIs – verarbeitet und speichert Daten.
+
+---
+
+#### **4. Welche Programmiersprachen werden häufig für die Webentwicklung verwendet?**  
+- **Frontend:** JavaScript, TypeScript  
+- **Backend:** JavaScript (Node.js), Python, PHP, Java, C#  
+- **Datenbanken:** SQL (MySQL, PostgreSQL), NoSQL (MongoDB)  
+
+---
+
+#### **5. Was ist der Unterschied zwischen einer Website und einer Webanwendung?**  
+- **Website:** Statische Inhalte, z. B. Blogs, Unternehmensseiten.  
+- **Webanwendung:** Dynamische Interaktion mit Nutzern, z. B. Gmail, Facebook.
+
+---
+
+#### **6. Was bedeutet „responsive Design“?**  
+Ein Design, das sich an verschiedene Bildschirmgrößen anpasst (Mobile, Tablet, Desktop).  
+
+**CSS Beispiel:**  
+```css
+body {
+  font-size: 16px;
+}
+
+@media (max-width: 600px) {
+  body {
+    font-size: 14px;
+  }
+}
+```
+
+---
+
+#### **7. Was ist eine API und wie wird sie in der Webentwicklung verwendet?**  
+Eine **API (Application Programming Interface)** ermöglicht die Kommunikation zwischen Anwendungen.  
+
+**Beispiel: Fetch API in JavaScript für eine REST-API**  
+```js
+fetch('https://api.example.com/data')
+  .then(response => response.json())
+  .then(data => console.log(data));
+```
+
+---
+
+#### **8. Was versteht man unter einem Framework? Können Sie einige Beispiele nennen?**  
+Ein Framework ist eine Sammlung von Tools und Bibliotheken zur Entwicklung von Anwendungen.  
+
+- **Frontend:** React, Angular, Vue.js  
+- **Backend:** Express.js, Django, Spring Boot  
+
+---
+
+#### **9. Was ist der Unterschied zwischen Client-Side- und Server-Side-Rendering?**  
+- **Client-Side-Rendering (CSR):** Rendering im Browser (z. B. mit React).  
+- **Server-Side-Rendering (SSR):** Rendering auf dem Server (z. B. mit Next.js).  
+
+---
+
+#### **10. Was bedeutet „Progressive Web App (PWA)“?**  
+Eine PWA ist eine Webanwendung, die wie eine native App funktioniert (offline-fähig, Push-Nachrichten).  
+
+---
+
+#### **11. Was sind die Unterschiede zwischen HTTP und HTTPS?**  
+- **HTTP:** Unverschlüsselt, unsicher.  
+- **HTTPS:** Verschlüsselt mit SSL/TLS, sicher.  
+
+---
+
+#### **12. Welche HTTP-Statuscodes kennen Sie?**  
+- **200 OK** – Erfolgreiche Anfrage  
+- **301 Moved Permanently** – Permanente Weiterleitung  
+- **404 Not Found** – Seite nicht gefunden  
+- **500 Internal Server Error** – Serverfehler  
+
+---
+
+#### **13. Was ist der Unterschied zwischen GET- und POST-Anfragen?**  
+- **GET:** Daten abrufen (sichtbar in der URL).  
+- **POST:** Daten senden (nicht sichtbar).  
+
+**Beispiel:**  
+```js
+// GET-Anfrage
+fetch('https://api.example.com/data')
+  .then(res => res.json())
+  .then(data => console.log(data));
+
+// POST-Anfrage
+fetch('https://api.example.com/data', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: 'Sergii' })
+});
+```
+
+---
+
+#### **14. Was ist ein CDN und wie funktioniert es?**  
+Ein **Content Delivery Network (CDN)** speichert Inhalte weltweit, um sie schneller bereitzustellen (z. B. Cloudflare, AWS CloudFront).
+
+---
+
+#### **15. Welche Rolle spielt der Cache in der Webentwicklung?**  
+Der Cache speichert Daten lokal, um Ladezeiten zu verkürzen.  
+
+**Beispiel: Cache-Control in HTTP-Headern**  
+```http
+Cache-Control: max-age=3600, must-revalidate
+```
+
+---
+
+#### **16. Was ist der Unterschied zwischen Cookies, Local Storage und Session Storage?**  
+| Technologie    | Speicherung | Lebensdauer | Größe  | Beispielanwendung |
+|--------------|------------|-------------|-------|----------------|
+| Cookies      | Server + Client | Manuell | 4 KB  | Authentifizierung |
+| LocalStorage | Nur Client | Unbegrenzt | 5-10 MB | Nutzereinstellungen |
+| SessionStorage | Nur Client | Bis zum Schließen des Tabs | 5-10 MB | Temporäre Sitzungsdaten |
+
+**Beispiel für Local Storage:**  
+```js
+localStorage.setItem('username', 'Sergii');
+console.log(localStorage.getItem('username'));
+```
+
+---
+
+#### **17. Wie kann man die Performance einer Webseite optimieren?**  
+- **Bilder optimieren (WebP statt JPG/PNG).**  
+- **Code minifizieren (CSS, JS).**  
+- **Lazy Loading für Bilder.**  
+- **CDN nutzen.**  
+- **Gzip/Brotli-Komprimierung aktivieren.**  
+
+---
+
+#### **18. Was ist Web Accessibility (Barrierefreiheit) und warum ist sie wichtig?**  
+Web Accessibility bedeutet, dass Websites für alle Nutzer zugänglich sind, auch für Menschen mit Behinderungen.  
+
+**Beispiel für ARIA-Attribute:**  
+```html
+<button aria-label="Menü öffnen">☰</button>
+```
+
+---
+
+#### **19. Was sind REST und SOAP?**  
+- **REST (Representational State Transfer):** Leichtgewichtig, JSON-basierte APIs.  
+- **SOAP (Simple Object Access Protocol):** Schwergewichtig, XML-basiert, oft in Enterprise-Systemen.  
+
+**REST API Beispiel:**  
+```js
+fetch('https://api.example.com/users')
+  .then(res => res.json())
+  .then(data => console.log(data));
+```
+
+---
+
+#### **20. Was sind die wichtigsten Sicherheitsmaßnahmen für Webanwendungen?**  
+- **HTTPS verwenden.**  
+- **Eingaben validieren (XSS, SQL-Injection verhindern).**  
+- **CORS-Richtlinien konfigurieren.**  
+- **Tokens für Authentifizierung (JWT, OAuth).**  
+- **Content Security Policy (CSP) nutzen.**  
+
+**Beispiel für CSP-Header:**  
+```http
+Content-Security-Policy: default-src 'self'
+```
 
   **[⬆ Наверх](#top)**
 
 40. ### <a name="40"></a> Allgemeine Fragen zur Webentwicklung
-
-Hier sind die kurzen Antworten auf alle Fragen:
-
----
 
 ### **Allgemeine Fragen zur Webentwicklung**
 
