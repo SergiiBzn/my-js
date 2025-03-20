@@ -119,7 +119,7 @@
 |108 | [](#108) |
 |109 | [](#109) |
 |110 | [CSS – Grundlagen und Best Practices](#110) |
-|111 | [](#111) |
+|111 | [CSS-Fragen](#111) |
 |112 | [](#112) |
 |113 | [](#113) |
 |114 | [](#114) |
@@ -10520,7 +10520,720 @@ import styles from './styles.module.css';
 
   **[⬆ Наверх](#top)**
 
-111. ### <a name="111"></a> 
+111. ### <a name="111"></a> CSS-Fragen
+
+### **CSS-Fragen (Вопросы по CSS)**
+
+#### **1. Was ist CSS und wofür wird es verwendet?**  
+CSS (**Cascading Style Sheets**) wird verwendet, um das Erscheinungsbild von HTML-Elementen zu gestalten. Damit können Farben, Abstände, Layouts und Animationen definiert werden.
+
+---
+
+#### **2. Was sind die verschiedenen Möglichkeiten, CSS in HTML einzubinden?**  
+- **Inline-CSS:** Direkt im HTML-Element  
+  ```html
+  <p style="color: red;">Roter Text</p>
+  ```
+- **Internes CSS:** Im `<style>`-Tag im `<head>`  
+  ```html
+  <style>
+    p { color: red; }
+  </style>
+  ```
+- **Externes CSS:** Über eine separate Datei  
+  ```html
+  <link rel="stylesheet" href="styles.css">
+  ```
+
+---
+
+#### **3. Was ist der Unterschied zwischen relativen, absoluten und festen Einheiten in CSS?**  
+- **Relativ:** Ändert sich basierend auf Elternelementen (`em`, `rem`, `%`).  
+- **Absolut:** Feste Größen (`px`, `cm`, `mm`).  
+- **Viewport-basiert:** `vw`, `vh` (abhängig vom Bildschirm).  
+
+**Beispiel:**  
+```css
+div {
+  font-size: 2em; /* 2x die Schriftgröße des Elternelements */
+  width: 50%; /* 50% der Breite des Elternelements */
+}
+```
+
+---
+
+#### **4. Was sind die Unterschiede zwischen Klassen- und ID-Selektoren?**  
+- **Klasse (`.`)** kann für mehrere Elemente verwendet werden.  
+- **ID (`#`)** ist einzigartig für ein Element.  
+
+**Beispiel:**  
+```css
+#einzigartig { color: blue; }
+.allgemein { color: red; }
+```
+
+```html
+<p id="einzigartig">Ich bin einzigartig.</p>
+<p class="allgemein">Ich habe eine Klasse.</p>
+```
+
+---
+
+#### **5. Was ist der Unterschied zwischen `em`, `rem`, `%` und `px`?**  
+| Einheit | Bedeutung |
+|---------|-----------|
+| `px` | Feste Pixelgröße |
+| `em` | Basierend auf Schriftgröße des Elternelements |
+| `rem` | Basierend auf Schriftgröße des `html`-Elements |
+| `%` | Prozentual zur Größe des Elternelements |
+
+---
+
+#### **6. Was ist der Unterschied zwischen `position: relative`, `absolute`, `fixed` und `sticky`?**  
+| Position | Verhalten |
+|----------|-----------|
+| `relative` | Relativ zur normalen Position |
+| `absolute` | Relativ zum nächstgelegenen `relative`-Element oder `body` |
+| `fixed` | Bleibt an einer festen Position auf dem Bildschirm |
+| `sticky` | Bleibt fest, wenn eine Scroll-Grenze erreicht wird |
+
+**Beispiel für `sticky`:**  
+```css
+header {
+  position: sticky;
+  top: 0;
+  background: white;
+}
+```
+
+---
+
+#### **7. Was bedeutet „Box-Modell“ in CSS?**  
+Das Box-Modell beschreibt, wie Elemente aus **Margin**, **Border**, **Padding** und **Content** bestehen.
+
+**Beispiel:**  
+```css
+div {
+  width: 100px;
+  padding: 10px;
+  border: 5px solid black;
+  margin: 20px;
+}
+```
+
+---
+
+#### **8. Wie funktioniert Flexbox?**  
+Flexbox ermöglicht eine flexible Anordnung von Elementen in einer Zeile oder Spalte.
+
+**Beispiel:**  
+```css
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+```
+
+---
+
+#### **9. Was sind die Hauptunterschiede zwischen Flexbox und Grid?**  
+- **Flexbox:** 1-dimensionale Layouts (Zeile oder Spalte).  
+- **Grid:** 2-dimensionale Layouts (Zeilen & Spalten).  
+
+**Grid-Beispiel:**  
+```css
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+```
+
+---
+
+#### **10. Wie erstellt man ein zentriertes Layout mit CSS?**  
+```css
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+```
+
+---
+
+#### **11. Wie kann man eine Animation in CSS erstellen?**  
+```css
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.element {
+  animation: fadeIn 2s ease-in;
+}
+```
+
+---
+
+#### **12. Was ist `z-index` und wie funktioniert es?**  
+Bestimmt die Stapelreihenfolge von Elementen. Höhere Werte erscheinen oben.  
+
+```css
+.box {
+  position: absolute;
+  z-index: 10;
+}
+```
+
+---
+
+#### **13. Was ist der Unterschied zwischen `min-width`, `max-width` und `width`?**  
+- **`width`**: Feste Breite.  
+- **`min-width`**: Mindestbreite.  
+- **`max-width`**: Maximale Breite.  
+
+---
+
+#### **14. Was sind Media Queries und wofür werden sie verwendet?**  
+Sie passen das Design an verschiedene Bildschirmgrößen an.  
+
+```css
+@media (max-width: 600px) {
+  body { background-color: lightblue; }
+}
+```
+
+---
+
+#### **15. Was ist ein Pseudo-Element? Können Sie ein Beispiel geben?**  
+Ein Pseudo-Element fügt virtuelle Elemente hinzu.  
+
+```css
+p::first-letter {
+  font-size: 2em;
+}
+```
+
+---
+
+#### **16. Was sind Pseudo-Klassen? Können Sie einige Beispiele nennen?**  
+Pseudo-Klassen definieren spezielle Zustände.  
+
+```css
+a:hover { color: red; }
+input:focus { border: 2px solid blue; }
+```
+
+---
+
+#### **17. Was ist der Unterschied zwischen `nth-child()` und `nth-of-type()`?**  
+- **`nth-child(n)`**: Basierend auf allen Kindern.  
+- **`nth-of-type(n)`**: Basierend auf dem Typ des Elements.  
+
+**Beispiel:**  
+```css
+p:nth-child(2) { color: red; }
+p:nth-of-type(2) { color: blue; }
+```
+
+---
+
+#### **18. Wie funktioniert `opacity` in CSS?**  
+Steuert die Transparenz eines Elements (`0` = unsichtbar, `1` = sichtbar).  
+
+```css
+div {
+  opacity: 0.5;
+}
+```
+
+---
+
+#### **19. Wie funktioniert `clip-path`?**  
+Es schneidet ein Element in eine bestimmte Form.  
+
+**Beispiel:**  
+```css
+img {
+  clip-path: circle(50%);
+}
+```
+
+---
+
+#### **20. Was bedeutet „Cascading“ in CSS?**  
+Die **Kaskade** bestimmt, welche CSS-Regel angewendet wird, wenn mehrere Regeln auf ein Element zutreffen.  
+**Priorität:**  
+1. **Inline-Styles**  
+2. **ID-Selektoren (`#id`)**  
+3. **Klassen (`.class`), Attribute und Pseudo-Klassen**  
+4. **Element-Selektoren (`h1`, `p`)**  
+5. **Globale Regeln (`*`)**
+
+
+### **Weitere CSS-Konzepte (Дополнительные темы по CSS)**
+
+#### **1. Wie funktioniert `display: flex`?**  
+`flex` ermöglicht eine flexible Anordnung von Elementen innerhalb eines Containers.
+
+**Beispiel für zentrierte Elemente:**  
+```css
+.container {
+  display: flex;
+  justify-content: center; /* Horizontal ausrichten */
+  align-items: center; /* Vertikal ausrichten */
+  height: 100vh;
+}
+```
+
+---
+
+#### **2. Wie funktioniert `display: grid`?**  
+`grid` erlaubt ein 2D-Layout mit Zeilen und Spalten.
+
+**Beispiel für ein 3-Spalten-Layout:**  
+```css
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+```
+
+---
+
+#### **3. Was ist `overflow` in CSS?**  
+Bestimmt, was passiert, wenn Inhalte über den Container hinausgehen.
+
+| Wert | Beschreibung |
+|------|-------------|
+| `visible` | Inhalt bleibt sichtbar |
+| `hidden` | Überlaufender Inhalt wird abgeschnitten |
+| `scroll` | Scrollbalken wird angezeigt |
+| `auto` | Scrollbalken nur bei Bedarf |
+
+**Beispiel:**  
+```css
+div {
+  width: 200px;
+  height: 100px;
+  overflow: scroll;
+}
+```
+
+---
+
+#### **4. Wie kann man einen Hover-Effekt in CSS umsetzen?**  
+```css
+button:hover {
+  background-color: blue;
+  color: white;
+}
+```
+
+---
+
+#### **5. Was sind Custom Properties (CSS-Variablen)?**  
+CSS-Variablen ermöglichen Wiederverwendbarkeit von Werten.
+
+```css
+:root {
+  --main-color: blue;
+}
+
+h1 {
+  color: var(--main-color);
+}
+```
+
+---
+
+#### **6. Wie kann man ein Hintergrundbild in CSS skalieren?**  
+```css
+body {
+  background-image: url('bild.jpg');
+  background-size: cover; /* Bild füllt gesamten Bereich */
+}
+```
+
+---
+
+#### **7. Was ist `object-fit` in CSS?**  
+Definiert, wie Bilder oder Videos in Container passen.
+
+```css
+img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+```
+
+---
+
+#### **8. Wie setzt man eine CSS-Transformation um?**  
+```css
+div {
+  transform: rotate(45deg);
+}
+```
+
+---
+
+#### **9. Wie erstellt man eine Hover-Animation?**  
+```css
+button {
+  transition: background-color 0.3s ease-in-out;
+}
+
+button:hover {
+  background-color: red;
+}
+```
+
+---
+
+#### **10. Wie kann man Text umbrechen?**  
+```css
+p {
+  word-wrap: break-word;
+  white-space: normal;
+}
+```
+
+---
+
+### **Best Practices und Troubleshooting (Лучшие практики и устранение ошибок)**
+
+#### **11. Wie kann man eine Webseite schneller laden lassen?**  
+- Bilder optimieren (`WebP` statt `JPG/PNG`).  
+- CSS und JS minifizieren.  
+- Lazy Loading für Bilder nutzen.  
+- CDN für statische Dateien verwenden.  
+- Caching aktivieren.
+
+---
+
+#### **12. Was sind die häufigsten Fehler in HTML und wie kann man sie vermeiden?**  
+- Fehlende geschlossene Tags (`<div>`, `<p>`).  
+- Falsche Verschachtelung (`<p><div></div></p>` ❌).  
+- Fehlendes `alt`-Attribut bei Bildern.  
+
+---
+
+#### **13. Wie kann man CSS-Probleme debuggen?**  
+- **Browser-Entwicklertools (`F12`) verwenden.**  
+- **Element-Inspektor prüfen (`Rechtsklick → Untersuchen`).**  
+- **CSS-Regeln deaktivieren, um Konflikte zu finden.**
+
+---
+
+#### **14. Welche Tools können zur CSS-Optimierung genutzt werden?**  
+- **Autoprefixer** (automatische Vendor-Präfixe).  
+- **CSS Minifier** (Reduzierung der Dateigröße).  
+- **Lighthouse** (Performance-Analyse).  
+
+---
+
+#### **15. Was ist `!important` in CSS und wann sollte es verwendet werden?**  
+`!important` überschreibt alle anderen Regeln, sollte aber nur selten genutzt werden.
+
+```css
+p {
+  color: red !important;
+}
+```
+
+---
+
+#### **16. Wie kann man Schriftarten in einer Webseite einbinden?**  
+```css
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+```
+
+---
+
+#### **17. Wie stellt man sicher, dass eine Webseite barrierefrei ist?**  
+- **Kontrastreiche Farben verwenden.**  
+- **`alt`-Attribute für Bilder hinzufügen.**  
+- **Semantisches HTML nutzen.**  
+- **Tastatur-Navigation ermöglichen.**
+
+---
+
+#### **18. Wie testet man das responsive Design einer Webseite?**  
+- **Browser-Entwicklertools (`F12` → Responsive Mode).**  
+- **Online-Tools wie `responsinator.com`.**  
+- **Verschiedene Geräte testen.**
+
+---
+
+#### **19. Was sind Web Fonts und wie kann man sie einbinden?**  
+Web Fonts sind Schriftarten, die über das Internet geladen werden, z. B. von Google Fonts.
+
+```css
+@font-face {
+  font-family: 'MeineSchrift';
+  src: url('schrift.woff2') format('woff2');
+}
+
+h1 {
+  font-family: 'MeineSchrift', sans-serif;
+}
+```
+
+---
+
+#### **20. Wie verwendet man `grid-template-areas`?**  
+```css
+.container {
+  display: grid;
+  grid-template-areas:
+    "header header"
+    "sidebar content"
+    "footer footer";
+}
+
+.header { grid-area: header; }
+.sidebar { grid-area: sidebar; }
+.content { grid-area: content; }
+.footer { grid-area: footer; }
+```
+
+### **Moderne Web-Technologien und Trends (Современные технологии и тренды)**
+
+#### **1. Was ist Tailwind CSS?**  
+Tailwind CSS ist ein Utility-First-CSS-Framework, das vordefinierte Klassen zur schnellen Gestaltung von Webseiten bietet.  
+
+**Beispiel:**  
+```html
+<button class="bg-blue-500 text-white px-4 py-2 rounded-lg">Klick mich</button>
+```
+
+✅ Vorteile:  
+- Schnellere Entwicklung  
+- Keine vordefinierten Komponenten  
+- Gute Performance  
+
+---
+
+#### **2. Was ist Bootstrap und wann sollte man es verwenden?**  
+Bootstrap ist ein CSS-Framework mit vordefinierten Komponenten und Grid-System für schnelle Entwicklung.
+
+**Beispiel:**  
+```html
+<button class="btn btn-primary">Klick mich</button>
+```
+
+✅ **Einsatzfälle:**  
+- Prototyping  
+- Unternehmensseiten  
+- Schnelle Entwicklung  
+
+---
+
+#### **3. Was sind CSS-Module?**  
+CSS-Module ermöglichen die **lokale** Verwendung von CSS-Klassen in React, Vue oder anderen Frameworks.  
+
+**Beispiel in React:**  
+```css
+/* styles.module.css */
+.button {
+  background-color: blue;
+}
+```
+```js
+import styles from './styles.module.css';
+
+<button className={styles.button}>Klick mich</button>
+```
+
+---
+
+#### **4. Was ist SCSS/SASS und welche Vorteile bietet es?**  
+SASS/SCSS ist ein CSS-Preprocessor mit Variablen, Nesting und Mixins.  
+
+**Beispiel:**  
+```scss
+$primary-color: blue;
+
+.button {
+  background-color: $primary-color;
+}
+```
+
+✅ Vorteile:  
+- Strukturierter Code  
+- Wiederverwendbare Stile  
+- Bessere Wartbarkeit  
+
+---
+
+#### **5. Wie kann man Dark Mode mit CSS umsetzen?**  
+```css
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: black;
+    color: white;
+  }
+}
+```
+
+---
+
+#### **6. Was sind CSS-Container-Queries?**  
+Container Queries ermöglichen CSS-Regeln basierend auf der Größe eines Containers statt des Viewports.  
+
+**Beispiel:**  
+```css
+@container (min-width: 600px) {
+  .card {
+    font-size: 2rem;
+  }
+}
+```
+
+---
+
+#### **7. Was ist ein CSS-Preprocessor?**  
+Ein Tool, das CSS erweitert (SASS, LESS, Stylus) und es in normales CSS kompiliert.
+
+---
+
+#### **8. Wie funktioniert CSS-in-JS?**  
+CSS wird direkt in JavaScript geschrieben (z. B. mit **Styled Components** in React).
+
+**Beispiel:**  
+```js
+import styled from 'styled-components';
+
+const Button = styled.button`
+  background-color: blue;
+  color: white;
+`;
+
+<Button>Klick mich</Button>
+```
+
+---
+
+#### **9. Was ist der Unterschied zwischen BEM und anderen CSS-Architekturen?**  
+BEM (Block, Element, Modifier) ist eine **strukturierte Namenskonvention** für CSS-Klassen.
+
+**Beispiel:**  
+```css
+.button__icon--small {
+  width: 20px;
+}
+```
+
+✅ Vorteile:  
+- Klare Struktur  
+- Leichtere Wartung  
+
+---
+
+#### **10. Welche Rolle spielt WebAssembly in der Webentwicklung?**  
+WebAssembly (WASM) ermöglicht die **Ausführung von Hochleistungssprachen (C, Rust) im Browser**, schneller als JavaScript.
+
+**Anwendungsfälle:**  
+- Spieleentwicklung  
+- Bildbearbeitung  
+- Kryptografie  
+
+---
+
+### **Erwartete Fragen in einem Vorstellungsgespräch (Ожидаемые вопросы на собеседовании)**
+
+#### **1. Warum möchten Sie in der Webentwicklung arbeiten?**  
+Ich liebe es, **nutzerfreundliche, interaktive Anwendungen** zu erstellen und mich stetig mit neuen Technologien weiterzuentwickeln.
+
+---
+
+#### **2. Welche Projekte haben Sie bereits umgesetzt?**  
+- **Portfolio-Website mit React**  
+- **E-Commerce-App mit Next.js und Tailwind CSS**  
+- **PWA für To-Do-Listen mit IndexedDB**  
+
+---
+
+#### **3. Was war Ihre größte technische Herausforderung und wie haben Sie sie gelöst?**  
+Problem: **Langsame Ladezeiten einer React-App.**  
+Lösung:  
+✅ **Lazy Loading** für Komponenten  
+✅ **Code-Splitting mit React Suspense**  
+✅ **Verwendung eines CDN für Bilder**  
+
+---
+
+#### **4. Welche CSS-Frameworks haben Sie verwendet?**  
+- Tailwind CSS  
+- Bootstrap  
+- Material UI  
+- Chakra UI  
+
+---
+
+#### **5. Welche Erfahrungen haben Sie mit Responsive Design?**  
+- Mobile-First-Ansatz  
+- Flexbox & Grid  
+- Media Queries  
+
+**Beispiel:**  
+```css
+@media (max-width: 768px) {
+  .menu {
+    display: none;
+  }
+}
+```
+
+---
+
+#### **6. Welche Entwicklungsumgebungen nutzen Sie?**  
+- **VS Code** mit Extensions  
+- **GitHub Copilot** für AI-Unterstützung  
+- **Docker** für Containerisierung  
+
+---
+
+#### **7. Wie gehen Sie mit Cross-Browser-Kompatibilitätsproblemen um?**  
+✅ **Testing mit Chrome, Firefox, Edge, Safari**  
+✅ **Polyfills verwenden (z. B. Babel)**  
+✅ **Feature Detection mit Modernizr**  
+
+---
+
+#### **8. Haben Sie Erfahrung mit Performance-Optimierung?**  
+Ja! Wichtige Maßnahmen:  
+✅ **Bilder in WebP konvertieren**  
+✅ **CSS und JS minifizieren**  
+✅ **Gzip-Komprimierung aktivieren**  
+
+---
+
+#### **9. Wie arbeiten Sie mit Entwicklern und Designern zusammen?**  
+- **GitHub für Code-Kollaboration**  
+- **Figma für Design-Abstimmung**  
+- **Agile Methoden (Scrum, Kanban)**  
+
+---
+
+#### **10. Was sind Ihre Stärken und Schwächen als Webentwickler?**  
+✅ **Stärken:**  
+- **Schnelle Lernfähigkeit**  
+- **Sauberer, wartbarer Code**  
+- **Teamarbeit & Kommunikation**  
+
+❌ **Schwächen:**  
+- **Perfektionismus** → Ich lerne, Prioritäten besser zu setzen.  
+- **Neue Technologien testen wollen** → Ich versuche, den Fokus zu behalten.  
 
 
   **[⬆ Наверх](#top)** 
