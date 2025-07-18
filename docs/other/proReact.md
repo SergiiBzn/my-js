@@ -7,17 +7,17 @@
 | №. | Вопрос |
 | --- | --------- |
 |   | ReactJS Grundlagen |
-|1 | [](#1) |
-|2 | [](#2) |
-|3 | [](#3) |
-|4 | [](#4) |
-|5 | [](#5) |
-|6 | [](#6) |
-|7 | [](#7) |
-|8 | [](#8) |
-|9 | [](#9) |
-|10 | [](#10) |
-|11 | [](#11) |
+|1 | [Was ist React und welche Probleme löst es?](#1) |
+|2 | [Was ist JSX und warum wird es verwendet?](#2) |
+|3 | [Was ist Virtual DOM und wie funktioniert es?](#3) |
+|4 | [Was ist der Unterschied zwischen React und ReactDOM?](#4) |
+|5 | [Warum importieren wir React, auch wenn es scheinbar nicht benutzt wird?](#5) |
+|6 | [Was ist ein React Fragment und warum ist es nützlich?](#6) |
+|7 | [Was ist der Unterschied zwischen einem Element, einer Komponente und einer Instanz?](#7) |
+|8 | [Was ist das Fiber-Architekturmodell in React?](#8) |
+|9 | [Was bedeutet „Batching“ in React?](#9) |
+|10 | [Was ist die Rolle des key in React-Listen?](#10) |
+|11 | [Wie funktioniert die Wiederverwendung von Komponenten?](#11) |
 |12 | [](#12) |
 |13 | [](#13) |
 |14 | [](#14) |
@@ -27,20 +27,20 @@
 |18 | [](#18) |
 |19 | [](#19) |
 |20 | [](#20) |
-|   | React...... |
-|21 | [](#21) |
-|22 | [](#22) |
-|23 | [](#23) |
-|24 | [](#24) |
-|25 | [](#25) |
-|26 | [](#26) |
-|27 | [](#27) |
-|28 | [](#28) |
-|29 | [](#29) |
-|30 | [](#30) |
-|31 | [](#31) |
-|32 | [](#32) |
-|33 | [](#33) |
+|   | Komponenten, Props & State |
+|21 | [Was sind Props und wozu werden sie verwendet?](#21) |
+|22 | [Was ist der Unterschied zwischen Props und State?](#22) |
+|23 | [Warum sind Props nur lesbar?](#23) |
+|24 | [Wie funktioniert der unidirektionale Datenfluss in React?](#24) |
+|25 | [Was ist State in Klassen- und Funktionskomponenten?](#25) |
+|26 | [Wie funktioniert setState?](#26) |
+|27 | [Was ist der Unterschied zwischen kontrollierten und unkontrollierten Komponenten?](#27) |
+|28 | [Was sind Default Props und PropTypes?](#28) |
+|29 | [Was ist React.memo und wofür wird es verwendet?](#29) |
+|30 | [Was ist PureComponent und wie unterscheidet es sich von Component?](#30) |
+|31 | [Wann sollte shouldComponentUpdate verwendet werden?](#31) |
+|32 | [Was ist ein ref und wann wird er eingesetzt?](#32) |
+|33 | [Was bedeutet „Lifting State Up“?](#33) |
 |34 | [](#34) |
 |35 | [](#35) |
 |36 | [](#36) |
@@ -48,88 +48,93 @@
 |38 | [](#38) |
 |39 | [](#39) |
 |40 | [](#40) |
-|41 | [](#41) |
-|42 | [](#42) |
-|43 | [](#43) |
-|44 | [](#44) |
-|45 | [](#45) |
+|   | Lebenszyklus von Komponenten |
+|41 | [Was sind die Phasen des Komponentenlebenszyklus?](#41) |
+|42 | [Welche Lifecycle-Methoden gibt es in Klassenkomponenten?](#42) |
+|43 | [Welche Lifecycle-Methoden sind veraltet?](#43) |
+|44 | [Wie kann man Lifecycle-Methoden mit Hooks ersetzen?](#44) |
+|45 | [Was ist componentDidMount und was ist das Äquivalent mit Hooks?](#45) |
 |46 | [](#46) |
 |47 | [](#47) |
 |48 | [](#48) |
 |49 | [](#49) |
 |50 | [](#50) |
-|51 | [](#51) |
-|52 | [](#52) |
-|53 | [](#53) |
-|54 | [](#54) |
-|55 | [](#55) |
-|56 | [](#56) |
-|57 | [](#57) |
-|58 | [](#58) |
+|   | Hooks |
+|51 | [Was sind Hooks in React?](#51) |
+|52 | [Wie funktionieren useState und useEffect?](#52) |
+|53 | [Was macht useContext?](#53) |
+|54 | [Was ist useRef und wann wird es verwendet?](#54) |
+|55 | [Was ist useCallback, useMemo, useReducer?](#55) |
+|56 | [Wie schreibt man einen benutzerdefinierten Hook?](#56) |
+|57 | [Wie verhindert man eine Endlosschleife in useEffect?](#57) |
+|58 | [Wie implementiert man Timeout oder Interval mit Hooks?](#58) |
 |59 | [](#59) |
 |60 | [](#60) |
-|61 | [](#61) |
-|62 | [](#62) |
-|63 | [](#63) |
-|64 | [](#64) |
-|65 | [](#65) |
-|66 | [](#66) |
-|67 | [](#67) |
-|68 | [](#68) |
-|69 | [](#69) |
-|70 | [](#70) |
+|   | React-Patterns und Konzepte |
+|61 | [Was ist ein Higher-Order Component (HOC)?](#61) |
+|62 | [Was ist das Render-Prop-Pattern?](#62) |
+|63 | [Was ist die Context-API und wie funktioniert useContext?](#63) |
+|64 | [Was sind Portale in React?](#64) |
+|65 | [Was ist bedingtes Rendern (Conditional Rendering)?](#65) |
+|66 | [Was ist ein Error Boundary?](#66) |
+|67 | [Wie funktioniert Event-Handling in React?](#67) |
+|68 | [Was ist ein synthetisches Ereignis (SyntheticEvent)?](#68) |
+|69 | [Was ist props.children?](#69) |
+|70 | [Was bedeutet „controlled component“ und „uncontrolled component“ bei Formularen?](#70) |
 |71 | [](#71) |
 |72 | [](#72) |
 |73 | [](#73) |
 |74 | [](#74) |
 |75 | [](#75) |
-|76 | [](#76) |
-|77 | [](#77) |
-|78 | [](#78) |
-|79 | [](#79) |
-|80 | [](#80) |
-|81 | [](#81) |
-|82 | [](#82) |
-|83 | [](#83) |
-|84 | [](#84) |
+|   | Daten & API |
+|76 | [Wie führt man API-Aufrufe mit Fetch oder Axios durch?](#76) |
+|77 | [Wie verwaltet man Lade-, Fehler- und Erfolgsstatus?](#77) |
+|78 | [Wie funktioniert WebSocket mit React?](#78) |
+|79 | [Wie kann man Daten zwischen Komponenten weitergeben?](#79) |
+|80 | [Wie macht man einen Datenabruf nur beim ersten Rendern?](#80) |
+|81 | [Was ist das Problem bei „stale closures“ mit Hooks?](#81) |
+|82 | [Wie funktioniert die Fehlerbehandlung mit try/catch in React?](#82) |
+|83 | [Wie kann man ein Mock-API oder Mock Server verwenden?](#83) |
+|84 | [Wie funktioniert Suspense für Datenabfragen?](#84) |
 |85 | [](#85) |
 |86 | [](#86) |
 |87 | [](#87) |
 |88 | [](#88) |
 |89 | [](#89) |
 |90 | [](#90) |
-|91 | [](#91) |
-|92 | [](#92) |
-|93 | [](#93) |
-|94 | [](#94) |
-|95 | [](#95) |
+|   | Testing |
+|91 | [Was ist Unit-, Integration- und E2E-Testing?](#91) |
+|92 | [Was ist Snapshot-Testing?](#92) |
+|93 | [Welche Tools nutzt man für React-Tests (Jest, React Testing Library)?](#93) |
+|94 | [Wie testet man Komponenten, Props und Events?](#94) |
+|95 | [Wie testet man benutzerdefinierte Hooks?](#95) |
 |96 | [](#96) |
 |97 | [](#97) |
 |98 | [](#98) |
 |99 | [](#99) |
 |100 | [](#100) |
-|   | gfd |
-|101 | [](#101) |
-|102 | [](#102) |
-|103 | [](#103) |
-|104 | [](#104) |
-|105 | [](#105) |
-|106 | [](#106) |
+|   | Routing mit React Router |
+|101 | [Wie funktioniert Routing in React mit react-router-dom?](#101) |
+|102 | [Was sind die Unterschiede zwischen react-router v5 und v6?](#102) |
+|103 | [Was sind Route, Link, Navigate, Outlet?](#103) |
+|104 | [Wie erstellt man Nested Routes?](#104) |
+|105 | [Wie implementiert man Redirects?](#105) |
+|106 | [Wie funktioniert programmgesteuerte Navigation (useNavigate)?](#106) |
 |107 | [](#107) |
 |108 | [](#108) |
 |109 | [](#109) |
 |110 | [](#110) |
-|111 | [](#111) |
-|112 | [](#112) |
-|113 | [](#113) |
-|114 | [](#114) |
-|115 | [](#115) |
-|116 | [](#116) |
-|117 | [](#117) |
-|118 | [](#118) |
-|119 | [](#119) |
+|   | Redux & Redux Toolkit |
+|111 | [Was ist Redux und wie funktioniert es?](#111) |
+|112 | [Was sind Actions, Reducer und Store?](#112) |
+|113 | [Wie funktioniert Redux Toolkit (createSlice, configureStore, createAsyncThunk)?](#113) |
+|114 | [Was ist RTK Query?](#114) |
+|115 | [Was ist der Unterschied zwischen Redux und der Context-API?](#115) |
+|116 | [Was ist connect() in Redux?](#116) |
+|117 | [Was sind Middleware in Redux (z. B. redux-thunk, redux-logger)?](#117) |
+|118 | [Was ist createSelector und wie funktioniert Reselect?](#118) |
+|119 | [Wie verbindet man Redux mit React über Hooks (useSelector, useDispatch)?](#119) |
 |120 | [](#120) |
-|   | React...... |
 |121 | [](#121) |
 |122 | [](#122) |
 |123 | [](#123) |
@@ -140,28 +145,30 @@
 |128 | [](#128) |
 |129 | [](#129) |
 |130 | [](#130) |
-|131 | [](#131) |
-|132 | [](#132) |
-|133 | [](#133) |
-|134 | [](#134) |
-|135 | [](#135) |
-|136 | [](#136) |
-|137 | [](#137) |
-|138 | [](#138) |
-|139 | [](#139) |
-|140 | [](#140) |
+|   | Optimierung & Performance |
+|131 | [Was ist Code-Splitting?](#131) |
+|132 | [Wie funktionieren React.lazy und Suspense?](#132) |
+|133 | [Was ist Tree Shaking?](#133) |
+|134 | [Was ist Server-Side Rendering (SSR) und Hydration?](#134) |
+|135 | [Wie geht man mit Hydration-Fehlern bei SSR um?](#135) |
+|136 | [Was bedeutet Virtualisierung (z. B. mit react-window)?](#136) |
+|137 | [Wie verhindert man unnötige Re-Renders?](#137) |
+|138 | [Was ist React Transition Group?](#138) |
+|139 | [Was ist React Strict Mode und welche Vorteile bietet er?](#139) |
+|140 | [Was ist Concurrent Mode und welche Probleme löst er?](#140) |
 |141 | [](#141) |
 |142 | [](#142) |
 |143 | [](#143) |
 |144 | [](#144) |
 |145 | [](#145) |
-|146 | [](#146) |
-|147 | [](#147) |
-|148 | [](#148) |
-|149 | [](#149) |
-|150 | [](#150) |
-|151 | [](#151) |
-|152 | [](#152) |
+|   | Sonstiges |
+|146 | [Was ist ein Service Worker?](#146) |
+|147 | [Was ist react-helmet und wie hilft es beim SEO?](#147) |
+|148 | [Wie funktioniert Lazy Loading mit dynamic import()?](#148) |
+|149 | [Was ist ein Finite-State Machine (FSM), z. B. mit XState?](#149) |
+|150 | [Wie kann man ein Formular mit Formik und Yup erstellen und validieren?](#150) |
+|151 | [Wie konfiguriert man ESLint und Prettier in einem React-Projekt?](#151) |
+|152 | [Wie funktioniert dynamic import() in React (Syntax, Anwendungsfälle)?](#152) |
 |153 | [](#153) |
 |154 | [](#154) |
 |155 | [](#155) |
@@ -170,17 +177,18 @@
 |158 | [](#158) |
 |159 | [](#159) |
 |160 | [](#160) |
-|161 | [](#161) |
-|162 | [](#162) |
-|163 | [](#163) |
-|164 | [](#164) |
-|165 | [](#165) |
-|166 | [](#166) |
-|167 | [](#167) |
-|168 | [](#168) |
-|169 | [](#169) |
-|170 | [](#170) |
-|171 | [](#171) |
+|   | React + TypeScript |
+|161 | [Was ist der Unterschied zwischen interface und type in TypeScript?](#161) |
+|162 | [Wie typisiert man Props und State in einer funktionalen Komponente?](#162) |
+|163 | [Wie nutzt man Generics in React mit TypeScript (z. B. für Listen)?](#163) |
+|164 | [Wie typisiert man Events in React mit TypeScript (onChange, onClick, FormEvent, MouseEvent)?](#164) |
+|165 | [Wie erstellt man einen benutzerdefinierten Hook mit TypeScript?](#165) |
+|166 | [Wie typisiert man useReducer mit TypeScript?](#166) |
+|167 | [Wie typisiert man children korrekt in React-Komponenten?](#167) |
+|168 | [Was ist React.FC und welche Vor- und Nachteile hat es?](#168) |
+|169 | [Wie typisiert man eine Komponente mit optionalen Props?](#169) |
+|170 | [Wie arbeitet man mit Drittanbieter-Bibliotheken, die keine Typen enthalten?](#170) |
+|171 | [Was ist der Unterschied zwischen ESM und CommonJS?](#171) |
 |172 | [](#172) |
 |173 | [](#173) |
 |174 | [](#174) |
