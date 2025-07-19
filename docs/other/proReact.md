@@ -1107,75 +1107,1006 @@ Props fließen **nur von oben nach unten** (Parent → Child).
 
   **[⬆ Наверх](#top)**
 
-22. ### <a name="22"></a> 
+22. ### <a name="22"></a> Was ist der Unterschied zwischen Props und State?
 
+# Was ist der Unterschied zwischen Props und State?
 
+In React sind **Props** und **State** zwei zentrale Konzepte zur Steuerung von Daten in Komponenten.  
+Sie dienen unterschiedlichen Zwecken und haben verschiedene Eigenschaften.
+
+---
+
+## 📦 Props
+
+- **Daten von außen** → werden von der **Elternkomponente übergeben**
+- **Readonly**: können innerhalb der Komponente **nicht verändert** werden
+- Erlauben die **Wiederverwendung von Komponenten**
+- Fließen **von oben nach unten** (unidirektional)
+
+### Beispiel:
+
+```jsx
+function Welcome({ name }) {
+  return <h1>Hallo, {name}!</h1>;
+}
+```
+
+→ `name` ist ein **Prop**, das z. B. von `<Welcome name="Anna" />` kommt
+
+---
+
+## 🔄 State
+
+- **Interne Daten** einer Komponente  
+- Können sich **im Lauf der Zeit ändern** (z. B. durch Benutzerinteraktion)
+- Änderungen am State führen zu **einem Re-Render**
+- Wird mit Hooks wie `useState` verwaltet
+
+### Beispiel:
+
+```jsx
+function Counter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(count + 1)}>Zähler: {count}</button>;
+}
+```
+
+→ `count` ist der **State** der Komponente
+
+---
+
+## 🔁 Vergleich Props vs. State
+
+| Merkmal          | Props                      | State                          |
+|------------------|----------------------------|--------------------------------|
+| Ursprung         | Elternkomponente           | Innerhalb der Komponente       |
+| Veränderbar?     | ❌ Nein (readonly)         | ✅ Ja (mit `setState` / `useState`) |
+| Zweck            | Konfiguration von außen    | Dynamische, sich ändernde Daten |
+| Kontrolle        | Vom Elternteil gesteuert   | Von der Komponente selbst      |
+
+---
+
+## 📝 Zusammenfassung
+
+- **Props**: Eingabedaten von außen, unveränderlich, durch Eltern gesteuert  
+- **State**: Interner Zustand, veränderlich, durch die Komponente selbst verwaltet
+
+Beides zusammen macht Komponenten **dynamisch und wiederverwendbar**.
+
+---
+
+## 🔗 Quellen
+
+- [Props vs. State – react.dev](https://react.dev/learn/state-a-components-memory#comparing-state-and-props)  
+- [MDN: Komponenten mit Props und State](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components)
 
   **[⬆ Наверх](#top)**
 
-23. ### <a name="23"></a> 
+23. ### <a name="23"></a> Warum sind Props nur lesbar?
 
+# Warum sind Props nur lesbar?
 
+**Props** (Properties) sind in React **nur lesbar**, weil sie die Daten darstellen,  
+die **von außen** (also von der Elternkomponente) **an eine Kindkomponente übergeben werden**.
+
+---
+
+## 🎯 Hauptgründe für die Unveränderlichkeit von Props
+
+### 1. 🔒 **Datenfluss kontrollieren (Unidirektionalität)**
+
+React folgt dem Prinzip des **einseitigen Datenflusses**:  
+Daten fließen **von oben (Parent) nach unten (Child)**.  
+Wenn Kind-Komponenten Props verändern könnten, würde der Datenfluss **chaotisch und unvorhersehbar** werden.
+
+---
+
+### 2. 🧩 **Komponenten bleiben vorhersehbar und wiederverwendbar**
+
+Eine Komponente, die ihre Props **nicht verändert**, ist:
+
+- einfacher zu testen  
+- leichter wiederzuverwenden  
+- unabhängig vom Kontext, in dem sie verwendet wird
+
+---
+
+### 3. 🔁 Änderungen sollen in der Elternkomponente passieren
+
+Wenn sich ein Wert ändern soll, soll die **Elternkomponente** dies tun und **neue Props übergeben**.
+
+### Beispiel:
+
+```jsx
+function Child({ count }) {
+  // count ist readonly
+  return <p>Zähler: {count}</p>;
+}
+```
+
+➡️ Wenn `count` verändert werden soll, muss das in der **Elternkomponente** passieren, z. B. mit `useState`.
+
+---
+
+## 🔧 Was tun, wenn sich Werte ändern sollen?
+
+Verwende **State (`useState`)** in der Elternkomponente und gib ggf. **Callback-Funktionen** per Prop mit.
+
+```jsx
+function Parent() {
+  const [count, setCount] = useState(0);
+
+  return <Child count={count} onIncrement={() => setCount(count + 1)} />;
+}
+```
+
+---
+
+## 📝 Zusammenfassung
+
+**Props sind nur lesbar**, um den **einseitigen Datenfluss** zu erhalten, die **Vorhersehbarkeit** der Komponenten zu sichern und Änderungen **kontrolliert über die Elternkomponente** zu steuern.
+
+---
+
+## 🔗 Quellen
+
+- [Props in React – react.dev](https://react.dev/learn/passing-props-to-a-component)  
+- [Datenfluss in React – react.dev](https://react.dev/learn/thinking-in-react#step-5-add-inverse-data-flow)
 
   **[⬆ Наверх](#top)**
 
-24. ### <a name="24"></a> 
+24. ### <a name="24"></a> Wie funktioniert der unidirektionale Datenfluss in React?
 
+# Wie funktioniert der unidirektionale Datenfluss in React?
 
+In React bedeutet **unidirektionaler Datenfluss**, dass **Daten immer nur in eine Richtung fließen**:  
+**von der Elternkomponente zur Kindkomponente**.
+
+---
+
+## 🔁 Was heißt das konkret?
+
+- Elternkomponenten **geben Daten über Props weiter**
+- Kindkomponenten können diese Props **verwenden**, aber **nicht verändern**
+- Änderungen am Zustand (State) **finden immer in der zuständigen Komponente statt**
+
+---
+
+## 📦 Beispiel
+
+```jsx
+function Parent() {
+  const [count, setCount] = useState(0);
+
+  return <Child count={count} onIncrement={() => setCount(count + 1)} />;
+}
+
+function Child({ count, onIncrement }) {
+  return (
+    <div>
+      <p>Zähler: {count}</p>
+      <button onClick={onIncrement}>+1</button>
+    </div>
+  );
+}
+```
+
+### Erklärung:
+
+- `Parent` hält den **State**
+- `Child` bekommt `count` und `onIncrement` als **Props**
+- Der Datenfluss geht **von Parent → Child**
+- Änderungen (Button-Klick) **lösen in der Elternkomponente eine State-Änderung aus**, die **neue Props an das Kind sendet**
+
+---
+
+## 🎯 Vorteile des unidirektionalen Datenflusses
+
+- ✅ **Vorhersehbares Verhalten**
+- ✅ **Bessere Debuggability**
+- ✅ Klare Trennung von Zuständigkeiten
+- ✅ Weniger Fehler durch unkontrollierte Datenänderungen
+
+---
+
+## 🔁 Daten „nach oben“ geben (umgekehrt)
+
+Kindkomponenten können über **Callback-Funktionen als Prop** indirekt Daten nach oben melden:
+
+```jsx
+onChange={(newValue) => parentCallback(newValue)}
+```
+
+➡️ So bleibt die **Datenkontrolle bei der Elternkomponente**.
+
+---
+
+## 📝 Zusammenfassung
+
+Der **unidirektionale Datenfluss** sorgt dafür, dass Daten in React immer von **Eltern zu Kind** fließen.  
+Das sorgt für eine **klare Struktur**, bessere Wartbarkeit und **kontrollierbare Zustandsänderungen**.
+
+---
+
+## 🔗 Quellen
+
+- [Thinking in React – react.dev](https://react.dev/learn/thinking-in-react#step-5-add-inverse-data-flow)  
+- [Props und Datenfluss – MDN](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#datenfluss)
 
   **[⬆ Наверх](#top)**
 
-25. ### <a name="25"></a> 
+25. ### <a name="25"></a> Was ist State in Klassen- und Funktionskomponenten?
 
+# Was ist State in Klassen- und Funktionskomponenten?
 
+**State** ist ein **interner Speicher** (Zustand) einer React-Komponente, der sich **über die Zeit ändern** kann.  
+Änderungen am State lösen ein **automatisches Re-Rendern** der Komponente aus.
+
+---
+
+## ⚙️ State in Funktionskomponenten (mit Hooks)
+
+Seit React 16.8 wird State in Funktionskomponenten mit dem Hook `useState` verwaltet.
+
+### Beispiel:
+
+```jsx
+import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0); // count = aktueller Wert, setCount = Funktion zum Ändern
+
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Du hast {count} Mal geklickt
+    </button>
+  );
+}
+```
+
+➡️ Jeder `setCount` löst ein **Re-Rendern** der Komponente mit dem neuen Wert aus.
+
+---
+
+## 🏗️ State in Klassenkomponenten (vor Hooks)
+
+Vor Hooks wurde der State mit `this.state` und `this.setState()` in **Klassenkomponenten** verwendet.
+
+### Beispiel:
+
+```jsx
+import React, { Component } from 'react';
+
+class Counter extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { count: 0 }; // Initialwert
+  }
+
+  render() {
+    return (
+      <button onClick={() => this.setState({ count: this.state.count + 1 })}>
+        Du hast {this.state.count} Mal geklickt
+      </button>
+    );
+  }
+}
+```
+
+➡️ `this.setState()` aktualisiert den Zustand **asynchron** und triggert ein Re-Render.
+
+---
+
+## 🔁 Vergleich: Funktions- vs. Klassenkomponenten
+
+| Merkmal         | Funktionskomponente      | Klassenkomponente           |
+|-----------------|--------------------------|-----------------------------|
+| Einführung ab   | React 16.8 (mit Hooks)   | Frühere React-Versionen     |
+| State-Verwaltung| `useState()`             | `this.state` + `setState()` |
+| Syntax          | Einfacher, moderner      | Komplexer, mehr Boilerplate |
+
+---
+
+## 📝 Zusammenfassung
+
+**State** ist der dynamische Datenbereich einer Komponente.  
+- In **Funktionskomponenten** nutzt man `useState`  
+- In **Klassenkomponenten** verwendet man `this.state` und `this.setState`  
+State-Änderungen führen **automatisch zu UI-Updates**
+
+---
+
+## 🔗 Quellen
+
+- [State in React – react.dev](https://react.dev/learn/state-a-components-memory)  
+- [useState Hook – react.dev](https://react.dev/reference/react/useState)  
+- [MDN: Klassenkomponenten und State](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#state_in_klassenkomponenten)
 
   **[⬆ Наверх](#top)**
 
-26. ### <a name="26"></a> 
+26. ### <a name="26"></a> Wie funktioniert setState?
 
+# Wie funktioniert `setState`?
 
+`setState` ist die Methode in React, mit der der **Zustand (State)** einer Komponente **aktualisiert** wird.  
+Sie ist in **Klassenkomponenten** verfügbar und wird in **Funktionskomponenten** durch `useState` ersetzt.
+
+---
+
+## ⚙️ `setState` in Klassenkomponenten
+
+### Beispiel:
+
+```jsx
+class Counter extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { count: 0 };
+  }
+
+  increment = () => {
+    this.setState({ count: this.state.count + 1 });
+  };
+
+  render() {
+    return <button onClick={this.increment}>Zähler: {this.state.count}</button>;
+  }
+}
+```
+
+### Was passiert hier?
+
+1. `this.setState(...)` wird aufgerufen
+2. React **merged** das neue Objekt mit dem aktuellen `state`
+3. Es erfolgt ein **Re-Render** der Komponente mit dem neuen Zustand
+
+---
+
+## ⚠️ Wichtig: `setState` ist **asynchron**
+
+Das bedeutet: Wenn du direkt nach `setState` auf `this.state` zugreifst, ist der neue Wert noch **nicht garantiert verfügbar**.
+
+### Falsch:
+
+```js
+this.setState({ count: this.state.count + 1 });
+console.log(this.state.count); // Kann noch alt sein!
+```
+
+---
+
+## ✅ Korrekt mit Callback-Funktion (abhängig vom vorherigen Wert)
+
+```js
+this.setState((prevState) => ({
+  count: prevState.count + 1
+}));
+```
+
+➡️ So stellst du sicher, dass du immer mit dem aktuellen Zustand arbeitest – auch bei mehreren State-Updates hintereinander.
+
+---
+
+## 📘 In Funktionskomponenten
+
+Verwendet man stattdessen `useState`:
+
+```jsx
+const [count, setCount] = useState(0);
+setCount(count + 1);
+```
+
+---
+
+## 📝 Zusammenfassung
+
+- `setState` aktualisiert den Zustand in **Klassenkomponenten**
+- Updates sind **asynchron** und können **gebatcht** werden
+- Verwende Callback-Form (`prevState`) bei abhängigen Updates
+- In **Funktionskomponenten** wird `useState` verwendet
+
+---
+
+## 🔗 Quellen
+
+- [setState – React Docs](https://react.dev/reference/react/Component#setstate)  
+- [State-Updates richtig ausführen – react.dev](https://react.dev/learn/queueing-a-series-of-state-updates)
 
   **[⬆ Наверх](#top)**
 
-27. ### <a name="27"></a> 
+27. ### <a name="27"></a> Was ist der Unterschied zwischen kontrollierten und unkontrollierten Komponenten?
 
+# Was ist der Unterschied zwischen kontrollierten und unkontrollierten Komponenten?
 
+In React unterscheidet man zwischen **kontrollierten** und **unkontrollierten Komponenten**,  
+wenn es um die Verwaltung von Formular-Elementen wie `<input>`, `<textarea>` oder `<select>` geht.
+
+---
+
+## ✅ Kontrollierte Komponenten
+
+Bei **kontrollierten Komponenten** wird der **Wert eines Formularfelds durch den React-State gesteuert**.
+
+### Merkmale:
+
+- Der **aktuelle Wert** kommt aus dem `useState`-State
+- Änderungen werden über `onChange` an React gemeldet
+- Die Komponente ist **vollständig unter Reacts Kontrolle**
+
+### Beispiel:
+
+```jsx
+function ControlledInput() {
+  const [value, setValue] = useState('');
+
+  return (
+    <input 
+      value={value} 
+      onChange={(e) => setValue(e.target.value)} 
+    />
+  );
+}
+```
+
+➡️ Der `value` wird durch den State bestimmt. React "besitzt" das Eingabefeld.
+
+---
+
+## ❌ Unkontrollierte Komponenten
+
+Bei **unkontrollierten Komponenten** übernimmt **das DOM selbst die Kontrolle über den Wert**.  
+React greift bei Bedarf über ein **Ref** darauf zu.
+
+### Merkmale:
+
+- Kein `useState`, kein `onChange`
+- Zugriff über `useRef` → z. B. beim Abschicken eines Formulars
+- Das Feld verwaltet seinen Zustand **eigenständig**
+
+### Beispiel:
+
+```jsx
+function UncontrolledInput() {
+  const inputRef = useRef();
+
+  const handleSubmit = () => {
+    alert(inputRef.current.value);
+  };
+
+  return (
+    <>
+      <input ref={inputRef} />
+      <button onClick={handleSubmit}>Absenden</button>
+    </>
+  );
+}
+```
+
+➡️ React greift **nur lesend** auf den DOM zu – keine direkte Kontrolle über den Wert.
+
+---
+
+## 🔁 Vergleich
+
+| Merkmal               | Kontrolliert                 | Unkontrolliert              |
+|------------------------|------------------------------|------------------------------|
+| Wertquelle             | React-State (`useState`)     | DOM                          |
+| Kontrolle              | React                        | Browser                      |
+| Zugriff auf Wert       | `value` + `onChange`         | `useRef().current.value`     |
+| Empfohlen für          | Validierung, komplexe Logik  | einfache Formulare, schnelles Prototyping |
+
+---
+
+## 📝 Zusammenfassung
+
+- **Kontrollierte Komponenten**: React verwaltet den Eingabewert → präzise, kontrolliert, ideal für Validierung
+- **Unkontrollierte Komponenten**: DOM verwaltet den Wert → einfacher, aber weniger flexibel
+
+---
+
+## 🔗 Quellen
+
+- [Kontrollierte Komponenten – react.dev](https://react.dev/learn/sharing-state-between-components#controlled-and-uncontrolled-components)  
+- [Formulare in React – MDN](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_forms)
 
   **[⬆ Наверх](#top)**
 
-28. ### <a name="28"></a> 
+28. ### <a name="28"></a> Was sind Default Props und PropTypes?
 
+# Was sind Default Props und PropTypes?
 
+In React bieten **Default Props** und **PropTypes** zwei Möglichkeiten, um die Verwendung von **Props sicherer und robuster** zu machen.
+
+---
+
+## ✅ 1. Default Props
+
+**Default Props** sind **Standardwerte** für Props, die verwendet werden,  
+wenn ein Prop **nicht vom Elternteil übergeben wurde**.
+
+### Beispiel:
+
+```jsx
+function Welcome({ name }) {
+  return <h1>Hallo, {name}!</h1>;
+}
+
+Welcome.defaultProps = {
+  name: 'Gast',
+};
+```
+
+➡️ Wenn `name` nicht übergeben wurde, zeigt die Komponente automatisch `Hallo, Gast!` an.
+
+---
+
+## ✅ 2. PropTypes
+
+**PropTypes** werden verwendet, um die **Datentypen der Props zu validieren**.  
+React gibt **eine Warnung in der Konsole**, wenn ein Prop nicht dem erwarteten Typ entspricht.
+
+### Beispiel:
+
+```jsx
+import PropTypes from 'prop-types';
+
+function Welcome({ name, age }) {
+  return (
+    <p>
+      Hallo, {name}! Du bist {age} Jahre alt.
+    </p>
+  );
+}
+
+Welcome.propTypes = {
+  name: PropTypes.string.isRequired,
+  age: PropTypes.number,
+};
+```
+
+➡️ Warnung in der Konsole, wenn z. B. `name` fehlt oder `age` kein `number` ist.
+
+---
+
+## 📦 Unterstützte Typen
+
+| Typ               | Beschreibung                        |
+|-------------------|--------------------------------------|
+| `PropTypes.string`| Zeichenkette                         |
+| `PropTypes.number`| Zahl                                 |
+| `PropTypes.bool`  | Boolean                              |
+| `PropTypes.func`  | Funktion                             |
+| `PropTypes.array` | Array                                |
+| `PropTypes.object`| Objekt                               |
+| `.isRequired`     | Macht das Prop erforderlich          |
+
+---
+
+## 📝 Zusammenfassung
+
+- **Default Props**: Definieren **Standardwerte**, wenn keine Props übergeben werden
+- **PropTypes**: Helfen bei der **Typprüfung** von Props zur Laufzeit (für Debugging und Klarheit)
+
+---
+
+## 🔗 Quellen
+
+- [React: Default Props – react.dev](https://react.dev/learn/passing-props-to-a-component#default-props)  
+- [PropTypes – React Docs](https://reactjs.org/docs/typechecking-with-proptypes.html)
 
   **[⬆ Наверх](#top)**
 
-29. ### <a name="29"></a> 
+29. ### <a name="29"></a> Was ist React.memo und wofür wird es verwendet?
 
+# Was ist `React.memo` und wofür wird es verwendet?
 
+**`React.memo`** ist eine **Higher-Order-Komponente (HOC)**, die eine **Funktionskomponente speichert (memoisiert)**  
+und **nur neu rendert**, wenn sich ihre **Props tatsächlich geändert haben**.
+
+---
+
+## 🎯 Zweck von `React.memo`
+
+- Vermeidet **unnötige Re-Renders**  
+- Verbessert die **Performance** großer Anwendungen  
+- Nützlich bei **teuren Berechnungen oder komplexem UI**
+
+---
+
+## 🧠 Wie funktioniert es?
+
+```jsx
+const MemoizedComponent = React.memo(MyComponent);
+```
+
+React vergleicht bei jedem Render die **alten und neuen Props mit `===`**.  
+Nur bei Änderung wird `MyComponent` neu gerendert.
+
+---
+
+## 💡 Beispiel
+
+```jsx
+const Greeting = React.memo(function Greeting({ name }) {
+  console.log('gerendert');
+  return <p>Hallo, {name}</p>;
+});
+```
+
+➡️ Wird `name` nicht geändert, wird die Komponente **nicht neu gerendert**.
+
+---
+
+## 🔧 Mit benutzerdefiniertem Vergleich (optional)
+
+```jsx
+function areEqual(prevProps, nextProps) {
+  return prevProps.name === nextProps.name;
+}
+
+const MemoGreeting = React.memo(Greeting, areEqual);
+```
+
+➡️ Du kannst einen **eigenen Vergleichsalgorithmus** definieren.
+
+---
+
+## ⚠️ Wann NICHT verwenden?
+
+- Bei **häufig wechselnden Props**
+- Bei **sehr einfachen Komponenten**
+- Wenn Re-Renders keine merkliche Performance-Auswirkung haben
+
+---
+
+## 📝 Zusammenfassung
+
+- `React.memo` verhindert unnötige Re-Renders von **Funktionskomponenten**
+- Es vergleicht Props und rendert nur bei Änderungen
+- Ideal bei **leistungsintensiven Komponenten** mit stabilen Props
+
+---
+
+## 🔗 Quellen
+
+- [React.memo – React Docs](https://react.dev/reference/react/memo)  
+- [Optimizing Performance – React](https://react.dev/learn/optimizing-performance#memoizing-components)
 
   **[⬆ Наверх](#top)**
 
-30. ### <a name="30"></a> 
+30. ### <a name="30"></a> Was ist PureComponent und wie unterscheidet es sich von Component?
 
+# Was ist `PureComponent` und wie unterscheidet es sich von `Component`?
 
+In React gibt es zwei Basisklassen für Klassenkomponenten:
+
+- `React.Component`
+- `React.PureComponent`
+
+Der Unterschied liegt im **Verhalten beim Rendern**.
+
+---
+
+## ✅ `React.Component`
+
+- Jede Änderung von `state` oder `props` → **führt immer zu einem Re-Render**
+- Kein Vergleich alter und neuer Props/State
+- Du kannst `shouldComponentUpdate()` selbst überschreiben, um Rendering zu optimieren
+
+---
+
+## ✅ `React.PureComponent`
+
+- Führt **automatisch einen flachen Vergleich** (`shallow compare`) von `props` und `state` durch
+- **Rendert nur**, wenn sich etwas **tatsächlich geändert hat**
+- Du musst `shouldComponentUpdate()` **nicht selbst schreiben**
+
+---
+
+## 💡 Beispiel
+
+```jsx
+class MyComponent extends React.Component {
+  render() {
+    console.log('MyComponent rendert immer');
+    return <div>{this.props.text}</div>;
+  }
+}
+
+class MyPureComponent extends React.PureComponent {
+  render() {
+    console.log('MyPureComponent rendert nur bei Änderung');
+    return <div>{this.props.text}</div>;
+  }
+}
+```
+
+Wenn `text` sich nicht ändert, wird **`MyPureComponent` nicht neu gerendert**,  
+aber **`MyComponent` rendert trotzdem**.
+
+---
+
+## ⚠️ Einschränkung
+
+- `PureComponent` macht **nur einen flachen Vergleich**
+  - Änderungen in **verschachtelten Objekten/Arrays** werden **nicht erkannt**
+- Beispiel:
+
+```js
+this.setState({ data: { name: 'Max' } }); // Neuer Objekt-Referenz, aber inhaltlich gleich → Re-Render
+```
+
+---
+
+## 🔁 Vergleich
+
+| Merkmal              | `Component`            | `PureComponent`                   |
+|----------------------|------------------------|------------------------------------|
+| Re-Render bei Update | immer                  | nur bei Änderungen (shallow check)|
+| Performance          | normal                 | optimiert für einfache Props/State|
+| shouldComponentUpdate| manuell definierbar    | intern automatisch                |
+
+---
+
+## 📝 Zusammenfassung
+
+- `Component`: rendert immer bei State-/Props-Änderung
+- `PureComponent`: rendert nur bei tatsächlicher Änderung (flacher Vergleich)
+- Ideal bei **statischen Props oder Performance-kritischen Klassenkomponenten**
+
+---
+
+## 🔗 Quellen
+
+- [React.PureComponent – React Docs](https://react.dev/reference/react/PureComponent)  
+- [React-Komponenten optimieren – react.dev](https://react.dev/learn/optimizing-performance#purecomponents)
 
   **[⬆ Наверх](#top)**  
 
-31. ### <a name="31"></a> 
+31. ### <a name="31"></a> Wann sollte shouldComponentUpdate verwendet werden?
 
+# Wann sollte `shouldComponentUpdate` verwendet werden?
 
+Die Methode **`shouldComponentUpdate(nextProps, nextState)`** wird in **Klassenkomponenten** verwendet,  
+um zu **steuern, ob eine Komponente neu gerendert werden soll**.
+
+---
+
+## 🎯 Zweck
+
+- **Performance-Optimierung**: Vermeide unnötige Re-Renders bei unveränderten Props oder State
+- Besonders nützlich bei **großen Komponenten** oder **häufigen Updates**
+
+---
+
+## 💡 Beispiel
+
+```jsx
+class MyComponent extends React.Component {
+  shouldComponentUpdate(nextProps) {
+    return nextProps.value !== this.props.value;
+  }
+
+  render() {
+    console.log('gerendert');
+    return <div>{this.props.value}</div>;
+  }
+}
+```
+
+➡️ Die Komponente rendert **nur**, wenn sich `value` geändert hat.
+
+---
+
+## 🧠 Wann sinnvoll?
+
+| Situation | Verwendung von `shouldComponentUpdate` sinnvoll? |
+|-----------|--------------------------------------------------|
+| Große Komponenten mit viel DOM | ✅ Ja                       |
+| Props ändern sich selten       | ✅ Ja                       |
+| Props enthalten komplexe Objekte (z. B. Arrays) | ✅ mit Deep Compare |
+| Kleine statische Komponenten   | ❌ Nicht nötig              |
+| Du verwendest `PureComponent`  | ❌ Schon eingebaut          |
+
+---
+
+## ⚠️ Vorsicht bei Objekten und Arrays
+
+```js
+shouldComponentUpdate(nextProps) {
+  return nextProps.data !== this.props.data;
+}
+```
+
+→ **Referenzvergleich**: wenn `data` neu erstellt wird, auch mit gleichem Inhalt, erfolgt ein Re-Render.  
+→ Bei komplexeren Strukturen: ggf. **tiefer Vergleich (deep equality)** erforderlich.
+
+---
+
+## 📝 Zusammenfassung
+
+`shouldComponentUpdate` wird verwendet, um **Rerender manuell zu kontrollieren**,  
+wenn **Props oder State sich nicht tatsächlich geändert haben**.  
+Das spart Rechenzeit und verbessert die **Performance**, insbesondere bei großen Komponenten.
+
+---
+
+## 🔗 Quellen
+
+- [shouldComponentUpdate – React Docs](https://react.dev/reference/react/Component#shouldcomponentupdate)  
+- [React Performance – react.dev](https://react.dev/learn/optimizing-performance)
 
   **[⬆ Наверх](#top)**
 
-32. ### <a name="32"></a> 
+32. ### <a name="32"></a> Was ist ein ref und wann wird er eingesetzt?
 
+# Was ist ein `ref` und wann wird er eingesetzt?
 
+Ein **`ref` (reference)** in React ist ein Objekt, das **direkten Zugriff auf ein DOM-Element oder eine React-Komponente** ermöglicht – **ohne den üblichen Datenfluss über Props oder State**.
+
+---
+
+## 🧠 Wofür werden Refs verwendet?
+
+- 📌 **Direkter Zugriff auf DOM-Elemente**
+- 🎮 **Manuelles Fokus-Management** (z. B. `input.focus()`)
+- ⏯️ **Steuerung von Medien (Video/Audio)**
+- 📦 **Integration von Drittanbieter-Bibliotheken**
+- 🧪 **Lesen von Werten in unkontrollierten Komponenten**
+
+---
+
+## 💡 Beispiel: DOM-Element fokussieren
+
+```jsx
+import { useRef, useEffect } from 'react';
+
+function FocusInput() {
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current.focus(); // Direktes DOM-Zugreifen
+  }, []);
+
+  return <input ref={inputRef} />;
+}
+```
+
+➡️ `inputRef.current` zeigt auf das `<input>` DOM-Element.
+
+---
+
+## 📦 `useRef` vs. `createRef`
+
+| Hook/Method        | Verwendung                        |
+|--------------------|-----------------------------------|
+| `useRef()`         | In **Funktionskomponenten**       |
+| `createRef()`      | In **Klassenkomponenten**         |
+
+---
+
+## 🧬 Beispiel: Unkontrolliertes Eingabefeld
+
+```jsx
+function UncontrolledForm() {
+  const inputRef = useRef();
+
+  const handleSubmit = () => {
+    alert(`Eingegeben: ${inputRef.current.value}`);
+  };
+
+  return (
+    <>
+      <input ref={inputRef} />
+      <button onClick={handleSubmit}>Absenden</button>
+    </>
+  );
+}
+```
+
+➡️ Zugriff auf den Wert **ohne State/Props**.
+
+---
+
+## ⚠️ Wann **nicht** verwenden?
+
+- ❌ Kein Ersatz für `state` bei kontrollierten Komponenten  
+- ❌ Kein Mittel zur Datenverarbeitung oder Logiksteuerung  
+- ❌ Nicht für das Auslösen von Re-Renders gedacht
+
+---
+
+## 📝 Zusammenfassung
+
+Ein `ref` ist eine **Referenz auf ein DOM-Element oder eine Komponente**.  
+Er wird eingesetzt, wenn React **nicht der beste Ort zur Verwaltung von Verhalten ist**, z. B. bei Fokus, Scroll, Animationen oder Drittanbieter-APIs.
+
+---
+
+## 🔗 Quellen
+
+- [Refs und DOM – React Docs](https://react.dev/learn/referencing-values-with-refs)  
+- [useRef Hook – react.dev](https://react.dev/reference/react/useRef)
 
   **[⬆ Наверх](#top)**
 
-33. ### <a name="33"></a> 
+33. ### <a name="33"></a> Was bedeutet „Lifting State Up“?
 
+# Was bedeutet „Lifting State Up“?
 
+**„Lifting State Up“** bezeichnet ein Muster in React, bei dem **mehrere Komponenten denselben State benötigen** –  
+aber **nur eine Elternkomponente** diesen Zustand verwalten soll.
+
+---
+
+## 🎯 Warum „State anheben“?
+
+Wenn zwei oder mehr Komponenten auf denselben Wert zugreifen oder ihn ändern müssen,  
+ist es besser, den **State in die nächste gemeinsame Elternkomponente zu verschieben**.
+
+---
+
+## 💡 Beispiel
+
+### ✅ Struktur mit „Lifting State Up“
+
+```jsx
+function Parent() {
+  const [text, setText] = useState('');
+
+  return (
+    <>
+      <Input text={text} onTextChange={setText} />
+      <Display text={text} />
+    </>
+  );
+}
+
+function Input({ text, onTextChange }) {
+  return (
+    <input 
+      value={text} 
+      onChange={(e) => onTextChange(e.target.value)} 
+    />
+  );
+}
+
+function Display({ text }) {
+  return <p>Aktueller Text: {text}</p>;
+}
+```
+
+➡️ `Parent` verwaltet den Zustand `text`,  
+und beide Kind-Komponenten (`Input`, `Display`) **bekommen diesen State als Prop**.
+
+---
+
+## 🔁 Vorteile
+
+- ✅ **Zentrale Datenquelle** für mehrere Komponenten
+- ✅ Einfache Synchronisation und Datenfluss
+- ✅ Vermeidung von doppeltem State
+
+---
+
+## ⚠️ Typischer Anwendungsfall
+
+- Zwei Komponenten müssen sich **auf denselben Wert beziehen**
+- Eine Komponente ändert den Wert, die andere zeigt ihn an
+
+---
+
+## 📝 Zusammenfassung
+
+**„Lifting State Up“** bedeutet, den gemeinsamen Zustand in eine **höherliegende Elternkomponente zu verschieben**,  
+damit mehrere untergeordnete Komponenten synchron auf denselben Wert zugreifen können.
+
+---
+
+## 🔗 Quellen
+
+- [Lifting State Up – react.dev](https://react.dev/learn/sharing-state-between-components#lifting-state-up)  
+- [State Sharing in React – MDN](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#lifting_state_up)
 
   **[⬆ Наверх](#top)**
 
@@ -1221,7 +2152,7 @@ Props fließen **nur von oben nach unten** (Parent → Child).
 
   **[⬆ Наверх](#top)**  
 
-41. ### <a name="41"></a> 
+41. ### <a name="41"></a> Was sind die Phasen des Komponentenlebenszyklus?
 
 
 
