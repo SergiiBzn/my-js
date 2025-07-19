@@ -4267,55 +4267,952 @@ function Form() {
 
 76. ### <a name="76"></a> Wie führt man API-Aufrufe mit Fetch oder Axios durch?
 
+# Wie führt man API-Aufrufe mit `fetch` oder `axios` in React durch?
 
+In React kannst du API-Anfragen auf zwei gängige Arten durchführen:
+
+1. Mit dem **integrierten `fetch`-API** (nativ in JavaScript)
+2. Mit der **Axios-Bibliothek** (komfortabler, aber extern)
+
+---
+
+## ✅ 1. API-Aufruf mit `fetch`
+
+```jsx
+import { useEffect, useState } from 'react';
+
+function UserList() {
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch('https://jsonplaceholder.typicode.com/users')
+      .then((res) => {
+        if (!res.ok) throw new Error('Fehler beim Laden');
+        return res.json();
+      })
+      .then((data) => setUsers(data))
+      .catch((err) => setError(err.message));
+  }, []);
+
+  if (error) return <p>Fehler: {error}</p>;
+  return (
+    <ul>
+      {users.map((u) => (
+        <li key={u.id}>{u.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+---
+
+## ✅ 2. API-Aufruf mit `axios`
+
+### Installation:
+
+```bash
+npm install axios
+```
+
+### Verwendung:
+
+```jsx
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+
+function PostList() {
+  const [posts, setPosts] = useState([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    axios
+      .get('https://jsonplaceholder.typicode.com/posts')
+      .then((res) => setPosts(res.data))
+      .catch((err) => setError(err.message));
+  }, []);
+
+  if (error) return <p>Fehler: {error}</p>;
+  return (
+    <ul>
+      {posts.map((p) => (
+        <li key={p.id}>{p.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+---
+
+## 🔁 Vergleich: `fetch` vs. `axios`
+
+| Merkmal             | `fetch` (nativ)              | `axios` (Bibliothek)             |
+|---------------------|------------------------------|----------------------------------|
+| Integriert in JS?   | ✅ Ja                         | ❌ Nein (muss installiert werden) |
+| JSON automatisch?   | ❌ Nein (manuell: `.json()`) | ✅ Ja (direkt `res.data`)         |
+| Fehlerbehandlung    | Manuell mit `res.ok` prüfen  | Automatisch bei HTTP-Fehler      |
+| Unterstützt Abbrechen | ❌ Nur mit AbortController | ✅ Ja                             |
+
+---
+
+## 📝 Zusammenfassung
+
+- Mit `fetch` und `axios` kannst du in `useEffect` **API-Daten laden**
+- `fetch`: nativ, minimalistisch  
+- `axios`: komfortabler, bessere Fehlerbehandlung  
+- Immer Fehler abfangen (`.catch`) und Zustand (`loading`, `error`, `data`) verwalten
+
+---
+
+## 🔗 Quellen
+
+- [fetch – MDN Web Docs](https://developer.mozilla.org/de/docs/Web/API/Fetch_API)
+- [Axios – GitHub Docs](https://axios-http.com/docs/intro)
+- [Daten in React laden – React Docs](https://react.dev/learn/you-might-not-need-an-effect#fetching-data)
 
   **[⬆ Наверх](#top)**
 
-77. ### <a name="77"></a> 
+77. ### <a name="77"></a> Wie verwaltet man Lade-, Fehler- und Erfolgsstatus?
 
+# Wie verwaltet man Lade-, Fehler- und Erfolgsstatus in React?
 
+Beim **Abrufen von Daten (API)** ist es wichtig, den **Status** der Anfrage zu verwalten:
+
+1. 🔄 **Ladezustand** (`isLoading`)
+2. ✅ **Erfolgszustand** (Daten verfügbar)
+3. ❌ **Fehlerzustand** (Fehler beim Laden)
+
+Diese drei Zustände werden meist mit **`useState` und `useEffect`** verwaltet.
+
+---
+
+## 💡 Beispiel mit `fetch`
+
+```jsx
+import { useState, useEffect } from 'react';
+
+function UserList() {
+  const [users, setUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch('https://jsonplaceholder.typicode.com/users')
+      .then((res) => {
+        if (!res.ok) throw new Error('Fehler beim Laden');
+        return res.json();
+      })
+      .then((data) => {
+        setUsers(data);
+        setError(null);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  if (isLoading) return <p>⏳ Lade Daten...</p>;
+  if (error) return <p>❌ Fehler: {error}</p>;
+
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+---
+
+## ✅ Statusverwaltung im Überblick
+
+| Zustand     | Variable     | Bedeutung                                 |
+|-------------|--------------|--------------------------------------------|
+| Ladezustand | `isLoading`  | Wird `true` beim Start der Anfrage         |
+| Erfolgsdaten| `data`, `users`, etc. | Wird nach erfolgreichem Laden gesetzt |
+| Fehlerzustand| `error`     | Wird gesetzt, wenn `.catch()` ausgelöst wird |
+
+---
+
+## 🔄 Alternativen
+
+- Eigener **Custom Hook** (`useFetch`, `useApi`)
+- **State Machine** (z. B. mit `xstate`)
+- Zustand mit `useReducer` verwalten, wenn komplexer
+
+---
+
+## 📝 Zusammenfassung
+
+- Nutze `useState` für `isLoading`, `error` und `data`
+- Nutze `useEffect`, um Daten zu laden
+- Zeige je nach Zustand: Ladeanzeige, Fehlernachricht oder Daten
+
+---
+
+## 🔗 Quellen
+
+- [React: API-Daten laden – react.dev](https://react.dev/learn/you-might-not-need-an-effect#fetching-data)  
+- [fetch API – MDN Docs](https://developer.mozilla.org/de/docs/Web/API/Fetch_API)
 
   **[⬆ Наверх](#top)**
 
-78. ### <a name="78"></a> 
+78. ### <a name="78"></a> Wie funktioniert WebSocket mit React?
 
+# Wie funktioniert WebSocket mit React?
 
+**WebSockets** ermöglichen eine **bidirektionale, permanente Verbindung** zwischen Client (Browser) und Server.  
+In React kannst du damit **Echtzeit-Daten** verarbeiten – z. B. für Chats, Benachrichtigungen oder Live-Dashboards.
+
+---
+
+## 🔄 Grundprinzip WebSocket
+
+1. Verbindung zum Server aufbauen
+2. Nachrichten senden & empfangen
+3. Verbindung schließen (bei Unmount oder Fehler)
+
+---
+
+## 💡 Beispiel: WebSocket in React verwenden
+
+```jsx
+import { useEffect, useRef, useState } from 'react';
+
+function WebSocketComponent() {
+  const socketRef = useRef(null);
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    // 1. Verbindung aufbauen
+    socketRef.current = new WebSocket('wss://example.com/socket');
+
+    // 2. Nachricht empfangen
+    socketRef.current.onmessage = (event) => {
+      setMessages((prev) => [...prev, event.data]);
+    };
+
+    // 3. Fehlerbehandlung
+    socketRef.current.onerror = (err) => {
+      console.error('WebSocket-Fehler:', err);
+    };
+
+    // 4. Aufräumen beim Unmount
+    return () => {
+      socketRef.current.close();
+    };
+  }, []);
+
+  // Nachricht senden (z. B. beim Button-Klick)
+  const sendMessage = () => {
+    if (socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send('Hallo vom Client!');
+    }
+  };
+
+  return (
+    <div>
+      <h3>Empfangene Nachrichten:</h3>
+      <ul>
+        {messages.map((msg, i) => (
+          <li key={i}>{msg}</li>
+        ))}
+      </ul>
+      <button onClick={sendMessage}>Nachricht senden</button>
+    </div>
+  );
+}
+```
+
+---
+
+## 🔁 Tipps für den produktiven Einsatz
+
+- Nutze `useRef`, damit WebSocket-Verbindung **nicht bei jedem Render neu aufgebaut** wird  
+- Prüfe `socket.readyState`, bevor du Nachrichten sendest  
+- Verwende ggf. **Reconnect-Strategien**, falls Verbindung abbricht  
+- Für große Projekte: verwalte WebSocket über `Context` oder `Redux`
+
+---
+
+## 📝 Zusammenfassung
+
+- WebSocket bietet eine **dauerhafte Verbindung** zwischen React-Client und Server  
+- Ideal für **Live-Kommunikation** (Chat, Echtzeitdaten)  
+- In React: mit `useEffect`, `useRef` und `setState` kombinieren  
+- Nicht vergessen: **Verbindung schließen** bei Unmount
+
+---
+
+## 🔗 Quellen
+
+- [MDN: WebSocket API](https://developer.mozilla.org/de/docs/Web/API/WebSocket)  
+- [React + WebSocket Guide – LogRocket](https://blog.logrocket.com/using-websocket-react-guide/)
 
   **[⬆ Наверх](#top)**
 
-79. ### <a name="79"></a> 
+79. ### <a name="79"></a> Wie kann man Daten zwischen Komponenten weitergeben?
 
+# Wie kann man Daten zwischen Komponenten weitergeben?
 
+In React gibt es mehrere Wege, **Daten zwischen Komponenten** auszutauschen.  
+Welcher Weg sinnvoll ist, hängt davon ab, **wie die Komponenten zueinander stehen**.
+
+---
+
+## 1️⃣ Parent → Child: via **Props**
+
+Der klassische und einfachste Weg:  
+Elternkomponente übergibt Daten an Kindkomponente als `props`.
+
+```jsx
+function Child({ username }) {
+  return <p>Hallo, {username}!</p>;
+}
+
+function Parent() {
+  return <Child username="Sergii" />;
+}
+```
+
+➡️ Einfache, **unidirektionale Datenweitergabe**.
+
+---
+
+## 2️⃣ Child → Parent: via **Callback-Funktion als Prop**
+
+Kindkomponente ruft eine Funktion auf, die der Elternkomponente gehört.
+
+```jsx
+function Child({ onNameChange }) {
+  return <input onChange={(e) => onNameChange(e.target.value)} />;
+}
+
+function Parent() {
+  const [name, setName] = useState('');
+  return (
+    <>
+      <Child onNameChange={setName} />
+      <p>Name: {name}</p>
+    </>
+  );
+}
+```
+
+➡️ **"Lifting State Up"**: Eltern verwalten den Zustand.
+
+---
+
+## 3️⃣ Geschwister-Komponenten (Sibling → Sibling): via **gemeinsamen Eltern-State**
+
+Beide Kinder greifen auf den **Zustand in der Elternkomponente** zu.
+
+```jsx
+function Input({ onChange }) {
+  return <input onChange={(e) => onChange(e.target.value)} />;
+}
+
+function Display({ value }) {
+  return <p>Wert: {value}</p>;
+}
+
+function Parent() {
+  const [text, setText] = useState('');
+  return (
+    <>
+      <Input onChange={setText} />
+      <Display value={text} />
+    </>
+  );
+}
+```
+
+---
+
+## 4️⃣ Tief verschachtelte Komponenten: via **Context API**
+
+Nutze `createContext`, `Provider` und `useContext`,  
+um Daten **global im Baum** verfügbar zu machen.
+
+```jsx
+const ThemeContext = createContext();
+
+function App() {
+  return (
+    <ThemeContext.Provider value="dark">
+      <DeepChild />
+    </ThemeContext.Provider>
+  );
+}
+
+function DeepChild() {
+  const theme = useContext(ThemeContext);
+  return <p>Aktuelles Theme: {theme}</p>;
+}
+```
+
+---
+
+## 5️⃣ App-weite Zustände: via **State-Management** (z. B. Redux, Zustand)
+
+Für sehr große Apps oder komplexe Interaktionen.
+
+```jsx
+// Redux: useSelector, useDispatch
+// Zustand: useStore()
+// Recoil, Jotai, MobX = Alternativen
+```
+
+---
+
+## 📝 Zusammenfassung
+
+| Beziehung          | Lösung                         |
+|--------------------|---------------------------------|
+| Eltern → Kind      | Props                          |
+| Kind → Eltern      | Callback-Funktion als Prop     |
+| Geschwister        | Gemeinsamer Eltern-State       |
+| Tief verschachtelt | Context API                    |
+| Global             | State-Management-Library       |
+
+---
+
+## 🔗 Quellen
+
+- [React – Props](https://react.dev/learn/passing-props-to-a-component)  
+- [React – State Heben](https://react.dev/learn/sharing-state-between-components)  
+- [React – Context API](https://react.dev/learn/passing-data-deeply-with-context)
 
   **[⬆ Наверх](#top)**
 
-80. ### <a name="80"></a> 
+80. ### <a name="80"></a> Wie macht man einen Datenabruf nur beim ersten Rendern?
 
+# Wie macht man einen Datenabruf nur beim ersten Rendern in React?
 
+Um eine API-Anfrage **nur einmal beim ersten Laden der Komponente** durchzuführen,  
+nutzt man den Hook **`useEffect` mit leerem Abhängigkeits-Array `[]`**.
+
+---
+
+## 💡 Beispiel: API-Fetch beim Mount
+
+```jsx
+import { useEffect, useState } from 'react';
+
+function UserList() {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    fetch('https://jsonplaceholder.typicode.com/users')
+      .then((res) => res.json())
+      .then((data) => setUsers(data));
+  }, []); // ← nur beim ersten Rendern!
+
+  return (
+    <ul>
+      {users.map((u) => (
+        <li key={u.id}>{u.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+---
+
+## 📌 Erklärung
+
+- Das leere Array `[]` bedeutet:  
+  **Dieser Effekt läuft nur einmal – beim ersten Rendern (Mount)**.
+- Keine erneute Ausführung bei Re-Renders oder State-Änderungen
+
+---
+
+## 🔁 Alternative: Async-Funktion in `useEffect`
+
+Da `useEffect` keine `async`-Funktion direkt erlaubt:
+
+```jsx
+useEffect(() => {
+  async function fetchData() {
+    const res = await fetch('...');
+    const data = await res.json();
+    setUsers(data);
+  }
+
+  fetchData();
+}, []);
+```
+
+---
+
+## 📝 Zusammenfassung
+
+- Verwende `useEffect(() => { ... }, [])`, um einen Effekt **nur einmal beim ersten Rendern** auszuführen  
+- Ideal für **API-Anfragen, Initialdaten oder Setup-Logik**  
+- Async-Aufrufe müssen in eine **innere Funktion** ausgelagert werden
+
+---
+
+## 🔗 Quellen
+
+- [React Docs – useEffect](https://react.dev/reference/react/useEffect)  
+- [Daten beim Mount laden – React Patterns](https://reactpatterns.com/#fetch-on-mount)
 
   **[⬆ Наверх](#top)**  
 
-81. ### <a name="81"></a> 
+81. ### <a name="81"></a> Was ist das Problem bei „stale closures“ mit Hooks?
 
+# Was ist das Problem bei „stale closures“ mit Hooks?
 
+Ein **„stale closure“** (veraltete Funktionseinbettung) tritt auf,  
+wenn eine **Funktion in einem Hook (z. B. `useEffect`, `setInterval`, `addEventListener`)**  
+auf **einen veralteten Wert aus dem vorherigen Render** zugreift.
+
+---
+
+## 📦 Was ist eine Closure?
+
+Eine **Closure** ist eine Funktion, die Zugriff auf Variablen aus dem **Umgebungskontext** (z. B. vorherigem Render) hat.
+
+Wenn ein Hook eine Funktion verwendet, „merkt“ sich diese Funktion **den Zustand des Wertes zu diesem Zeitpunkt**.
+
+---
+
+## 💡 Beispiel: Problem mit `setInterval`
+
+```jsx
+function Timer() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCount(count + 1); // ❌ count ist immer 0!
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, []);
+  
+  return <p>Zähler: {count}</p>;
+}
+```
+
+### 🔴 Problem:
+
+- Die `count`-Variable ist **eingefroren (stale)** bei `0`, weil `useEffect` nur **einmal** ausgeführt wird
+- Der Callback in `setInterval` „sieht“ nie die neuen `count`-Werte
+
+---
+
+## ✅ Lösung 1: Funktionales `setState`
+
+```jsx
+setCount((prev) => prev + 1);
+```
+
+```jsx
+useEffect(() => {
+  const id = setInterval(() => {
+    setCount((prev) => prev + 1); // ✅ aktueller Wert
+  }, 1000);
+
+  return () => clearInterval(id);
+}, []);
+```
+
+➡️ `prev` wird **zur aktuellen Version** von `count`, unabhängig vom Closure
+
+---
+
+## ✅ Lösung 2: useRef für aktuelle Werte
+
+```jsx
+const countRef = useRef(count);
+
+useEffect(() => {
+  countRef.current = count;
+}, [count]);
+
+useEffect(() => {
+  const id = setInterval(() => {
+    console.log(countRef.current); // immer aktuell
+  }, 1000);
+
+  return () => clearInterval(id);
+}, []);
+```
+
+➡️ `useRef` bleibt **zwischen Renders gleich** und kann **aktualisiert** werden.
+
+---
+
+## 📝 Zusammenfassung
+
+- Ein **stale closure** tritt auf, wenn eine Funktion auf **veraltete Werte** zugreift  
+- Typisch bei: `setInterval`, `useEffect`, Event-Handlern  
+- Lösungen:
+  - ✅ Funktionales `setState`
+  - ✅ `useRef` zur Speicherung aktueller Werte
+
+---
+
+## 🔗 Quellen
+
+- [React Docs – useEffect Gotchas](https://react.dev/learn/synchronizing-with-effects#you-might-see-stale-values-inside-an-effect)  
+- [Dan Abramov – A Complete Guide to useEffect](https://overreacted.io/a-complete-guide-to-useeffect/)
 
   **[⬆ Наверх](#top)**
 
-82. ### <a name="82"></a> 
+82. ### <a name="82"></a> Wie funktioniert die Fehlerbehandlung mit try/catch in React?
 
+# Wie funktioniert die Fehlerbehandlung mit `try/catch` in React?
 
+In React wird `try/catch` verwendet, um **synchronen und asynchronen Code** innerhalb von Funktionen  
+(z. B. Event-Handlern, `async`-Funktionen) **gezielt abzusichern**.
+
+⚠️ `try/catch` funktioniert **nicht für Renderfehler** in JSX – dafür benötigt man **Error Boundaries**.
+
+---
+
+## ✅ Verwendung in Event-Handlern
+
+```jsx
+function Button() {
+  const handleClick = () => {
+    try {
+      // synchroner Fehler
+      throw new Error('Etwas ist schiefgelaufen!');
+    } catch (err) {
+      console.error('Fehler:', err.message);
+    }
+  };
+
+  return <button onClick={handleClick}>Klick mich</button>;
+}
+```
+
+---
+
+## ✅ Verwendung in `async`-Funktionen (z. B. Daten laden)
+
+```jsx
+function DataLoader() {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch('https://api.example.com/data');
+        if (!res.ok) throw new Error('Fehler beim Abrufen');
+        const json = await res.json();
+        setData(json);
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  if (error) return <p>❌ Fehler: {error}</p>;
+  if (!data) return <p>⏳ Lädt...</p>;
+  return <pre>{JSON.stringify(data, null, 2)}</pre>;
+}
+```
+
+---
+
+## 🔴 Kein `try/catch` für Renderfehler
+
+```jsx
+function App() {
+  try {
+    return <ProblematicComponent />; // ❌ try/catch greift hier nicht
+  } catch (e) {
+    return <p>Fehler!</p>; // ❌ wird nicht erreicht
+  }
+}
+```
+
+➡️ React rendert **asynchron**, deshalb **fangen Error Boundaries** solche Fehler ab, nicht `try/catch`.
+
+---
+
+## 📝 Zusammenfassung
+
+| Fehlerquelle      | `try/catch` geeignet? | Alternative                     |
+|------------------|------------------------|---------------------------------|
+| Event-Handler     | ✅ Ja                  | —                               |
+| `async`-Funktionen| ✅ Ja                  | —                               |
+| Renderzeit (JSX)  | ❌ Nein                | ❗ `ErrorBoundary` verwenden     |
+
+---
+
+## 🔗 Quellen
+
+- [React Docs – Fehlerbehandlung](https://react.dev/learn/managing-errors)  
+- [MDN – try...catch](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/try...catch)
 
   **[⬆ Наверх](#top)**
 
-83. ### <a name="83"></a> 
+83. ### <a name="83"></a> Wie kann man ein Mock-API oder Mock Server verwenden?
 
+# Wie kann man ein Mock-API oder Mock Server in React verwenden?
 
+Ein **Mock-API** oder **Mock-Server** simuliert eine echte Backend-API,  
+um die Entwicklung und das Testen von Frontend-Komponenten zu ermöglichen –  
+ohne auf ein echtes Backend warten zu müssen.
+
+---
+
+## 🎯 Vorteile
+
+- Unabhängige Entwicklung von Frontend und Backend
+- Offline arbeiten möglich
+- Schnelleres Testen von UI-Logik
+- Kontrolle über Antwortdaten, Fehler, Ladezeiten
+
+---
+
+## ✅ Möglichkeiten für Mocking
+
+### 1️⃣ **JSON Server (lokal)**
+
+Schneller REST-API-Mock über eine JSON-Datei.
+
+#### 🔧 Installation:
+
+```bash
+npm install -g json-server
+```
+
+#### 📁 `db.json`
+
+```json
+{
+  "users": [
+    { "id": 1, "name": "Alice" },
+    { "id": 2, "name": "Bob" }
+  ]
+}
+```
+
+#### 🚀 Starten:
+
+```bash
+json-server --watch db.json --port 4000
+```
+
+➡️ API verfügbar unter `http://localhost:4000/users`
+
+---
+
+### 2️⃣ **Mock Service Worker (MSW)** – empfohlen für komplexe Szenarien
+
+Interceptet echte Requests auf Netzwerkebene → realistisch & flexibel.
+
+#### 🔧 Installation:
+
+```bash
+npm install msw --save-dev
+```
+
+#### 📁 Beispiel-Handler:
+
+```js
+// src/mocks/handlers.js
+import { rest } from 'msw';
+
+export const handlers = [
+  rest.get('/api/users', (req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json([{ id: 1, name: 'Sergii' }, { id: 2, name: 'Anna' }])
+    );
+  }),
+];
+```
+
+#### 🧩 Setup:
+
+```js
+// src/mocks/browser.js
+import { setupWorker } from 'msw';
+import { handlers } from './handlers';
+
+export const worker = setupWorker(...handlers);
+```
+
+```js
+// index.js
+if (process.env.NODE_ENV === 'development') {
+  const { worker } = require('./mocks/browser');
+  worker.start();
+}
+```
+
+---
+
+### 3️⃣ **Online-Tools / öffentliche APIs**
+
+- [https://reqres.in](https://reqres.in)
+- [https://jsonplaceholder.typicode.com](https://jsonplaceholder.typicode.com)
+- [https://mockapi.io](https://mockapi.io)
+
+➡️ Gut für schnelles Testen ohne lokale Einrichtung
+
+---
+
+## 📝 Zusammenfassung
+
+| Methode         | Geeignet für                  | Vorteile                    |
+|------------------|-------------------------------|-----------------------------|
+| `json-server`    | Lokale Fake-REST-API          | Schnell, einfach            |
+| `msw`            | Realistisches Mocking (XHR)   | Sehr mächtig, intercepts    |
+| `mockapi.io`     | Online-Testing                | Kein Setup nötig            |
+
+---
+
+## 🔗 Quellen
+
+- [Mock Service Worker – offizielle Website](https://mswjs.io)  
+- [JSON Server – GitHub](https://github.com/typicode/json-server)  
+- [jsonplaceholder – Fake API](https://jsonplaceholder.typicode.com)
 
   **[⬆ Наверх](#top)**
 
-84. ### <a name="84"></a> 
+84. ### <a name="84"></a> Wie funktioniert Suspense für Datenabfragen?
 
+# Wie funktioniert `React.Suspense` für Datenabfragen?
 
+`React.Suspense` erlaubt es, **asynchrone Datenladevorgänge** elegant zu behandeln,  
+indem eine **Fallback-UI** (z. B. Ladeanzeige) angezeigt wird,  
+solange **komponentenabhängige Daten noch nicht verfügbar** sind.
+
+---
+
+## ⚠️ Wichtig:
+
+- Suspense für Daten funktioniert **nur mit speziellen Data Fetching Libraries**, z. B.:
+  - **React Query (TanStack Query)**
+  - **Relay**
+  - oder man schreibt einen eigenen **Wrapper mit `Promise`-suspending**
+
+---
+
+## ✅ Beispiel mit React Query (empfohlener Weg)
+
+### 🔧 Setup:
+
+```bash
+npm install @tanstack/react-query
+```
+
+### 📦 App mit QueryClient + Suspense:
+
+```jsx
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from '@tanstack/react-query';
+import { Suspense } from 'react';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      suspense: true,
+    },
+  },
+});
+
+function Users() {
+  const { data } = useQuery({
+    queryKey: ['users'],
+    queryFn: () =>
+      fetch('https://jsonplaceholder.typicode.com/users').then((res) =>
+        res.json()
+      ),
+  });
+
+  return (
+    <ul>
+      {data.map((u) => (
+        <li key={u.id}>{u.name}</li>
+      ))}
+    </ul>
+  );
+}
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Suspense fallback={<p>⏳ Lädt Benutzer...</p>}>
+        <Users />
+      </Suspense>
+    </QueryClientProvider>
+  );
+}
+```
+
+---
+
+## 🧠 Was passiert hier?
+
+- **`Suspense`** zeigt das `fallback`, solange `Users` noch lädt.
+- Sobald `useQuery` Daten geladen hat, wird `fallback` ersetzt.
+- Vorteil: Kein explizites `isLoading` oder `error` nötig → cleaner Code
+
+---
+
+## 🔁 Alternative: Eigene Datenquelle mit `suspense`-like Verhalten
+
+```jsx
+function wrapPromise(promise) {
+  let status = 'pending';
+  let result;
+  const suspender = promise.then(
+    (r) => {
+      status = 'success';
+      result = r;
+    },
+    (e) => {
+      status = 'error';
+      result = e;
+    }
+  );
+
+  return {
+    read() {
+      if (status === 'pending') throw suspender;
+      if (status === 'error') throw result;
+      return result;
+    },
+  };
+}
+```
+
+➡️ Diese Technik ist eher experimentell.
+
+---
+
+## 📝 Zusammenfassung
+
+- `Suspense` kann Ladezustände abfangen und Fallback anzeigen
+- Für Daten: funktioniert nur mit Libraries wie **React Query** oder **Relay**
+- Vorteil: **automatisches Laden + saubere Trennung von UI & Logik**
+
+---
+
+## 🔗 Quellen
+
+- [React Suspense für Daten – React Docs](https://react.dev/reference/react/Suspense)  
+- [TanStack Query mit Suspense](https://tanstack.com/query/latest/docs/react/guides/suspense)  
+- [MDN: Promises](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 
   **[⬆ Наверх](#top)**
 
