@@ -289,63 +289,692 @@ React ist eine **komponentenbasierte UI-Bibliothek**, die typische Probleme der 
 
   **[⬆ Наверх](#top)**
 
-2. ### <a name="2"></a> 
+2. ### <a name="2"></a> Was ist JSX und warum wird es verwendet?
 
+# Was ist JSX und warum wird es verwendet?
 
+**JSX (JavaScript XML)** ist eine **Erweiterungssyntax für JavaScript**, die es ermöglicht, HTML-ähnlichen Code innerhalb von JavaScript zu schreiben. JSX wird von **React** verwendet, um die Struktur der Benutzeroberfläche deklarativ zu beschreiben.
+
+---
+
+## 🔍 Warum JSX?
+
+1. **Bessere Lesbarkeit**  
+   → JSX kombiniert **HTML-Struktur und JavaScript-Logik** in einem einzigen Codeblock – ideal für Komponenten.
+
+2. **Deklarativer Stil**  
+   → Statt manuelle DOM-Elemente mit `document.createElement` zu erzeugen, beschreibt JSX **was** dargestellt werden soll, nicht **wie**.
+
+3. **Kompakter und effizienter Code**  
+   → JSX kompiliert zu `React.createElement(...)`-Aufrufen, die das virtuelle DOM erzeugen.
+
+---
+
+## 💡 Beispielcode
+
+```jsx
+function Welcome(props) {
+  return <h1>Hallo, {props.name}!</h1>;
+}
+```
+
+➡️ Der obige JSX-Code wird von Babel kompiliert zu:
+
+```js
+React.createElement('h1', null, 'Hallo, ', props.name);
+```
+
+---
+
+## 📌 Wichtig
+
+JSX ist **nicht zwingend erforderlich**, aber stark empfohlen, da es:
+
+- die Entwicklung mit React beschleunigt  
+- die Struktur klarer macht  
+- die Fehleranfälligkeit reduziert
+
+---
+
+## 📝 Zusammenfassung
+
+JSX ist eine JavaScript-Erweiterung, die HTML-ähnlichen Code im JavaScript ermöglicht.  
+Es erleichtert die Entwicklung mit React durch bessere Lesbarkeit, Wartbarkeit und Integration von Logik und Layout.
+
+---
+
+## 🔗 Quellen
+
+- [JSX in React – react.dev](https://react.dev/learn/writing-markup-with-jsx)  
+- [JSX auf MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/JavaScript_technologies_overview#jsx)
 
   **[⬆ Наверх](#top)**
 
-3. ### <a name="3"></a> 
+3. ### <a name="3"></a> Was ist Virtual DOM und wie funktioniert es?
 
+# Was ist Virtual DOM und wie funktioniert es?
 
+**Virtual DOM** ist eine in JavaScript abgebildete, **leichte Kopie des echten DOM**. React nutzt dieses Konzept, um effizient UI-Änderungen zu erkennen und durchzuführen, ohne den echten DOM direkt zu manipulieren – was langsam und ressourcenintensiv wäre.
+
+---
+
+## 🔧 Wie funktioniert Virtual DOM?
+
+1. **Rendern in den virtuellen DOM**  
+   → React rendert Komponenten zuerst **im virtuellen DOM**, nicht direkt im echten DOM.
+
+2. **Vergleich (Diffing)**  
+   → React vergleicht (diffing) den **alten virtuellen DOM** mit dem **neuen**, um herauszufinden, **welche Teile sich verändert haben**.
+
+3. **Minimaler Update im echten DOM**  
+   → Nur die **veränderten Teile** werden effizient und gezielt im echten DOM aktualisiert.
+
+---
+
+## 💡 Beispiel: Wie React intern arbeitet
+
+```jsx
+const element = <h1>Hello, world!</h1>;
+ReactDOM.render(element, document.getElementById('root'));
+```
+
+**Ablauf:**
+
+1. JSX wird zu `React.createElement()` → virtuelles DOM-Element
+2. React baut daraus eine virtuelle Baumstruktur
+3. Bei Änderungen:
+   - React erstellt einen neuen virtuellen DOM
+   - vergleicht ihn mit dem alten
+   - findet Unterschiede
+   - updated gezielt den echten DOM
+
+---
+
+## 📈 Vorteile
+
+- **Performance**: weniger direkte DOM-Zugriffe
+- **Klarer Codefluss**: UI-Updates sind vorhersehbar und deklarativ
+- **Skalierbarkeit**: geeignet für große, dynamische Anwendungen
+
+---
+
+## 📝 Zusammenfassung
+
+Der Virtual DOM ist eine **interne, optimierte Datenstruktur** in React, die es erlaubt, **nur notwendige DOM-Änderungen** durchzuführen. Dadurch wird die Performance deutlich verbessert und die UI bleibt synchron mit dem App-Zustand.
+
+---
+
+## 🔗 Quellen
+
+- [React: Rendering und Virtual DOM](https://react.dev/learn/rendering-elements)  
+- [MDN: DOM vs Virtual DOM (extern)](https://developer.mozilla.org/)
 
   **[⬆ Наверх](#top)**
 
-4. ### <a name="4"></a> 
+4. ### <a name="4"></a> Was ist der Unterschied zwischen React und ReactDOM?
 
+# Was ist der Unterschied zwischen React und ReactDOM?
 
+**React** und **ReactDOM** sind zwei getrennte Pakete mit unterschiedlichen Aufgaben in einer React-Anwendung.
+
+---
+
+## 📦 React
+
+Das Paket `react` enthält:
+
+- Die **Core-Funktionalität** von React
+- **Komponentenlogik**, z. B. `useState`, `useEffect`, `useReducer`
+- Das Erstellen von **React-Elementen** über `React.createElement()`
+- JSX-Verarbeitung (nach dem Transpiling)
+
+### Beispiel:
+
+```jsx
+import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(count + 1)}>Zähler: {count}</button>;
+}
+```
+
+---
+
+## 🌐 ReactDOM
+
+Das Paket `react-dom` wird verwendet, um **React-Komponenten in das DOM** des Browsers zu rendern.
+
+- Bindeglied zwischen **virtuellem DOM (React)** und **echtem DOM (Browser)**
+- Enthält Methoden wie `ReactDOM.createRoot()` oder `ReactDOM.render()` (früher)
+
+### Beispiel:
+
+```jsx
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+```
+
+---
+
+## 📝 Zusammenfassung
+
+| Paket      | Aufgabe                          |
+|------------|----------------------------------|
+| `react`    | Erstellen von Komponenten, Hooks, virtueller DOM |
+| `react-dom`| Rendering ins Browser-DOM        |
+
+---
+
+## 🔗 Quellen
+
+- [React – Einführung](https://react.dev/learn)  
+- [ReactDOM API – react.dev](https://react.dev/reference/react-dom)  
+- [MDN Web Docs: Einführung in React](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_starten)
 
   **[⬆ Наверх](#top)**
 
-5. ### <a name="5"></a> 
+5. ### <a name="5"></a> Warum importieren wir React, auch wenn es scheinbar nicht benutzt wird?
 
+# Warum importieren wir React, auch wenn es scheinbar nicht benutzt wird?
 
+Früher (vor React 17) musste man `React` **immer importieren**, wenn man JSX benutzt hat, **auch wenn man React nicht direkt im Code verwendet** hat.
+
+---
+
+## 🧠 Warum?
+
+JSX wird vom Compiler (z. B. Babel) in `React.createElement()`-Aufrufe umgewandelt:
+
+```jsx
+const element = <h1>Hello</h1>;
+```
+
+wird zu:
+
+```js
+const element = React.createElement('h1', null, 'Hello');
+```
+
+➡️ Deshalb musste `React` **immer verfügbar** sein.
+
+---
+
+## 🔄 Seit React 17+
+
+Dank des neuen JSX-Transform ist der `React`-Import **nicht mehr zwingend nötig**, **wenn du einen modernen Build-Tool (z. B. Vite, CRA, Next.js)** verwendest.
+
+### Beispiel (ab React 17):
+
+```jsx
+function App() {
+  return <h1>Hello World</h1>;
+}
+
+// kein expliziter Import von React nötig, wenn JSX-Transform aktiv
+```
+
+---
+
+## 📦 Voraussetzung
+
+Damit das funktioniert, muss dein Projekt folgende Bedingungen erfüllen:
+
+- React 17 oder neuer  
+- JSX-Transform ist im Build-Tool (z. B. Babel, Vite, CRA) aktiviert  
+- Du benutzt keine `React.createElement()` direkt
+
+---
+
+## 📝 Zusammenfassung
+
+Früher war der Import von `React` bei JSX zwingend, da JSX zu `React.createElement()` kompiliert wurde.  
+Seit React 17 ist der Import **nicht mehr notwendig**, wenn moderne Tools und der neue JSX-Transform verwendet werden.
+
+---
+
+## 🔗 Quellen
+
+- [JSX-Transform Erklärung – React](https://react.dev/learn/writing-markup-with-jsx#the-new-jsx-transform)
+- [JSX auf MDN](https://developer.mozilla.org/de/docs/Web/JavaScript/JavaScript_technologies_overview#jsx)
 
   **[⬆ Наверх](#top)**
 
-6. ### <a name="6"></a> 
+6. ### <a name="6"></a> Was ist ein React Fragment und warum ist es nützlich?
 
+# Was ist ein React Fragment und warum ist es nützlich?
 
+Ein **React Fragment** (`<React.Fragment>` oder `<> </>`) ist ein **Wrapper ohne zusätzliches HTML-Element im DOM**.  
+Er wird verwendet, wenn eine Komponente **mehrere Elemente zurückgeben** muss, ohne unnötiges Markup zu erzeugen.
+
+---
+
+## 🔍 Warum nützlich?
+
+- Vermeidet zusätzliche DOM-Knoten (z. B. unnötige `<div>`s)
+- Macht den DOM sauberer und strukturierter
+- Erforderlich, da JSX nur **ein Wurzelelement** pro Komponente erlaubt
+
+---
+
+## 💡 Beispiel mit Fragment
+
+```jsx
+function UserInfo() {
+  return (
+    <>
+      <h1>Max Mustermann</h1>
+      <p>Frontend Developer</p>
+    </>
+  );
+}
+```
+
+Das erzeugt im echten DOM **nur `<h1>` und `<p>`**, **kein zusätzliches Wrapper-Element**.
+
+---
+
+## 💡 Alternativ: `React.Fragment` mit Key (nützlich in Listen)
+
+```jsx
+<>
+  {items.map(item => (
+    <React.Fragment key={item.id}>
+      <dt>{item.name}</dt>
+      <dd>{item.description}</dd>
+    </React.Fragment>
+  ))}
+</>
+```
+
+➡️ Nur `React.Fragment` (nicht `<>`) unterstützt `key`-Props.
+
+---
+
+## 📝 Zusammenfassung
+
+React Fragments erlauben das Gruppieren mehrerer Elemente **ohne zusätzliches DOM-Element**.  
+Sie sorgen für **sauberen Code und schlankes HTML**.
+
+---
+
+## 🔗 Quellen
+
+- [Fragments – React Docs](https://react.dev/reference/react/Fragment)  
+- [JSX mit Fragmenten – MDN](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment#react_fragments)
 
   **[⬆ Наверх](#top)**
 
-7. ### <a name="7"></a> 
+7. ### <a name="7"></a> Was ist der Unterschied zwischen einem Element, einer Komponente und einer Instanz?
 
+# Was ist der Unterschied zwischen einem Element, einer Komponente und einer Instanz?
 
+In React gibt es drei zentrale Begriffe, die oft verwechselt werden: **Element**, **Komponente** und **Instanz**.  
+Hier ist eine klare Unterscheidung:
+
+---
+
+## 1. 🧱 React Element
+
+Ein **React-Element** ist ein **einfaches JavaScript-Objekt**, das beschreibt, **was im UI gerendert werden soll**.
+
+Es ist **keine Komponente** selbst, sondern das Ergebnis von JSX oder `React.createElement()`.
+
+### Beispiel:
+
+```jsx
+const element = <h1>Hello, world!</h1>;
+```
+
+➡️ Das ist ein **React-Element**, kein DOM-Knoten.
+
+---
+
+## 2. ⚙️ React Komponente
+
+Eine **Komponente** ist eine **Funktion oder Klasse**, die ein React-Element zurückgibt.
+
+Sie beschreibt **wie ein UI-Teil aussehen und sich verhalten soll**. Komponenten können **wiederverwendet** und **verschachtelt** werden.
+
+### Beispiel:
+
+```jsx
+function Welcome(props) {
+  return <h1>Hallo, {props.name}</h1>;
+}
+```
+
+➡️ Dies ist eine **Komponente**, die ein **Element** zurückgibt.
+
+---
+
+## 3. 🧬 Instanz (Komponenteninstanz)
+
+Eine **Instanz** entsteht, wenn React eine Komponente **rendert** und ihren internen Zustand (State, Lifecycle etc.) verwaltet.  
+Bei **Funktionalen Komponenten** ist die Instanzierung „unsichtbar“, bei **Klassenkomponenten** existiert ein echtes Objekt.
+
+➡️ Die Instanz ist das **laufende Exemplar** einer Komponente mit Daten, Hooks, Events etc.
+
+---
+
+## 🔁 Vergleich
+
+| Begriff       | Was ist es?                         | Beispiel                                      |
+|---------------|--------------------------------------|-----------------------------------------------|
+| Element       | Objekt, das UI beschreibt            | `<div>Hello</div>`                            |
+| Komponente    | Funktion/Klasse, die ein Element zurückgibt | `function App() { return <div /> }`        |
+| Instanz       | Laufzeit-Exemplar einer Komponente   | Ausführung mit State, Props etc.              |
+
+---
+
+## 📝 Zusammenfassung
+
+- **Element**: Beschreibung eines UI-Teils (z. B. `<h1>Hello</h1>`)
+- **Komponente**: Funktion/Klasse, die Elemente zurückgibt
+- **Instanz**: Laufendes Objekt der Komponente zur Laufzeit mit State und Verhalten
+
+---
+
+## 🔗 Quellen
+
+- [React: Komponenten & Rendering – react.dev](https://react.dev/learn/your-first-component)  
+- [MDN: JSX und React-Komponenten](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_starten)
 
   **[⬆ Наверх](#top)**
 
-8. ### <a name="8"></a> 
+8. ### <a name="8"></a> Was ist das Fiber-Architekturmodell in React?
 
+# Was ist das Fiber-Architekturmodell in React?
 
+**Fiber** ist die **neue Rendering-Engine von React**, eingeführt mit React 16.  
+Sie ersetzt das alte, **rekursive Rendering-Modell** und ermöglicht eine **feinere Steuerung des Renderprozesses**.
+
+---
+
+## 🎯 Warum wurde Fiber eingeführt?
+
+Das alte Modell (Stack Reconciler) hatte folgende Probleme:
+
+- UI konnte bei großen Updates **nicht unterbrochen** werden  
+- Keine **Priorisierung** von wichtigen Updates (z. B. Benutzerinteraktionen)
+- Kein gutes Fundament für **Concurrent Mode**, **Suspense** oder **Time Slicing**
+
+---
+
+## 🧬 Was macht Fiber besser?
+
+### ✅ Unterbrechbares Rendering
+
+React kann Rendering-Arbeit **in kleine Schritte aufteilen** und zwischenzeitlich pausieren oder abbrechen.
+
+### ✅ Priorisierung
+
+Fiber erlaubt die **Zuweisung von Prioritäten** zu verschiedenen Updates:  
+→ z. B. Benutzerinteraktionen werden schneller behandelt als langsame Datenupdates.
+
+### ✅ Besseres Fehler-Handling
+
+Fiber macht es möglich, **Fehlergrenzen (Error Boundaries)** effizient zu verwenden.
+
+---
+
+## 🔧 Wie funktioniert Fiber technisch?
+
+- React erstellt beim Rendern eine **Fiber-Node** für jedes Element
+- Diese Nodes bilden einen **Fiber-Tree**, ähnlich wie ein virtuelles DOM
+- Der Tree wird **inkrementell** und **asynchron** verarbeitet
+- Nach dem Vergleich (Reconciliation) folgt die **Commit-Phase**, wo echte DOM-Updates stattfinden
+
+---
+
+## 💡 Beispiel: Priorisierung
+
+```jsx
+startTransition(() => {
+  // niedrige Priorität – z. B. Daten neu laden
+  setSearchQuery(input);
+});
+```
+
+➡️ Dank Fiber kann React Hintergrundarbeit (wie Filterung) **niedrig priorisieren**.
+
+---
+
+## 📝 Zusammenfassung
+
+Das **Fiber-Modell** ist Reacts moderne Rendering-Architektur.  
+Es bringt:
+
+- unterbrechbares Rendering  
+- Priorisierung von Updates  
+- bessere Performance bei großen Anwendungen  
+- Grundlage für neue Features wie **Concurrent Mode** und **Suspense**
+
+---
+
+## 🔗 Quellen
+
+- [React: Einführung in Fiber](https://react.dev/learn/rendering-and-committing)  
+- [React Fiber Architecture (Deep Dive – englisch)](https://github.com/acdlite/react-fiber-architecture)
 
   **[⬆ Наверх](#top)**
 
-9. ### <a name="9"></a> 
+9. ### <a name="9"></a> Was bedeutet „Batching“ in React?
 
+# Was bedeutet „Batching“ in React?
 
+**Batching** bezeichnet in React den Prozess, **mehrere State-Änderungen zu einer einzigen Rendering-Phase zusammenzufassen**, um unnötige Re-Renders zu vermeiden und die Performance zu verbessern.
+
+---
+
+## 🎯 Warum ist Batching wichtig?
+
+Ohne Batching würde jede einzelne `setState`- oder `useState`-Änderung **sofort** ein neues Rendern auslösen – selbst wenn sie direkt hintereinander stehen.
+
+### Beispiel **ohne Batching (theoretisch)**
+
+```jsx
+setCount(count + 1);
+setName('Anna');
+```
+
+→ Ohne Batching: 2 Re-Renders  
+→ Mit Batching: **nur 1 Re-Render**
+
+---
+
+## 🧠 Wie funktioniert Batching?
+
+- In **Event-Handlern** (z. B. `onClick`, `onChange`) **batcht React automatisch**
+- Seit React 18 funktioniert Batching auch in **`setTimeout`, Promises, async/await**, etc.
+
+### Beispiel:
+
+```jsx
+function handleClick() {
+  setCount(c => c + 1);
+  setName('Anna');
+}
+```
+
+➡️ React führt **nur einen Re-Render** durch, obwohl 2 States geändert wurden.
+
+---
+
+## 🔁 Batching in asynchronem Code (ab React 18)
+
+```jsx
+useEffect(() => {
+  fetchData().then(() => {
+    setLoading(false);
+    setData(result);
+  });
+}, []);
+```
+
+→ Auch hier wird **automatisch gebatcht** (ab React 18), sodass nur ein Re-Render erfolgt.
+
+---
+
+## 🛠️ Manuelles Batching (z. B. außerhalb von React-Kontexten)
+
+Falls nötig, kann man `flushSync()` oder `unstable_batchedUpdates()` verwenden – aber in der Regel ist das nicht notwendig.
+
+---
+
+## 📝 Zusammenfassung
+
+**Batching** fasst mehrere State-Änderungen in einer Rendering-Phase zusammen.  
+Das reduziert die Anzahl der Re-Renders und verbessert die Performance – vor allem bei komplexen Komponenten.
+
+---
+
+## 🔗 Quellen
+
+- [Batching – React Docs](https://react.dev/learn/state-a-components-memory#react-batches-state-updates)  
+- [React 18 Automatic Batching](https://react.dev/learn/queueing-a-series-of-state-updates#react-batches-state-updates)
 
   **[⬆ Наверх](#top)**
 
-10. ### <a name="10"></a> 
+10. ### <a name="10"></a> Was ist die Rolle des key in React-Listen?
 
+# Was ist die Rolle des `key` in React-Listen?
 
+In React ist der `key` ein **einzigartiger Identifikator** für jedes Element in einer Liste.  
+Er hilft React, **zu erkennen, welche Elemente sich geändert, hinzugefügt oder entfernt** haben.
+
+---
+
+## 🎯 Warum ist `key` wichtig?
+
+React verwendet `key`, um die **Effizienz beim Rendering** zu erhöhen:
+
+- Vermeidet unnötige Neurenderings
+- Beibehaltung des Zustands bei gleichbleibenden Komponenten
+- Präzises **Vergleichen alter und neuer Elemente** im virtuellen DOM
+
+---
+
+## ❌ Problem ohne `key`
+
+```jsx
+{items.map(item => (
+  <li>{item.text}</li>  // kein key → ineffizient und potenziell buggy
+))}
+```
+
+➡️ React kann nicht eindeutig zuordnen, welches Element welches ist.
+
+---
+
+## ✅ Richtige Nutzung von `key`
+
+```jsx
+{items.map(item => (
+  <li key={item.id}>{item.text}</li>
+))}
+```
+
+➡️ `key={item.id}` sorgt dafür, dass React jedes Element **korrekt identifiziert**.
+
+---
+
+## ⚠️ Warnung: Kein Index als `key`, außer in Sonderfällen
+
+```jsx
+// schlecht bei dynamischen Listen
+<li key={index}>{item.text}</li>
+```
+
+Vermeide den **Array-Index als key**, weil das zu **falschen Updates** führen kann, wenn sich die Reihenfolge ändert.
+
+---
+
+## 📝 Zusammenfassung
+
+Der `key` in React-Listen dient zur **eindeutigen Identifizierung von Listenelementen**.  
+Er verbessert die Performance und verhindert Rendering-Probleme.  
+→ Verwende **stabile, eindeutige Werte** wie `id`, nicht den Array-Index.
+
+---
+
+## 🔗 Quellen
+
+- [Rendering-Listen mit keys – react.dev](https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key)  
+- [React keys auf MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions#react_keys)
 
   **[⬆ Наверх](#top)**
 
-11. ### <a name="11"></a> 
+11. ### <a name="11"></a> Wie funktioniert die Wiederverwendung von Komponenten?
 
+# Wie funktioniert die Wiederverwendung von Komponenten?
 
+In React bedeutet **Wiederverwendung**, dass dieselbe Komponente **mehrfach an verschiedenen Stellen mit unterschiedlichen Daten (Props)** eingesetzt werden kann.  
+Das macht den Code **modular, DRY (Don't Repeat Yourself)** und wartungsfreundlich.
+
+---
+
+## 🔁 Wie funktioniert das?
+
+### 1. **Komponente erstellen (z. B. `Button`)**
+
+```jsx
+function Button({ label, onClick }) {
+  return <button onClick={onClick}>{label}</button>;
+}
+```
+
+### 2. **Wiederverwendung mit unterschiedlichen Props**
+
+```jsx
+<Button label="Speichern" onClick={saveData} />
+<Button label="Löschen" onClick={deleteData} />
+```
+
+➡️ React verwendet dieselbe **Komponentenlogik**, aber mit unterschiedlichen **Eigenschaften (Props)**.
+
+---
+
+## 📦 Vorteile der Wiederverwendung
+
+- ✅ Einheitliches Verhalten
+- ✅ Leichter wartbar
+- ✅ Skalierbarer Code
+- ✅ Kombinierbarkeit zu größeren Komponenten
+
+---
+
+## 💡 Wiederverwendung auch innerhalb anderer Komponenten
+
+```jsx
+function Dialog() {
+  return (
+    <div>
+      <Button label="Abbrechen" onClick={closeDialog} />
+      <Button label="Bestätigen" onClick={confirmAction} />
+    </div>
+  );
+}
+```
+
+➡️ Komponenten können **geschachtelt und kombiniert** werden.
+
+---
+
+## 📝 Zusammenfassung
+
+Komponenten werden in React wiederverwendet, indem man sie **mit verschiedenen Props mehrfach rendert**.  
+Das fördert sauberen, wartbaren und skalierbaren Code.
+
+---
+
+## 🔗 Quellen
+
+- [React Komponenten wiederverwenden – react.dev](https://react.dev/learn/passing-props-to-a-component)  
+- [Komponentenstruktur – MDN Web Docs](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components)
 
   **[⬆ Наверх](#top)**
 
@@ -403,9 +1032,78 @@ React ist eine **komponentenbasierte UI-Bibliothek**, die typische Probleme der 
 
   **[⬆ Наверх](#top)**
 
-21. ### <a name="21"></a> 
+21. ### <a name="21"></a> Was sind Props und wozu werden sie verwendet?
 
+# Was sind Props und wozu werden sie verwendet?
 
+**Props** (kurz für **"Properties"**) sind **Daten, die von einer Elternkomponente an eine Kindkomponente übergeben werden**.  
+Sie machen React-Komponenten **dynamisch und wiederverwendbar**.
+
+---
+
+## 🧠 Eigenschaften von Props
+
+- Props sind **nur lesbar** (readonly)
+- Sie werden **als Objekt** an Komponenten übergeben
+- Sie ermöglichen das **Anpassen des Verhaltens oder Inhalts** einer Komponente
+
+---
+
+## 💡 Beispiel
+
+### Elternkomponente:
+
+```jsx
+function App() {
+  return <Welcome name="Sergii" />;
+}
+```
+
+### Kindkomponente:
+
+```jsx
+function Welcome(props) {
+  return <h1>Hallo, {props.name}!</h1>;
+}
+```
+
+➡️ `name="Sergii"` ist ein **Prop**, das an `Welcome` übergeben wird.  
+Im Code erreichbar über `props.name`.
+
+---
+
+## 🎯 Wozu werden Props verwendet?
+
+- Weitergabe von Daten zwischen Komponenten  
+- Wiederverwendung einer Komponente mit **unterschiedlichen Inhalten**  
+- Kommunikation **von Eltern zu Kind**
+
+---
+
+## 📦 Props mit Destructuring
+
+```jsx
+function Welcome({ name }) {
+  return <h1>Hallo, {name}!</h1>;
+}
+```
+
+➡️ Kurzform für besseren Lesefluss.
+
+---
+
+## 📝 Zusammenfassung
+
+**Props** sind Eingabedaten für Komponenten.  
+Sie ermöglichen die **dynamische Anpassung** von Komponenten und fördern **Wiederverwendbarkeit**.  
+Props fließen **nur von oben nach unten** (Parent → Child).
+
+---
+
+## 🔗 Quellen
+
+- [Props in React – react.dev](https://react.dev/learn/passing-props-to-a-component)  
+- [Komponenten und Props – MDN Web Docs](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#eigenschaften_props)
 
   **[⬆ Наверх](#top)**
 
