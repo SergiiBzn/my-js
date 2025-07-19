@@ -2154,31 +2154,393 @@ damit mehrere untergeordnete Komponenten synchron auf denselben Wert zugreifen k
 
 41. ### <a name="41"></a> Was sind die Phasen des Komponentenlebenszyklus?
 
+# Was sind die Phasen des Komponentenlebenszyklus?
 
+Der **Komponentenlebenszyklus** in React beschreibt die **Abfolge von Ereignissen**,  
+die eine Komponente während ihres Bestehens durchläuft – vom Erstellen bis zum Entfernen aus dem DOM.
+
+➡️ Lebenszyklus-Methoden gelten hauptsächlich für **Klassenkomponenten**.  
+In **Funktionskomponenten** verwendet man **Hooks** wie `useEffect`.
+
+---
+
+## 📅 Die 3 Hauptphasen
+
+### 1. 🏗️ **Mounting (Einfügen)**  
+Die Komponente wird in den DOM eingefügt.
+
+| Methode             | Beschreibung                                      |
+|---------------------|---------------------------------------------------|
+| `constructor()`     | Initialisierung, z. B. State setzen               |
+| `render()`          | Gibt JSX zurück                                   |
+| `componentDidMount()` | Wird **nach dem ersten Render** aufgerufen       |
+
+---
+
+### 2. 🔄 **Updating (Aktualisierung)**  
+Wenn Props oder State sich ändern, wird die Komponente neu gerendert.
+
+| Methode                 | Beschreibung                                         |
+|-------------------------|------------------------------------------------------|
+| `render()`              | Gibt JSX erneut zurück                               |
+| `componentDidUpdate()`  | Wird **nach jeder Änderung** von Props oder State aufgerufen |
+
+---
+
+### 3. ❌ **Unmounting (Entfernen)**  
+Die Komponente wird aus dem DOM entfernt.
+
+| Methode                | Beschreibung                           |
+|------------------------|----------------------------------------|
+| `componentWillUnmount()` | Aufräumarbeiten (z. B. Event-Listener entfernen) |
+
+---
+
+## ⚠️ Veraltete Methoden (nicht mehr empfohlen)
+
+- `componentWillMount()`  
+- `componentWillReceiveProps()`  
+- `componentWillUpdate()`  
+
+➡️ Stattdessen: moderne Methoden oder `useEffect` in Funktionskomponenten verwenden.
+
+---
+
+## 🔁 Lifecycle in Funktionskomponenten
+
+Mit **`useEffect()`** können alle drei Phasen abgebildet werden:
+
+```jsx
+useEffect(() => {
+  // Mounting & Updating
+  return () => {
+    // Unmounting
+  };
+}, [dependencies]);
+```
+
+- Kein zweiter Parameter → bei jedem Render
+- Leeres Array `[]` → nur beim Mount
+- Mit Rückgabefunktion → beim Unmount
+
+---
+
+## 📝 Zusammenfassung
+
+| Phase       | Methode (Klasse)             | Hook (Funktion)         |
+|-------------|------------------------------|-------------------------|
+| Mounting    | `constructor`, `componentDidMount` | `useEffect(() => {...}, [])` |
+| Updating    | `componentDidUpdate`         | `useEffect(() => {...}, [dep])` |
+| Unmounting  | `componentWillUnmount`       | `useEffect(() => {... return () => {...} })` |
+
+---
+
+## 🔗 Quellen
+
+- [Komponenten-Lebenszyklus – React Docs](https://react.dev/learn/referencing-values-with-refs#synchronizing-with-effects)  
+- [MDN: Lebenszyklusmethoden in Klassenkomponenten](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#lebenszyklusmethoden)
 
   **[⬆ Наверх](#top)**
 
-42. ### <a name="42"></a> 
+42. ### <a name="42"></a> Welche Lifecycle-Methoden gibt es in Klassenkomponenten?
 
+# Welche Lifecycle-Methoden gibt es in Klassenkomponenten?
 
+In **React-Klassenkomponenten** sind **Lifecycle-Methoden** spezielle Funktionen,  
+die automatisch zu bestimmten Zeitpunkten im **Lebenszyklus einer Komponente** aufgerufen werden.
+
+---
+
+## 🧭 Übersicht: Lifecycle-Phasen & Methoden
+
+### 1. 🏗️ Mounting (Einfügen in den DOM)
+
+| Methode                 | Beschreibung                                      |
+|-------------------------|---------------------------------------------------|
+| `constructor()`         | Initialisiert State und bindet Methoden           |
+| `static getDerivedStateFromProps()` | Reagiert auf Props vor dem ersten Render (selten genutzt) |
+| `render()`              | Gibt JSX zurück                                   |
+| `componentDidMount()`   | Wird **nach dem ersten Render** aufgerufen (z. B. Daten laden) |
+
+---
+
+### 2. 🔄 Updating (Wenn Props oder State sich ändern)
+
+| Methode                        | Beschreibung                                                |
+|--------------------------------|-------------------------------------------------------------|
+| `static getDerivedStateFromProps()` | (auch hier nutzbar – selten nötig)                   |
+| `shouldComponentUpdate()`      | Steuert, ob neu gerendert werden soll (Performance)         |
+| `render()`                     | Gibt aktualisiertes JSX zurück                              |
+| `getSnapshotBeforeUpdate()`    | Erfasst DOM-Infos vor dem Update (z. B. Scrollposition)      |
+| `componentDidUpdate()`         | Wird **nach jedem Update** aufgerufen                       |
+
+---
+
+### 3. ❌ Unmounting (Entfernen aus dem DOM)
+
+| Methode                 | Beschreibung                                        |
+|-------------------------|-----------------------------------------------------|
+| `componentWillUnmount()`| Aufräumen (Timer löschen, EventListener entfernen etc.) |
+
+---
+
+### 4. ⚠️ Legacy-Methoden (veraltet, nicht mehr empfohlen)
+
+| Methode                    | Hinweis                                               |
+|----------------------------|-------------------------------------------------------|
+| `componentWillMount()`     | ersetzt durch `constructor()`                        |
+| `componentWillReceiveProps()` | ersetzt durch `getDerivedStateFromProps()`       |
+| `componentWillUpdate()`    | ersetzt durch `getSnapshotBeforeUpdate()`            |
+
+➡️ Diese Methoden sind **deprecated** und in neuem Code **nicht mehr verwenden**.
+
+---
+
+## 📝 Zusammenfassung
+
+| Phase        | Wichtige Methoden                              |
+|--------------|-------------------------------------------------|
+| Mounting     | `constructor`, `render`, `componentDidMount`   |
+| Updating     | `shouldComponentUpdate`, `render`, `componentDidUpdate` |
+| Unmounting   | `componentWillUnmount`                         |
+
+Nutze in neuen Projekten **Funktionskomponenten mit `useEffect()`**, wann immer möglich.
+
+---
+
+## 🔗 Quellen
+
+- [Lifecycle-Methoden – React Docs](https://react.dev/reference/react/Component)  
+- [MDN: Komponentenlebenszyklus](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#lebenszyklusmethoden)
 
   **[⬆ Наверх](#top)**
 
-43. ### <a name="43"></a> 
+43. ### <a name="43"></a> Welche Lifecycle-Methoden sind veraltet?
 
+# Welche Lifecycle-Methoden sind veraltet?
 
+React hat mit Version **16.3** einige Lifecycle-Methoden als **veraltet (deprecated)** markiert,  
+weil sie zu **Fehlverhalten** oder **unerwarteten Updates** führen konnten – insbesondere mit **asynchronem Rendering (z. B. Concurrent Mode)**.
+
+---
+
+## ⚠️ Veraltete Lifecycle-Methoden
+
+| Methode                    | Status            | Empfehlung                     |
+|----------------------------|-------------------|--------------------------------|
+| `componentWillMount()`     | ❌ Veraltet        | Verwende stattdessen `constructor` oder `componentDidMount` |
+| `componentWillReceiveProps(nextProps)` | ❌ Veraltet | Ersetze durch `getDerivedStateFromProps(nextProps, state)` |
+| `componentWillUpdate(nextProps, nextState)` | ❌ Veraltet | Ersetze durch `getSnapshotBeforeUpdate(prevProps, prevState)` |
+
+---
+
+## 📦 Warum wurden sie entfernt?
+
+- Sie wurden **vor dem eigentlichen Rendern** aufgerufen  
+- Bei **asynchronem Rendering** (React 18+) können sie mehrfach oder verspätet aufgerufen werden  
+- Das führte zu **Seiteneffekten** (z. B. doppelte Datenanforderungen)
+
+---
+
+## 🔄 Alternativen
+
+| Veraltete Methode         | Alternative                             |
+|---------------------------|------------------------------------------|
+| `componentWillMount()`    | `constructor()` oder `componentDidMount()` |
+| `componentWillReceiveProps()` | `getDerivedStateFromProps()`        |
+| `componentWillUpdate()`   | `getSnapshotBeforeUpdate()` + `componentDidUpdate()` |
+
+---
+
+## 🧠 Hinweis
+
+React führt diese Methoden in bestimmten Build-Tools mit dem Präfix **`UNSAFE_`** weiter,  
+z. B. `UNSAFE_componentWillMount()` – **diese solltest du aber vermeiden!**
+
+---
+
+## 📝 Zusammenfassung
+
+Folgende Methoden gelten als **veraltet**:
+
+- `componentWillMount()`  
+- `componentWillReceiveProps()`  
+- `componentWillUpdate()`
+
+Stattdessen solltest du **neue Lifecycle-Methoden** oder **Hooks wie `useEffect()`** in Funktionskomponenten verwenden.
+
+---
+
+## 🔗 Quellen
+
+- [React Docs – Legacy Lifecycle Methods](https://reactjs.org/docs/react-component.html#legacy-lifecycle-methods)  
+- [React Blog – Update on Async Rendering](https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html)
 
   **[⬆ Наверх](#top)**
 
-44. ### <a name="44"></a> 
+44. ### <a name="44"></a> Wie kann man Lifecycle-Methoden mit Hooks ersetzen?
 
+# Wie kann man Lifecycle-Methoden mit Hooks ersetzen?
 
+In **Funktionskomponenten** verwendet man den **Hook `useEffect()`**, um Verhalten zu implementieren,  
+das früher in **Lifecycle-Methoden von Klassenkomponenten** enthalten war.
+
+---
+
+## 🔁 Vergleich: Klassenmethoden vs. `useEffect`
+
+| Klassenkomponente               | Funktionskomponente mit Hook         |
+|----------------------------------|--------------------------------------|
+| `componentDidMount()`            | `useEffect(() => { ... }, [])`       |
+| `componentDidUpdate()`           | `useEffect(() => { ... }, [deps])`   |
+| `componentWillUnmount()`         | `useEffect(() => { return () => {...} }, [])` |
+| `componentDidUpdate()` (spezifisch) | `useEffect()` mit bestimmten Abhängigkeiten |
+
+---
+
+## 💡 Beispiel 1: `componentDidMount`
+
+```jsx
+useEffect(() => {
+  console.log('Komponente wurde gemountet');
+}, []);
+```
+
+➡️ Wird **nur einmal beim Mount** aufgerufen (`[]` = leere Abhängigkeiten)
+
+---
+
+## 💡 Beispiel 2: `componentDidUpdate`
+
+```jsx
+useEffect(() => {
+  console.log('State oder Prop wurde geändert');
+}, [value]);
+```
+
+➡️ Wird aufgerufen, wenn sich `value` ändert
+
+---
+
+## 💡 Beispiel 3: `componentWillUnmount`
+
+```jsx
+useEffect(() => {
+  return () => {
+    console.log('Komponente wird entfernt');
+  };
+}, []);
+```
+
+➡️ Rückgabefunktion von `useEffect` = **Aufräumcode (Cleanup)**
+
+---
+
+## 🔁 Kombinierte Nutzung
+
+```jsx
+useEffect(() => {
+  // Mount & Update
+  console.log('Mount oder Update');
+
+  return () => {
+    // Unmount
+    console.log('Cleanup bei Unmount oder vor nächstem Update');
+  };
+}, [someValue]);
+```
+
+---
+
+## 🧠 Hinweis
+
+- `useEffect()` kann **mehrmals pro Komponente verwendet** werden
+- Nutze **mehrere `useEffect`-Blöcke** für klar getrennte Logik (z. B. Daten laden, Events, Timer)
+
+---
+
+## 📝 Zusammenfassung
+
+Lifecycle-Methoden in Klassenkomponenten werden durch **`useEffect`** ersetzt.  
+Je nach Abhängigkeitsarray (`[]`, `[dep]`, leer) kannst du steuern, ob der Code beim **Mount**, **Update** oder **Unmount** ausgeführt wird.
+
+---
+
+## 🔗 Quellen
+
+- [useEffect – React Docs](https://react.dev/reference/react/useEffect)  
+- [Effekte verstehen – react.dev](https://react.dev/learn/synchronizing-with-effects)
 
   **[⬆ Наверх](#top)**
 
-45. ### <a name="45"></a> 
+45. ### <a name="45"></a> Was ist componentDidMount und was ist das Äquivalent mit Hooks?
 
+# Was ist `componentDidMount` und was ist das Äquivalent mit Hooks?
 
+## 📌 `componentDidMount` (in Klassenkomponenten)
+
+`componentDidMount()` ist eine **Lifecycle-Methode**, die aufgerufen wird,  
+**nachdem** die Komponente **zum ersten Mal** in den DOM eingefügt wurde.
+
+### Typische Anwendungsfälle:
+
+- Daten vom Server laden (API-Aufrufe)
+- Event-Listener registrieren
+- Initiale DOM-Manipulation (z. B. Fokus setzen)
+
+### Beispiel (Klasse):
+
+```jsx
+class MyComponent extends React.Component {
+  componentDidMount() {
+    console.log('Komponente wurde gemountet');
+  }
+
+  render() {
+    return <div>Hallo</div>;
+  }
+}
+```
+
+---
+
+## ✅ Äquivalent mit Hooks: `useEffect(() => { ... }, [])`
+
+In **Funktionskomponenten** erreichst du das gleiche Verhalten mit dem Hook `useEffect`  
+und einem **leeren Abhängigkeitsarray (`[]`)**.
+
+### Beispiel (Funktion):
+
+```jsx
+import { useEffect } from 'react';
+
+function MyComponent() {
+  useEffect(() => {
+    console.log('Komponente wurde gemountet');
+  }, []);
+
+  return <div>Hallo</div>;
+}
+```
+
+➡️ Der Effekt wird **nur einmal beim ersten Render** ausgeführt – genau wie `componentDidMount`.
+
+---
+
+## 📝 Zusammenfassung
+
+| Klassenkomponente              | Funktionskomponente           |
+|--------------------------------|-------------------------------|
+| `componentDidMount()`          | `useEffect(() => { ... }, [])` |
+
+Beide Varianten eignen sich für **initiale Logik**, die **nur einmal** beim Mounting ausgeführt werden soll.
+
+---
+
+## 🔗 Quellen
+
+- [componentDidMount – React Docs](https://react.dev/reference/react/Component#componentdidmount)  
+- [useEffect Hook – React Docs](https://react.dev/reference/react/useEffect)
 
   **[⬆ Наверх](#top)**
 
@@ -2212,51 +2574,764 @@ damit mehrere untergeordnete Komponenten synchron auf denselben Wert zugreifen k
 
   **[⬆ Наверх](#top)**  
 
-51. ### <a name="51"></a> 
+51. ### <a name="51"></a> Was sind Hooks in React?
 
+# Was sind Hooks in React?
 
+**Hooks** sind **Funktionen**, die es dir ermöglichen, in **Funktionskomponenten** von React  
+**State** und andere **React-Funktionen** zu verwenden – **ohne Klassen zu schreiben**.
+
+Sie wurden mit **React 16.8** eingeführt.
+
+---
+
+## 🎯 Warum Hooks?
+
+Vor Hooks waren **Klassenkomponenten nötig**, um z. B.:
+
+- State zu verwalten
+- Lifecycle-Methoden zu verwenden
+- auf den DOM zuzugreifen
+
+➡️ Mit Hooks kannst du das **alles auch in Funktionskomponenten** tun – **einfacher, klarer, wiederverwendbarer**.
+
+---
+
+## 🔧 Wichtige React-Hooks
+
+| Hook            | Beschreibung                                    |
+|------------------|-------------------------------------------------|
+| `useState()`     | Lokaler Zustand (State)                        |
+| `useEffect()`    | Nebenwirkungen / Lifecycle-Ersatz              |
+| `useRef()`       | Zugriff auf DOM oder persistente Werte         |
+| `useContext()`   | Zugriff auf globale Daten aus einem Context    |
+| `useReducer()`   | Alternative zu `useState` für komplexeren State|
+| `useMemo()`      | Ergebnis zwischenspeichern (Memoisierung)      |
+| `useCallback()`  | Funktionen zwischenspeichern (verhindert Neu-Erstellung) |
+| `useLayoutEffect()` | wie `useEffect`, aber synchron nach Layout  |
+
+---
+
+## 💡 Beispiel: `useState` und `useEffect`
+
+```jsx
+import { useState, useEffect } from 'react';
+
+function Timer() {
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSeconds(s => s + 1);
+    }, 1000);
+
+    return () => clearInterval(interval); // Aufräumen bei Unmount
+  }, []);
+
+  return <p>Timer: {seconds} Sekunden</p>;
+}
+```
+
+---
+
+## 🔁 Regeln für Hooks
+
+1. ✅ Nur in **Funktionskomponenten oder eigenen Hooks** verwenden  
+2. ✅ Nur **ganz oben im Funktionskörper aufrufen** (nicht in Bedingungen, Schleifen, etc.)
+
+---
+
+## 📝 Zusammenfassung
+
+**Hooks** sind moderne Werkzeuge, um **State, Effekte und andere React-Funktionalitäten**  
+in **Funktionskomponenten** zu nutzen – ohne Klassen.  
+Sie machen Komponenten **einfacher, flexibler und wiederverwendbar**.
+
+---
+
+## 🔗 Quellen
+
+- [Einführung in Hooks – react.dev](https://react.dev/learn/state-a-components-memory)  
+- [Alle React-Hooks – React Docs](https://react.dev/reference/react)
 
   **[⬆ Наверх](#top)**
 
-52. ### <a name="52"></a> 
+52. ### <a name="52"></a> Wie funktionieren useState und useEffect?
 
+# Wie funktionieren `useState` und `useEffect`?
 
+Die Hooks **`useState`** und **`useEffect`** gehören zu den wichtigsten Bausteinen  
+in React-Funktionskomponenten.  
+Sie ersetzen `this.state` und Lifecycle-Methoden wie `componentDidMount`.
+
+---
+
+## 🧠 `useState` – Zustand in Funktionskomponenten
+
+Mit `useState` kannst du **lokale Zustände (State)** in einer Komponente erstellen und aktualisieren.
+
+### Syntax:
+
+```jsx
+const [state, setState] = useState(anfangsWert);
+```
+
+- `state`: aktueller Wert
+- `setState`: Funktion zum Ändern des Werts
+- `useState(...)`: Initialwert beim ersten Render
+
+### Beispiel:
+
+```jsx
+const [count, setCount] = useState(0);
+
+<button onClick={() => setCount(count + 1)}>
+  Geklickt: {count}
+</button>
+```
+
+➡️ Jeder `setCount(...)` löst ein Re-Rendern der Komponente aus.
+
+---
+
+## ⚙️ `useEffect` – Nebenwirkungen / Lifecycle-Ersatz
+
+`useEffect` führt **Seiteneffekte (Effects)** aus, z. B.:
+
+- API-Aufrufe
+- EventListener setzen
+- Timer starten
+- Cleanup beim Unmount
+
+### Syntax:
+
+```jsx
+useEffect(() => {
+  // Code beim Mount oder Update
+
+  return () => {
+    // Cleanup beim Unmount
+  };
+}, [abhängigkeiten]);
+```
+
+---
+
+## 💡 Beispiel: `useState` + `useEffect`
+
+```jsx
+import { useState, useEffect } from 'react';
+
+function Timer() {
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSeconds(s => s + 1);
+    }, 1000);
+
+    return () => clearInterval(interval); // Aufräumen beim Unmount
+  }, []);
+
+  return <p>Zeit: {seconds} Sek.</p>;
+}
+```
+
+- ⏱️ Timer startet beim Mount (`[]`)
+- ⛔ Aufräumen mit `clearInterval` beim Unmount
+
+---
+
+## 📝 Zusammenfassung
+
+| Hook        | Zweck                               | Wird verwendet für                       |
+|-------------|--------------------------------------|-------------------------------------------|
+| `useState`  | Lokalen Zustand speichern            | Zähler, Formulare, Flags usw.             |
+| `useEffect` | Effekte und Lifecycle-Verhalten      | Daten laden, Timer, Event-Handling, Cleanup |
+
+---
+
+## 🔗 Quellen
+
+- [useState – React Docs](https://react.dev/reference/react/useState)  
+- [useEffect – React Docs](https://react.dev/reference/react/useEffect)
 
   **[⬆ Наверх](#top)**
 
-53. ### <a name="53"></a> 
+53. ### <a name="53"></a> Was macht useContext?
 
+# Was macht `useContext`?
 
+Der Hook **`useContext`** ermöglicht dir den **Zugriff auf globale Daten** (z. B. Theme, Sprache, User),  
+die mit Reacts **Context API** bereitgestellt werden – **ohne Props manuell durch alle Komponenten zu leiten**.
+
+---
+
+## 🎯 Warum `useContext`?
+
+- ✅ Vermeidet **Prop-Drilling** (Props durch viele Ebenen weitergeben)  
+- ✅ Ermöglicht Zugriff auf **globale Zustände oder Konfigurationen**  
+- ✅ Macht den Code **lesbarer und wartbarer**
+
+---
+
+## 🧱 Funktionsweise
+
+1. ✅ Erstelle einen Context mit `React.createContext()`  
+2. ✅ Umgib die betroffenen Komponenten mit dem `<Provider>`  
+3. ✅ Verwende `useContext(...)` in einer Komponente, um auf die Werte zuzugreifen
+
+---
+
+## 💡 Beispiel
+
+```jsx
+import { createContext, useContext } from 'react';
+
+// 1. Context erstellen
+const ThemeContext = createContext('light');
+
+function App() {
+  return (
+    // 2. Context-Provider mit aktuellem Wert
+    <ThemeContext.Provider value="dark">
+      <Toolbar />
+    </ThemeContext.Provider>
+  );
+}
+
+function Toolbar() {
+  return (
+    <div>
+      <ThemeButton />
+    </div>
+  );
+}
+
+// 3. useContext verwenden
+function ThemeButton() {
+  const theme = useContext(ThemeContext);
+  return <button className={theme}>Theme: {theme}</button>;
+}
+```
+
+➡️ `ThemeButton` erhält den Wert **direkt aus dem Kontext**, **ohne Props** von `App → Toolbar → ThemeButton`.
+
+---
+
+## 🧠 Wichtig
+
+- `useContext` **abonniert** den Context – bei Änderungen wird die Komponente **neu gerendert**
+- Der Context-Wert kann **beliebige Datentypen enthalten** (String, Object, Funktion, etc.)
+
+---
+
+## 📝 Zusammenfassung
+
+- `useContext` liest Werte aus einem **React Context**  
+- Ideal, um globale Daten wie Theme, Sprache oder Authentifizierung zu teilen  
+- Vermeidet manuelles Weitergeben von Props durch die Komponenten-Hierarchie
+
+---
+
+## 🔗 Quellen
+
+- [useContext – React Docs](https://react.dev/reference/react/useContext)  
+- [Context API – React Docs](https://react.dev/learn/passing-data-deeply-with-context)
 
   **[⬆ Наверх](#top)**
 
-54. ### <a name="54"></a> 
+54. ### <a name="54"></a> Was ist useRef und wann wird es verwendet?
 
+# Was ist `useRef` und wann wird es verwendet?
 
+Der Hook **`useRef`** wird in React verwendet, um **eine Referenz auf ein DOM-Element** oder **einen stabilen Wert** zu speichern,  
+der **über Re-Renders hinweg erhalten bleibt**, ohne ein Re-Render auszulösen.
+
+---
+
+## 📦 Was macht `useRef`?
+
+- Erstellt ein **ref-Objekt**: `{ current: ... }`
+- Wird **nicht beim Re-Render verändert**
+- Wird **nicht automatisch im UI angezeigt**
+- Kann sowohl für **DOM-Zugriff** als auch für **persistente Werte** verwendet werden
+
+---
+
+## 💡 Anwendungsfälle
+
+### 1. 📌 Zugriff auf DOM-Elemente
+
+```jsx
+import { useRef, useEffect } from 'react';
+
+function InputFocus() {
+  const inputRef = useRef();
+
+  useEffect(() => {
+    inputRef.current.focus(); // Fokus setzen beim Mount
+  }, []);
+
+  return <input ref={inputRef} />;
+}
+```
+
+➡️ Zugriff auf das echte DOM-Element, ohne `document.querySelector`.
+
+---
+
+### 2. 🎯 Persistente Werte zwischen Renders (ohne Re-Render auszulösen)
+
+```jsx
+const renderCount = useRef(0);
+renderCount.current++;
+console.log('Render: ', renderCount.current);
+```
+
+➡️ Ideal z. B. für Zähler, Timer-IDs, vorherige Werte usw.
+
+---
+
+### 3. 🧹 Aufräum-Referenzen
+
+```jsx
+const intervalId = useRef();
+
+useEffect(() => {
+  intervalId.current = setInterval(...);
+
+  return () => clearInterval(intervalId.current);
+}, []);
+```
+
+➡️ Praktisch für Cleanup-Logik in `useEffect`.
+
+---
+
+## 🔁 Vergleich zu `state`
+
+| Hook      | Re-Renders bei Änderung? | Persistiert zwischen Renders? | Typischer Anwendungsfall         |
+|-----------|---------------------------|-------------------------------|----------------------------------|
+| `useState`| ✅ Ja                     | ✅ Ja                          | UI-Zustände                     |
+| `useRef`  | ❌ Nein                   | ✅ Ja                          | DOM-Zugriff, Werte außerhalb der UI |
+
+---
+
+## 📝 Zusammenfassung
+
+- `useRef` wird verwendet für:
+  - **DOM-Zugriff**
+  - **Zwischenspeicherung von Werten ohne Re-Renders**
+  - **Cleanup / Speichern von IDs, vorherigen Werten etc.**
+- Das ref-Objekt hat eine `.current`-Eigenschaft, die verändert werden kann, ohne UI zu beeinflussen
+
+---
+
+## 🔗 Quellen
+
+- [useRef – React Docs](https://react.dev/reference/react/useRef)  
+- [React: Refs und DOM – react.dev](https://react.dev/learn/referencing-values-with-refs)
 
   **[⬆ Наверх](#top)**
 
-55. ### <a name="55"></a> 
+55. ### <a name="55"></a> Was ist useCallback, useMemo, useReducer?
 
+# Was ist `useCallback`, `useMemo`, `useReducer`?
 
+Diese drei React-Hooks sind **fortgeschrittene Werkzeuge**,  
+die helfen, **Performance zu optimieren** oder **komplexeren State** zu verwalten.
+
+---
+
+## ✅ `useCallback`
+
+`useCallback(fn, deps)` gibt eine **zwischengespeicherte (memoisierte)** Version der Funktion `fn` zurück,  
+die **nur neu erstellt wird**, wenn sich eine der **Abhängigkeiten (`deps`)** ändert.
+
+### Zweck:
+- ✅ Verhindert **unnötige Neudefinition** von Funktionen
+- ✅ Vermeidet **unnötige Re-Renders** von Kindkomponenten, die Funktionen als Props bekommen
+
+### Beispiel:
+
+```jsx
+const handleClick = useCallback(() => {
+  console.log('Geklickt!');
+}, []);
+```
+
+---
+
+## ✅ `useMemo`
+
+`useMemo(() => result, deps)` berechnet und speichert einen **Wert**,  
+und **berechnet ihn nur neu**, wenn sich eine Abhängigkeit ändert.
+
+### Zweck:
+- ✅ Vermeidet **teure Berechnungen bei jedem Render**
+- ✅ Liefert **stabilen Wert** über mehrere Renders hinweg
+
+### Beispiel:
+
+```jsx
+const sortedItems = useMemo(() => {
+  return items.sort((a, b) => a.value - b.value);
+}, [items]);
+```
+
+---
+
+## ✅ `useReducer`
+
+`useReducer(reducer, initialState)` ist eine Alternative zu `useState`,  
+die sich besonders bei **komplexem State oder mehreren abhängigen Zuständen** lohnt.
+
+### Zweck:
+- ✅ Klare Struktur für **State-Management**
+- ✅ Ähnlich wie `Redux`-Reducer
+
+### Beispiel:
+
+```jsx
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment': return { count: state.count + 1 };
+    case 'decrement': return { count: state.count - 1 };
+    default: return state;
+  }
+}
+
+const [state, dispatch] = useReducer(reducer, { count: 0 });
+
+<button onClick={() => dispatch({ type: 'increment' })}>
+  {state.count}
+</button>
+```
+
+---
+
+## 🔁 Vergleich
+
+| Hook         | Zweck                                  | Typischer Einsatz                    |
+|--------------|-----------------------------------------|--------------------------------------|
+| `useCallback`| Funktion nur bei Bedarf neu erstellen   | Callback-Props, Performance-Tuning   |
+| `useMemo`    | Teure Berechnung nur bei Änderung       | sortieren, filtern, berechnen        |
+| `useReducer` | Komplexen State zentral verwalten       | Formulare, komplexe Logik, Redux-Ersatz |
+
+---
+
+## 📝 Zusammenfassung
+
+- `useCallback`: Memoisiert Funktionen  
+- `useMemo`: Memoisiert Werte  
+- `useReducer`: Komplexes State-Management mit einer zentralen Logik
+
+Diese Hooks verbessern **Performance und Struktur** bei wachsender App-Komplexität.
+
+---
+
+## 🔗 Quellen
+
+- [useCallback – React Docs](https://react.dev/reference/react/useCallback)  
+- [useMemo – React Docs](https://react.dev/reference/react/useMemo)  
+- [useReducer – React Docs](https://react.dev/reference/react/useReducer)
 
   **[⬆ Наверх](#top)**
 
-56. ### <a name="56"></a> 
+56. ### <a name="56"></a> Wie schreibt man einen benutzerdefinierten Hook?
 
+# Wie schreibt man einen benutzerdefinierten Hook?
 
+Ein **benutzerdefinierter Hook** (engl. *custom hook*) ist eine **eigene JavaScript-Funktion**,  
+die **andere Hooks verwendet**, um **wiederverwendbare Logik** aus React-Komponenten auszulagern.
+
+---
+
+## 🎯 Warum benutzerdefinierte Hooks?
+
+- ✅ Wiederverwendbare Logik kapseln (z. B. Formular, API, Timer)
+- ✅ Komponenten schlanker und verständlicher machen
+- ✅ Mehrere Hooks gemeinsam verwenden
+
+---
+
+## 📦 Regeln für eigene Hooks
+
+1. Beginnt immer mit `use` (z. B. `useForm`, `useTimer`)  
+2. Darf **nur innerhalb von Funktionskomponenten oder anderen Hooks** aufgerufen werden  
+3. Nutzt beliebige andere React-Hooks (`useState`, `useEffect`, `useRef`, usw.)
+
+---
+
+## 💡 Beispiel: `useWindowWidth`
+
+```jsx
+import { useState, useEffect } from 'react';
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    function handleResize() {
+      setWidth(window.innerWidth);
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return width;
+}
+```
+
+➡️ Dieser Hook liefert die **aktuelle Fensterbreite** und aktualisiert sie automatisch bei Resize.
+
+---
+
+## ✅ Verwendung in Komponente
+
+```jsx
+function App() {
+  const width = useWindowWidth();
+
+  return <p>Fensterbreite: {width}px</p>;
+}
+```
+
+---
+
+## 🔁 Beispiel: `useLocalStorage`
+
+```jsx
+function useLocalStorage(key, initialValue) {
+  const [value, setValue] = useState(() => {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : initialValue;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+
+  return [value, setValue];
+}
+```
+
+➡️ Verwaltet einen State **synchron mit localStorage**.
+
+---
+
+## 📝 Zusammenfassung
+
+- Benutzerdefinierte Hooks sind **Funktionen mit eigenen Namen**, die andere Hooks enthalten
+- Sie dienen der **Wiederverwendung von Logik**
+- Sie **starten immer mit `use`**
+- Sie machen Komponenten **sauberer, testbarer und wartbarer**
+
+---
+
+## 🔗 Quellen
+
+- [Eigene Hooks erstellen – React Docs](https://react.dev/learn/reusing-logic-with-custom-hooks)  
+- [Custom Hooks – React API Docs](https://react.dev/reference/react#custom-hooks)
 
   **[⬆ Наверх](#top)**
 
-57. ### <a name="57"></a> 
+57. ### <a name="57"></a> Wie verhindert man eine Endlosschleife in useEffect?
 
+# Wie verhindert man eine Endlosschleife in `useEffect`?
 
+Eine **Endlosschleife** in `useEffect` entsteht meist dann, wenn der Effekt bei jedem Render erneut ausgeführt wird,  
+weil sich eine **Abhängigkeit ständig verändert** oder **nicht korrekt definiert wurde**.
+
+---
+
+## ⚠️ Ursachen für Endlosschleifen
+
+### 1. ❌ Fehlende Abhängigkeitsliste
+
+```jsx
+useEffect(() => {
+  fetchData(); // Wird bei jedem Render erneut aufgerufen!
+});
+```
+
+➡️ Ohne `[]` wird der Effekt **bei jedem Render** ausgeführt → Endlosschleife möglich.
+
+---
+
+### 2. ❌ Abhängigkeit verändert sich bei jedem Render
+
+```jsx
+useEffect(() => {
+  const data = { id: 1 }; // neues Objekt bei jedem Render
+  doSomething(data);
+}, [{ id: 1 }]);
+```
+
+➡️ Das Objekt `{ id: 1 }` ist **bei jedem Render neu** → `useEffect` wird ständig neu ausgeführt.
+
+---
+
+## ✅ Lösungen
+
+### ✅ 1. Leeres Array (`[]`) → nur beim Mount
+
+```jsx
+useEffect(() => {
+  fetchData(); // wird nur einmal ausgeführt
+}, []);
+```
+
+➡️ Effekt läuft **nur beim ersten Render**
+
+---
+
+### ✅ 2. Stabile Abhängigkeiten verwenden
+
+Vermeide Funktionen/Objekte als Abhängigkeiten, **wenn sie bei jedem Render neu erzeugt werden**.
+
+### Statt:
+
+```jsx
+useEffect(() => {
+  doSomething(() => {});
+}, []);
+```
+
+### Besser:
+
+```jsx
+const stableFn = useCallback(() => {
+  doSomething();
+}, []);
+
+useEffect(() => {
+  stableFn();
+}, [stableFn]);
+```
+
+---
+
+### ✅ 3. Werte in `useRef` speichern, die keinen Re-Render auslösen sollen
+
+```jsx
+const dataRef = useRef({ id: 1 });
+
+useEffect(() => {
+  doSomething(dataRef.current);
+}, []);
+```
+
+---
+
+## 📝 Zusammenfassung
+
+Um Endlosschleifen in `useEffect` zu vermeiden:
+
+- ✅ Nutze ein **leeres Abhängigkeitsarray `[]`** für einmalige Ausführung
+- ✅ **Memoisiere Funktionen oder Objekte** mit `useCallback` oder `useMemo`
+- ✅ Verwende `useRef`, wenn keine Reaktivität notwendig ist
+- ❌ Vermeide **direkte Objekterzeugung** oder **Funktionen** in der Abhängigkeitsliste
+
+---
+
+## 🔗 Quellen
+
+- [useEffect – React Docs](https://react.dev/reference/react/useEffect)  
+- [Effekt-Abhängigkeiten verstehen – react.dev](https://react.dev/learn/synchronizing-with-effects#specifying-dependencies)
 
   **[⬆ Наверх](#top)**
 
-58. ### <a name="58"></a> 
+58. ### <a name="58"></a> Wie implementiert man Timeout oder Interval mit Hooks?
 
+# Wie implementiert man `setTimeout` oder `setInterval` mit Hooks?
 
+Mit **`useEffect`** und **`useRef`** kannst du in Funktionskomponenten sauber **Timeouts** und **Intervalle** verwalten –  
+inklusive **automatischem Aufräumen** beim Unmount.
+
+---
+
+## ⏱️ `setTimeout` mit `useEffect`
+
+```jsx
+import { useEffect } from 'react';
+
+function TimeoutExample() {
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      console.log('Einmaliger Timeout nach 3 Sekunden');
+    }, 3000);
+
+    return () => clearTimeout(timeoutId); // Cleanup bei Unmount
+  }, []);
+
+  return <p>Warte auf Timeout…</p>;
+}
+```
+
+➡️ Der Effekt wird **nur einmal** beim Mount ausgeführt (`[]`).
+
+---
+
+## 🔁 `setInterval` mit `useEffect`
+
+```jsx
+import { useEffect, useState } from 'react';
+
+function IntervalExample() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCount(c => c + 1); // Immer aktuellen Wert verwenden
+    }, 1000);
+
+    return () => clearInterval(intervalId); // Aufräumen beim Unmount
+  }, []);
+
+  return <p>Zähler: {count}</p>;
+}
+```
+
+➡️ Der Intervall wird beim Mount gestartet und beim Unmount gestoppt.
+
+---
+
+## 💡 Tipp: `useRef` für Zugriff auf aktuelle Werte
+
+Für erweiterte Kontrolle (z. B. stoppen/starten), verwende `useRef`:
+
+```jsx
+const intervalRef = useRef();
+
+useEffect(() => {
+  intervalRef.current = setInterval(() => {
+    ...
+  }, 1000);
+
+  return () => clearInterval(intervalRef.current);
+}, []);
+```
+
+---
+
+## 📝 Zusammenfassung
+
+| Ziel          | Hook             | Beschreibung                          |
+|---------------|------------------|----------------------------------------|
+| `setTimeout`  | `useEffect`      | Einmalige Verzögerung                  |
+| `setInterval` | `useEffect`      | Wiederholende Aktion mit Cleanup       |
+| Kontrolle     | `useRef`         | ID speichern, Zugriff auf aktuellen Zustand |
+
+---
+
+## 🔗 Quellen
+
+- [useEffect – React Docs](https://react.dev/reference/react/useEffect)  
+- [MDN – setTimeout](https://developer.mozilla.org/de/docs/Web/API/setTimeout)  
+- [MDN – setInterval](https://developer.mozilla.org/de/docs/Web/API/setInterval)
 
   **[⬆ Наверх](#top)**
 
@@ -2272,63 +3347,891 @@ damit mehrere untergeordnete Komponenten synchron auf denselben Wert zugreifen k
 
   **[⬆ Наверх](#top)**
 
-61. ### <a name="61"></a> 
+61. ### <a name="61"></a> Was ist ein Higher-Order Component (HOC)?
 
+# Was ist ein Higher-Order Component (HOC)?
 
+Ein **Higher-Order Component (HOC)** ist ein **Designmuster in React**,  
+bei dem **eine Funktion eine Komponente nimmt und eine neue, erweiterte Komponente zurückgibt**.
+
+---
+
+## 🎯 Zweck eines HOC
+
+- ✅ **Wiederverwendbare Logik** auf mehrere Komponenten anwenden  
+- ✅ Komponenten **mit zusätzlichen Props, Verhalten oder Styling** erweitern  
+- ✅ Trennung von Zuständigkeiten (Separation of Concerns)
+
+---
+
+## 📦 Definition
+
+```js
+const EnhancedComponent = withSomething(WrappedComponent);
+```
+
+➡️ `withSomething` ist das HOC, `WrappedComponent` ist die Originalkomponente.
+
+---
+
+## 💡 Einfaches Beispiel: `withLogger`
+
+```jsx
+function withLogger(WrappedComponent) {
+  return function EnhancedComponent(props) {
+    console.log('Props:', props);
+    return <WrappedComponent {...props} />;
+  };
+}
+```
+
+### Verwendung:
+
+```jsx
+const LoggedButton = withLogger(Button);
+```
+
+➡️ Jedes Mal, wenn `LoggedButton` verwendet wird, werden die Props geloggt.
+
+---
+
+## 🔁 Typische Anwendungsfälle
+
+- Zugriffsschutz (z. B. `withAuth`)
+- Theming (z. B. `withTheme`)
+- Logging & Analytics
+- Fehlerbehandlung (`withErrorBoundary`)
+- Datenanbindung (z. B. `connect()` in Redux)
+
+---
+
+## ⚠️ Hinweise
+
+- HOCs **verändern nicht** die ursprüngliche Komponente, sondern **verpacken sie**
+- HOC **dürfen keine Seiteneffekte beim Rendern haben**
+- Der **Komponentenname sollte erhalten bleiben** (z. B. mit `displayName`), für Debugging
+
+---
+
+## 📝 Zusammenfassung
+
+Ein **Higher-Order Component (HOC)** ist eine Funktion,  
+die eine Komponente nimmt und **eine neue Komponente mit erweitertem Verhalten** zurückgibt.  
+Sie ist ein mächtiges Werkzeug zur **Wiederverwendung von Logik und Struktur**.
+
+---
+
+## 🔗 Quellen
+
+- [React Docs – Higher-Order Components](https://reactjs.org/docs/higher-order-components.html)  
+- [MDN – React Komponentendesignmuster](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#higher-order-components)
 
   **[⬆ Наверх](#top)**
 
-62. ### <a name="62"></a> 
+62. ### <a name="62"></a> Was ist das Render-Prop-Pattern?
 
+# Was ist das Render-Prop-Pattern?
 
+Das **Render-Prop-Pattern** ist ein **React-Designmuster**,  
+bei dem eine Komponente eine **Funktion als Prop (render prop)** erhält,  
+um **flexibel zu steuern, was gerendert werden soll**.
+
+---
+
+## 🎯 Zweck des Patterns
+
+- ✅ Ermöglicht das **Teilen von wiederverwendbarer Logik**
+- ✅ Gibt der Elternkomponente die **volle Kontrolle über das gerenderte UI**
+- ✅ Alternative zu HOCs oder Hooks bei **logikbasiertem Code-Sharing**
+
+---
+
+## 📦 Struktur
+
+```jsx
+<MyComponent render={(data) => (
+  <p>{data.message}</p>
+)} />
+```
+
+Oder via `children`-Prop:
+
+```jsx
+<MyComponent>
+  {(data) => <p>{data.message}</p>}
+</MyComponent>
+```
+
+---
+
+## 💡 Beispiel: `MouseTracker` mit Render-Prop
+
+```jsx
+function MouseTracker({ render }) {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMove = (e) => setPosition({ x: e.clientX, y: e.clientY });
+    window.addEventListener('mousemove', handleMove);
+    return () => window.removeEventListener('mousemove', handleMove);
+  }, []);
+
+  return render(position);
+}
+```
+
+### Verwendung:
+
+```jsx
+<MouseTracker
+  render={({ x, y }) => (
+    <p>Position: {x}, {y}</p>
+  )}
+/>
+```
+
+---
+
+## 🔁 Vorteile gegenüber HOC
+
+| Aspekt               | Render-Prop             | HOC                           |
+|----------------------|-------------------------|--------------------------------|
+| Mehrfach verwendbar  | ✅ Ja                   | ✅ Ja                          |
+| Flexibel im UI       | ✅ Sehr flexibel         | ❌ Eingeschränkter UI-Zugriff |
+| Komponentenbaum flach| ✅ Ja                   | ❌ Kann tiefe Wrapper erzeugen |
+
+---
+
+## ⚠️ Nachteile
+
+- Kann bei vielen Ebenen zu **"Wrapper Hell"** führen (ähnlich wie HOC)
+- Wird heute oft durch **Hooks ersetzt**, da diese **einfacher und lesbarer** sind
+
+---
+
+## 📝 Zusammenfassung
+
+Das **Render-Prop-Pattern** ermöglicht das **Weitergeben von Logik über Funktionen als Props**.  
+Die aufrufende Komponente entscheidet, **wie das UI aussehen soll**, während die Logik zentral bleibt.
+
+---
+
+## 🔗 Quellen
+
+- [Render Props – React Docs](https://reactjs.org/docs/render-props.html)  
+- [React Patterns – Render Props](https://reactpatterns.com/#render-callback)
 
   **[⬆ Наверх](#top)**
 
-63. ### <a name="63"></a> 
+63. ### <a name="63"></a> Was ist die Context-API und wie funktioniert useContext?
 
+# Was ist die Context-API und wie funktioniert `useContext`?
 
+Die **Context-API** von React ist ein integrierter Mechanismus,  
+um **globale Daten (z. B. Theme, Sprache, Benutzerinfos)**  
+an beliebige Komponenten im Komponentenbaum **weiterzugeben**,  
+**ohne Props manuell durch mehrere Ebenen zu reichen**.
+
+---
+
+## 🎯 Warum Context?
+
+- ✅ Vermeidet **Prop-Drilling**  
+- ✅ Ideal für **globale Zustände oder Konfigurationen**  
+- ✅ Einfach zu kombinieren mit `useContext`
+
+---
+
+## 🧱 Bestandteile der Context-API
+
+1. **`createContext()`** – erstellt einen neuen Kontext  
+2. **`<Provider>`** – stellt einen Wert zur Verfügung  
+3. **`useContext(Context)`** – liest den aktuellen Wert des Kontexts
+
+---
+
+## 💡 Beispiel: ThemeContext
+
+### 1. Context erstellen:
+
+```jsx
+import { createContext } from 'react';
+
+const ThemeContext = createContext('light'); // optionaler Default-Wert
+```
+
+---
+
+### 2. Provider verwenden:
+
+```jsx
+function App() {
+  return (
+    <ThemeContext.Provider value="dark">
+      <Toolbar />
+    </ThemeContext.Provider>
+  );
+}
+```
+
+---
+
+### 3. Zugriff mit `useContext`:
+
+```jsx
+import { useContext } from 'react';
+
+function ThemeButton() {
+  const theme = useContext(ThemeContext); // "dark"
+  return <button className={theme}>Aktuelles Theme: {theme}</button>;
+}
+```
+
+➡️ `ThemeButton` hat Zugriff auf den Kontextwert, ohne dass Props über `Toolbar` weitergegeben werden müssen.
+
+---
+
+## 📌 Wichtig zu wissen
+
+- Jeder Context-Wert ist **nur innerhalb seines `<Provider>` sichtbar**  
+- Komponenten werden **neu gerendert**, wenn sich der Context-Wert ändert  
+- Context ist **nicht als globaler State-Ersatz für komplexe Logik** gedacht (→ besser: Redux, Zustand, etc.)
+
+---
+
+## 📝 Zusammenfassung
+
+- Die **Context-API** erlaubt das **Teilen globaler Werte** im Komponentenbaum  
+- Mit `useContext(Context)` kannst du in Funktionskomponenten **einfach auf diese Werte zugreifen**  
+- Sie ist nützlich für Dinge wie **Themen, Sprache, Benutzerinfo, Feature-Flags**
+
+---
+
+## 🔗 Quellen
+
+- [Context – React Docs](https://react.dev/learn/passing-data-deeply-with-context)  
+- [useContext – React Docs](https://react.dev/reference/react/useContext)  
+- [MDN: Context in React](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#context)
 
   **[⬆ Наверх](#top)**
 
-64. ### <a name="64"></a> 
+64. ### <a name="64"></a> Was sind Portale in React?
 
+# Was sind Portale in React?
 
+**Portale** (engl. *Portals*) in React ermöglichen es, **Komponenten außerhalb der normalen DOM-Hierarchie**  
+zu rendern – also **außerhalb des `div#root`**, aber trotzdem **vollständig von React verwaltet**.
+
+---
+
+## 🎯 Wann braucht man ein Portal?
+
+- Modale Dialoge (z. B. `<Modal />`)  
+- Tooltips  
+- Dropdown-Menüs  
+- Overlays  
+- Elemente, die visuell **über anderen Komponenten liegen** müssen
+
+➡️ Diese Elemente müssen oft **am Ende des `<body>`** gerendert werden, um korrekt zu funktionieren (z. B. Z-Index, Positionierung).
+
+---
+
+## 💡 Beispiel: Portal verwenden
+
+### 1. Ziel-Element im HTML
+
+```html
+<body>
+  <div id="root"></div>
+  <div id="modal-root"></div> <!-- Hier wird das Portal platziert -->
+</body>
+```
+
+---
+
+### 2. Komponente mit Portal
+
+```jsx
+import { createPortal } from 'react-dom';
+
+function Modal({ children }) {
+  return createPortal(
+    <div className="modal">{children}</div>,
+    document.getElementById('modal-root')
+  );
+}
+```
+
+---
+
+### 3. Verwendung in der App
+
+```jsx
+function App() {
+  return (
+    <>
+      <h1>Seite</h1>
+      <Modal>
+        <p>Ich werde außerhalb von #root gerendert!</p>
+      </Modal>
+    </>
+  );
+}
+```
+
+➡️ Das Modal wird **optisch außerhalb** des Hauptbaums gerendert,  
+aber **logisch bleibt es Teil von React** – inklusive Props, State, Events usw.
+
+---
+
+## 🔁 Vorteile von Portalen
+
+| Vorteil                    | Beschreibung                                       |
+|----------------------------|----------------------------------------------------|
+| 🔄 Event-Bubbling bleibt   | Events funktionieren weiterhin wie gewohnt         |
+| 🎯 Flexibles Layout        | Bessere Positionierung im DOM                      |
+| 🔒 Kein CSS-Zusammenstoß   | Vermeidet Probleme mit `overflow: hidden`, `z-index` etc.
+
+---
+
+## 📝 Zusammenfassung
+
+- Portale rendern Komponenten **außerhalb des DOM-Hierarchie der Eltern**
+- Nützlich für **Modale, Tooltips, Overlays**
+- Implementiert mit `ReactDOM.createPortal(element, domNode)`
+
+---
+
+## 🔗 Quellen
+
+- [Portals – React Docs](https://reactjs.org/docs/portals.html)  
+- [MDN: DOM-Portale und Modale](https://developer.mozilla.org/de/docs/Web/HTML/Element/dialog)
 
   **[⬆ Наверх](#top)**
 
-65. ### <a name="65"></a> 
+65. ### <a name="65"></a> Was ist bedingtes Rendern (Conditional Rendering)?
 
+# Was ist bedingtes Rendern (Conditional Rendering) in React?
 
+**Bedingtes Rendern** bedeutet in React, dass eine Komponente **abhängig von einer Bedingung**  
+**unterschiedlichen JSX-Inhalt rendert** – also **dynamisch entscheidet, was angezeigt wird**.
+
+---
+
+## 🎯 Anwendungsbeispiele
+
+- Benutzer ist **eingeloggt oder nicht**
+- Ladevorgang (`Loading...`) vs. Datenanzeige
+- Verschiedene UI-Elemente abhängig von Status, Rollen, Berechtigungen
+
+---
+
+## 🔧 Methoden für bedingtes Rendern
+
+### ✅ 1. `if`-Anweisung
+
+```jsx
+if (isLoggedIn) {
+  return <Dashboard />;
+} else {
+  return <LoginForm />;
+}
+```
+
+---
+
+### ✅ 2. Ternärer Operator (`? :`)
+
+```jsx
+return (
+  <div>
+    {isLoading ? <p>Lade Daten...</p> : <DataList />}
+  </div>
+);
+```
+
+---
+
+### ✅ 3. Logischer UND-Operator (`&&`)
+
+```jsx
+{hasPermission && <DeleteButton />}
+```
+
+➡️ Rendert `DeleteButton` **nur**, wenn `hasPermission === true` ist.
+
+---
+
+### ✅ 4. Optionales Rendering mit `null`
+
+```jsx
+{shouldShow ? <Component /> : null}
+```
+
+➡️ Wenn `shouldShow === false`, wird **gar nichts** gerendert.
+
+---
+
+## 📝 Zusammenfassung
+
+**Conditional Rendering** bedeutet, dass JSX **dynamisch** auf Basis von Bedingungen  
+**unterschiedlichen Inhalt rendert**.  
+React unterstützt dafür mehrere Schreibweisen:  
+`if`, `? :`, `&&`, Rückgabe von `null`.
+
+---
+
+## 🔗 Quellen
+
+- [Conditional Rendering – React Docs](https://react.dev/learn/conditional-rendering)  
+- [MDN: Bedingte Ausdrücke](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Operators/Conditional_Operator)
 
   **[⬆ Наверх](#top)**
 
-66. ### <a name="66"></a> 
+66. ### <a name="66"></a> Was ist ein Error Boundary?
 
+# Was ist ein Error Boundary in React?
 
+Ein **Error Boundary** (Fehlergrenze) ist eine **spezielle React-Komponente**,  
+die **JavaScript-Fehler** in ihrer **Kind-Komponenten-Hierarchie abfängt**,  
+um zu verhindern, dass der **gesamte UI-Baum zusammenbricht**.
+
+---
+
+## 🎯 Zweck von Error Boundaries
+
+- ✅ Fehler im UI **abfangen**, anzeigen und kontrolliert behandeln  
+- ✅ Verhindert den **Absturz der gesamten App**  
+- ✅ Zeigt stattdessen **Fallback-UI** oder eine Fehlermeldung an
+
+---
+
+## 📦 Wann tritt ein Fehler auf?
+
+Error Boundaries fangen **nur Fehler während des Renderns**,  
+in **Lifecycle-Methoden** und in **Konstruktoren von Klassenkomponenten** ab.
+
+**Nicht abgefangen werden**:
+- Fehler in Event-Handlern (diese müssen manuell mit `try/catch` behandelt werden)
+- Fehler in `async`-Funktionen
+- Fehler außerhalb des React-Baums
+
+---
+
+## 💡 Beispiel: Error Boundary (Klassenkomponente)
+
+```jsx
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('Fehler abgefangen:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h2>Etwas ist schiefgelaufen.</h2>;
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+---
+
+### ✅ Verwendung:
+
+```jsx
+<ErrorBoundary>
+  <ProblematicComponent />
+</ErrorBoundary>
+```
+
+➡️ Wenn `ProblematicComponent` crasht, zeigt `ErrorBoundary` stattdessen die Fallback-UI.
+
+---
+
+## 🧪 Wann verwenden?
+
+- Um Teile der App **abzusichern** (z. B. Seitenbereiche, Widgets)
+- Um **Logs zu erfassen** (`componentDidCatch`)
+- Um den Nutzer bei Fehlern **nicht allein zu lassen**
+
+---
+
+## 📝 Zusammenfassung
+
+Ein **Error Boundary** ist eine **Klassenkomponente**,  
+die Fehler in der React-Komponentenstruktur **abfängt und behandelt**,  
+ohne dass die ganze App abstürzt.  
+Sie bietet eine **Fallback-UI** und hilft bei **Debugging & Stabilität**.
+
+---
+
+## 🔗 Quellen
+
+- [Error Boundaries – React Docs](https://react.dev/learn/managing-errors)  
+- [MDN: Fehlerbehandlung in React](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch#handling_errors_in_react)
 
   **[⬆ Наверх](#top)**
 
-67. ### <a name="67"></a> 
+67. ### <a name="67"></a> Wie funktioniert Event-Handling in React?
 
+# Wie funktioniert Event-Handling in React?
 
+**Event-Handling** in React funktioniert ähnlich wie in HTML/JavaScript,  
+aber mit einigen **Unterschieden in Syntax und Verhalten**.
+
+---
+
+## 🎯 Besonderheiten in React
+
+- React verwendet **camelCase** statt Kleinschreibung:
+  - `onClick` statt `onclick`
+- Event-Handler werden als **Funktionen (nicht Strings)** übergeben:
+  - `{handleClick}` statt `"handleClick()"`
+
+---
+
+## 💡 Beispiel: Klick-Event
+
+```jsx
+function Button() {
+  function handleClick() {
+    alert('Button wurde geklickt!');
+  }
+
+  return <button onClick={handleClick}>Klicken</button>;
+}
+```
+
+---
+
+## 📦 Event-Objekt
+
+React stellt ein **synthetisches Event-Objekt** (`SyntheticEvent`) bereit,  
+das mit allen Browsern konsistent funktioniert.
+
+```jsx
+function Input() {
+  function handleChange(e) {
+    console.log('Eingegeben:', e.target.value);
+  }
+
+  return <input onChange={handleChange} />;
+}
+```
+
+➡️ `e` ist das SyntheticEvent, das sich **ähnlich wie ein native DOM-Event** verhält.
+
+---
+
+## 🔁 Weitere Event-Beispiele
+
+| Event         | Attribut        | Beispiel                           |
+|---------------|------------------|------------------------------------|
+| Klick         | `onClick`        | `<button onClick={fn} />`          |
+| Eingabe       | `onChange`       | `<input onChange={fn} />`          |
+| Fokus         | `onFocus`        | `<input onFocus={fn} />`           |
+| Maus bewegen  | `onMouseMove`    | `<div onMouseMove={fn} />`         |
+| Formular      | `onSubmit`       | `<form onSubmit={fn} />`           |
+| Taste drücken | `onKeyDown`      | `<input onKeyDown={fn} />`         |
+
+---
+
+## ✅ Standardverhalten verhindern
+
+```jsx
+function Form() {
+  function handleSubmit(e) {
+    e.preventDefault(); // verhindert Seitenreload
+    console.log('Formular abgesendet');
+  }
+
+  return <form onSubmit={handleSubmit}>...</form>;
+}
+```
+
+---
+
+## 📝 Zusammenfassung
+
+- React verwendet eigene Events (`SyntheticEvent`) mit vertrauter API  
+- Event-Handler werden als Funktionen mit camelCase geschrieben  
+- Du kannst Standardverhalten (z. B. Form-Submit) mit `e.preventDefault()` unterdrücken
+
+---
+
+## 🔗 Quellen
+
+- [Events in React – React Docs](https://react.dev/learn/responding-to-events)  
+- [React Event Handling – MDN](https://developer.mozilla.org/en-US/docs/Web/Events)
 
   **[⬆ Наверх](#top)**
 
-68. ### <a name="68"></a> 
+68. ### <a name="68"></a> Was ist ein synthetisches Ereignis (SyntheticEvent)?
 
+# Was ist ein synthetisches Ereignis (SyntheticEvent) in React?
 
+Ein **synthetisches Ereignis** (`SyntheticEvent`) ist ein von React bereitgestelltes **plattformsicheres Wrapper-Objekt**  
+für native DOM-Ereignisse wie `click`, `change`, `submit`, etc.
+
+---
+
+## 🎯 Zweck von `SyntheticEvent`
+
+- ✅ Einheitliches Verhalten in **allen Browsern**
+- ✅ Automatisches **Event-Pooling** (früher)
+- ✅ Konsistente API für alle Event-Typen
+- ✅ Kombiniert die Vorteile von DOM- und Custom-Events
+
+---
+
+## 📦 Eigenschaften
+
+- `SyntheticEvent` hat die **gleichen Methoden und Eigenschaften** wie ein normales DOM-Event:  
+  - `e.target`, `e.preventDefault()`, `e.stopPropagation()` usw.
+- Funktioniert für **alle Event-Typen**: Maus, Tastatur, Formulare, Fokus, usw.
+
+---
+
+## 💡 Beispiel
+
+```jsx
+function Form() {
+  function handleSubmit(e) {
+    e.preventDefault(); // verhindert Reload
+    console.log('Eingabefeld:', e.target.elements.name.value);
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="name" />
+      <button type="submit">Absenden</button>
+    </form>
+  );
+}
+```
+
+➡️ `e` ist ein `SyntheticEvent`, nicht das native `Event`-Objekt des Browsers.
+
+---
+
+## ⚠️ Hinweis: Event-Pooling (früher)
+
+Früher wurden `SyntheticEvent`-Objekte **recycelt** (Event Pooling), was bedeutete:  
+Zugriff auf das Event nach dem Event-Handler war **nicht mehr möglich**.  
+**Seit React 17+ ist Pooling deaktiviert.**
+
+---
+
+## 📝 Zusammenfassung
+
+Ein `SyntheticEvent` ist Reacts **einheitliche Event-API**,  
+die unabhängig vom Browser funktioniert und dieselbe Oberfläche wie das native DOM-Event bietet.  
+Du kannst es wie gewohnt verwenden (`e.preventDefault()`, `e.target.value`, etc.).
+
+---
+
+## 🔗 Quellen
+
+- [React Docs – SyntheticEvent](https://react.dev/reference/react-dom/SyntheticEvent)  
+- [MDN: DOM Events Übersicht](https://developer.mozilla.org/de/docs/Web/Events)
 
   **[⬆ Наверх](#top)**
 
-69. ### <a name="69"></a> 
+69. ### <a name="69"></a> Was ist props.children?
 
+# Was ist `props.children` in React?
 
+**`props.children`** ist eine spezielle React-Prop,  
+die automatisch alle **verschachtelten Elemente (Child-Komponenten oder JSX-Inhalte)** enthält,  
+die **innerhalb einer Komponente übergeben** werden.
+
+---
+
+## 🎯 Wozu wird `props.children` verwendet?
+
+- ✅ Um **dynamisch Inhalte zu rendern**, die von außen übergeben werden  
+- ✅ Um **Wrapper-Komponenten** (z. B. Layouts, Container) zu erstellen  
+- ✅ Für **wiederverwendbare UI-Strukturen**
+
+---
+
+## 💡 Beispiel
+
+```jsx
+function Card(props) {
+  return <div className="card">{props.children}</div>;
+}
+
+function App() {
+  return (
+    <Card>
+      <h2>Titel</h2>
+      <p>Das ist der Inhalt der Card.</p>
+    </Card>
+  );
+}
+```
+
+➡️ Die `Card`-Komponente erhält:
+
+```jsx
+<h2>...</h2>
+<p>...</p>
+```
+
+als `props.children` und rendert sie **im Inneren**.
+
+---
+
+## 📦 Typen von `props.children`
+
+- Kann ein **Element**, ein **Text**, ein **Array**, `null`, `undefined` oder ein **Fragment** sein
+- Du kannst `children` auch **prüfen oder filtern**, z. B. mit `React.Children`
+
+---
+
+## 🧪 Beispiel mit mehreren Kindern
+
+```jsx
+function Wrapper({ children }) {
+  return (
+    <section>
+      {React.Children.map(children, (child, index) => (
+        <div key={index}>{child}</div>
+      ))}
+    </section>
+  );
+}
+```
+
+➡️ So kannst du **alle `children` gezielt verarbeiten**.
+
+---
+
+## 📝 Zusammenfassung
+
+- `props.children` enthält **alle JSX-Inhalte**, die **zwischen den Tags** einer Komponente übergeben werden  
+- Es macht Komponenten **flexibel und wiederverwendbar**
+- Typisch bei Layout-Komponenten, Dialogen, Containern
+
+---
+
+## 🔗 Quellen
+
+- [React Docs – Children](https://react.dev/learn/passing-props-to-a-component#using-the-children-prop)  
+- [React.Children API – React Docs](https://react.dev/reference/react/Children)
 
   **[⬆ Наверх](#top)**
 
-70. ### <a name="70"></a> 
+70. ### <a name="70"></a> Was bedeutet „controlled component“ und „uncontrolled component“ bei Formularen?
 
+# Was bedeutet „controlled component“ und „uncontrolled component“ bei Formularen in React?
 
+In React beschreibt man Formular-Elemente wie `<input>`, `<textarea>` oder `<select>` als  
+**controlled** oder **uncontrolled**, je nachdem, **wie ihr Wert verwaltet wird**.
+
+---
+
+## ✅ Controlled Component
+
+Ein **controlled component** wird **vollständig durch React kontrolliert** –  
+der Wert kommt aus dem **State** und wird über `onChange` aktualisiert.
+
+### Eigenschaften:
+
+- Wert liegt im React-State
+- Änderungen erfolgen über `setState` / `useState`
+- Ideal für Validierung, dynamische Formulare, zentrale Kontrolle
+
+### Beispiel:
+
+```jsx
+function Form() {
+  const [name, setName] = useState('');
+
+  return (
+    <input 
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+    />
+  );
+}
+```
+
+➡️ Das Eingabefeld zeigt **immer den aktuellen State-Wert**.
+
+---
+
+## ❌ Uncontrolled Component
+
+Ein **uncontrolled component** verwaltet seinen Wert **intern im DOM**,  
+React **greift nur über ein Ref** darauf zu – z. B. beim Absenden des Formulars.
+
+### Eigenschaften:
+
+- Kein React-State für den Wert
+- Zugriff über `ref`
+- Einfach, aber schwerer zu validieren
+
+### Beispiel:
+
+```jsx
+function Form() {
+  const inputRef = useRef();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    alert(inputRef.current.value);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input ref={inputRef} />
+      <button type="submit">Absenden</button>
+    </form>
+  );
+}
+```
+
+➡️ Der Wert wird **nicht in React gespeichert**, sondern **aus dem DOM gelesen**.
+
+---
+
+## 🔁 Vergleich
+
+| Merkmal              | Controlled                   | Uncontrolled                    |
+|----------------------|------------------------------|----------------------------------|
+| Datenquelle          | React-State (`useState`)     | DOM (intern)                     |
+| Zugriff              | `value` + `onChange`         | `ref.current.value`              |
+| Validierung          | Einfach                      | Komplizierter                    |
+| Flexibilität         | Hoch                         | Gering                           |
+| Initialwert          | via State                    | via `defaultValue`               |
+
+---
+
+## 📝 Zusammenfassung
+
+- **Controlled Components**: React verwaltet den Formularwert → vollständig kontrollierbar
+- **Uncontrolled Components**: Der Browser verwaltet den Wert → Zugriff nur über Ref
+- Controlled ist der **empfohlene Standard**, besonders bei komplexen Formularen
+
+---
+
+## 🔗 Quellen
+
+- [Controlled Components – React Docs](https://react.dev/learn/sharing-state-between-components#controlled-and-uncontrolled-components)  
+- [Formulare in React – MDN](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_forms)
 
   **[⬆ Наверх](#top)**
 
@@ -2362,7 +4265,7 @@ damit mehrere untergeordnete Komponenten synchron auf denselben Wert zugreifen k
 
   **[⬆ Наверх](#top)**
 
-76. ### <a name="76"></a> 
+76. ### <a name="76"></a> Wie führt man API-Aufrufe mit Fetch oder Axios durch?
 
 
 
