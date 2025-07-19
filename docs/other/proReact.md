@@ -227,9 +227,65 @@
 
   **[⬆ Наверх](#top)**
   
-1. ### <a name="1"></a> 
+1. ### <a name="1"></a> Was ist React und welche Probleme löst es?
 
+# Was ist React und welche Probleme löst es?
 
+**React** ist eine JavaScript-Bibliothek zur Erstellung von **Benutzeroberflächen (UIs)**. Sie wurde von **Meta (Facebook)** entwickelt und hilft beim Bau interaktiver, dynamischer Webanwendungen.
+
+---
+
+## 🔧 Welche Probleme löst React?
+
+1. **Komplexität großer Anwendungen**  
+   → React zerlegt die UI in **kleine, wiederverwendbare Komponenten**, wodurch der Code modular und wartbar bleibt.
+
+2. **Manuelles DOM-Handling**  
+   → Mit dem **virtuellen DOM** optimiert React DOM-Änderungen und verbessert die Performance.
+
+3. **Unstrukturierter Code (z. B. bei jQuery)**  
+   → React fördert einen **komponentenbasierten Aufbau**, bei dem Logik, Markup und Styling zusammengehören.
+
+4. **Schwierige Zustandsverwaltung (State)**  
+   → React bietet eingebaute Hooks wie `useState` oder `useReducer`, um den Zustand klar und vorhersehbar zu verwalten.
+
+---
+
+## 💡 Beispielcode
+
+```jsx
+import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0); // React verwaltet den Zustand intern
+
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Du hast {count} Mal geklickt
+    </button>
+  );
+}
+```
+
+➡️ **React aktualisiert automatisch das UI**, wenn sich der Zustand ändert – kein manuelles DOM-Update notwendig.
+
+---
+
+## 📝 Zusammenfassung
+
+React ist eine **komponentenbasierte UI-Bibliothek**, die typische Probleme der Webentwicklung löst:
+
+- unübersichtlicher Code  
+- ineffiziente DOM-Manipulation  
+- schwieriges State-Management  
+- mangelnde Wiederverwendbarkeit
+
+---
+
+## 🔗 Quellen
+
+- [React – Offizielle Einführung](https://react.dev/learn)
+- [React auf MDN Web Docs](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_starten)
 
   **[⬆ Наверх](#top)**
 
