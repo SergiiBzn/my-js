@@ -234,36 +234,47 @@
 |208 | [Was ist HTTPS und wie implementiert man es in Node.js?](#208) |
 |209 | [Welche Sicherheits-Header kann man mit Helmet setzen?](#209) |
 |210 | [Wie schützt man API-Keys in einer Node.js App?](#210) |
-|211 | [](#211) |
-|212 | [](#212) |
-|213 | [](#213) |
-|214 | [](#214) |
-|215 | [](#215) |
-|216 | [](#216) |
-|217 | [](#217) |
-|218 | [](#218) |
-|219 | [](#219) |
-|220 | [](#220) |
-|221 | [](#221) |
-|222 | [](#222) |
-|223 | [](#223) |
-|224 | [](#224) |
-|225 | [](#225) |
-|226 | [](#226) |
-|227 | [](#227) |
-|228 | [](#228) |
-|229 | [](#229) |
-|230 | [](#230) |
-|231 | [](#231) |
-|232 | [](#232) |
-|233 | [](#233) |
-|234 | [](#234) |
-|235 | [](#235) |
-|236 | [](#236) |
-|237 | [](#237) |
-|238 | [](#238) |
-|239 | [](#239) |
-|240 | [](#240) |
+|   | Authentifizierung & Autorisierung (Node.js + Express |
+|211 | [Was ist der Unterschied zwischen Authentifizierung und Autorisierung?](#211) |
+|212 | [Welche Möglichkeiten gibt es, Authentifizierung in Express zu implementieren?](#212) |
+|213 | [Unterschied zwischen Session-basiertem und Token-basiertem Login?](#213) |
+|214 | [Wie funktioniert express-session und wann sollte man es nutzen?](#214) |
+|215 | [Was ist der Unterschied zwischen Cookies und Tokens?](#215) |
+|216 | [Was ist JWT (JSON Web Token) und wie funktioniert es?](#216) |
+|217 | [Welche Vorteile und Nachteile hat JWT gegenüber Sessions?](#217) |
+|218 | [Wie speichert man ein JWT sicher im Browser (LocalStorage vs. HttpOnly-Cookie)?](#218) |
+|219 | [Wie verhindert man JWT-Manipulation?](#219) |
+|220 | [Was sind die Bestandteile eines JWT (Header, Payload, Signature)?](#220) |
+|221 | [Wie setzt man Token-Expiration (Refresh Token vs. Access Token)?](#221) |
+|222 | [Wie implementiert man Refresh Tokens in einer Express-App?](#222) |
+|223 | [Was ist OAuth2 und wie unterscheidet es sich von JWT?](#223) |
+|224 | [Unterschied zwischen OAuth2 und OpenID Connect?](#224) |
+|225 | [Wie integriert man Social Logins (Google, Facebook, GitHub) in Express?](#225) |
+|226 | [Wie implementiert man eine Middleware zum Schutz von privaten Routen?](#226) |
+|227 | [Wie prüft man Benutzerrollen (Role-Based Access Control, RBAC) in Express?](#227) |
+|228 | [Was ist Policy-Based Access Control (PBAC)?](#228) |
+|229 | [Wie schützt man REST-Endpunkte vor unautorisierten Zugriffen?](#229) |
+|230 | [Wie kann man Public Routes von Private Routes in Express trennen?](#230) |
+|231 | [Was ist CSRF und wie hängt es mit Session-Authentifizierung zusammen?](#231) |
+|232 | [Wie verhindert man Session Fixation?](#232) |
+|233 | [Welche Best Practices gibt es für Passwort-Hashing (bcrypt, argon2)?](#233) |
+|234 | [Warum sollte man niemals Passwörter im Klartext speichern?](#234) |
+|235 | [Wie implementiert man Zwei-Faktor-Authentifizierung (2FA) in einer Node.js-App?](#235) |
+|236 | [Was ist der Unterschied zwischen Single Sign-On (SSO) und klassischem Login?](#236) |
+|237 | [Wie funktioniert Authentifizierung mit Passport.js?](#237) |
+|238 | [Welche Vorteile bietet Passport.js in Express?](#238) |
+|239 | [Unterschied zwischen lokaler Strategie und OAuth-Strategie in Passport.js?](#239) |
+|240 | [Wie testet man Authentifizierungs- und Autorisierungslogik in einer Express-App?](#240) |
+|241 | [](#241) |
+|242 | [](#242) |
+|243 | [](#243) |
+|244 | [](#244) |
+|245 | [](#245) |
+|246 | [](#246) |
+|247 | [](#247) |
+|248 | [](#248) |
+|249 | [](#249) |
+|250 | [](#250) |
 
 
 
@@ -1472,3 +1483,300 @@
 
 
   **[⬆ Наверх](#top)**      
+
+201. ### <a name="201"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+202. ### <a name="202"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+203. ### <a name="203"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+204. ### <a name="204"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+205. ### <a name="205"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+206. ### <a name="206"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+207. ### <a name="207"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+208. ### <a name="208"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+209. ### <a name="209"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+210. ### <a name="210"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+211. ### <a name="211"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+212. ### <a name="212"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+213. ### <a name="213"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+214. ### <a name="214"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+215. ### <a name="215"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+216. ### <a name="216"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+217. ### <a name="217"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+218. ### <a name="218"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+219. ### <a name="219"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+220. ### <a name="220"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+221. ### <a name="221"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+222. ### <a name="222"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+223. ### <a name="223"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+224. ### <a name="224"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+225. ### <a name="225"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+226. ### <a name="226"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+227. ### <a name="227"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+228. ### <a name="228"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+229. ### <a name="229"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+230. ### <a name="230"></a>
+
+
+  **[⬆ Наверх](#top)**      
+
+231. ### <a name="231"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+232. ### <a name="232"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+233. ### <a name="233"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+234. ### <a name="234"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+235. ### <a name="235"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+236. ### <a name="236"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+237. ### <a name="237"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+238. ### <a name="238"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+239. ### <a name="239"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+240. ### <a name="240"></a>
+
+
+  **[⬆ Наверх](#top)**      
+
+241. ### <a name="241"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+242. ### <a name="242"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+243. ### <a name="243"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+244. ### <a name="244"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+245. ### <a name="245"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+246. ### <a name="246"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+247. ### <a name="247"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+248. ### <a name="248"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+249. ### <a name="249"></a> 
+
+
+
+  **[⬆ Наверх](#top)**      
+
+250. ### <a name="250"></a>
+
+
+  **[⬆ Наверх](#top)**     
