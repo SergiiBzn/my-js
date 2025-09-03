@@ -284,8 +284,50 @@
 
   **[⬆ Наверх](#top)**
   
-1. ### <a name="1"></a> 
+1. ### <a name="1"></a> Was ist Express.js und warum wird es verwendet?
 
+````md
+## Was ist Express.js und warum wird es verwendet?
+
+**Definition:**  
+Express.js ist ein minimalistisches und flexibles Web-Framework für Node.js, das Funktionen zur Erstellung von Webanwendungen und APIs bereitstellt. Es baut auf den nativen HTTP-Modulen von Node.js auf und vereinfacht typische Aufgaben wie Routing, Middleware-Handling und Request-/Response-Verarbeitung.
+
+**Warum wird es verwendet?**
+- **Routing:** Ermöglicht das einfache Definieren von Routen (`GET`, `POST`, `PUT`, `DELETE` usw.).
+- **Middleware:** Unterstützt Middleware-Funktionen, die Requests vor der endgültigen Antwort verarbeiten (z. B. Logging, Authentifizierung, Body-Parsing).
+- **Schnelle Entwicklung:** Abstraktionen für wiederkehrende Aufgaben reduzieren Boilerplate-Code.
+- **Integration:** Einfach kombinierbar mit Datenbanken (z. B. PostgreSQL via Sequelize) und Frontend-Frameworks.
+- **Community & Ökosystem:** Große Anzahl an Plugins und Middleware-Paketen.
+
+**Beispiel:**
+
+```js
+// Import von Express
+const express = require('express');
+const app = express();
+
+// Middleware zum Parsen von JSON
+app.use(express.json());
+
+// GET-Route
+app.get('/hello', (req, res) => {
+  res.send('Hallo, Express!');
+});
+
+// Serverstart
+app.listen(3000, () => {
+  console.log('Server läuft auf Port 3000');
+});
+````
+
+### Zusammenfassung
+
+Express.js ist ein leichtgewichtiges Framework für Node.js, das die Erstellung von Webservern und APIs stark vereinfacht, indem es Routing, Middleware und HTTP-Verarbeitung handhabbarer macht.
+
+**Quellen:**
+
+* [Express.js Offizielle Dokumentation](https://expressjs.com/de/)
+* [Node.js Dokumentation](https://nodejs.org/docs)
 
 
   **[⬆ Наверх](#top)**
