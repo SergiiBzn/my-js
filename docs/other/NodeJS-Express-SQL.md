@@ -286,7 +286,6 @@
   
 1. ### <a name="1"></a> Was ist Express.js und warum wird es verwendet?
 
-````md
 ## Was ist Express.js und warum wird es verwendet?
 
 **Definition:**  
