@@ -288,15 +288,16 @@
 
 ## Was ist Express.js und warum wird es verwendet?
 
-**Definition:**  
+**Definition:**
 Express.js ist ein minimalistisches und flexibles Web-Framework für Node.js, das Funktionen zur Erstellung von Webanwendungen und APIs bereitstellt. Es baut auf den nativen HTTP-Modulen von Node.js auf und vereinfacht typische Aufgaben wie Routing, Middleware-Handling und Request-/Response-Verarbeitung.
 
 **Warum wird es verwendet?**
-- **Routing:** Ermöglicht das einfache Definieren von Routen (`GET`, `POST`, `PUT`, `DELETE` usw.).
-- **Middleware:** Unterstützt Middleware-Funktionen, die Requests vor der endgültigen Antwort verarbeiten (z. B. Logging, Authentifizierung, Body-Parsing).
-- **Schnelle Entwicklung:** Abstraktionen für wiederkehrende Aufgaben reduzieren Boilerplate-Code.
-- **Integration:** Einfach kombinierbar mit Datenbanken (z. B. PostgreSQL via Sequelize) und Frontend-Frameworks.
-- **Community & Ökosystem:** Große Anzahl an Plugins und Middleware-Paketen.
+
+* **Routing:** Ermöglicht das einfache Definieren von Routen (`GET`, `POST`, `PUT`, `DELETE` usw.).
+* **Middleware:** Unterstützt Middleware-Funktionen, die Requests vor der endgültigen Antwort verarbeiten (z. B. Logging, Authentifizierung, Body-Parsing).
+* **Schnelle Entwicklung:** Abstraktionen für wiederkehrende Aufgaben reduzieren Boilerplate-Code.
+* **Integration:** Einfach kombinierbar mit Datenbanken (z. B. PostgreSQL via Sequelize) und Frontend-Frameworks.
+* **Community & Ökosystem:** Große Anzahl an Plugins und Middleware-Paketen.
 
 **Beispiel:**
 
@@ -317,7 +318,7 @@ app.get('/hello', (req, res) => {
 app.listen(3000, () => {
   console.log('Server läuft auf Port 3000');
 });
-````
+```
 
 ### Zusammenfassung
 
@@ -328,60 +329,598 @@ Express.js ist ein leichtgewichtiges Framework für Node.js, das die Erstellung 
 * [Express.js Offizielle Dokumentation](https://expressjs.com/de/)
 * [Node.js Dokumentation](https://nodejs.org/docs)
 
+---
 
   **[⬆ Наверх](#top)**
 
-2. ### <a name="2"></a> 
+2. ### <a name="2"></a> Welche Vorteile bietet Express.js im Vergleich zu reinem Node.js?
 
+## Vorteile von Express.js im Vergleich zu reinem Node.js
 
+**1. Vereinfachtes Routing**
+
+* In reinem Node.js muss man mit dem `http`-Modul Routen manuell über `req.url` und `req.method` abfangen.
+* Express.js bietet eine klare und lesbare Routing-API: `app.get()`, `app.post()`, `app.put()`, `app.delete()`.
+
+```js
+// Node.js (ohne Express)
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/hello' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Hallo von Node.js!');
+  }
+});
+
+server.listen(3000);
+```
+
+```js
+// Express.js
+const express = require('express');
+const app = express();
+
+app.get('/hello', (req, res) => {
+  res.send('Hallo von Express!');
+});
+
+app.listen(3000);
+```
+
+**2. Middleware-Unterstützung**
+
+* In Node.js muss man selbst Lösungen für Logging, Body-Parsing oder Authentifizierung implementieren.
+* Express.js erlaubt die einfache Integration von Middleware (`app.use()`), z. B. für JSON-Parsing (`express.json()`), Cookies, Sessions oder Authentifizierung.
+
+**3. Strukturierte und modulare Anwendungen**
+
+* Express.js bietet ein klares Konzept, um Code in Routen, Controller und Middleware zu strukturieren.
+* In reinem Node.js tendiert man zu unübersichtlichem, monolithischem Code.
+
+**4. Große Community und Ökosystem**
+
+* Viele vorgefertigte Middleware-Pakete existieren für Express.js (z. B. `cors`, `helmet`, `morgan`).
+* Spart Zeit und Aufwand bei der Entwicklung.
+
+**5. Weniger Boilerplate-Code**
+
+* Express abstrahiert wiederkehrende Aufgaben wie Header-Handling, Statuscodes und Fehlerbehandlung.
+* In Node.js muss man diese Details selbst schreiben.
+
+### Zusammenfassung
+
+Express.js bietet gegenüber reinem Node.js klare Vorteile: einfacheres Routing, Middleware-Support, bessere Strukturierung, großes Ökosystem und deutlich weniger Boilerplate-Code. Dadurch ist Express die bevorzugte Wahl für die Entwicklung von Webanwendungen und APIs.
+
+**Quellen:**
+
+* [Express.js Offizielle Dokumentation](https://expressjs.com/de/)
+* [Node.js Dokumentation](https://nodejs.org/docs)
+
+---
 
   **[⬆ Наверх](#top)**
 
-3. ### <a name="3"></a> 
+3. ### <a name="3"></a> Wie installiert man Express.js in einem Projekt?
 
+## Installation von Express.js in einem Projekt
 
+**Schritte:**
+
+1. **Neues Node.js Projekt initialisieren**
+
+```bash
+mkdir mein-projekt
+cd mein-projekt
+npm init -y   # erstellt package.json
+```
+
+2. **Express.js installieren**
+
+```bash
+npm install express
+```
+
+3. **Einfache Anwendung erstellen**
+   Datei `index.js`:
+
+```js
+// Import von Express
+const express = require('express');
+const app = express();
+
+// Route definieren
+app.get('/', (req, res) => {
+  res.send('Hallo Welt mit Express!');
+});
+
+// Server starten
+app.listen(3000, () => {
+  console.log('Server läuft auf Port 3000');
+});
+```
+
+4. **Server starten**
+
+```bash
+node index.js
+```
+
+5. **Test im Browser oder mit curl**
+   [http://localhost:3000](http://localhost:3000)
+
+---
+
+### Zusammenfassung
+
+Zur Installation von Express.js:
+
+1. Node.js-Projekt mit `npm init` starten.
+2. Express mit `npm install express` hinzufügen.
+3. Eine `index.js` schreiben und den Server starten.
+
+**Quellen:**
+
+* [Express.js – Installation](https://expressjs.com/de/starter/installing.html)
+* [Node.js Dokumentation](https://nodejs.org/docs)
+
+---
 
   **[⬆ Наверх](#top)**
 
-4. ### <a name="4"></a> 
+4. ### <a name="4"></a> Wie startet man einen einfachen Express-Server?
 
+## Einfachen Express-Server starten
 
+**Schritte:**
+
+1. **Projekt vorbereiten**
+
+```bash
+mkdir express-server
+cd express-server
+npm init -y
+npm install express
+```
+
+2. **Datei `server.js` erstellen**
+
+```js
+// Import von Express
+const express = require('express');
+const app = express();
+
+// Einfache Route
+app.get('/', (req, res) => {
+  res.send('Hallo, Express-Server läuft!');
+});
+
+// Server starten
+app.listen(3000, () => {
+  console.log('Server läuft auf Port 3000');
+});
+```
+
+3. **Server starten**
+
+```bash
+node server.js
+```
+
+4. **Im Browser öffnen**
+   [http://localhost:3000](http://localhost:3000) → Ausgabe: *Hallo, Express-Server läuft!*
+
+---
+
+### Zusammenfassung
+
+Ein Express-Server wird erstellt, indem man `express` importiert, eine App-Instanz anlegt, mindestens eine Route definiert und den Server mit `app.listen(port)` startet.
+
+**Quellen:**
+
+* [Express.js – Hello World Beispiel](https://expressjs.com/de/starter/hello-world.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
-5. ### <a name="5"></a> 
+5. ### <a name="5"></a> Was ist app.listen() und wie funktioniert es?
 
+## Was ist `app.listen()` und wie funktioniert es?
 
+**Definition:**
+`app.listen()` ist eine Methode in Express.js, die den HTTP-Server startet und ihn an einen bestimmten Port bindet. Dadurch kann die Anwendung eingehende HTTP-Anfragen empfangen und beantworten.
+
+**Funktionsweise:**
+
+* `app.listen(port, callback)` erstellt intern einen HTTP-Server mit dem Node.js-`http`-Modul.
+* `port` bestimmt, auf welchem Port der Server lauscht (z. B. `3000`).
+* `callback` ist eine optionale Funktion, die ausgeführt wird, sobald der Server erfolgreich gestartet wurde.
+
+**Beispiel:**
+
+```js
+const express = require('express');
+const app = express();
+
+// Route
+app.get('/', (req, res) => {
+  res.send('Hallo Welt');
+});
+
+// Server starten
+app.listen(3000, () => {
+  console.log('Server läuft auf http://localhost:3000');
+});
+```
+
+**Technischer Hintergrund:**
+`app.listen()` ist ein Shortcut für:
+
+```js
+const http = require('http');
+const server = http.createServer(app);
+server.listen(3000);
+```
+
+Das bedeutet: Express verwendet intern Node.js’ `http`-Server, man ruft nur die vereinfachte Methode `app.listen()` auf.
+
+---
+
+### Zusammenfassung
+
+`app.listen()` startet den Express-Server, bindet ihn an einen Port und macht die Anwendung über HTTP erreichbar. Es ist eine Abkürzung für die direkte Verwendung des Node.js-`http`-Moduls.
+
+**Quellen:**
+
+* [Express.js – app.listen()](https://expressjs.com/de/4x/api.html#app.listen)
+* [Node.js http.Server.listen()](https://nodejs.org/docs/latest/api/http.html#serverlisten)
+
+---
 
   **[⬆ Наверх](#top)**
 
-6. ### <a name="6"></a> 
+6. ### <a name="6"></a> Wie kann man statische Dateien in Express bereitstellen?
 
+## Statische Dateien in Express bereitstellen
 
+**Definition:**
+Mit Express.js können statische Dateien (z. B. HTML, CSS, JavaScript, Bilder) über die eingebaute Middleware `express.static()` ausgeliefert werden.
+
+**Verwendung:**
+
+* Man legt die Dateien in einem Ordner ab (z. B. `public`).
+* Mit `app.use(express.static('public'))` macht man diesen Ordner für Clients zugänglich.
+
+**Beispielprojektstruktur:**
+
+```
+projekt/
+│── server.js
+│── public/
+│     ├── index.html
+│     ├── style.css
+│     └── script.js
+```
+
+**server.js**
+
+```js
+const express = require('express');
+const app = express();
+
+// "public"-Ordner als statisch bereitstellen
+app.use(express.static('public'));
+
+app.listen(3000, () => {
+  console.log('Server läuft auf http://localhost:3000');
+});
+```
+
+**Zugriff:**
+
+* `http://localhost:3000/index.html`
+* `http://localhost:3000/style.css`
+* `http://localhost:3000/script.js`
+
+**Optional – eigener Pfadpräfix:**
+
+```js
+app.use('/static', express.static('public'));
+```
+
+→ Dateien sind dann unter `http://localhost:3000/static/...` erreichbar.
+
+---
+
+### Zusammenfassung
+
+Mit `express.static()` kann man Ordner für statische Dateien freigeben. Typische Anwendung: Ausliefern von HTML, CSS, Bildern oder Frontend-JS.
+
+**Quellen:**
+
+* [Express.js – Statische Dateien](https://expressjs.com/de/starter/static-files.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
-7. ### <a name="7"></a> 
+7. ### <a name="7"></a> Wie arbeitet Express intern mit dem Node.js HTTP-Modul?
 
+## Wie arbeitet Express intern mit dem Node.js HTTP-Modul?
 
+**Grundidee:**
+Express ist kein eigener Webserver, sondern baut auf dem nativen `http`-Modul von Node.js auf. Intern erstellt Express einen HTTP-Server mit `http.createServer()` und verwendet seine eigene Middleware- und Routing-Logik, um Requests zu verarbeiten.
+
+**Technischer Ablauf:**
+
+1. Express erstellt eine Funktion `app`, die kompatibel mit der Signatur von `http.createServer()` ist:
+
+   ```js
+   (req, res) => { /* Request-Verarbeitung */ }
+   ```
+2. Bei `app.listen(port)` ruft Express intern `http.createServer(app)` auf.
+3. Das `http`-Modul nimmt eingehende Anfragen entgegen und leitet sie an die `app`-Funktion von Express weiter.
+4. Express durchläuft seine Middleware-Kette und Routing-Mechanismen, bevor eine Antwort über `res.end()` (aus dem HTTP-Modul) gesendet wird.
+
+**Vergleich:**
+
+```js
+// Node.js ohne Express
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Hallo von Node.js');
+  }
+});
+
+server.listen(3000);
+```
+
+```js
+// Express.js – nutzt intern auch http.createServer()
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hallo von Express');
+});
+
+app.listen(3000);
+```
+
+**Interner Mechanismus von Express:**
+
+* Express fügt eine Abstraktionsschicht hinzu, die das Arbeiten mit `req` und `res` vereinfacht.
+* Methoden wie `res.send()`, `res.json()`, `req.params`, `req.body` sind Wrapper um das native `http`-Objekt.
+* Am Ende ruft Express immer `res.end()` vom `http`-Modul auf.
+
+---
+
+### Zusammenfassung
+
+Express basiert auf Node.js’ `http`-Modul. Es abstrahiert das Erstellen des Servers, Middleware-Handling und Routing, nutzt aber intern die gleichen Mechanismen (`http.createServer`, `req`, `res`).
+
+**Quellen:**
+
+* [Express.js API – app.listen()](https://expressjs.com/de/4x/api.html#app.listen)
+* [Node.js http.createServer()](https://nodejs.org/docs/latest/api/http.html#httpcreateserveroptions-requestlistener)
+
+---
 
   **[⬆ Наверх](#top)**
 
-8. ### <a name="8"></a> 
+8. ### <a name="8"></a> Was ist der Unterschied zwischen Express.js und anderen Frameworks wie Koa oder Fastify?
 
+## Unterschied zwischen Express.js, Koa und Fastify
 
+**1. Express.js**
+
+* **Architektur:** Minimalistisch, basiert direkt auf dem Node.js `http`-Modul.
+* **Middleware:** Callback-basiert, Middleware-Kette (`app.use()`).
+* **Ökosystem:** Sehr verbreitet, viele Tutorials und Third-Party-Middleware verfügbar.
+* **Performance:** Stabil und zuverlässig, aber nicht das schnellste.
+* **API-Stil:** Klassisch, leichtgewichtig, aber teilweise „veraltet“ im Vergleich zu moderneren Frameworks.
+
+```js
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hallo von Express');
+});
+
+app.listen(3000);
+```
+
+---
+
+**2. Koa.js**
+
+* **Entwickler:** Von den gleichen Machern wie Express entwickelt.
+* **Architektur:** Moderner, setzt stark auf **async/await** statt Callbacks.
+* **Middleware:** Sehr schlank, Middleware folgt einem **Onion-Pattern** (jede Middleware kann vor und nach `next()` Code ausführen).
+* **Flexibilität:** Kein eingebautes Routing → separate Pakete notwendig (z. B. `koa-router`).
+* **Performance:** Etwas leichter und flexibler als Express.
+
+```js
+const Koa = require('koa');
+const app = new Koa();
+
+app.use(async (ctx) => {
+  ctx.body = 'Hallo von Koa';
+});
+
+app.listen(3000);
+```
+
+---
+
+**3. Fastify**
+
+* **Architektur:** Fokus auf **Performance** und geringe Overhead.
+* **Middleware:** Unterstützt Express-Middleware teilweise, bietet aber auch eigenes Plugin-System.
+* **Routing:** Eingebaut, mit Schema-basierten Validierungen (z. B. JSON-Schema für Requests).
+* **Performance:** Eines der schnellsten Node.js-Frameworks (Benchmark höher als Express und Koa).
+* **Features:** Eingebaute Unterstützung für JSON-Schema, automatische Swagger-Generierung, bessere TypScript-Integration.
+
+```js
+const fastify = require('fastify')();
+
+fastify.get('/', async (request, reply) => {
+  return { message: 'Hallo von Fastify' };
+});
+
+fastify.listen({ port: 3000 });
+```
+
+---
+
+### Zusammenfassung
+
+* **Express.js:** Einfach, stabil, große Community, aber älter und weniger modern.
+* **Koa:** Moderner mit async/await und Onion-Middleware, benötigt aber zusätzliche Pakete.
+* **Fastify:** Sehr performant, moderne Features, starkes Ökosystem, besonders geeignet für APIs.
+
+**Quellen:**
+
+* [Express.js Dokumentation](https://expressjs.com/de/)
+* [Koa Dokumentation](https://koajs.com/)
+* [Fastify Dokumentation](https://fastify.dev/)
+
+---
 
   **[⬆ Наверх](#top)**
 
-9. ### <a name="9"></a> 
+9. ### <a name="9"></a> Welche Rolle spielt package.json in einem Express-Projekt?
 
+## Rolle von `package.json` in einem Express-Projekt
 
+**Definition:**
+Die Datei `package.json` ist die zentrale Konfigurationsdatei eines Node.js-/Express-Projekts. Sie beschreibt das Projekt, listet Abhängigkeiten auf und steuert Skripte sowie Metadaten.
+
+**Wichtige Inhalte:**
+
+* **Metadaten:** Name, Version, Beschreibung, Autor, Lizenz.
+* **Abhängigkeiten:** Enthält installierte Pakete wie `express`, `pg`, `sequelize`.
+* **Scripts:** Definiert Befehle, z. B. `npm start`, `npm run dev`.
+* **Konfiguration:** Einstellungen für Tools (z. B. ESLint, Jest).
+* **Type-Flag:** `"type": "module"` → ermöglicht die Verwendung von ES Modules (`import/export`).
+
+**Beispiel einer `package.json` für ein Express-Projekt:**
+
+```json
+{
+  "name": "mein-express-projekt",
+  "version": "1.0.0",
+  "description": "Ein einfaches Express-Projekt",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "author": "Sergii",
+  "license": "MIT"
+}
+```
+
+**Verwendung im Projekt:**
+
+```bash
+npm install        # liest Abhängigkeiten aus package.json
+npm start          # führt Script "start" aus
+```
+
+---
+
+### Zusammenfassung
+
+`package.json` steuert Express-Projekte, indem sie Metadaten, Abhängigkeiten, Scripts und Konfigurationen verwaltet. Sie ist notwendig, um ein Projekt reproduzierbar und wartbar zu machen.
+
+**Quellen:**
+
+* [npm – package.json Dokumentation](https://docs.npmjs.com/cli/v10/configuring-npm/package-json)
+* [Node.js Dokumentation](https://nodejs.org/docs/latest/api/packages.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
-10. ### <a name="10"></a> 
+10. ### <a name="10"></a> Was bedeutet „Middleware-basiertes Framework“ bei Express?
 
+## Was bedeutet „Middleware-basiertes Framework“ bei Express?
 
+**Definition:**
+Ein *Middleware-basiertes Framework* bedeutet, dass die gesamte Request-/Response-Verarbeitung in Express über eine **Kette von Middleware-Funktionen** läuft. Jede Middleware erhält Zugriff auf das `req`- (Request) und `res`- (Response) Objekt und entscheidet, ob sie die Anfrage verarbeitet oder an die nächste Middleware weitergibt.
+
+**Merkmale von Middleware in Express:**
+
+* **Signatur:** `(req, res, next)`
+* **Funktion:**
+
+  * Request-Daten analysieren oder verändern
+  * zusätzliche Informationen an `req` anhängen
+  * Antwort über `res` senden
+  * mit `next()` die Kontrolle an die nächste Middleware geben
+
+**Beispiel:**
+
+```js
+import express from 'express';
+
+const app = express();
+
+// 1. Middleware – Logging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next(); // geht weiter zur nächsten Middleware
+});
+
+// 2. Middleware – JSON-Parser
+app.use(express.json());
+
+// 3. Route als Middleware
+app.get('/', (req, res) => {
+  res.send('Hallo Middleware-Welt!');
+});
+
+// 4. Fehlerbehandlung (spezielle Middleware mit 4 Parametern)
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Etwas ist schiefgelaufen!');
+});
+
+app.listen(3000, () => {
+  console.log('Server läuft auf Port 3000');
+});
+```
+
+**Vorteile des Middleware-Ansatzes:**
+
+* **Flexibel:** Beliebig viele Schritte im Request-Lifecycle einbaubar.
+* **Wiederverwendbar:** Viele Drittanbieter-Middleware (z. B. `cors`, `helmet`, `morgan`).
+* **Trennung der Logik:** Authentifizierung, Validierung, Logging, Error-Handling sind klar trennbar.
+
+---
+
+### Zusammenfassung
+
+„Middleware-basiert“ heißt: Express verarbeitet HTTP-Anfragen, indem sie durch eine Kette von Funktionen (Middleware) laufen, die den Request/Response verändern, darauf reagieren oder weiterreichen.
+
+**Quellen:**
+
+* [Express.js – Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
