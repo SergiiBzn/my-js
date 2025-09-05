@@ -6376,62 +6376,1807 @@ expect(res.text.split('\n')[0]).toContain('{'); // grobe Prüfung erster Datensa
 
   **[⬆ Наверх](#top)**
 
-66. ### <a name="66"></a> 
+66. ### <a name="66"></a> Wie verbindet man Express mit einer Datenbank (z. B. MongoDB oder PostgreSQL)?
 
+## Express mit Datenbanken verbinden (PostgreSQL & MongoDB)
+
+### PostgreSQL – direkt mit `pg` (Connection Pool)
+
+```js
+// db/pg.js
+import pg from 'pg';
+export const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+
+// Beispiel-Query (parametrisiert!)
+export async function getUsers() {
+  const { rows } = await pool.query('SELECT id, email FROM users ORDER BY id LIMIT $1', [50]);
+  return rows;
+}
+```
+
+```js
+// app.js
+import express from 'express';
+import { getUsers } from './db/pg.js';
+
+const app = express();
+app.get('/users', async (req, res, next) => {
+  try { res.json(await getUsers()); } catch (e) { next(e); }
+});
+
+export default app;
+```
+
+```js
+// server.js
+import app from './app.js';
+import { pool } from './db/pg.js';
+
+const PORT = process.env.PORT ?? 3000;
+const server = app.listen(PORT, () => console.log(`API auf :${PORT}`));
+
+// Graceful shutdown
+for (const sig of ['SIGINT','SIGTERM']) {
+  process.on(sig, async () => {
+    await pool.end();
+    server.close(() => process.exit(0));
+  });
+}
+```
+
+**Hinweise:** `.env` nutzen, Pool wiederverwenden, immer **parametrisierte Queries** (`$1, $2`).
+
+---
+
+### PostgreSQL – mit **Sequelize** (ORM)
+
+```js
+// db/sequelize.js
+import { Sequelize, DataTypes, Model } from 'sequelize';
+
+export const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres', logging: false
+});
+
+export class User extends Model {}
+User.init({
+  email: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: true } },
+  name:  { type: DataTypes.STRING, allowNull: false }
+}, { sequelize, modelName: 'User', tableName: 'users' });
+
+// Aufruf zum Start
+export async function initDb() {
+  await sequelize.authenticate();
+  await sequelize.sync(); // in Prod: Migrations statt sync()
+}
+```
+
+```js
+// app.js (Ausschnitt)
+import express from 'express';
+import { User } from './db/sequelize.js';
+
+const app = express();
+app.use(express.json());
+
+app.post('/users', async (req, res, next) => {
+  try {
+    const u = await User.create(req.body);
+    res.status(201).json(u);
+  } catch (e) { e.status ??= 400; next(e); }
+});
+
+export default app;
+```
+
+```js
+// server.js
+import app from './app.js';
+import { initDb, sequelize } from './db/sequelize.js';
+
+const PORT = process.env.PORT ?? 3000;
+await initDb();
+const server = app.listen(PORT, () => console.log(`API auf :${PORT}`));
+
+for (const sig of ['SIGINT','SIGTERM']) {
+  process.on(sig, async () => {
+    await sequelize.close();
+    server.close(() => process.exit(0));
+  });
+}
+```
+
+**Hinweise:** Models kapseln, DTO/Validierung vorschalten, Migrations nutzen (Sequelize CLI).
+
+---
+
+### MongoDB – mit **Mongoose**
+
+```js
+// db/mongoose.js
+import mongoose from 'mongoose';
+
+export async function connectMongo() {
+  await mongoose.connect(process.env.MONGO_URI); // z. B. mongodb://localhost:27017/app
+}
+
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true, lowercase: true },
+  name:  { type: String, required: true }
+}, { timestamps: true });
+
+export const UserModel = mongoose.model('User', userSchema);
+```
+
+```js
+// app.js (Ausschnitt)
+import express from 'express';
+import { UserModel } from './db/mongoose.js';
+
+const app = express();
+app.use(express.json());
+
+app.get('/users', async (req, res, next) => {
+  try { res.json(await UserModel.find().limit(50).lean()); }
+  catch (e) { next(e); }
+});
+
+export default app;
+```
+
+```js
+// server.js
+import app from './app.js';
+import { connectMongo } from './db/mongoose.js';
+import mongoose from 'mongoose';
+
+const PORT = process.env.PORT ?? 3000;
+await connectMongo();
+const server = app.listen(PORT, () => console.log(`API auf :${PORT}`));
+
+for (const sig of ['SIGINT','SIGTERM']) {
+  process.on(sig, async () => {
+    await mongoose.connection.close();
+    server.close(() => process.exit(0));
+  });
+}
+```
+
+**Hinweise:** Indexe definieren (`schema.index()`), `.lean()` für schnellere Reads, Validierung/DTOs vorschalten.
+
+---
+
+### Zusammenfassung
+
+* **PostgreSQL:** direkt mit `pg` (parametrisierte Queries, Pool) oder höher mit **Sequelize** (Modelle, Validierung, Migrations).
+* **MongoDB:** **Mongoose** für Schema/Modelle, `.lean()` für Performance.
+* Gemeinsames: `.env`, zentrale DB-Initialisierung, **graceful shutdown**, **Validierung**, Error-Handling, keine String-SQL.
+
+**Quellen:**
+
+* [Node.js – `pg` (PostgreSQL)](https://www.npmjs.com/package/pg) / [PostgreSQL Doku](https://www.postgresql.org/docs/)
+* [Sequelize Offizielle Dokumentation](https://sequelize.org/)
+* [Mongoose Dokumentation](https://mongoosejs.com/)
+* [Express.js Offizielle Dokumentation](https://expressjs.com/de/)
+* [Node.js Dokumentation](https://nodejs.org/docs)
 
 
   **[⬆ Наверх](#top)**
 
-67. ### <a name="67"></a> 
+67. ### <a name="67"></a> Was ist Mongoose und wie wird es in Express verwendet?
 
+## Was ist Mongoose und wie wird es in Express verwendet?
+
+**Definition:**
+Mongoose ist eine **Object Data Modeling (ODM) Bibliothek** für **MongoDB** in Node.js.
+
+* Es definiert **Schemas und Modelle**, ähnlich wie ein ORM (z. B. Sequelize für SQL).
+* Bietet **Validierung, Hooks, Query-APIs**, Middleware, Population (Joins-ähnlich) und erleichtert die Arbeit mit MongoDB in Express-Apps.
+
+---
+
+## Grundprinzip
+
+1. **Schema** definieren → beschreibt die Struktur und Constraints einer Collection.
+2. **Model** erstellen → repräsentiert die Collection in der App.
+3. **CRUD**-Operationen ausführen → mit Mongoose-Methoden statt roher MongoDB-Queries.
+
+---
+
+## Beispiel: Integration in Express
+
+### 1. Setup
+
+```bash
+npm install mongoose
+```
+
+```js
+// db/mongoose.js
+import mongoose from 'mongoose';
+
+export async function connectMongo() {
+  await mongoose.connect(process.env.MONGO_URI, {
+    dbName: 'myapp', // optional, falls nicht in URI
+  });
+  console.log('MongoDB verbunden');
+}
+```
+
+---
+
+### 2. Schema & Modell
+
+```js
+// models/user.model.js
+import mongoose from 'mongoose';
+
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true, lowercase: true },
+  name:  { type: String, required: true },
+  age:   { type: Number, min: 0 },
+}, { timestamps: true }); // createdAt, updatedAt automatisch
+
+export const User = mongoose.model('User', userSchema);
+```
+
+---
+
+### 3. Nutzung in Express-Routen
+
+```js
+// routes/users.routes.js
+import { Router } from 'express';
+import { User } from '../models/user.model.js';
+
+const r = Router();
+
+r.get('/', async (req, res, next) => {
+  try {
+    const users = await User.find().limit(20).lean(); // lean() → schneller, nur Plain-Objekte
+    res.json({ data: users });
+  } catch (e) { next(e); }
+});
+
+r.post('/', async (req, res, next) => {
+  try {
+    const user = await User.create(req.body); // Validierung durch Schema
+    res.status(201).json(user);
+  } catch (e) { e.status ??= 400; next(e); }
+});
+
+export default r;
+```
+
+---
+
+### 4. Server-Start
+
+```js
+// server.js
+import express from 'express';
+import { connectMongo } from './db/mongoose.js';
+import usersRouter from './routes/users.routes.js';
+import mongoose from 'mongoose';
+
+const app = express();
+app.use(express.json());
+app.use('/api/v1/users', usersRouter);
+
+await connectMongo();
+
+const PORT = process.env.PORT ?? 3000;
+const server = app.listen(PORT, () => console.log(`API läuft auf :${PORT}`));
+
+for (const sig of ['SIGINT','SIGTERM']) {
+  process.on(sig, async () => {
+    await mongoose.connection.close();
+    server.close(() => process.exit(0));
+  });
+}
+```
+
+---
+
+## Vorteile von Mongoose
+
+* **Schemas + Validierung** → Typsicherheit für MongoDB.
+* **Middleware/Hooks** (z. B. `pre('save')`, `post('remove')`).
+* **Population** → Referenzen zwischen Collections ähnlich wie Joins.
+* **Virtuals** → Felder, die nicht in DB gespeichert werden (z. B. `fullName`).
+* **Indexes** deklarativ im Schema.
+
+---
+
+### Zusammenfassung
+
+* **Mongoose = ODM für MongoDB** in Node.js/Express.
+* Definiert **Schemas und Models**, die Validierung + Query-APIs bieten.
+* Typische Verwendung in Express:
+
+  * DB-Connection aufbauen,
+  * Models importieren,
+  * in Routen CRUD-Operationen mit Mongoose nutzen.
+
+**Quellen:**
+
+* [Mongoose Offizielle Dokumentation](https://mongoosejs.com/)
+* [Express.js Dokumentation](https://expressjs.com/de/)
+* [MDN – MongoDB Überblick](https://developer.mozilla.org/ru/docs/Glossary/MongoDB)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+68. ### <a name="68"></a> Wie implementiert man ein Repository Pattern mit Express?
+
+## Repository Pattern mit Express implementieren
+
+Ziel
+
+* Controller/Route kennen **nur die Domänen-Methoden** (z. B. `createUser`, `getUserById`), nicht die DB-Details.
+* Austauschbar: PostgreSQL via Sequelize/pg, MongoDB via Mongoose, … durch **Repository-Implementierungen**.
+
+Ordnerstruktur (Beispiel)
+
+```
+src/
+  app.js
+  routes/
+    users.routes.js
+  controllers/
+    users.controller.js
+  services/
+    users.service.js
+  repositories/
+    users.repository.js          // Interface/Abstraktion
+    users.repository.sequelize.js// konkrete Implementierung
+  db/
+    sequelize.js
+  validators/
+    users.schema.js
+```
+
+Repository-Interface (Abstraktion)
+
+```js
+// src/repositories/users.repository.js
+export class UsersRepository {
+  async findById(id)            { throw new Error('not implemented'); }
+  async findAll({ offset, limit }) { throw new Error('not implemented'); }
+  async create(dto)             { throw new Error('not implemented'); }
+  async update(id, dto)         { throw new Error('not implemented'); }
+  async remove(id)              { throw new Error('not implemented'); }
+}
+```
+
+Konkrete Implementierung (Sequelize, PostgreSQL)
+
+```js
+// src/repositories/users.repository.sequelize.js
+import { UsersRepository } from './users.repository.js';
+import { User } from '../db/sequelize.js';
+
+export class SequelizeUsersRepository extends UsersRepository {
+  async findById(id) {
+    return User.findByPk(id);
+  }
+  async findAll({ offset = 0, limit = 10 } = {}) {
+    const { rows, count } = await User.findAndCountAll({
+      offset, limit, order: [['id', 'ASC']],
+      attributes: ['id', 'email', 'name', 'role']
+    });
+    return { rows, count };
+  }
+  async create(dto) {
+    return User.create(dto);
+  }
+  async update(id, dto) {
+    const u = await User.findByPk(id);
+    if (!u) return null;
+    await u.update(dto);
+    return u;
+  }
+  async remove(id) {
+    const u = await User.findByPk(id);
+    if (!u) return 0;
+    await u.destroy();
+    return 1;
+  }
+}
+```
+
+Service-Schicht (Geschäftslogik; nimmt ein Repository entgegen → testbar)
+
+```js
+// src/services/users.service.js
+export class UsersService {
+  constructor(usersRepo) { this.usersRepo = usersRepo; }
+
+  async list({ page = 1, limit = 10 }) {
+    const offset = (Number(page) - 1) * Number(limit);
+    const { rows, count } = await this.usersRepo.findAll({ offset, limit: Number(limit) });
+    return { data: rows, meta: { page: Number(page), limit: Number(limit), total: count } };
+  }
+
+  async get(id) {
+    const user = await this.usersRepo.findById(id);
+    if (!user) {
+      const e = new Error('User nicht gefunden'); e.status = 404; throw e;
+    }
+    return user;
+    }
+
+  async create(dto) {
+    // Beispiel: Business-Validierung
+    // if (!dto.role) dto.role = 'user';
+    return this.usersRepo.create(dto);
+  }
+
+  async update(id, dto) {
+    const u = await this.usersRepo.update(id, dto);
+    if (!u) { const e = new Error('User nicht gefunden'); e.status = 404; throw e; }
+    return u;
+  }
+
+  async remove(id) {
+    const n = await this.usersRepo.remove(id);
+    if (!n) { const e = new Error('User nicht gefunden'); e.status = 404; throw e; }
+    return;
+  }
+}
+```
+
+Controller/Handler (kennt nur Service)
+
+```js
+// src/controllers/users.controller.js
+export class UsersController {
+  constructor(usersService) { this.svc = usersService; }
+
+  list = async (req, res, next) => {
+    try { res.json(await this.svc.list(req.query)); } catch (e) { next(e); }
+  };
+
+  get = async (req, res, next) => {
+    try { res.json(await this.svc.get(req.params.id)); } catch (e) { next(e); }
+  };
+
+  create = async (req, res, next) => {
+    try { const u = await this.svc.create(req.body); res.status(201).json(u); }
+    catch (e) { e.status ??= 400; next(e); }
+  };
+
+  update = async (req, res, next) => {
+    try { res.json(await this.svc.update(req.params.id, req.body)); }
+    catch (e) { e.status ??= 400; next(e); }
+  };
+
+  remove = async (req, res, next) => {
+    try { await this.svc.remove(req.params.id); res.status(204).send(); }
+    catch (e) { next(e); }
+  };
+}
+```
+
+Router (einfache “Composition/DI”)
+
+```js
+// src/routes/users.routes.js
+import { Router } from 'express';
+import { UsersController } from '../controllers/users.controller.js';
+import { UsersService } from '../services/users.service.js';
+import { SequelizeUsersRepository } from '../repositories/users.repository.sequelize.js';
+
+const repo = new SequelizeUsersRepository();
+const svc  = new UsersService(repo);
+const ctrl = new UsersController(svc);
+
+const r = Router();
+r.get('/', ctrl.list);
+r.get('/:id', ctrl.get);
+r.post('/', ctrl.create);
+r.put('/:id', ctrl.update);
+r.delete('/:id', ctrl.remove);
+export default r;
+```
+
+Sequelize-Setup (Beispiel)
+
+```js
+// src/db/sequelize.js
+import { Sequelize, DataTypes, Model } from 'sequelize';
+
+export const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres', logging: false
+});
+
+export class User extends Model {}
+User.init({
+  email: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: true } },
+  name:  { type: DataTypes.STRING, allowNull: false },
+  role:  { type: DataTypes.ENUM('user','admin'), allowNull: false, defaultValue: 'user' }
+}, { sequelize, modelName: 'User', tableName: 'users' });
+```
+
+App einbinden
+
+```js
+// src/app.js
+import express from 'express';
+import usersRouter from './routes/users.routes.js';
+
+const app = express();
+app.use(express.json());
+app.use('/api/v1/users', usersRouter);
+
+// Fehler-Handling (gekürzt)
+app.use((req, res) => res.status(404).json({ error: 'Route nicht gefunden' }));
+app.use((err, req, res, next) => res.status(err.status||500).json({ error: err.message }));
+
+export default app;
+```
+
+Testbarkeit (Unit-Tests ohne DB)
+
+```js
+// Beispielhafte Mock-Repo-Instanz
+class InMemoryUsersRepo {
+  constructor() { this.data = [{ id: 1, email: 'a@b.de', name: 'A', role: 'user' }]; }
+  async findAll() { return { rows: this.data, count: this.data.length }; }
+  async findById(id) { return this.data.find(u => u.id == id) ?? null; }
+  async create(dto) { const u = { id: Date.now(), ...dto }; this.data.push(u); return u; }
+  async update(id, dto) { const i = this.data.findIndex(u => u.id == id); if (i<0) return null; this.data[i] = { ...this.data[i], ...dto }; return this.data[i]; }
+  async remove(id) { const i = this.data.findIndex(u => u.id == id); if (i<0) return 0; this.data.splice(i,1); return 1; }
+}
+// → In Tests: `new UsersService(new InMemoryUsersRepo())`
+```
+
+Optionen/Varianten
+
+* Mehrere Implementierungen (Sequelize/pg/Mongoose) parallel nutzbar; Auswahl per ENV.
+* Transaktionen im Repository kapseln (z. B. `sequelize.transaction(...)`).
+* Mapping/DTOs im Service/Controller, damit das Repository **nur DB-Details** kapselt.
+* Caching (z. B. Redis) als Dekorator ums Repository implementieren.
+
+Zusammenfassung
+
+* Repository Pattern trennt **Datenzugriff** von **Business-Logik** und **HTTP-Schicht**.
+* Express-Controller sprechen Services an; Services nutzen **Repositories** (austauschbar, testbar).
+* Vorteile: bessere Testbarkeit, klare Verantwortlichkeiten, einfacher DB-Switch/Refactor.
+
+Quellen
+
+* Express.js – Routing/Strukturierung: [https://expressjs.com/de/guide/routing.html](https://expressjs.com/de/guide/routing.html)
+* Node.js – Module/Best Practices: [https://nodejs.org/docs](https://nodejs.org/docs)
+* Sequelize – Models/Queries/Transaktionen: [https://sequelize.org/](https://sequelize.org/)
+* MDN Web Docs (RU) – Архитектурные паттерны/слои (allg. Konzepte): [https://developer.mozilla.org/ru/](https://developer.mozilla.org/ru/)
 
 
   **[⬆ Наверх](#top)**
 
-68. ### <a name="68"></a> 
+69. ### <a name="69"></a> Unterschied zwischen SQL- und NoSQL-Integration in Express?
 
+## Unterschied zwischen SQL- und NoSQL-Integration in Express
+
+**1. Datenmodellierung**
+
+* **SQL (z. B. PostgreSQL, MySQL):**
+
+  * Tabellen, Zeilen, Spalten (relational, streng typisiert).
+  * Beziehungen via **Joins**.
+  * Schema muss meist im Voraus definiert werden.
+* **NoSQL (z. B. MongoDB):**
+
+  * Dokumente (JSON/BSON), Collections.
+  * Beziehungen oft durch **Referenzen** oder **Embedded Documents**.
+  * Flexibler, Schema optional (Schema on Read), aber Validierung wird auf App-Ebene benötigt.
+
+---
+
+**2. Bibliotheken in Express**
+
+* **SQL:**
+
+  * Low-Level: [`pg`](https://www.npmjs.com/package/pg) (PostgreSQL), [`mysql2`](https://www.npmjs.com/package/mysql2).
+  * ORM/Query-Builder: Sequelize, TypeORM, Knex.
+* **NoSQL:**
+
+  * MongoDB: [Mongoose](https://mongoosejs.com/) (ODM), `mongodb` Node.js Driver.
+
+---
+
+**3. Verbindungsaufbau**
+SQL (PostgreSQL via `pg`):
+
+```js
+import pg from 'pg';
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+
+app.get('/users', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query('SELECT id, email FROM users');
+    res.json(rows);
+  } catch (e) { next(e); }
+});
+```
+
+NoSQL (MongoDB via Mongoose):
+
+```js
+import mongoose from 'mongoose';
+await mongoose.connect(process.env.MONGO_URI);
+
+const User = mongoose.model('User', new mongoose.Schema({
+  email: { type: String, required: true, unique: true }
+}));
+
+app.get('/users', async (req, res, next) => {
+  try {
+    const users = await User.find().lean();
+    res.json(users);
+  } catch (e) { next(e); }
+});
+```
+
+---
+
+**4. Transaktionen & Konsistenz**
+
+* **SQL:** ACID-Transaktionen out of the box (`BEGIN`, `COMMIT`, `ROLLBACK`).
+* **NoSQL (MongoDB):** Lange Zeit keine echten Multi-Dokument-Transaktionen, inzwischen ab MongoDB 4.0 verfügbar, aber teurer.
+
+---
+
+**5. Querying**
+
+* **SQL:** deklarative Abfragen (JOIN, GROUP BY, Window Functions).
+* **NoSQL:** flexible JSON-Queries, Aggregation-Pipelines, weniger stark typisiert.
+
+---
+
+**6. Skalierung**
+
+* **SQL:** vertikale Skalierung (eine starke DB), horizontale Sharding-Ansätze sind komplex.
+* **NoSQL:** horizontale Skalierung/Sharding eingebaut (z. B. MongoDB).
+
+---
+
+**7. Typische Einsatzszenarien**
+
+* **SQL:** strukturierte Daten, viele Beziehungen, strenge Konsistenz (Banking, ERP).
+* **NoSQL:** flexible/halb-strukturierte Daten, schnelle Iteration, hohe Skalierbarkeit (E-Commerce, IoT, Logging).
+
+---
+
+### Zusammenfassung
+
+* **SQL in Express:** strukturierte Daten mit Joins, Anbindung via `pg`/ORM, ACID-Transaktionen.
+* **NoSQL in Express:** flexible JSON-Dokumente, Anbindung via `mongoose`/Driver, horizontale Skalierung leichter.
+* Wahl hängt ab von: **Datenstruktur**, **Konsistenzanforderungen**, **Skalierung** und **Entwicklungsgeschwindigkeit**.
+
+**Quellen:**
+
+* [PostgreSQL Dokumentation](https://www.postgresql.org/docs/)
+* [Mongoose Dokumentation](https://mongoosejs.com/)
+* [Express.js Offizielle Dokumentation](https://expressjs.com/de/)
+* [MDN (RU) – NoSQL/SQL Überblick](https://developer.mozilla.org/ru/docs/Glossary/NoSQL)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+70. ### <a name="70"></a> Wie arbeitet man mit ORMs (z. B. Sequelize, Prisma) in Express?
+
+## Arbeiten mit ORMs in Express (Sequelize & Prisma)
+
+**Ziele:** Datenzugriff kapseln, Validierung/Relationen nutzen, Migrations/Transaktionen sicher anwenden, saubere Schichten (Routes → Controller → Service/Repository → ORM).
+
+---
+
+### Sequelize – Setup & Grundmuster
+
+```js
+// db/sequelize.js
+import { Sequelize, DataTypes, Model } from 'sequelize';
+
+export const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  logging: false
+});
+
+export class User extends Model {}
+User.init({
+  email: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: true } },
+  name:  { type: DataTypes.STRING, allowNull: false }
+}, { sequelize, modelName: 'User', tableName: 'users' });
+
+export async function initDb() {
+  await sequelize.authenticate();
+  await sequelize.sync(); // In Produktion: Migrations statt sync()
+}
+```
+
+```js
+// routes/users.routes.js
+import { Router } from 'express';
+import { User } from '../db/sequelize.js';
+
+const r = Router();
+
+r.get('/', async (req, res, next) => {
+  try {
+    const users = await User.findAll({ attributes: ['id', 'email', 'name'], order: [['id', 'ASC']] });
+    res.json({ data: users });
+  } catch (e) { next(e); }
+});
+
+r.post('/', async (req, res, next) => {
+  try {
+    const u = await User.create(req.body); // Sequelize validiert nach Model-Definition
+    res.status(201).json(u);
+  } catch (e) { e.status ??= 400; next(e); }
+});
+
+export default r;
+```
+
+**Transaktionen (z. B. zwei Inserts atomar):**
+
+```js
+// services/user.service.js
+import { sequelize } from '../db/sequelize.js';
+import { User } from '../db/sequelize.js';
+
+export async function createUserWithAudit(dto) {
+  return sequelize.transaction(async (t) => {
+    const user = await User.create(dto, { transaction: t });
+    await sequelize.query(
+      'INSERT INTO audit_log(action, entity, entity_id) VALUES ($1,$2,$3)',
+      { bind: ['CREATE', 'User', user.id], transaction: t }
+    );
+    return user;
+  });
+}
+```
+
+**Migrations (Hinweis):** In Produktion die Sequelize-CLI nutzen (`sequelize-cli db:migrate`) statt `sync()`.
+
+---
+
+### Prisma – Setup & Grundmuster
+
+* Prisma generiert einen **TypeScript/JS-Client** aus dem Datenmodell (in `schema.prisma`).
+* Starke Typisierung der Queries (auch in JS nützlich durch klare API), sehr gute DX.
+
+```js
+// db/prisma.js
+import { PrismaClient } from '@prisma/client';
+export const prisma = new PrismaClient();
+```
+
+```js
+// routes/users.prisma.routes.js
+import { Router } from 'express';
+import { prisma } from '../db/prisma.js';
+
+const r = Router();
+
+r.get('/', async (req, res, next) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: { id: true, email: true, name: true },
+      orderBy: { id: 'asc' }
+    });
+    res.json({ data: users });
+  } catch (e) { next(e); }
+});
+
+r.post('/', async (req, res, next) => {
+  try {
+    const u = await prisma.user.create({ data: req.body });
+    res.status(201).json(u);
+  } catch (e) { e.status ??= 400; next(e); }
+});
+
+export default r;
+```
+
+**Transaktionen (Prisma):**
+
+```js
+// services/user.prisma.service.js
+import { prisma } from '../db/prisma.js';
+
+export async function createUserWithAudit(dto) {
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({ data: dto });
+    await tx.audit_log.create({ data: { action: 'CREATE', entity: 'User', entityId: user.id } });
+    return user;
+  });
+}
+```
+
+---
+
+### Gemeinsame Best Practices (beide ORMs)
+
+* **Schichten trennen:** Controller dünn halten, Business-Logik in Services, DB-Zugriff in Repository/Service.
+* **Validierung/DTOs:** Vor ORM-Call Eingaben prüfen (z. B. Zod/Joi).
+* **Projektion:** Nur benötigte Felder selektieren (`attributes` bei Sequelize / `select` bei Prisma).
+* **Pagination:** Offset/Limit oder Cursor/Keyset; keine Full-Table-Reads.
+* **Transaktionen:** Für zusammengehörige Änderungen zwingend nutzen.
+* **Migrations:** Schema-Änderungen nur über Migrations-Tool des ORM.
+* **Fehlerbehandlung:** Ein zentraler Error-Handler; ORM-Fehler (Unique, FK) in sinnvolle HTTP-Codes mappen (`409`, `422`).
+* **Security:** Keine String-Konkatenation; bei Roh-SQL **Bindings** verwenden.
+* **Tests:** DB-Zugriff mocken (Repository-Pattern) oder Test-DB/Transactions je Test zurückrollen.
+
+---
+
+### Wann welches ORM?
+
+* **Sequelize:** Reif, flexibel, breite Community; gut, wenn man aktiv mit Models/Associations arbeitet oder Raw-SQL mischen will.
+* **Prisma:** Sehr produktiv, klares API, starke Typen, schnelle Migrations; ideal für Greenfield-Projekte und klare Domänenmodelle.
+
+---
+
+### Zusammenfassung
+
+* In Express binden ORMs wie **Sequelize** und **Prisma** DB-Zugriff sauber ein: Models/Client, Validierung, Transaktionen, Migrations.
+* Controller bleiben schlank; **Services/Repositories** kapseln ORM-Logik.
+* Nutzen: **Konsistenz, Sicherheit, Wartbarkeit** und klare API-Verträge (DTOs/Validierung).
+
+**Quellen:**
+
+* [Express.js Offizielle Dokumentation](https://expressjs.com/de/)
+* [Node.js Dokumentation](https://nodejs.org/docs)
+* [PostgreSQL Dokumentation](https://www.postgresql.org/docs/)
+* [Sequelize Offizielle Dokumentation](https://sequelize.org/)
+* [MDN Web Docs (RU) – HTTP/REST-Grundlagen](https://developer.mozilla.org/ru/)
 
 
   **[⬆ Наверх](#top)**
 
-69. ### <a name="69"></a> 
+71. ### <a name="71"></a> Wie behandelt man Transaktionen in Express?
 
+## Transaktionen in Express behandeln
+
+Grundidee
+
+* Transaktionen gehören in die **Service-/Repository-Schicht**, nicht in die Controller.
+* Bei Fehlern: **Rollback**, bei Erfolg: **Commit**.
+* Einheitliches Error-Handling: DB-Fehler (Unique, FK, Deadlocks) in passende HTTP-Codes mappen.
+
+---
+
+Sequelize (PostgreSQL): „managed transaction“
+
+```js
+// services/order.service.js
+import { sequelize } from '../db/sequelize.js';
+import { Order, OrderItem, Product } from '../db/models.js';
+
+export async function createOrder(dto) {
+  return sequelize.transaction(async (t) => {
+    const order = await Order.create({ userId: dto.userId }, { transaction: t });
+
+    for (const it of dto.items) {
+      const product = await Product.findByPk(it.productId, { transaction: t });
+      if (!product) {
+        const e = new Error('Produkt nicht gefunden'); e.status = 404; throw e;
+      }
+      await OrderItem.create({
+        orderId: order.id, productId: product.id, qty: it.qty
+      }, { transaction: t });
+    }
+
+    return order; // Commit automatisch bei erfolgreichem Abschluss
+  });
+}
+```
+
+Sequelize: „unmanaged transaction“ (manuelles `commit`/`rollback`)
+
+```js
+import { sequelize } from '../db/sequelize.js';
+import { Payment } from '../db/models.js';
+
+export async function settlePayment(dto) {
+  const t = await sequelize.transaction({ isolationLevel: 'READ COMMITTED' });
+  try {
+    const p = await Payment.create(dto, { transaction: t });
+    // ... weitere DB-Calls
+    await t.commit();
+    return p;
+  } catch (err) {
+    await t.rollback();
+    throw err;
+  }
+}
+```
+
+---
+
+Node-Postgres (`pg`): klassische Transaktion
+
+```js
+// services/user.service.js
+import pg from 'pg';
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+
+export async function registerUser({ email, name }) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: [user] } = await client.query(
+      'INSERT INTO users(email,name) VALUES($1,$2) RETURNING id,email,name',
+      [email, name]
+    );
+    await client.query(
+      'INSERT INTO audit_log(action, entity, entity_id) VALUES ($1,$2,$3)',
+      ['CREATE', 'User', user.id]
+    );
+    await client.query('COMMIT');
+    return user;
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+```
+
+Isolation Level in PostgreSQL steuern
+
+```js
+await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ'); // oder SERIALIZABLE/READ COMMITTED
+```
+
+---
+
+Prisma: Transaktion mit Callback
+
+```js
+// services/invoice.service.js
+import { prisma } from '../db/prisma.js';
+
+export async function createInvoice(dto) {
+  return prisma.$transaction(async (tx) => {
+    const inv = await tx.invoice.create({ data: { customerId: dto.customerId } });
+    for (const line of dto.lines) {
+      await tx.invoiceLine.create({ data: { invoiceId: inv.id, ...line } });
+    }
+    return inv; // Commit bei Erfolg
+  });
+}
+```
+
+---
+
+Pattern: Transaktion in Service nutzen (Controller bleibt schlank)
+
+```js
+// controllers/order.controller.js
+import * as svc from '../services/order.service.js';
+
+export async function create(req, res, next) {
+  try {
+    const order = await svc.createOrder(req.body);
+    res.status(201).json(order);
+  } catch (e) { next(e); }
+}
+```
+
+---
+
+Tipps & Best Practices
+
+* **Transaktionsgrenzen klein** halten (nur notwendige DB-Operationen).
+* **Retry** bei `SERIALIZATION_FAILURE`/Deadlocks (exponentielles Backoff).
+* **Konsistente Fehlercodes**: z. B. Unique-Verletzung → `409 Conflict`, Validierungsfehler → `422`.
+* Bei Sequelize Raw-SQL stets mit **Bindings** arbeiten, in Transaktion: `{ transaction: t }`.
+* Keine per-Request-Auto-Transaktion als globale Middleware erzwingen; explizit pro Use-Case im Service ist klarer/testbarer.
+* In Produktion Migrations nutzen (keine Schema-Änderungen innerhalb Business-Transaktionen).
+
+---
+
+Zusammenfassung
+
+* Transaktionen kapselt man in der **Service-Schicht**; Controller ruft nur an.
+* Sequelize/Prisma bieten bequeme **Callback-Transaktionen**; `pg` nutzt klassisches `BEGIN/COMMIT/ROLLBACK`.
+* Bei Fehlern Rollback, bei Erfolg Commit; Fehler sauber mappen und ggf. **Retries** vorsehen.
+
+Quellen
+
+* Express.js Offizielle Dokumentation: [https://expressjs.com/de/](https://expressjs.com/de/)
+* Node.js Dokumentation (Process/Streams/DB-Basics): [https://nodejs.org/docs](https://nodejs.org/docs)
+* PostgreSQL Dokumentation (Transaktionen/Isolation): [https://www.postgresql.org/docs/](https://www.postgresql.org/docs/)
+* Sequelize Offizielle Dokumentation (Transaction API): [https://sequelize.org/](https://sequelize.org/)
+* Prisma Dokumentation (`$transaction`): [https://www.prisma.io/docs/](https://www.prisma.io/docs/)
 
 
   **[⬆ Наверх](#top)**
 
-70. ### <a name="70"></a> 
+72. ### <a name="72"></a> Wie implementiert man ein Logging-System in Express?
 
+## Logging in Express: Strategien & Umsetzung
+
+Ziele
+
+* **Request-Logs** (Methode, URL, Dauer, Status).
+* **Strukturierte Logs** (JSON) für Produktion; **lesbar** in Entwicklung.
+* **Levels** (debug, info, warn, error), **Error-Stacktraces**, **Korrelation** (Request-ID).
+* **Rotation/Transporte** (Datei, Konsole, ggf. APM/ELK).
+
+---
+
+### 1) Schnellstart: `morgan` (HTTP-Access-Logs)
+
+```js
+import express from 'express';
+import morgan from 'morgan';
+
+const app = express();
+
+// Dev: farbig/kurz; Prod: kombiniertes Format
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+app.listen(3000, () => console.log('Server auf 3000'));
+```
+
+* Gut für **Request-Logs**; weniger für App-Logs/Strukturierung.
+
+---
+
+### 2) Strukturierte Logs mit **pino** / **pino-http** (empfohlen Prod)
+
+```js
+import express from 'express';
+import pino from 'pino';
+import pinoHttp from 'pino-http';
+
+const logger = pino({
+  level: process.env.LOG_LEVEL ?? 'info',
+  transport: process.env.NODE_ENV === 'production' ? undefined : { target: 'pino-pretty' }
+});
+
+const app = express();
+app.use(pinoHttp({ logger, customProps: (req) => ({ requestId: req.id }) }));
+
+app.get('/work', (req, res) => {
+  req.log.info({ step: 'start' }, 'processing'); // pro-Request Logger
+  res.json({ ok: true });
+});
+
+// Zentraler Error-Handler loggt Fehler
+app.use((err, req, res, next) => {
+  req.log?.error({ err }, 'unhandled error');
+  res.status(500).json({ error: 'Internal error' });
+});
+
+app.listen(3000, () => logger.info('Server auf 3000'));
+```
+
+* **JSON-Logs** (maschinenlesbar), sehr schnell, Request-gebundener Logger.
+
+---
+
+### 3) Alternativ: **winston** (Transporte/Rotation)
+
+```js
+import express from 'express';
+import winston from 'winston';
+import 'winston-daily-rotate-file';
+
+const transports = [
+  new winston.transports.Console({ level: 'info' }),
+  new winston.transports.DailyRotateFile({
+    dirname: 'logs', filename: 'app-%DATE%.log', datePattern: 'YYYY-MM-DD', maxFiles: '14d',
+    level: 'info'
+  })
+];
+
+export const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL ?? 'info',
+  format: winston.format.json(),
+  transports
+});
+
+const app = express();
+
+app.use((req, res, next) => {
+  const start = process.hrtime.bigint();
+  res.on('finish', () => {
+    const durMs = Number((process.hrtime.bigint() - start) / 1000000n);
+    logger.info({ method: req.method, url: req.originalUrl, status: res.statusCode, durMs });
+  });
+  next();
+});
+
+app.get('/users', (req, res) => res.json([]));
+
+app.use((err, req, res, next) => {
+  logger.error({ err, path: req.originalUrl });
+  res.status(500).json({ error: 'Internal error' });
+});
+
+app.listen(3000, () => logger.info('Server auf 3000'));
+```
+
+* Flexible **Transporte** (Konsole, Datei, Rotate, HTTP).
+
+---
+
+### 4) Request-ID / Korrelation (Tracing-Light)
+
+```js
+import { randomUUID } from 'node:crypto';
+
+function requestId() {
+  return (req, res, next) => {
+    req.id = req.headers['x-request-id'] || randomUUID();
+    res.setHeader('X-Request-Id', req.id);
+    next();
+  };
+}
+
+// Mit pino-http kombinieren:
+app.use(requestId());
+```
+
+* Jede Logzeile enthält `requestId` → einfaches Suchen in Logs.
+
+---
+
+### 5) Best Practices
+
+* **Dev:** pretty-Logs (pino-pretty), **Prod:** JSON (maschinenlesbar).
+* **Levels:** `debug` für Detail, `info` normal, `warn` erwartbare Probleme, `error` unerwartet.
+* **Kein PII** loggen (Passwörter, Tokens, personenbezogene Daten).
+* **Error-Logs** mit Stacktrace (aber keine sensiblen Daten an Client).
+* **Rotation**/Retention konfigurieren (Dateisystem) oder **Stdout** an Log-Aggregation (Docker/K8s).
+* **Health/Noise** dämpfen (z. B. `/health` nur auf `debug`).
+* **Korrelation**: `X-Request-Id`, ggf. Trace-Header (W3C Trace Context).
+
+---
+
+### 6) Kombination mit Middleware/Fehler-Handling
+
+* Früh `app.use(loggerMiddleware)` registrieren → alle Requests erfasst.
+* **Zentraler Error-Handler** protokolliert `err` und liefert JSON-Fehler.
+* Für **langsame** Requests Warnung (z. B. `durMs > 1000`).
+
+---
+
+### Zusammenfassung
+
+* Für HTTP-Access: **morgan** (einfach).
+* Für strukturierte, schnelle Prod-Logs: **pino/pino-http** (JSON, pretty in Dev).
+* Für vielfältige Transporte/Rotation: **winston**.
+* Essentials: **Levels**, **Request-ID**, **Error-Logs**, **keine sensiblen Daten**, **Rotation/Aggregation**.
+
+**Quellen:**
+
+* Express.js – Best Practices: [https://expressjs.com/de/advanced/best-practice-performance.html](https://expressjs.com/de/advanced/best-practice-performance.html)
+* Node.js Dokumentation (Console/Streams/Process): [https://nodejs.org/docs](https://nodejs.org/docs)
+* morgan (npm): [https://www.npmjs.com/package/morgan](https://www.npmjs.com/package/morgan)
+* pino & pino-http: [https://www.npmjs.com/package/pino](https://www.npmjs.com/package/pino) , [https://www.npmjs.com/package/pino-http](https://www.npmjs.com/package/pino-http)
+* winston: [https://www.npmjs.com/package/winston](https://www.npmjs.com/package/winston)
 
 
   **[⬆ Наверх](#top)**
 
-71. ### <a name="71"></a> 
+73. ### <a name="73"></a> Wie integriert man Caching (z. B. Redis) in Express?
 
+## Caching in Express mit Redis integrieren
+
+Ziele
+
+* Häufige, teure Responses zwischenspeichern (Reads beschleunigen).
+* TTL/Invalidierung bei Mutationen.
+* Ebenen: HTTP-Cache-Header + Server-seitiger Cache (Redis).
+
+---
+
+### 1) Redis-Client verbinden (ESM)
+
+```js
+// cache/redis.js
+import Redis from 'ioredis';
+
+export const redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+  lazyConnect: true,
+  maxRetriesPerRequest: 3
+});
+
+export async function connectRedis() {
+  await redis.connect?.(); // ioredis verbindet sonst eager
+  redis.on('error', (e) => console.error('Redis error:', e));
+}
+```
+
+Server-Start:
+
+```js
+// server.js
+import express from 'express';
+import { connectRedis } from './cache/redis.js';
+import routes from './routes.js';
+
+const app = express();
+app.use(express.json());
+app.use(routes);
+
+await connectRedis();
+
+const PORT = process.env.PORT ?? 3000;
+app.listen(PORT, () => console.log(`Server auf :${PORT}`));
+```
+
+---
+
+### 2) Einfache Response-Caching-Middleware (GET)
+
+```js
+// cache/middleware.js
+import { redis } from './redis.js';
+
+export function cache({ ttlSec = 60, keyFn } = {}) {
+  return async (req, res, next) => {
+    try {
+      const key = keyFn ? keyFn(req) : `cache:${req.method}:${req.originalUrl}`;
+      if (req.method !== 'GET') return next();
+
+      const hit = await redis.get(key);
+      if (hit) {
+        res.set('X-Cache', 'HIT');
+        return res.type('application/json').send(hit);
+      }
+
+      // Response abfangen
+      const originalJson = res.json.bind(res);
+      res.json = (body) => {
+        // nur serialisierbare Bodies cachen
+        Promise.resolve(redis.setex(key, ttlSec, JSON.stringify(body))).catch(()=>{});
+        res.set('X-Cache', 'MISS');
+        return originalJson(body);
+      };
+
+      next();
+    } catch (e) {
+      next(); // bei Cache-Problemen normal weiter
+    }
+  };
+}
+```
+
+Verwendung pro Route:
+
+```js
+// routes.js
+import { Router } from 'express';
+import { cache } from './cache/middleware.js';
+import { getUsersFromDb, createUserInDb, updateUserInDb, deleteUserInDb } from './svc.js';
+
+const r = Router();
+
+r.get('/api/v1/users',
+  cache({ ttlSec: 120, keyFn: (req) => `users:list:${req.query.page ?? 1}:${req.query.limit ?? 10}` }),
+  async (req, res, next) => {
+    try {
+      const data = await getUsersFromDb(req.query);
+      res.json({ data });
+    } catch (e) { next(e); }
+  }
+);
+
+export default r;
+```
+
+---
+
+### 3) Cache-Invalidierung bei Mutationen (Write-Through / Delete-Keys)
+
+```js
+// routes.js (fortgesetzt)
+import { redis } from './cache/redis.js';
+
+r.post('/api/v1/users', async (req, res, next) => {
+  try {
+    const created = await createUserInDb(req.body);
+    // betroffene Listen-Keys invalidieren (einfach: per Muster löschen)
+    const keys = await redis.keys('users:list:*');
+    if (keys.length) await redis.del(keys);
+    res.status(201).json(created);
+  } catch (e) { next(e); }
+});
+
+r.put('/api/v1/users/:id', async (req, res, next) => {
+  try {
+    const updated = await updateUserInDb(req.params.id, req.body);
+    await redis.del(`users:detail:${req.params.id}`);
+    const keys = await redis.keys('users:list:*');
+    if (keys.length) await redis.del(keys);
+    res.json(updated);
+  } catch (e) { next(e); }
+});
+
+r.get('/api/v1/users/:id',
+  cache({ ttlSec: 300, keyFn: (req) => `users:detail:${req.params.id}` }),
+  async (req, res, next) => {
+    try {
+      const user = await getUserFromDb(req.params.id);
+      if (!user) return res.status(404).json({ error: 'not found' });
+      res.json(user);
+    } catch (e) { next(e); }
+  }
+);
+
+r.delete('/api/v1/users/:id', async (req, res, next) => {
+  try {
+    await deleteUserInDb(req.params.id);
+    await redis.del(`users:detail:${req.params.id}`);
+    const keys = await redis.keys('users:list:*');
+    if (keys.length) await redis.del(keys);
+    res.status(204).send();
+  } catch (e) { next(e); }
+});
+```
+
+Hinweise:
+
+* `KEYS` ist O(N) – für große Keyspaces besser **Tagging/Set-basierte** Invalidierung nutzen (siehe unten).
+
+---
+
+### 4) Effizientere Invalidierung mit Tagging
+
+```js
+// cache/tags.js
+import { redis } from './redis.js';
+
+// Tag registrieren
+export async function tagAdd(tag, key) {
+  await redis.sadd(`tag:${tag}`, key);
+}
+// Alle Keys eines Tags löschen
+export async function tagInvalidate(tag) {
+  const keys = await redis.smembers(`tag:${tag}`);
+  if (keys.length) await redis.del(...keys);
+  await redis.del(`tag:${tag}`);
+}
+```
+
+Beim Cachen zusätzlich Tag verknüpfen:
+
+```js
+// im cache() innerhalb von res.json:
+await Promise.all([
+  redis.setex(key, ttlSec, JSON.stringify(body)),
+  tagAdd('users:list', key)
+]);
+```
+
+Bei Mutationen:
+
+```js
+await tagInvalidate('users:list');
+await redis.del(`users:detail:${id}`);
+```
+
+---
+
+### 5) HTTP-Caching ergänzen (kostenloser Speed für GET)
+
+```js
+// einfache ETag/Cache-Control
+import crypto from 'node:crypto';
+
+function withEtag(req, res, body) {
+  const etag = `W/"${crypto.createHash('sha1').update(JSON.stringify(body)).digest('hex')}"`;
+  res.set('ETag', etag);
+  res.set('Cache-Control', 'public, max-age=60');
+  if (req.headers['if-none-match'] === etag) return res.status(304).end();
+  res.json(body);
+}
+```
+
+Verwendung:
+
+```js
+r.get('/api/v1/public', async (req, res, next) => {
+  try {
+    const body = await loadPublicData();
+    return withEtag(req, res, body);
+  } catch (e) { next(e); }
+});
+```
+
+---
+
+### 6) Best Practices
+
+* Key-Design: klarer Namensraum (`app:env:resource:params`), kurze TTLs.
+* Invalidierung: Ereignis-getrieben (nach Writes), Sets/Tags statt `KEYS`.
+* Nur **idempotente GETs** cachen; POST/PUT/PATCH/DELETE niemals cachen.
+* Response-Größe beachten; große Payloads evtl. komprimieren (`compression`).
+* Fehlerfälle: Bei Redis-Ausfall App weiterlaufen lassen (Cache optional).
+* Sensible Daten nicht im Cache persistieren oder verschlüsseln/kurze TTL.
+* In verteilten Systemen: Redis als **Shared Cache** (nicht Memory-Cache).
+
+---
+
+### Zusammenfassung
+
+* Redis per Client (z. B. ioredis) anbinden, GET-Responses mit TTL cachen.
+* Cache-Middleware vor teuren Handlern verwenden; bei Mutationen gezielt **invalidieren**.
+* Für große Projekte: Tagging/Set-basierte Invalidierung statt `KEYS`.
+* HTTP-Caching (ETag/Cache-Control) ergänzen; Cache bleibt optional bei Ausfall.
+
+**Quellen:**
+
+* Express.js – Best Practices: [https://expressjs.com/de/advanced/best-practice-performance.html](https://expressjs.com/de/advanced/best-practice-performance.html)
+* Node.js Dokumentation (HTTP/Streams/Krypto): [https://nodejs.org/docs](https://nodejs.org/docs)
+* MDN (RU) – HTTP Caching (ETag/Cache-Control): [https://developer.mozilla.org/ru/docs/Web/HTTP/Caching](https://developer.mozilla.org/ru/docs/Web/HTTP/Caching)
+* ioredis (npm): [https://www.npmjs.com/package/ioredis](https://www.npmjs.com/package/ioredis)
+* Redis Dokumentation: [https://redis.io/docs/](https://redis.io/docs/)
 
 
   **[⬆ Наверх](#top)**
 
-72. ### <a name="72"></a> 
+74. ### <a name="74"></a> Wie geht man mit Verbindungen zu externen APIs um?
 
+## Umgang mit Verbindungen zu externen APIs in Express
+
+Ziele
+
+* Stabilität (Timeouts, Retries, Circuit Breaker)
+* Sicherheit (Secrets in ENV, TLS, Input/Output-Validierung)
+* Performance (Keep-Alive, Caching, Pagination, Streaming)
+* Beobachtbarkeit (Logs, Metriken)
+
+HTTP-Client wählen
+
+* `fetch` (ab Node 18 eingebaut) oder `axios`.
+* Eigener `Agent` (Keep-Alive) für Performance.
+
+Beispiel: Fetch mit Timeout, Retry (exponentiell), AbortController
+
+```js
+// src/lib/http.js
+import { setTimeout as delay } from 'node:timers/promises';
+import https from 'node:https';
+
+const agent = new https.Agent({ keepAlive: true, maxSockets: 50 });
+
+export async function httpGetJson(url, {
+  headers = {}, timeoutMs = 5000, retries = 2, backoffMs = 300
+} = {}) {
+  for (let attempt = 0; ; attempt++) {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const res = await fetch(url, { headers, agent, signal: controller.signal });
+      clearTimeout(t);
+
+      if (!res.ok) {
+        // 5xx retrybar, 429 abhängig von Policy
+        if (attempt < retries && (res.status >= 500 || res.status === 429)) {
+          await delay(backoffMs * 2 ** attempt);
+          continue;
+        }
+        const text = await res.text().catch(() => '');
+        const err = new Error(`Upstream ${res.status}: ${text.slice(0,200)}`);
+        err.status = 502; // Bad Gateway in eigener API
+        throw err;
+      }
+      return await res.json();
+    } catch (e) {
+      clearTimeout(t);
+      if (e.name === 'AbortError') {
+        if (attempt < retries) { await delay(backoffMs * 2 ** attempt); continue; }
+        const err = new Error('Upstream timeout');
+        err.status = 504; // Gateway Timeout
+        throw err;
+      }
+      // Netzwerkfehler retryen
+      if (attempt < retries) { await delay(backoffMs * 2 ** attempt); continue; }
+      e.status ??= 502;
+      throw e;
+    }
+  }
+}
+```
+
+Circuit Breaker (einfach)
+
+```js
+// src/lib/circuit.js
+const state = { failCount: 0, openUntil: 0 };
+
+export async function withCircuit(fn, { threshold = 5, coolOffMs = 10000 } = {}) {
+  const now = Date.now();
+  if (state.openUntil > now) {
+    const e = new Error('Upstream unavailable (circuit open)');
+    e.status = 503;
+    throw e;
+  }
+  try {
+    const res = await fn();
+    state.failCount = 0;
+    return res;
+  } catch (e) {
+    state.failCount++;
+    if (state.failCount >= threshold) {
+      state.openUntil = now + coolOffMs;
+    }
+    throw e;
+  }
+}
+```
+
+Express-Route mit Upstream-Call, Fehler-Mapping, Caching-Header
+
+```js
+// src/routes/weather.routes.js
+import { Router } from 'express';
+import { httpGetJson } from '../lib/http.js';
+import { withCircuit } from '../lib/circuit.js';
+
+const r = Router();
+
+r.get('/weather', async (req, res, next) => {
+  try {
+    const city = encodeURIComponent(req.query.city ?? 'Leipzig');
+    const url = `https://api.example.com/weather?city=${city}`;
+    const data = await withCircuit(() => httpGetJson(url, {
+      headers: { 'X-Api-Key': process.env.WEATHER_API_KEY },
+      timeoutMs: 4000, retries: 2
+    }));
+
+    // nur benötigte Felder zurückgeben (Projektion)
+    const dto = { temp: data.temp_c, cond: data.condition };
+    res.set('Cache-Control', 'public, max-age=60'); // HTTP-Caching
+    res.json(dto);
+  } catch (e) {
+    // Einheitliche Upstream-Fehler → 502/503/504
+    next(e);
+  }
+});
+
+export default r;
+```
+
+Rate-Limiting & Backoff Respektieren
+
+* Auf `429` mit `Retry-After` reagieren (siehe Retry-Logik).
+* Eigene Limits mit `express-rate-limit` auf den Proxy-Routen.
+
+Auth & Secrets
+
+* API-Keys/OAuth-Tokens **nur** aus `process.env`.
+* Bei OAuth 2.0: Token-Refresh getrennt kapseln, Tokens sicher im Server-Speicher/DB.
+
+Input/Output-Validierung (z. B. Zod)
+
+```js
+import { z } from 'zod';
+const qSchema = z.object({ city: z.string().min(1) });
+
+r.get('/weather', async (req, res, next) => {
+  try {
+    const { city } = qSchema.parse(req.query);
+    // …
+  } catch (e) { e.status = 400; next(e); }
+});
+```
+
+Streaming externer APIs (große Antworten)
+
+* `pipeline(reqUpstream, res)` oder `ReadableStream` → geringer RAM-Verbrauch.
+* Bei JSON-Streams (NDJSON) chunkweise weiterreichen und `drain` beachten.
+
+Caching (Server-seitig, z. B. Redis)
+
+* Responses von teuren/oft gleichen Upstream-Calls mit TTL zwischenspeichern.
+* Invalidation nach Geschäftsregeln.
+
+Observability
+
+* Strukturierte Logs (pino) inkl. Upstream-URL, Dauer, Status.
+* Metriken (Counter/Histogram) für Latenz/Fehlerquote (z. B. prom-client).
+
+Sicherheit
+
+* TLS erzwingen (nur `https`-Endpoints).
+* Keine sensiblen Upstream-Antworten direkt weiterleiten; nur whitelisten/projizieren.
+* Zeit-/Größenlimits: `express.json({ limit: '1mb' })`.
+
+Best Practices (Kurz)
+
+* **Timeouts & Retries** (nur idempotente GET/HEAD/PUT).
+* **Circuit Breaker** gegen Kaskadierung von Ausfällen.
+* **Keep-Alive Agent** für Throughput.
+* **Validierung & Projektion** der Daten.
+* **HTTP-Cache-Header** + optional Redis.
+* **Sauberes Fehler-Mapping**: 502/503/504 für Upstream-Probleme.
+* **Logs/Metriken** pro Upstream-Call.
+
+Zusammenfassung
+
+* Externe API-Aufrufe in Helper/Service kapseln mit **Timeout, Retry, Circuit Breaker, Keep-Alive**.
+* Ergebnisse **validieren, projizieren, cachen**; Fehler sauber in **5xx-Gateway-Codes** mappen.
+* **Secrets aus ENV**, strukturiertes **Logging** und **Metriken** für Stabilität.
+
+Quellen
+
+* Node.js – HTTPS/HTTP/AbortController/Agent: [https://nodejs.org/docs](https://nodejs.org/docs)
+* Express.js – Best Practices (Performance/Security): [https://expressjs.com/de/advanced/best-practice-performance.html](https://expressjs.com/de/advanced/best-practice-performance.html)
+* MDN Web Docs (RU) – Fetch/Abort/HTTP-Caching/Statuscodes: [https://developer.mozilla.org/ru/](https://developer.mozilla.org/ru/)
+* PostgreSQL/Sequelize/Redis (allg. ergänzend fürs Caching/Backpressure): [https://sequelize.org/](https://sequelize.org/) , [https://redis.io/docs/](https://redis.io/docs/)
 
 
   **[⬆ Наверх](#top)**
 
-73. ### <a name="73"></a> 
+75. ### <a name="75"></a> Wie baut man eine WebSocket-Verbindung mit Express?
 
+## WebSocket mit Express: Ansätze und Beispiel
 
+Kernpunkte
 
-  **[⬆ Наверх](#top)**
+* Express selbst spricht **HTTP**; für WebSockets nutzt man einen **HTTP-Server** + WS-Bibliothek (z. B. `ws`) oder **Socket.IO**.
+* Setup: `createServer(app)` → Server an `ws` oder `socket.io` übergeben.
+* Wichtige Themen: **Heartbeat (Ping/Pong)**, **Fehlerbehandlung**, **Auth**, **Skalierung**.
 
-74. ### <a name="74"></a> 
+### Variante A: Reines WebSocket-Protokoll mit `ws`
 
+```js
+// server.js (ESM, type="module")
+import express from 'express';
+import { createServer } from 'node:http';
+import { WebSocketServer } from 'ws';
 
+const app = express();
+app.get('/health', (_req, res) => res.json({ ok: true }));
 
-  **[⬆ Наверх](#top)**
+// 1) Gemeinsamer HTTP-Server
+const server = createServer(app);
 
-75. ### <a name="75"></a> 
+// 2) WebSocket-Server auf demselben Port/Server
+const wss = new WebSocketServer({ server, path: '/ws' });
 
+// 3) Verbindungs- und Nachrichten-Handling
+wss.on('connection', (ws, req) => {
+  // Beispiel-Auth: Token aus Query (nur Demo – besser: Header prüfen)
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const token = url.searchParams.get('token');
+  if (token !== process.env.WS_TOKEN) {
+    ws.close(1008, 'Unauthorized');
+    return;
+  }
+
+  // Heartbeat
+  ws.isAlive = true;
+  ws.on('pong', () => (ws.isAlive = true));
+
+  ws.on('message', (data) => {
+    // Erwartet JSON-Nachrichten
+    try {
+      const msg = JSON.parse(data.toString());
+      // Echo + Broadcast-Beispiel
+      ws.send(JSON.stringify({ type: 'ack', received: msg }));
+      for (const client of wss.clients) {
+        if (client !== ws && client.readyState === client.OPEN) {
+          client.send(JSON.stringify({ type: 'broadcast', payload: msg }));
+        }
+      }
+    } catch {
+      ws.send(JSON.stringify({ type: 'error', message: 'Invalid JSON' }));
+    }
+  });
+
+  ws.on('close', (code, reason) => {
+    console.log('WS closed', code, reason.toString());
+  });
+});
+
+// 4) Periodischer Ping zum Erkennen toter Verbindungen
+const interval = setInterval(() => {
+  for (const ws of wss.clients) {
+    if (!ws.isAlive) return ws.terminate();
+    ws.isAlive = false;
+    ws.ping();
+  }
+}, 30000);
+
+wss.on('close', () => clearInterval(interval));
+
+const PORT = process.env.PORT ?? 3000;
+server.listen(PORT, () => console.log(`HTTP+WS auf :${PORT} (ws://localhost:${PORT}/ws)`));
+```
+
+Ein minimaler Client (im Browser/Frontend):
+
+```js
+// client.js
+const ws = new WebSocket('ws://localhost:3000/ws?token=MEIN_TOKEN');
+ws.onopen = () => ws.send(JSON.stringify({ type: 'hello', name: 'Sergii' }));
+ws.onmessage = (e) => console.log('Server:', e.data);
+ws.onclose = (e) => console.log('Closed', e.code, e.reason);
+```
+
+Wann `ws`?
+
+* Du brauchst **reines WebSocket** (keine Fallbacks, volle Kontrolle über Frames/Protokoll).
+* Geringer Overhead, sehr schnell.
+
+### Variante B: Socket.IO (WebSocket + Fallbacks, Räume, Reconnect)
+
+```js
+// server-socketio.js
+import express from 'express';
+import { createServer } from 'node:http';
+import { Server as IOServer } from 'socket.io';
+
+const app = express();
+const server = createServer(app);
+const io = new IOServer(server, {
+  path: '/socket',
+  cors: { origin: ['http://localhost:5173'], credentials: true }
+});
+
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (token !== process.env.WS_TOKEN) return next(new Error('Unauthorized'));
+  next();
+});
+
+io.on('connection', (socket) => {
+  socket.join('room:public');
+  socket.emit('welcome', { id: socket.id });
+
+  socket.on('message', (payload) => {
+    io.to('room:public').emit('message', { from: socket.id, payload });
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log('Socket disconnected:', reason);
+  });
+});
+
+server.listen(3000, () => console.log('Socket.IO auf :3000'));
+```
+
+Wann Socket.IO?
+
+* Du willst **Auto-Reconnect**, **Räume/Namespaces**, **Event-basierte API** und optionale **Long-Polling-Fallbacks**.
+
+### Auth, Sicherheit, Betrieb
+
+* **Auth**: Token/JWT prüfen (bei `ws` über Header `Sec-WebSocket-Protocol` oder Query; bei Socket.IO `handshake.auth`).
+* **TLS/HTTPS**: In Produktion hinter TLS (Proxy/Ingress) betreiben.
+* **Reverse Proxy**: `app.set('trust proxy', 1)` und ggf. WebSocket-Weiterleitung (NGINX: `proxy_set_header Upgrade $http_upgrade;`).
+* **Skalierung**: Socket.IO per **Redis-Adapter** für mehrere Instanzen; bei `ws` lastverteilte Instanzen → Sticky Sessions oder statefreies Protokoll.
+* **Backpressure**: Bei hohem Durchsatz `ws`-Sendestatus prüfen (`readyState`, `bufferedAmount`) und drosseln.
+* **Protokoll**: Definiere ein schlankes JSON-Schema (`type`, `payload`) und validiere Eingaben.
+
+### Zusammenfassung
+
+* Express + WebSockets: HTTP-Server teilen, dann entweder **`ws`** (reines WS, schnell) oder **Socket.IO** (höherwertige Features).
+* Wichtig: **Heartbeat (Ping/Pong)**, **Auth**, **Fehler-/Reconnect-Strategie**, **Skalierung** (Redis/Sticky Sessions).
+* Produktion: TLS/Proxy korrekt konfigurieren, Backpressure beachten, Protokoll/Validierung definieren.
+
+Quellen
+
+* MDN – WebSockets API: [https://developer.mozilla.org/ru/docs/Web/API/WebSockets\_API](https://developer.mozilla.org/ru/docs/Web/API/WebSockets_API)
+* Node.js – HTTP/HTTPS Server: [https://nodejs.org/docs](https://nodejs.org/docs)
+* Express.js – Guide (Integration/Best Practices): [https://expressjs.com/de/](https://expressjs.com/de/)
+* `ws` (npm, Doku): [https://www.npmjs.com/package/ws](https://www.npmjs.com/package/ws)
+* Socket.IO Doku: [https://socket.io/docs/](https://socket.io/docs/)
 
 
   **[⬆ Наверх](#top)**
