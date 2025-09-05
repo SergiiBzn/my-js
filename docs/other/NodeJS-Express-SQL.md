@@ -3358,153 +3358,3021 @@ app.post('/profile', upload.fields([
 
   **[⬆ Наверх](#top)**  
 
-41. ### <a name="41"></a> 
+41. ### <a name="41"></a> Wie implementiert man Error-Handling in Express?
 
+## Error-Handling in Express – zentral und korrekt
+
+Grundprinzipien
+
+* Fehler-Middleware hat **vier Parameter**: `(err, req, res, next)`.
+* Reihenfolge: **Routen → 404-Handler → Error-Handler (ganz am Ende)**.
+* Fehler weiterreichen mit `next(err)` oder in `async`-Routen per `try/catch`.
+
+Zentrale Error-Handling-Middleware
+
+```js
+import express from 'express';
+const app = express();
+
+app.use(express.json());
+
+// Beispielroute mit bewusstem Fehler
+app.get('/boom', (req, res, next) => {
+  const err = new Error('Boom!');
+  err.status = 400; // optional: eigener Status
+  next(err);
+});
+
+// 404 – muss vor dem Error-Handler stehen
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Route nicht gefunden' });
+});
+
+// Globaler Error-Handler (immer zuletzt)
+app.use((err, req, res, next) => {
+  const status = err.status || err.statusCode || 500;
+  // Beispiel: keine Stacktraces in Produktion ausgeben
+  const payload = {
+    error: err.message || 'Interner Serverfehler',
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+  };
+  res.status(status).json(payload);
+});
+
+app.listen(3000, () => console.log('Server läuft auf 3000'));
+```
+
+Async/await: Fehler abfangen
+
+```js
+// Variante A: try/catch in async-Routen
+app.get('/user/:id', async (req, res, next) => {
+  try {
+    const user = await loadUser(req.params.id); // z. B. DB-Call
+    if (!user) {
+      const err = new Error('User nicht gefunden');
+      err.status = 404;
+      throw err;
+    }
+    res.json(user);
+  } catch (err) {
+    next(err); // an zentralen Handler weitergeben
+  }
+});
+
+// Variante B: Wrapper-Helfer, um try/catch zu sparen
+const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+
+app.get('/orders', asyncHandler(async (req, res) => {
+  const orders = await loadOrders();
+  res.json(orders);
+}));
+```
+
+Validierungsfehler konsistent behandeln (Beispiel)
+
+```js
+function validateBody(schema) {
+  return (req, res, next) => {
+    const { error, value } = schema.validate(req.body, { abortEarly: false });
+    if (error) {
+      const err = new Error('Validierungsfehler');
+      err.status = 422; // Unprocessable Entity
+      err.details = error.details;
+      return next(err);
+    }
+    req.body = value;
+    next();
+  };
+}
+```
+
+Best Practices
+
+* **Eine** zentrale Fehler-Middleware, überall `next(err)` nutzen.
+* Konsistente Statuscodes (400/401/403/404/409/422/500).
+* Keine sensiblen Infos/Stacktraces in Produktion.
+* 404-Handler **vor** dem Error-Handler platzieren.
+* Für `async`-Routen Wrapper wie `asyncHandler` verwenden.
+
+Zusammenfassung
+
+* Fehler laufen über eine **zentrale Error-Middleware** `(err, req, res, next)`.
+* `next(err)` bzw. `asyncHandler` sorgt für sauberes Weiterreichen.
+* 404-Handler vor dem globalen Error-Handler, konsistente Statuscodes + sichere Fehlermeldungen.
+
+Quellen
+
+* Express.js – Fehlerbehandlung: [https://expressjs.com/de/guide/error-handling.html](https://expressjs.com/de/guide/error-handling.html)
+* Express.js – API (`res.status`, `app.use`): [https://expressjs.com/de/4x/api.html](https://expressjs.com/de/4x/api.html)
+* MDN – HTTP-Statuscodes: [https://developer.mozilla.org/ru/docs/Web/HTTP/Status](https://developer.mozilla.org/ru/docs/Web/HTTP/Status)
+
+  **[⬆ Наверх](#top)**
+
+42. ### <a name="42"></a> Warum braucht man spezielle Error-Middleware?
+
+## Warum braucht man spezielle Error-Middleware in Express?
+
+**1. Unterschied zur normalen Middleware**
+
+* Normale Middleware hat die Signatur `(req, res, next)`.
+* Fehler-Middleware hat **vier Parameter** `(err, req, res, next)`.
+* Express erkennt nur an dieser Signatur, dass es sich um einen Fehler-Handler handelt.
+
+---
+
+**2. Zweck von Error-Middleware**
+
+* Einheitliche Behandlung von Fehlern (statt in jeder Route manuell).
+* Verhindert, dass Requests ohne Antwort hängen bleiben.
+* Ermöglicht Logging und Monitoring von Fehlern an einer zentralen Stelle.
+* Ermöglicht sichere Antworten für Clients (z. B. keine internen Stacktraces in Produktion).
+
+---
+
+**3. Beispiel**
+
+```js
+import express from 'express';
+const app = express();
+
+app.get('/fail', (req, res, next) => {
+  const err = new Error('Etwas ist schiefgelaufen');
+  err.status = 400;
+  next(err); // Fehler weiterleiten
+});
+
+// Spezielle Error-Middleware (4 Parameter!)
+app.use((err, req, res, next) => {
+  console.error(err.message); // Logging
+  res.status(err.status || 500).json({ error: err.message });
+});
+
+app.listen(3000, () => console.log('Server läuft'));
+```
+
+---
+
+**4. Warum nicht nur try/catch in jeder Route?**
+
+* Würde zu viel **doppeltem Code** führen.
+* Fehler könnten vergessen werden → Gefahr von offenen Requests.
+* Mit zentraler Error-Middleware: **einheitliche Struktur + weniger Code**.
+
+---
+
+### Zusammenfassung
+
+* Spezielle Error-Middleware (`(err, req, res, next)`) ist notwendig, weil Express nur so Fehler erkennt.
+* Sie sorgt für einheitliches Fehler-Handling, Logging und saubere Antworten.
+* Best Practice: **eine zentrale Error-Middleware am Ende** aller Middleware und Routen.
+
+**Quellen:**
+
+* [Express.js – Error Handling](https://expressjs.com/de/guide/error-handling.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+43. ### <a name="43"></a> Unterschied zwischen synchronem und asynchronem Fehlerhandling?
+
+## Unterschied zwischen synchronem und asynchronem Fehlerhandling in Express
+
+**1. Synchrones Fehlerhandling**
+
+* Tritt ein Fehler direkt im Code der Route oder Middleware auf.
+* Lösung: `throw` oder `next(err)` aufrufen.
+* Express fängt den Fehler automatisch ab und leitet ihn an die Error-Middleware weiter.
+
+```js
+app.get('/sync', (req, res, next) => {
+  try {
+    throw new Error('Synchroner Fehler');
+  } catch (err) {
+    next(err); // an Error-Middleware weitergeben
+  }
+});
+```
+
+---
+
+**2. Asynchrones Fehlerhandling (z. B. Promises, async/await)**
+
+* Fehler treten zeitversetzt auf (DB-Abfragen, externe APIs, Filesystem).
+* Express fängt diese Fehler **nicht automatisch** ab.
+* Man muss sie entweder in `try/catch` behandeln oder `next(err)` nutzen.
+
+```js
+// Mit async/await und try/catch
+app.get('/async', async (req, res, next) => {
+  try {
+    const user = await getUserFromDB(); // wirft evtl. Fehler
+    res.json(user);
+  } catch (err) {
+    next(err); // Fehler weiterreichen
+  }
+});
+```
+
+Alternative: **Wrapper-Helfer**, um try/catch zu sparen:
+
+```js
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+app.get('/wrapped', asyncHandler(async (req, res) => {
+  const orders = await getOrders(); // Fehler → automatisch an next(err)
+  res.json(orders);
+}));
+```
+
+---
+
+**3. Vergleich**
+
+* **Synchron:** Fehler können mit `throw` oder `next(err)` abgefangen werden.
+* **Asynchron:** Fehler müssen in `try/catch` oder mit `catch(next)` weitergeleitet werden, sonst stürzt die App ab oder der Request hängt.
+
+---
+
+### Zusammenfassung
+
+* **Synchron:** `throw` oder `next(err)` reicht.
+* **Asynchron:** Fehler manuell mit `try/catch` oder Wrapper an Error-Middleware weiterleiten.
+* Best Practice: `asyncHandler` oder ähnliche Wrapper nutzen, um Code sauber zu halten.
+
+**Quellen:**
+
+* [Express.js – Fehlerbehandlung](https://expressjs.com/de/guide/error-handling.html)
+* [MDN – async/await Fehler](https://developer.mozilla.org/ru/docs/Learn/JavaScript/Asynchronous/Promises#обработка_ошибок)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+44. ### <a name="44"></a> Wie gibt man unterschiedliche Statuscodes im Fehlerfall zurück?
+
+## Unterschiedliche Statuscodes im Fehlerfall zurückgeben in Express
+
+**Grundidee:**
+
+* Fehlerobjekte können mit einem **eigenen Statuscode** versehen werden (`err.status` oder `err.statusCode`).
+* Die zentrale Error-Middleware liest diesen Wert aus und gibt den passenden HTTP-Status zurück.
+
+---
+
+**1. Beispiel mit synchronem Fehler**
+
+```js
+import express from 'express';
+const app = express();
+
+app.get('/bad-request', (req, res, next) => {
+  const err = new Error('Ungültige Anfrage');
+  err.status = 400; // Bad Request
+  next(err);
+});
+```
+
+---
+
+**2. Beispiel mit asynchronem Fehler (z. B. DB-Abfrage)**
+
+```js
+app.get('/user/:id', async (req, res, next) => {
+  try {
+    const user = null; // simuliert: User nicht gefunden
+    if (!user) {
+      const err = new Error('User nicht gefunden');
+      err.status = 404;
+      throw err;
+    }
+    res.json(user);
+  } catch (err) {
+    next(err); // an Error-Middleware weiterreichen
+  }
+});
+```
+
+---
+
+**3. Zentrale Error-Middleware für unterschiedliche Statuscodes**
+
+```js
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  res.status(status).json({
+    error: err.message || 'Interner Serverfehler'
+  });
+});
+```
+
+---
+
+**4. Typische Statuscodes im Fehlerfall**
+
+* **400 Bad Request** → ungültige Eingaben (Validation Errors)
+* **401 Unauthorized** → Benutzer nicht authentifiziert
+* **403 Forbidden** → keine Berechtigung
+* **404 Not Found** → Ressource nicht gefunden
+* **409 Conflict** → Konflikt (z. B. Duplikat)
+* **422 Unprocessable Entity** → Validierungsfehler bei korrektem Request-Format
+* **500 Internal Server Error** → allgemeiner Serverfehler
+
+---
+
+### Zusammenfassung
+
+* Statuscodes werden im Fehlerobjekt (`err.status`) gesetzt.
+* Die zentrale Error-Middleware verwendet diesen Code (`res.status(err.status || 500)`).
+* Damit können unterschiedliche Fehlerarten (400, 401, 403, 404, 500 …) konsistent abgebildet werden.
+
+**Quellen:**
+
+* [Express.js – Fehlerbehandlung](https://expressjs.com/de/guide/error-handling.html)
+* [MDN – HTTP Statuscodes](https://developer.mozilla.org/ru/docs/Web/HTTP/Status)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+45. ### <a name="45"></a> Wie verhindert man, dass nicht abgefangene Fehler den Server crashen?
+
+## Wie verhindert man, dass nicht abgefangene Fehler den Server crashen?
+
+**Problem:**
+In Node.js führen **nicht abgefangene Fehler** (`uncaughtException`, `unhandledRejection`) oft dazu, dass der Prozess abstürzt. Das ist gefährlich für Produktionssysteme.
+
+---
+
+**1. Zentrales Error-Handling in Express**
+
+* Fehler mit `next(err)` weitergeben.
+* Am Ende eine **globale Error-Middleware** definieren:
+
+```js
+import express from 'express';
+const app = express();
+
+app.get('/fail', (req, res, next) => {
+  try {
+    throw new Error('Boom!');
+  } catch (err) {
+    next(err); // an Error-Middleware weiterreichen
+  }
+});
+
+app.use((err, req, res, next) => {
+  console.error('Fehler:', err.message);
+  res.status(err.status || 500).json({ error: 'Interner Serverfehler' });
+});
+
+app.listen(3000, () => console.log('Server läuft'));
+```
+
+---
+
+**2. Asynchrone Fehler abfangen**
+
+* In `async`-Routen mit `try/catch` arbeiten oder einen **Wrapper** nutzen:
+
+```js
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+app.get('/async', asyncHandler(async (req, res) => {
+  throw new Error('Async-Fehler'); // wird an Error-Middleware weitergegeben
+}));
+```
+
+---
+
+**3. Prozessweite Fehler abfangen (Sicherheitsnetz)**
+
+* Für wirklich unerwartete Fehler kann man Listener auf Prozessebene registrieren:
+
+```js
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  // Hier besser: Logging + kontrolliertes Beenden mit Neustart durch PM2/Docker
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection:', reason);
+});
+```
+
+👉 Achtung: Diese sollten nur als **letzte Absicherung** dienen – Best Practice ist, Fehler sauber mit `next(err)` an Middleware weiterzugeben.
+
+---
+
+**4. Produktions-Setup (Best Practices)**
+
+* **PM2, Docker oder systemd** verwenden, um Node.js-Prozesse automatisch neu zu starten, falls sie doch abstürzen.
+* Logging (z. B. mit `winston`, `pino`) nutzen, um Fehler zu protokollieren.
+
+---
+
+### Zusammenfassung
+
+* Nicht abgefangene Fehler verhindern durch:
+
+  * zentrale Error-Middleware in Express,
+  * sauberes Handling von async-Fehlern (`try/catch`, Wrapper),
+  * Prozess-Events (`uncaughtException`, `unhandledRejection`) nur als Fallback.
+* In Produktion Prozessmanager wie **PM2/Docker** einsetzen.
+
+**Quellen:**
+
+* [Express.js – Fehlerbehandlung](https://expressjs.com/de/guide/error-handling.html)
+* [Node.js – Prozess-Events](https://nodejs.org/docs/latest/api/process.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+46. ### <a name="46"></a> Wie schützt man Express-Anwendungen vor XSS?
+
+## Schutz vor XSS (Cross-Site Scripting) in Express
+
+**Maßnahmen-Überblick**
+
+* **Content Security Policy (CSP)** setzen → verhindert Inline-Skripte und fremde Skriptquellen.
+* **Output Encoding/Escaping** im Template-Engine verwenden (keine ungeprüften Werte ins HTML injizieren).
+* **Eingaben validieren & ggf. säubern** (Whitelist, Schema-Validierung, serverseitiges Sanitizing nur gezielt).
+* **Sichere Cookies** verwenden (`httpOnly`, `secure`, `sameSite`) → erschwert Session-Diebstahl.
+* **Kein Inline-JS** und keine gefährlichen DOM-APIs (Client) wie `innerHTML` ohne Sanitizing.
+* **Security-Header** mit `helmet` setzen (CSP, weitere Header).
+
+**CSP mit Helmet**
+
+```js
+import express from 'express';
+import helmet from 'helmet';
+
+const app = express();
+
+// strikte, aber praxistaugliche CSP (ohne inline Skripte)
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      "default-src": ["'self'"],
+      "script-src": ["'self'"],            // kein 'unsafe-inline', kein 'unsafe-eval'
+      "style-src": ["'self'", "https:"],   // falls nötig: "'unsafe-inline'" vermeiden
+      "img-src": ["'self'", "data:", "https:"],
+      "object-src": ["'none'"],
+      "base-uri": ["'self'"],
+      "frame-ancestors": ["'self'"]
+    }
+  })
+);
+
+// weitere sinnvolle Header
+app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
+app.use(helmet.xssFilter?.()); // Hinweis: x-xss-protection ist in modernen Browsern obsolet
+```
+
+**Sichere Antwort- und Cookie-Settings**
+
+```js
+import cookieParser from 'cookie-parser';
+
+app.use(cookieParser());
+
+// JSON statt HTML, wenn möglich (vermeidet HTML-Einbettung)
+app.get('/data', (req, res) => {
+  res.json({ safe: true }); // res.json() setzt Content-Type korrekt
+});
+
+// Cookies schützen
+app.get('/login', (req, res) => {
+  res.cookie('session', 'token', {
+    httpOnly: true,   // nicht per JS auslesbar
+    secure: true,     // nur HTTPS
+    sameSite: 'lax'   // reduziert CSRF-Risiko
+  });
+  res.send('ok');
+});
+```
+
+**Validierung & Sanitizing (gezielt)**
+
+```js
+// Beispiel: Schema-Validierung (z. B. mit joi/zod)
+// Danach: serverseitig nur in TEXTKONTEXT ausgeben oder escapen.
+// Für seltene Fälle HTML-Sanitizing, z. B. sanitize-html oder DOMPurify (Server-Variante).
+```
+
+**Template-Engines**
+
+* Engines mit **Auto-Escaping** nutzen (z. B. Pug standardmäßig; bei EJS `<%= %>` escapt, **nicht** `<%- %>`).
+* Niemals ungeprüfte Eingaben als **unescaped/RAW** einfügen.
+
+**Clientseitige Grundsätze (ergänzend)**
+
+* Statt `element.innerHTML = userInput` → `textContent` verwenden.
+* Falls HTML erforderlich: vorher **sanitizen**.
+
+### Zusammenfassung
+
+* Primärschutz: **CSP** + **konsequentes Escaping** im View.
+* **Helmet** für Security-Header einsetzen.
+* **Validierung/Sanitizing** nur gezielt, kein Blind-“Strippen”.
+* **Sichere Cookies** konfigurieren; Inline-JS vermeiden.
+
+**Quellen**
+
+* Express (Helmet/Best Practices): [https://expressjs.com/de/advanced/best-practice-security.html](https://expressjs.com/de/advanced/best-practice-security.html)
+* MDN – XSS Übersicht: [https://developer.mozilla.org/ru/docs/Glossary/Cross-site\_scripting](https://developer.mozilla.org/ru/docs/Glossary/Cross-site_scripting)
+* MDN – Content Security Policy (CSP): [https://developer.mozilla.org/ru/docs/Web/HTTP/CSP](https://developer.mozilla.org/ru/docs/Web/HTTP/CSP)
 
 
   **[⬆ Наверх](#top)**
 
-42. ### <a name="42"></a> 
+47. ### <a name="47"></a> Welche Middleware nutzt man für Security (z. B. Helmet)?
 
+## Security-Middleware in Express (z. B. Helmet)
 
+**1. Helmet**
+
+* Setzt verschiedene HTTP-Header, um Angriffe wie **XSS**, **Clickjacking**, **MIME sniffing** zu erschweren.
+* Enthält mehrere Module (z. B. `contentSecurityPolicy`, `xssFilter`, `frameguard`).
+
+```js
+import express from 'express';
+import helmet from 'helmet';
+
+const app = express();
+
+// Standard-Sicherheits-Header
+app.use(helmet());
+
+// Beispiel: CSP aktivieren
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      "default-src": ["'self'"],
+      "script-src": ["'self'"]
+    }
+  })
+);
+
+app.get('/', (req, res) => res.send('Sicher mit Helmet!'));
+app.listen(3000);
+```
+
+---
+
+**2. cors**
+
+* Erlaubt kontrollierten Zugriff von anderen Domains (Cross-Origin Resource Sharing).
+* Wichtig für APIs, die von einem Frontend (z. B. React) konsumiert werden.
+
+```js
+import cors from 'cors';
+app.use(cors({ origin: 'http://localhost:5173' })); // nur bestimmte Domain erlauben
+```
+
+---
+
+**3. express-rate-limit**
+
+* Schützt vor **Brute-Force-Angriffen** durch Begrenzung der Requests pro IP.
+
+```js
+import rateLimit from 'express-rate-limit';
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 Minuten
+  max: 100                  // max. 100 Anfragen pro IP
+});
+
+app.use(limiter);
+```
+
+---
+
+**4. express-mongo-sanitize** (für MongoDB-Projekte)
+
+* Entfernt gefährliche Zeichen aus Requests, die für **NoSQL-Injection** genutzt werden könnten.
+
+```js
+import mongoSanitize from 'express-mongo-sanitize';
+app.use(mongoSanitize());
+```
+
+---
+
+**5. xss-clean** (optional, für JSON-Bodies)
+
+* Entfernt potenziell gefährliche XSS-Skripte aus Eingaben.
+
+```js
+import xss from 'xss-clean';
+app.use(xss());
+```
+
+---
+
+### Zusammenfassung
+
+Wichtige Security-Middleware für Express:
+
+* **helmet** → Security-Header (Grundschutz)
+* **cors** → kontrollierter Cross-Origin-Zugriff
+* **express-rate-limit** → Schutz vor Brute-Force
+* **express-mongo-sanitize / xss-clean** → Eingabe-Sanitizing
+
+**Quellen:**
+
+* [Helmet – npm](https://www.npmjs.com/package/helmet)
+* [CORS – npm](https://www.npmjs.com/package/cors)
+* [express-rate-limit – npm](https://www.npmjs.com/package/express-rate-limit)
+
+---
 
   **[⬆ Наверх](#top)**
 
-43. ### <a name="43"></a> 
+48. ### <a name="48"></a> Was ist CORS und wie aktiviert man es in Express?
 
+## Was ist CORS und wie aktiviert man es in Express?
 
+**Definition:**
+CORS (*Cross-Origin Resource Sharing*) ist ein Sicherheitsmechanismus im Browser.
+
+* Standardmäßig blockieren Browser Anfragen von einer anderen Domain/Port (z. B. React-Frontend auf `http://localhost:5173` → Express-API auf `http://localhost:3000`).
+* Mit CORS kann der Server explizit erlauben, welche Domains, Methoden und Header Zugriff haben dürfen.
+
+---
+
+**1. CORS in Express aktivieren (mit Middleware `cors`)**
+
+```bash
+npm install cors
+```
+
+```js
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+
+// Standardmäßig: alle Domains erlauben (nicht empfohlen für Produktion)
+app.use(cors());
+
+app.get('/data', (req, res) => {
+  res.json({ msg: 'CORS aktiviert' });
+});
+
+app.listen(3000);
+```
+
+---
+
+**2. Zugriff nur für bestimmte Domains erlauben**
+
+```js
+app.use(cors({ origin: 'http://localhost:5173' }));
+```
+
+→ Nur Requests vom React-Frontend `http://localhost:5173` sind erlaubt.
+
+---
+
+**3. Mehrere Optionen konfigurieren**
+
+```js
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://meine-app.de'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // Cookies/Authorization-Header zulassen
+}));
+```
+
+---
+
+**4. CORS nur für bestimmte Routen aktivieren**
+
+```js
+app.get('/public', cors(), (req, res) => {
+  res.send('Öffentliche Route mit CORS');
+});
+```
+
+---
+
+### Zusammenfassung
+
+* **CORS = Cross-Origin Resource Sharing**, notwendig für Frontend-Backend-Kommunikation.
+* In Express über `cors`-Middleware aktivierbar.
+* Konfiguration möglich: erlaubte Domains, Methoden, Header, Cookies.
+
+**Quellen:**
+
+* [CORS – npm](https://www.npmjs.com/package/cors)
+* [MDN – Cross-Origin Resource Sharing](https://developer.mozilla.org/ru/docs/Web/HTTP/CORS)
+
+---
 
   **[⬆ Наверх](#top)**
 
-44. ### <a name="44"></a> 
+49. ### <a name="49"></a> Wie funktioniert Rate-Limiting in Express?
 
+## Wie funktioniert Rate-Limiting in Express?
 
+**Definition:**
+Rate-Limiting begrenzt die Anzahl von Anfragen, die ein Client (z. B. pro IP) in einem bestimmten Zeitfenster an den Server senden darf.
+
+* Schützt vor **Brute-Force-Angriffen** (z. B. Login-Versuche).
+* Verhindert **Denial-of-Service (DoS)** durch zu viele Requests.
+
+---
+
+**1. Installation von `express-rate-limit`**
+
+```bash
+npm install express-rate-limit
+```
+
+---
+
+**2. Einfaches Setup**
+
+```js
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+
+const app = express();
+
+// Limiter: max. 100 Anfragen pro 15 Minuten pro IP
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 Minuten
+  max: 100,                 // 100 Anfragen
+  message: 'Zu viele Anfragen – bitte später erneut versuchen'
+});
+
+// Global anwenden
+app.use(limiter);
+
+app.get('/', (req, res) => {
+  res.send('Willkommen! Rate-Limiting aktiv.');
+});
+
+app.listen(3000);
+```
+
+---
+
+**3. Nur für bestimmte Routen anwenden**
+
+```js
+// Strengeres Limit nur für /login
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 Minute
+  max: 5,              // max. 5 Versuche pro Minute
+  message: 'Zu viele Login-Versuche, bitte warte eine Minute'
+});
+
+app.post('/login', loginLimiter, (req, res) => {
+  res.send('Login-Route mit Rate-Limit');
+});
+```
+
+---
+
+**4. Erweiterte Optionen**
+
+* `keyGenerator`: definiert, wie der Client identifiziert wird (standard: IP).
+* `skip`: bestimmte Anfragen ignorieren (z. B. interne Dienste).
+* `handler`: eigene Antwortlogik für blockierte Requests.
+
+```js
+const apiLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 50,
+  keyGenerator: (req, res) => req.ip, // Standard
+  handler: (req, res) => {
+    res.status(429).json({ error: 'Limit überschritten' });
+  }
+});
+
+app.use('/api/', apiLimiter);
+```
+
+---
+
+### Zusammenfassung
+
+* Rate-Limiting in Express mit `express-rate-limit`.
+* Begrenzung von Requests pro IP in einem Zeitfenster.
+* Schützt vor Brute-Force und DoS.
+* Kann global oder für bestimmte Routen eingesetzt werden.
+
+**Quellen:**
+
+* [express-rate-limit – npm](https://www.npmjs.com/package/express-rate-limit)
+* [MDN – HTTP 429 Too Many Requests](https://developer.mozilla.org/ru/docs/Web/HTTP/Status/429)
+
+---
 
   **[⬆ Наверх](#top)**
 
-45. ### <a name="45"></a> 
+50. ### <a name="50"></a> Wie speichert man Passwörter sicher in Kombination mit Express?
 
+## Sichere Passwortspeicherung mit Express (Best Practices)
 
+Grundsätze
 
-  **[⬆ Наверх](#top)**
+* Niemals Klartext-Passwörter speichern.
+* Einen starken, bewährten **Passworthashing-Algorithmus** nutzen: **Argon2id** (empfohlen) oder **bcrypt**.
+* **Salt** ist obligatorisch (bei Argon2/bcrypt integriert); optional zusätzlicher **Pepper** (geheimer Server-Key in `process.env`).
+* Sichere Transportebene (HTTPS), Rate-Limiting auf Login, und timing-sichere Vergleiche.
 
-46. ### <a name="46"></a> 
+### Variante A – mit **Argon2id**
 
+```bash
+npm i argon2
+```
 
+```js
+// hashing.js
+import argon2 from 'argon2';
 
-  **[⬆ Наверх](#top)**
+const opts = {
+  type: argon2.argon2id,
+  memoryCost: 2 ** 16, // ~64 MB
+  timeCost: 3,
+  parallelism: 1
+};
 
-47. ### <a name="47"></a> 
+export async function hashPassword(plain, pepper = '') {
+  return argon2.hash(plain + pepper, opts);
+}
 
+export async function verifyPassword(hash, plain, pepper = '') {
+  return argon2.verify(hash, plain + pepper);
+}
+```
 
+### Variante B – mit **bcrypt**
 
-  **[⬆ Наверх](#top)**
+```bash
+npm i bcrypt
+```
 
-48. ### <a name="48"></a> 
+```js
+// hashing-bcrypt.js
+import bcrypt from 'bcrypt';
 
+const ROUNDS = Number(process.env.BCRYPT_ROUNDS ?? 12);
 
+export async function hashPasswordBcrypt(plain, pepper = '') {
+  const salt = await bcrypt.genSalt(ROUNDS);
+  return bcrypt.hash(plain + pepper, salt);
+}
 
-  **[⬆ Наверх](#top)**
+export async function verifyPasswordBcrypt(hash, plain, pepper = '') {
+  return bcrypt.compare(plain + pepper, hash); // timing-safe intern
+}
+```
 
-49. ### <a name="49"></a> 
+### Express-Integration (Registrierung/Anmeldung)
 
+```js
+// auth.routes.js
+import express from 'express';
+import { hashPassword, verifyPassword } from './hashing.js'; // Argon2
+import { z } from 'zod'; // optional für Validierung
+import { User } from './models.js'; // Sequelize-Modell
+const router = express.Router();
 
+const PEPPER = process.env.PWD_PEPPER ?? '';
+const schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8) // Richtlinie: min 8–12, Komplexität projektabhängig
+});
 
-  **[⬆ Наверх](#top)**
+router.post('/register', express.json(), async (req, res, next) => {
+  try {
+    const { email, password } = schema.parse(req.body);
+    const passwordHash = await hashPassword(password, PEPPER);
+    const user = await User.create({ email, passwordHash });
+    res.status(201).json({ id: user.id, email: user.email });
+  } catch (err) {
+    // 409 falls E-Mail bereits existiert
+    err.status ??= 400;
+    next(err);
+  }
+});
 
-50. ### <a name="50"></a> 
+router.post('/login', express.json(), async (req, res, next) => {
+  try {
+    const { email, password } = schema.pick({ email: true, password: true }).parse(req.body);
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(401).json({ error: 'Ungültige Anmeldedaten' });
 
+    const ok = await verifyPassword(user.passwordHash, password, PEPPER);
+    if (!ok) return res.status(401).json({ error: 'Ungültige Anmeldedaten' });
+
+    // Session/JWT ausstellen …
+    res.json({ message: 'Login ok' });
+  } catch (err) {
+    err.status ??= 400;
+    next(err);
+  }
+});
+
+export default router;
+```
+
+### Sequelize: Passwort-Hash im Modell/Hook
+
+```js
+// models.js
+import { Sequelize, DataTypes, Model } from 'sequelize';
+import { hashPassword } from './hashing.js';
+
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  logging: false
+});
+
+export class User extends Model {}
+
+User.init({
+  email: { type: DataTypes.STRING, unique: true, allowNull: false },
+  passwordHash: { type: DataTypes.STRING, allowNull: false }
+}, { sequelize, modelName: 'User' });
+
+// Optional: Hash bei create/update, wenn ein Plain-Field vorhanden wäre
+// Hier: wir erwarten bereits passwordHash im create()-Call.
+// Beispiel für ein virtuelles Feld "password":
+User.addHook('beforeCreate', async (user) => {
+  if (user.password) {
+    const pepper = process.env.PWD_PEPPER ?? '';
+    user.passwordHash = await hashPassword(user.password, pepper);
+  }
+});
+```
+
+### Zusätzliche Schutzmaßnahmen
+
+* **Transport**: nur über **HTTPS** (secure Cookies, `secure: true`).
+* **Rate-Limiting** auf `/login` (z. B. `express-rate-limit`).
+* **Lockout/Backoff** nach X Fehlversuchen.
+* **Session/JWT** sicher konfigurieren (Cookies: `httpOnly`, `sameSite`, `secure`).
+* **Kein Passwort-„Reset“ per Klartext** senden; stattdessen **Token-basierte** Reset-Links.
+* **Rotation/Parameter-Tuning**: Work-Factor (bcrypt rounds / Argon2 timeCost) projektabhängig an Hardware anpassen.
+* **Kein eigenes Kryptodesign**; nur etablierte libs einsetzen.
+
+### Zusammenfassung
+
+* Passwörter nie im Klartext speichern; **Argon2id** oder **bcrypt** verwenden.
+* Hashing in zentralen Helfern/Hooks kapseln; optional **Pepper** aus `process.env`.
+* Express-Routen: Validierung, Hash bei Registrierung, Verify bei Login.
+* Ergänzen durch HTTPS, Rate-Limiting, sichere Cookies, sauberes Reset-Verfahren.
+
+Quellen
+
+* Node.js (process/env, Security Best Practices): [https://nodejs.org/docs](https://nodejs.org/docs)
+* Express – Security/Best Practices (Helmet, allgemeine Richtlinien): [https://expressjs.com/de/advanced/best-practice-security.html](https://expressjs.com/de/advanced/best-practice-security.html)
+* Sequelize – Hooks/Modelle: [https://sequelize.org/](https://sequelize.org/)
+* MDN – HTTPS/Passwörter/Hashing-Grundlagen: [https://developer.mozilla.org/ru/](https://developer.mozilla.org/ru/) (Allg. Sicherheitsressourcen)
 
 
   **[⬆ Наверх](#top)**  
 
-51. ### <a name="51"></a> 
+51. ### <a name="51"></a> Wie verhindert man SQL-Injections in Express?
 
+## Wie verhindert man SQL-Injection in Express?
+
+Grundprinzipien
+
+* **Keine String-Konkatenation** für SQL. Immer **parametrisierte Queries** / Prepared Statements.
+* **ORM/Query-Builder** korrekt nutzen (Sequelize `where`, `bind`/`replacements`), kein Roh-SQL ohne Bindings.
+* **Eingaben validieren/sanitizen** (Schema-Validierung).
+* **Least Privilege** für DB-User, Logging/Monitoring von ungewöhnlichen Zugriffen.
+
+Parametrisierte Queries mit `pg` (PostgreSQL)
+
+```js
+import express from 'express';
+import pg from 'pg';
+
+const app = express();
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+
+app.get('/users', async (req, res, next) => {
+  try {
+    const { email } = req.query;
+    // $1 ist ein Placeholder – DB behandelt Wert getrennt vom SQL-Text
+    const sql = 'SELECT id, email FROM users WHERE email = $1';
+    const { rows } = await pool.query(sql, [email]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+app.listen(3000);
+```
+
+Sequelize sicher einsetzen
+
+```js
+// 1) Bevorzugt: Model-API (automatisch gebundene Parameter)
+import { User } from './models.js';
+
+app.get('/user/:id', async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.params.id); // sicher
+    res.json(user);
+  } catch (e) { next(e); }
+});
+```
+
+```js
+// 2) Roh-SQL mit Bind/Replacements (niemals String-Templates mit User-Input)
+import { sequelize, Sequelize } from './db.js';
+
+const { QueryTypes } = Sequelize;
+
+app.get('/search', async (req, res, next) => {
+  try {
+    const term = req.query.q ?? '';
+    const rows = await sequelize.query(
+      'SELECT id, name FROM products WHERE name ILIKE :term',
+      { replacements: { term: `%${term}%` }, type: QueryTypes.SELECT }
+    );
+    res.json(rows);
+  } catch (e) { next(e); }
+});
+```
+
+Input-Validierung (Beispiel)
+
+```js
+import { z } from 'zod';
+
+const searchSchema = z.object({ q: z.string().max(100) });
+
+app.get('/safe-search', async (req, res, next) => {
+  try {
+    const { q } = searchSchema.parse(req.query);
+    // ab hier garantiert Typ/Format
+    // … parametrisierte Query wie oben
+    res.json({ ok: true });
+  } catch (e) { e.status = 400; next(e); }
+});
+```
+
+Zusätzliche Hinweise
+
+* Für `LIKE`/`ILIKE` Platzhalter (`%`, `_`) nicht selbst escapen, sondern **parameterisieren** und bei Bedarf `ESCAPE` verwenden.
+* Keine dynamischen Spalten-/Tabellennamen aus User-Input. Wenn nötig, **Whitelist** (Mapping) verwenden.
+* DB-User ohne `SUPERUSER`/DDL-Rechte; nur benötigte Schemas/Tabellen.
+* Fehlerantworten ohne SQL-Details/Stacktraces in Produktion.
+
+Zusammenfassung
+
+* SQL-Injection vermeidet man durch **parametrisierte Queries** und **korrekte ORM-Nutzung**; nie String-Konkatenation.
+* Ergänzend: **Validierung**, **Least Privilege**, und zurückhaltende Fehlermeldungen.
+
+Quellen
+
+* PostgreSQL Doku – Vorbereiten/Parameter & Sicherheit: [https://www.postgresql.org/docs/](https://www.postgresql.org/docs/)
+* Sequelize – Queries/Bind/Replacements: [https://sequelize.org/](https://sequelize.org/)
+* Express – Security Best Practices: [https://expressjs.com/de/advanced/best-practice-security.html](https://expressjs.com/de/advanced/best-practice-security.html)
+* MDN (RU) – Обзор SQL-инъекций: [https://developer.mozilla.org/ru/docs/Glossary/SQL\_Injection](https://developer.mozilla.org/ru/docs/Glossary/SQL_Injection)
 
 
   **[⬆ Наверх](#top)**
 
-52. ### <a name="52"></a> 
+52. ### <a name="52"></a> Was ist CSRF und wie schützt man sich dagegen?
 
+## Was ist CSRF und wie schützt man sich dagegen?
+
+**Definition:**
+CSRF (*Cross-Site Request Forgery*) ist ein Angriff, bei dem ein Angreifer den Browser eines eingeloggten Nutzers dazu bringt, **unerwünschte Aktionen** auf einer anderen Website auszuführen – z. B. Geld überweisen oder Passwort ändern.
+Da Cookies automatisch mitgesendet werden, könnte eine bösartige Seite Requests im Namen des Opfers auslösen.
+
+---
+
+## Schutzmaßnahmen gegen CSRF
+
+### 1. CSRF-Token nutzen (Synchronizer Token Pattern)
+
+* Bei Formularen oder API-Requests wird ein **zufälliges Token** generiert und im HTML oder JSON mitgegeben.
+* Der Client sendet dieses Token bei der Anfrage zurück.
+* Der Server prüft, ob das Token gültig ist.
+
+```bash
+npm install csurf
+```
+
+```js
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import csrf from 'csurf';
+
+const app = express();
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
+
+// CSRF-Schutz aktivieren (Token in Cookies)
+const csrfProtection = csrf({ cookie: true });
+
+app.get('/form', csrfProtection, (req, res) => {
+  res.send(`<form action="/process" method="POST">
+              <input type="hidden" name="_csrf" value="${req.csrfToken()}">
+              <button type="submit">Absenden</button>
+            </form>`);
+});
+
+app.post('/process', csrfProtection, (req, res) => {
+  res.send('Formular sicher abgeschickt');
+});
+```
+
+---
+
+### 2. SameSite-Cookies
+
+* Cookies mit `SameSite=strict` oder `SameSite=lax` markieren, damit sie **nicht bei Cross-Site-Anfragen** automatisch gesendet werden.
+
+```js
+res.cookie('session', 'token', {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'lax'
+});
+```
+
+---
+
+### 3. Nur sichere Methoden ohne Token erlauben
+
+* CSRF betrifft vor allem **zustandsändernde Methoden** (`POST`, `PUT`, `DELETE`).
+* `GET` sollte niemals Änderungen durchführen.
+
+---
+
+### 4. Zusätzliche Schutzmaßnahmen
+
+* **CORS restriktiv konfigurieren** (`cors`-Middleware).
+* **Double Submit Cookie Pattern** (zusätzliches Anti-CSRF-Cookie mit Token).
+* **CAPTCHA** bei besonders sensiblen Aktionen.
+
+---
+
+## Zusammenfassung
+
+* **CSRF = Cross-Site Request Forgery**, Angriffe durch automatische Cookie-Weitergabe.
+* Schutz:
+
+  * CSRF-Token (`csurf`-Middleware in Express),
+  * sichere Cookies (`httpOnly`, `secure`, `sameSite`),
+  * keine Zustandsänderungen via GET.
+* Best Practice: Kombination von **CSRF-Token + SameSite-Cookies**.
+
+**Quellen:**
+
+* [Express.js – Best Practice Security](https://expressjs.com/de/advanced/best-practice-security.html)
+* [csurf Middleware – npm](https://www.npmjs.com/package/csurf)
+* [MDN – CSRF](https://developer.mozilla.org/ru/docs/Glossary/CSRF)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+53. ### <a name="53"></a> Wie kann man HTTPS in Express konfigurieren?
+
+## HTTPS in Express konfigurieren
+
+**Grundidee:**
+Express läuft über Node.js’ TLS-Server. Du übergibst Key/Cert an einen `https`-Server und mountest darauf deine Express-App. Optional leitest du Port 80 → 443 um, setzt HSTS und aktivierst `trust proxy`, wenn ein Upstream-Proxy (NGINX, Cloud) davor sitzt.
+
+**1) Direktes HTTPS mit Key/Cert (Self-Signed oder CA/Let’s Encrypt)**
+
+```js
+import fs from 'node:fs';
+import https from 'node:https';
+import express from 'express';
+
+const app = express();
+
+// Beispielroute
+app.get('/', (req, res) => {
+  res.send('Hallo über HTTPS');
+});
+
+// Zertifikate (Pfad anpassen)
+const key  = fs.readFileSync('/etc/ssl/private/privkey.pem');
+const cert = fs.readFileSync('/etc/ssl/certs/fullchain.pem');
+
+https.createServer({ key, cert }, app).listen(443, () => {
+  console.log('HTTPS läuft auf :443');
+});
+```
+
+**2) HTTP → HTTPS weiterleiten (Port 80)**
+
+```js
+import http from 'node:http';
+
+http.createServer((req, res) => {
+  const host = req.headers.host?.replace(/:\d+$/, ''); // Host ohne Port
+  const location = `https://${host}${req.url}`;
+  res.writeHead(301, { Location: location });
+  res.end();
+}).listen(80, () => console.log('HTTP-Redirect läuft auf :80'));
+```
+
+**3) Hinter Proxy/Load-Balancer (Heroku/NGINX, Railway, etc.)**
+
+```js
+import express from 'express';
+const app = express();
+
+app.enable('trust proxy'); // respektiert X-Forwarded-* Header
+
+// Erzwinge HTTPS auf App-Ebene (nur wenn kein externer Redirect erfolgt)
+app.use((req, res, next) => {
+  if (req.secure) return next();
+  return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
+});
+```
+
+**4) Security-Header (HSTS) & sichere Cookies**
+
+```js
+import helmet from 'helmet';
+import express from 'express';
+
+const app = express();
+
+// HSTS: Erzwingt HTTPS bei Clients nach dem ersten Besuch
+app.use(helmet.hsts({ maxAge: 15552000, includeSubDomains: true, preload: false }));
+
+// Sichere Cookies
+app.get('/login', (req, res) => {
+  res.cookie('session', 'token', {
+    httpOnly: true,
+    secure: true,      // nur über HTTPS senden
+    sameSite: 'lax'    // reduziert CSRF-Risiko
+  });
+  res.send('ok');
+});
+```
+
+**5) Optional: HTTP/2 (TLS)**
+
+```js
+import fs from 'node:fs';
+import { createSecureServer } from 'node:http2';
+import express from 'express';
+
+const app = express();
+app.get('/', (req, res) => res.send('HTTP/2 über TLS'));
+
+const server = createSecureServer({
+  key:  fs.readFileSync('/etc/ssl/private/privkey.pem'),
+  cert: fs.readFileSync('/etc/ssl/certs/fullchain.pem'),
+  allowHTTP1: true // Fallback für Browser ohne HTTP/2
+}, app);
+
+server.listen(443, () => console.log('HTTP/2 TLS läuft auf :443'));
+```
+
+**Hinweise (ohne Code):**
+
+* Zertifikate: in Produktion **öffentlich signierte** Certs (z. B. Let’s Encrypt) verwenden.
+* Private Keys streng schützen (Dateirechte, kein Repo).
+* In Containern/Cloud meist TLS am Proxy/Ingress terminieren; die App läuft intern auf HTTP, **mit `trust proxy`** und **HSTS**.
+* Fehlerbehandlung: sinnvoll loggen, aber keine sensiblen Pfade/Keys ausgeben.
+
+### Zusammenfassung
+
+* HTTPS: `https.createServer({ key, cert }, app)` auf Port 443.
+* Port 80 → 443 per 301 umleiten oder am Proxy terminieren.
+* Hinter Proxy: `app.enable('trust proxy')` + optionaler HTTPS-Redirect.
+* Sicherheit: **HSTS**, **secure/httpOnly/sameSite Cookies**, **Helmet**.
+
+**Quellen**
+
+* Express – Best Practices/Security: [https://expressjs.com/de/advanced/best-practice-security.html](https://expressjs.com/de/advanced/best-practice-security.html)
+* Express – API (app.enable/use): [https://expressjs.com/de/4x/api.html](https://expressjs.com/de/4x/api.html)
+* Node.js – HTTPS/TLS: [https://nodejs.org/docs/latest/api/https.html](https://nodejs.org/docs/latest/api/https.html)
+* MDN (RU) – HSTS/Cookies/HTTPS: [https://developer.mozilla.org/ru/](https://developer.mozilla.org/ru/)
 
 
   **[⬆ Наверх](#top)**
 
-53. ### <a name="53"></a> 
+54. ### <a name="54"></a> Was ist express-session und wofür wird es verwendet?
 
+## Was ist `express-session` und wofür wird es verwendet?
+
+**Definition:**
+`express-session` ist eine Middleware für Express, die **Server-seitige Sitzungen (Sessions)** verwaltet.
+
+* Jeder Client bekommt eine eindeutige **Session-ID** (im Cookie gespeichert).
+* Die eigentlichen Sitzungsdaten liegen **auf dem Server** (Memory oder Datenbank).
+* Dient häufig für **Login-/Authentifizierungs-Mechanismen**, Warenkörbe, oder temporäre Benutzerdaten.
+
+---
+
+**1. Installation**
+
+```bash
+npm install express-session
+```
+
+---
+
+**2. Einfaches Setup**
+
+```js
+import express from 'express';
+import session from 'express-session';
+
+const app = express();
+
+app.use(session({
+  secret: 'meinGeheimerKey',   // zur Signierung des Cookies
+  resave: false,               // Session nicht speichern, wenn sie nicht verändert wurde
+  saveUninitialized: false,    // leere Sessions nicht speichern
+  cookie: {
+    httpOnly: true,            // nicht per JS auslesbar
+    secure: false,             // true in Produktion (nur HTTPS!)
+    maxAge: 1000 * 60 * 15     // 15 Minuten
+  }
+}));
+
+app.get('/set', (req, res) => {
+  req.session.username = 'Sergii';
+  res.send('Session gesetzt');
+});
+
+app.get('/get', (req, res) => {
+  res.send(`Hallo ${req.session.username || 'Gast'}`);
+});
+
+app.listen(3000, () => console.log('Server läuft auf 3000'));
+```
+
+---
+
+**3. Ablauf**
+
+1. Beim ersten Request: Session wird erstellt + Session-ID als Cookie `connect.sid` gesetzt.
+2. Bei weiteren Requests: Browser sendet Cookie mit, Server erkennt Session und liest gespeicherte Daten.
+
+---
+
+**4. Storage-Optionen**
+
+* Standard: **MemoryStore** (nicht für Produktion geeignet).
+* Beliebte Stores:
+
+  * `connect-pg-simple` (PostgreSQL)
+  * `connect-mongo` (MongoDB)
+  * `connect-redis` (Redis, oft in Produktion)
+
+Beispiel Redis-Store:
+
+```bash
+npm install connect-redis ioredis
+```
+
+```js
+import RedisStore from 'connect-redis';
+import Redis from 'ioredis';
+
+const redisClient = new Redis();
+
+app.use(session({
+  store: new RedisStore({ client: redisClient }),
+  secret: 'meinGeheimerKey',
+  resave: false,
+  saveUninitialized: false
+}));
+```
+
+---
+
+### Zusammenfassung
+
+* `express-session` verwaltet **serverseitige Sitzungen**.
+* Session-ID wird im Cookie gespeichert, Daten bleiben auf dem Server.
+* Typische Anwendungsfälle: **Login, Warenkorb, Benutzerstatus**.
+* Für Produktion: **externer Store** (Redis, DB) statt Memory.
+
+**Quellen:**
+
+* [express-session – npm](https://www.npmjs.com/package/express-session)
+* [Express.js – Best Practices Security](https://expressjs.com/de/advanced/best-practice-security.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+55. ### <a name="55"></a> Wie implementiert man JWT-Authentifizierung in Express?
+
+## JWT-Authentifizierung in Express (Access-/Refresh-Token)
+
+**Ziel:** Nutzer nach Login ein **JWT** (Access-Token) ausstellen, bei geschützten Routen **verifizieren**, optional **Refresh-Token** für langlebige Sessions.
+
+---
+
+**1) Installation & Setup**
+
+```bash
+npm i jsonwebtoken
+```
+
+```js
+// config/env.js
+export const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;     // z. B. 32+ zufällige Bytes
+export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;   // separat zum Access-Secret
+export const JWT_ACCESS_EXPIRES_IN = '15m';     // kurzlebig
+export const JWT_REFRESH_EXPIRES_IN = '7d';     // langlebig
+```
+
+---
+
+**2) Token helpers (sign/verify)**
+
+```js
+// auth/jwt.js
+import jwt from 'jsonwebtoken';
+import {
+  JWT_ACCESS_SECRET, JWT_REFRESH_SECRET,
+  JWT_ACCESS_EXPIRES_IN, JWT_REFRESH_EXPIRES_IN
+} from '../config/env.js';
+
+export function signAccessToken(payload) {
+  return jwt.sign(payload, JWT_ACCESS_SECRET, { expiresIn: JWT_ACCESS_EXPIRES_IN });
+}
+
+export function signRefreshToken(payload) {
+  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN });
+}
+
+export function verifyAccessToken(token) {
+  return jwt.verify(token, JWT_ACCESS_SECRET);
+}
+
+export function verifyRefreshToken(token) {
+  return jwt.verify(token, JWT_REFRESH_SECRET);
+}
+```
+
+---
+
+**3) Auth-Middleware (geschützte Routen)**
+
+```js
+// auth/requireAuth.js
+import { verifyAccessToken } from './jwt.js';
+
+export function requireAuth(req, res, next) {
+  const auth = req.headers.authorization || '';
+  const [, token] = auth.split(' ');
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const payload = verifyAccessToken(token); // { sub, role, ... }
+    req.user = payload;
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+```
+
+> Üblich ist `Authorization: Bearer <token>`. Alternativ: **httpOnly** Cookie (mit CORS `credentials: true`).
+
+---
+
+**4) Login/Refresh/Logout Routen**
+
+```js
+// auth/routes.js
+import { Router } from 'express';
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from './jwt.js';
+// Beispiel: User aus DB holen + Passwort prüfen (aus Platzgründen hier weggelassen)
+const router = Router();
+
+// Login – Tokens ausstellen
+router.post('/login', async (req, res) => {
+  const { userId, role } = { userId: 123, role: 'user' }; // aus DB nach Prüfung
+  const accessToken = signAccessToken({ sub: userId, role });
+  const refreshToken = signRefreshToken({ sub: userId });
+  res.status(200).json({ accessToken, refreshToken });
+});
+
+// Geschützte Route
+router.get('/me', (req, res) => {
+  // in requireAuth wird req.user gesetzt; hier nur Beispiel ohne Middleware
+  res.json({ message: 'OK – geschützter Inhalt' });
+});
+
+// Access-Token erneuern
+router.post('/refresh', (req, res) => {
+  const { refreshToken } = req.body || {};
+  if (!refreshToken) return res.status(401).json({ error: 'Missing refresh token' });
+  try {
+    const { sub } = verifyRefreshToken(refreshToken);
+    const newAccess = signAccessToken({ sub });
+    return res.json({ accessToken: newAccess });
+  } catch {
+    return res.status(401).json({ error: 'Invalid refresh token' });
+  }
+});
+
+export default router;
+```
+
+---
+
+**5) Einbindung in Express-App**
+
+```js
+// server.js
+import express from 'express';
+import authRoutes from './auth/routes.js';
+import { requireAuth } from './auth/requireAuth.js';
+
+const app = express();
+app.use(express.json());
+
+app.use('/auth', authRoutes);
+
+// Beispiel für geschützte API
+app.get('/api/secret', requireAuth, (req, res) => {
+  res.json({ user: req.user.sub, secret: 'top' });
+});
+
+app.listen(3000, () => console.log('API läuft auf :3000'));
+```
+
+---
+
+**Sicherheits-Hinweise (kurz)**
+
+* **Secrets** nur aus Umgebungsvariablen; getrennte Secrets für Access/Refresh.
+* **Kurze TTL** für Access-Token (z. B. 15 min); Refresh-Token rotieren/speichern (z. B. DB/Redis) → bei Logout/Revoke invalidieren.
+* Bei Cookies: `httpOnly`, `secure`, `sameSite=lax/strict`, CORS `credentials: true`.
+* Payload minimal halten (z. B. nur `sub`, `role`), keine sensiblen Daten in JWT.
+* Auf **Clock Skew** achten (Serverzeit), 401/403 sauber unterscheiden.
+
+### Zusammenfassung
+
+* JWTs mit `jsonwebtoken`: kurzlebiges **Access-Token** für Auth, **Refresh-Token** zum Erneuern.
+* Middleware prüft `Authorization: Bearer <token>` und setzt `req.user`.
+* Secrets/TTL korrekt konfigurieren, Refresh-Token sicher speichern/rotieren, Cookies optional mit `httpOnly/secure`.
+
+**Quellen**
+
+* Node.js – Prozess/Umgebung: [https://nodejs.org/docs](https://nodejs.org/docs)
+* Express – Best Practices/Security: [https://expressjs.com/de/advanced/best-practice-security.html](https://expressjs.com/de/advanced/best-practice-security.html)
+* MDN (RU) – JSON Web Token Überblick: [https://developer.mozilla.org/ru/docs/Web/HTTP/Authentication#json\_web\_token\_jwt](https://developer.mozilla.org/ru/docs/Web/HTTP/Authentication#json_web_token_jwt)
+* jsonwebtoken – npm: [https://www.npmjs.com/package/jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
 
 
   **[⬆ Наверх](#top)**
 
-54. ### <a name="54"></a> 
+56. ### <a name="56"></a> Wie baut man eine REST-API mit Express?
 
+## REST-API mit Express: Vorgehen, Struktur, Beispiele
+
+Ziele
+
+* Klare **Routen** (Resources/CRUD), **Controller**-Logik, **Middleware** (Parsing, CORS, Auth, Fehler).
+* **Statuscodes** und **JSON**-Antworten konsistent.
+* Optional: **PostgreSQL** via **Sequelize**.
+
+Projektstruktur (Beispiel)
+
+```
+src/
+  app.js
+  server.js
+  routes/
+    users.routes.js
+  controllers/
+    users.controller.js
+  middlewares/
+    error.middleware.js
+    auth.middleware.js
+  db/
+    index.js
+    models/
+      user.model.js
+  validators/
+    users.schema.js
+package.json
+.env
+```
+
+package.json (ESM, Scripts)
+
+```json
+{
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "sequelize": "^6.37.0",
+    "pg": "^8.11.5",
+    "zod": "^3.23.0"
+  }
+}
+```
+
+App-Grundgerüst (Parsing, CORS, Security, Error-Handling)
+
+```js
+// src/app.js
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import usersRouter from './routes/users.routes.js';
+import { notFound } from './middlewares/error.middleware.js';
+import { errorHandler } from './middlewares/error.middleware.js';
+
+const app = express();
+
+app.use(helmet());
+app.use(cors({ origin: ['http://localhost:5173'], credentials: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+app.use('/api/v1/users', usersRouter);
+
+// 404 → Error-Handler
+app.use(notFound);
+app.use(errorHandler);
+
+export default app;
+```
+
+Server starten
+
+```js
+// src/server.js
+import app from './app.js';
+
+const PORT = process.env.PORT ?? 3000;
+app.listen(PORT, () => console.log(`API läuft auf :${PORT}`));
+```
+
+REST-Routen (CRUD)
+
+```js
+// src/routes/users.routes.js
+import { Router } from 'express';
+import * as ctrl from '../controllers/users.controller.js';
+
+const r = Router();
+
+r.get('/', ctrl.listUsers);      // GET /api/v1/users
+r.get('/:id', ctrl.getUser);     // GET /api/v1/users/:id
+r.post('/', ctrl.createUser);    // POST
+r.put('/:id', ctrl.updateUser);  // PUT (vollständig)
+r.patch('/:id', ctrl.patchUser); // PATCH (teilweise)
+r.delete('/:id', ctrl.deleteUser);// DELETE
+
+export default r;
+```
+
+Controller (Beispiel, mit Statuscodes)
+
+```js
+// src/controllers/users.controller.js
+import { User } from '../db/models/user.model.js';
+import { createUserSchema, updateUserSchema } from '../validators/users.schema.js';
+
+export async function listUsers(req, res, next) {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (Number(page) - 1) * Number(limit);
+    const { rows, count } = await User.findAndCountAll({ offset, limit: Number(limit), order: [['id', 'ASC']] });
+    res.json({ data: rows, meta: { page: Number(page), limit: Number(limit), total: count } });
+  } catch (e) { next(e); }
+}
+
+export async function getUser(req, res, next) {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User nicht gefunden' });
+    res.json(user);
+  } catch (e) { next(e); }
+}
+
+export async function createUser(req, res, next) {
+  try {
+    const dto = createUserSchema.parse(req.body);
+    const user = await User.create(dto);
+    res.status(201).json(user);
+  } catch (e) { e.status ??= 400; next(e); }
+}
+
+export async function updateUser(req, res, next) {
+  try {
+    const dto = updateUserSchema.parse(req.body);
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User nicht gefunden' });
+    await user.update(dto);
+    res.json(user);
+  } catch (e) { e.status ??= 400; next(e); }
+}
+
+export async function patchUser(req, res, next) {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User nicht gefunden' });
+    await user.update(req.body);
+    res.json(user);
+  } catch (e) { e.status ??= 400; next(e); }
+}
+
+export async function deleteUser(req, res, next) {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User nicht gefunden' });
+    await user.destroy();
+    res.status(204).send();
+  } catch (e) { next(e); }
+}
+```
+
+Validierung (zod)
+
+```js
+// src/validators/users.schema.js
+import { z } from 'zod';
+
+export const createUserSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(2),
+  role: z.enum(['user', 'admin']).default('user')
+});
+
+export const updateUserSchema = createUserSchema.partial();
+```
+
+Error-Middleware (404 + zentraler Handler)
+
+```js
+// src/middlewares/error.middleware.js
+export function notFound(req, res, next) {
+  res.status(404).json({ error: 'Route nicht gefunden' });
+}
+
+export function errorHandler(err, req, res, next) {
+  const status = err.status || err.statusCode || 500;
+  const payload = {
+    error: err.message || 'Interner Serverfehler'
+  };
+  if (process.env.NODE_ENV !== 'production') {
+    payload.stack = err.stack;
+  }
+  res.status(status).json(payload);
+}
+```
+
+Datenbank (PostgreSQL + Sequelize)
+
+```js
+// src/db/index.js
+import { Sequelize } from 'sequelize';
+
+export const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  logging: false
+});
+
+export async function initDb() {
+  await sequelize.authenticate();
+  await sequelize.sync(); // in Prod: Migrations verwenden!
+}
+```
+
+```js
+// src/db/models/user.model.js
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../index.js';
+
+export class User extends Model {}
+
+User.init({
+  email: { type: DataTypes.STRING, unique: true, allowNull: false, validate: { isEmail: true } },
+  name:  { type: DataTypes.STRING, allowNull: false },
+  role:  { type: DataTypes.ENUM('user', 'admin'), allowNull: false, defaultValue: 'user' }
+}, { sequelize, modelName: 'User', tableName: 'users' });
+```
+
+Server-Start inkl. DB-Init
+
+```js
+// src/server.js
+import app from './app.js';
+import { initDb } from './db/index.js';
+
+const PORT = process.env.PORT ?? 3000;
+
+initDb()
+  .then(() => app.listen(PORT, () => console.log(`API läuft auf :${PORT}`)))
+  .catch((e) => {
+    console.error('DB-Start fehlgeschlagen:', e);
+    process.exit(1);
+  });
+```
+
+Best Practices (kurz)
+
+* **Versionierung** von Routen: `/api/v1`.
+* **Statuscodes** konsistent (201 bei Create, 204 bei Delete).
+* **Pagination/Filter/Sort** anbieten.
+* **Security**: `helmet`, `cors`, Rate-Limiting für sensible Endpunkte.
+* **Auth**: Sessions oder **JWT** (Bearer) für geschützte Routen.
+* **Validation** auf allen Eingaben.
+* **Migrations** statt `sync()` in Produktion (z. B. Sequelize CLI).
+* **Logs** (morgan/pino) und **Monitoring**.
+* **E2E-/Integrationstests** (z. B. supertest, jest).
+
+Zusammenfassung
+
+* Express-REST-API = klare Schichten: **Routes → Controller → Services/DB**, plus **Middleware** (Parsing, Errors, Security).
+* JSON-Antworten, korrekte **Statuscodes**, **Validierung** und **zentrales Fehlerhandling** sind Pflicht.
+* Mit Sequelize/PostgreSQL schnell produktiv: Modelle, CRUD, Pagination.
+
+Quellen
+
+* Express.js – Starter/Guide/API: [https://expressjs.com/de/](https://expressjs.com/de/)
+* Node.js Dokumentation: [https://nodejs.org/docs](https://nodejs.org/docs)
+* PostgreSQL Dokumentation: [https://www.postgresql.org/docs/](https://www.postgresql.org/docs/)
+* Sequelize Dokumentation: [https://sequelize.org/](https://sequelize.org/)
+* MDN Web Docs (RU) – HTTP, REST-Grundlagen: [https://developer.mozilla.org/ru/](https://developer.mozilla.org/ru/)
 
 
   **[⬆ Наверх](#top)**
 
-55. ### <a name="55"></a> 
+57. ### <a name="57"></a> Unterschied zwischen REST und GraphQL im Kontext von Express?
 
+## Unterschied zwischen REST und GraphQL im Kontext von Express
+
+**1. REST (Representational State Transfer)**
+
+* Architekturstil für APIs, basiert auf **Ressourcen und HTTP-Methoden**.
+* Jede Ressource hat eine eindeutige URL (`/api/v1/users/123`).
+* Methoden definieren die Operation: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`.
+* **Antwort:** gesamte Ressource oder eine Liste.
+* **Nachteile:** Overfetching (zu viele Daten) oder Underfetching (zu wenige Daten → mehrere Requests nötig).
+
+```js
+// REST-Beispiel in Express
+app.get('/api/v1/users/:id', (req, res) => {
+  res.json({ id: req.params.id, name: 'Sergii', email: 'sergii@mail.de' });
+});
+```
+
+---
+
+**2. GraphQL**
+
+* Query-Sprache für APIs, **ein einziger Endpunkt** (`/graphql`).
+* Client bestimmt **selbst**, welche Felder er benötigt.
+* **Antwort:** exakt die angeforderten Daten.
+* **Vorteile:** kein Over-/Underfetching, flexible Queries.
+* **Nachteile:** komplexere Implementierung, Caching schwieriger, Overhead bei kleinen Projekten.
+
+```js
+// GraphQL in Express mit express-graphql
+import express from 'express';
+import { graphqlHTTP } from 'express-graphql';
+import { buildSchema } from 'graphql';
+
+const schema = buildSchema(`
+  type User { id: ID!, name: String!, email: String! }
+  type Query { user(id: ID!): User }
+`);
+
+const root = {
+  user: ({ id }) => ({ id, name: 'Sergii', email: 'sergii@mail.de' })
+};
+
+const app = express();
+app.use('/graphql', graphqlHTTP({ schema, rootValue: root, graphiql: true }));
+app.listen(3000);
+```
+
+---
+
+**3. Vergleich REST vs. GraphQL**
+
+| Kriterium     | REST                                | GraphQL                               |
+| ------------- | ----------------------------------- | ------------------------------------- |
+| Endpunkte     | Viele (`/users`, `/posts/:id`)      | Ein einziger (`/graphql`)             |
+| Abfragen      | Vorgegebene Struktur (durch Server) | Client bestimmt Felder (flexibel)     |
+| Overfetching  | möglich                             | vermieden                             |
+| Versionierung | Oft `/api/v1`, `/api/v2`            | Schema-Änderungen statt Versionierung |
+| Caching       | Einfach via HTTP-Cache              | komplexer, eigene Layer nötig         |
+| Einstieg      | einfacher                           | höherer Lernaufwand                   |
+
+---
+
+### Zusammenfassung
+
+* **REST:** bewährt, einfach, ressourcenorientiert, gute Integration mit HTTP-Standards.
+* **GraphQL:** flexibel, clientgetrieben, löst Over-/Underfetching, aber komplexer in Setup und Betrieb.
+* In Express: REST = klassische Routen, GraphQL = ein Endpunkt mit `express-graphql` oder Apollo Server.
+
+**Quellen:**
+
+* [Express.js – Routing](https://expressjs.com/de/guide/routing.html)
+* [GraphQL Offizielle Seite](https://graphql.org/)
+* [express-graphql – npm](https://www.npmjs.com/package/express-graphql)
+* [MDN – REST](https://developer.mozilla.org/ru/docs/Glossary/REST)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+58. ### <a name="58"></a> Wie validiert man Daten in einer REST-API?
+
+## Datenvalidierung in einer REST-API mit Express
+
+**Warum wichtig?**
+
+* Schutz vor fehlerhaften oder bösartigen Eingaben.
+* Konsistente API → klar definierte Eingabe- und Ausgabestrukturen.
+* Verhindert Sicherheitslücken (z. B. SQL Injection, XSS).
+
+---
+
+### 1. Manuelle Validierung
+
+Einfach, aber fehleranfällig bei größeren Projekten.
+
+```js
+app.post('/users', (req, res) => {
+  const { email, age } = req.body;
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ error: 'Ungültige E-Mail' });
+  }
+  if (!age || isNaN(age)) {
+    return res.status(400).json({ error: 'Ungültiges Alter' });
+  }
+  res.status(201).json({ email, age });
+});
+```
+
+---
+
+### 2. Schema-basierte Validierung mit **Joi**
+
+```bash
+npm install joi
+```
+
+```js
+import Joi from 'joi';
+
+const userSchema = Joi.object({
+  email: Joi.string().email().required(),
+  age: Joi.number().integer().min(18).required()
+});
+
+app.post('/users', (req, res) => {
+  const { error, value } = userSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ error: error.details.map(d => d.message) });
+  }
+  res.status(201).json(value);
+});
+```
+
+---
+
+### 3. Validierung mit **Zod** (modern, TypeScript-freundlich)
+
+```bash
+npm install zod
+```
+
+```js
+import { z } from 'zod';
+
+const userSchema = z.object({
+  email: z.string().email(),
+  age: z.number().int().min(18)
+});
+
+app.post('/users', (req, res, next) => {
+  try {
+    const data = userSchema.parse(req.body); // validiert & typisiert
+    res.status(201).json(data);
+  } catch (err) {
+    res.status(400).json({ error: err.errors });
+  }
+});
+```
+
+---
+
+### 4. Middleware für Validierung
+
+Best Practice: Validierung in Middleware auslagern.
+
+```js
+function validate(schema) {
+  return (req, res, next) => {
+    try {
+      req.body = schema.parse(req.body);
+      next();
+    } catch (err) {
+      res.status(400).json({ error: err.errors });
+    }
+  };
+}
+
+app.post('/users', validate(userSchema), (req, res) => {
+  res.status(201).json(req.body);
+});
+```
+
+---
+
+### 5. Validierung auf Query-/Params-Ebene
+
+```js
+const querySchema = z.object({
+  page: z.string().regex(/^\d+$/).transform(Number).default("1"),
+  limit: z.string().regex(/^\d+$/).transform(Number).default("10")
+});
+
+app.get('/users', (req, res) => {
+  const { page, limit } = querySchema.parse(req.query);
+  res.json({ page, limit });
+});
+```
+
+---
+
+### Zusammenfassung
+
+* **Manuell** → gut für kleine Checks.
+* **Joi/Zod** → mächtig und konsistent für große APIs.
+* **Middleware** nutzen, um Validierung zentral zu handhaben.
+* Validierung nicht nur für `body`, sondern auch für `params` und `query`.
+
+**Quellen:**
+
+* [Express.js – Best Practices](https://expressjs.com/de/advanced/best-practice-performance.html)
+* [Joi – npm](https://www.npmjs.com/package/joi)
+* [Zod – npm](https://www.npmjs.com/package/zod)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+59. ### <a name="59"></a> Welche Best Practices gibt es für RESTful Routes?
+
+## Best Practices für RESTful Routes in Express
+
+**Ressourcen-Design**
+
+* **Substantive, Plural**: `/users`, `/orders`, `/products`.
+* **Eindeutige IDs**: `/users/:id` (keine Aktionswörter in Pfaden).
+* **Nesting sparsam**: max. 1 Ebene – z. B. `/users/:id/orders`; tieferes Nesting via Filter (`/orders?userId=:id`).
+
+**HTTP-Methoden semantisch nutzen**
+
+* `GET /users` (lesen, idempotent)
+* `GET /users/:id`
+* `POST /users` (erstellen, `201 Created`)
+* `PUT /users/:id` (vollständiges Update)
+* `PATCH /users/:id` (teilweises Update)
+* `DELETE /users/:id` (`204 No Content` bei Erfolg)
+
+**Statuscodes & Header**
+
+* `201` + `Location`-Header nach `POST`.
+* `204` ohne Body bei `DELETE`/idempotenten Updates ohne Rückgabe.
+* Konsistente Fehler: `400/401/403/404/409/422/500`.
+* Caching-Header (`ETag`, `Last-Modified`, `Cache-Control`) wo sinnvoll.
+
+**Query-Parameter für Abfragen**
+
+* Filtering/Sorting/Pagination über Query: `GET /users?role=admin&sort=createdAt&order=desc&page=2&limit=20`.
+* Einheitliche Paginierung (`page`, `limit`) und Metadaten im Response (`total`, `page`, `limit`).
+
+**Versionierung**
+
+* Präfix: `/api/v1/...`.
+* Alternativ über Header (fortgeschritten), im Alltag meist Pfadversionierung.
+
+**Konsistente JSON-Antworten**
+
+* Einheitliches Format: `{ data, meta, error }`.
+* Keine HTML-Antworten in einer JSON-API; `Content-Type: application/json`.
+
+**Idempotenz & Sicherheit**
+
+* `PUT`/`DELETE` idempotent gestalten.
+* Eingaben validieren (Schema, z. B. Zod/Joi).
+* AuthN/AuthZ zentral (Middleware), Rate-Limit, Helmet, CORS restriktiv.
+
+**Fehler-Handling**
+
+* Zentrale Error-Middleware; klare Fehlerobjekte (`{ error: '...', details: [...] }`).
+* Keine internen Stacktraces in Produktion.
+
+**Dateistruktur & Router**
+
+* Trennung: **Routes → Controller → Service/DB**, Wiederverwendung durch `express.Router()`.
+* Gruppierung nach Ressourcen, nicht nach HTTP-Methode.
+
+**Beispiel (ESM, Express-Router)**
+
+```js
+// routes/users.routes.js
+import { Router } from 'express';
+import * as ctrl from '../controllers/users.controller.js';
+import { validate } from '../middlewares/validate.js';
+import { createUserSchema, updateUserSchema } from '../validators/users.schema.js';
+
+const r = Router();
+
+r.get('/', ctrl.list);                    // GET /api/v1/users
+r.get('/:id', ctrl.getById);              // GET /api/v1/users/:id
+r.post('/', validate(createUserSchema), ctrl.create);   // POST
+r.put('/:id', validate(updateUserSchema), ctrl.replace); // PUT
+r.patch('/:id', validate(updateUserSchema.partial()), ctrl.partial); // PATCH
+r.delete('/:id', ctrl.remove);            // DELETE
+
+export default r;
+```
+
+```js
+// Beispiel-Response für List mit Meta
+export async function list(req, res, next) {
+  try {
+    const page = Number(req.query.page ?? 1);
+    const limit = Number(req.query.limit ?? 10);
+    const offset = (page - 1) * limit;
+    const { rows, count } = await User.findAndCountAll({ offset, limit, order: [['id','ASC']] });
+    res.json({ data: rows, meta: { total: count, page, limit } });
+  } catch (e) { next(e); }
+}
+```
+
+**Weitere Hinweise**
+
+* Ressourcen-URLs sind **ohne Verben**; Aktionen als Zustandswechsel per Methode modellieren.
+* Batch-Operationen klar kennzeichnen (`POST /users/batch`).
+* HATEOAS optional via Links (`self`, `next`, `prev`).
+* Einheitliche Uhrzeit- und ID-Formate (ISO 8601, UUID).
+
+### Zusammenfassung
+
+* Klare Ressourcennamen, semantische Methoden, konsistente Statuscodes/JSON.
+* Query-Parameter für Filter/Sort/Pagination, Versionierung via `/api/v1`.
+* Validierung, Security-Middleware und zentrales Error-Handling sind Pflicht.
+* Saubere Schichten-Trennung und Router-Struktur erhöhen Wartbarkeit.
+
+**Quellen**
+
+* Express.js – Guide & Routing: [https://expressjs.com/de/guide/routing.html](https://expressjs.com/de/guide/routing.html)
+* Express.js – Best Practices (Security/Performance): [https://expressjs.com/de/advanced/best-practice-performance.html](https://expressjs.com/de/advanced/best-practice-performance.html)
+* MDN (RU) – HTTP-Methoden/Status: [https://developer.mozilla.org/ru/docs/Web/HTTP/Methods](https://developer.mozilla.org/ru/docs/Web/HTTP/Methods) , [https://developer.mozilla.org/ru/docs/Web/HTTP/Status](https://developer.mozilla.org/ru/docs/Web/HTTP/Status)
+* Node.js Dokumentation: [https://nodejs.org/docs](https://nodejs.org/docs)
 
 
   **[⬆ Наверх](#top)**
 
-56. ### <a name="56"></a> 
+60. ### <a name="60"></a> Was ist HATEOAS?
 
+## Was ist HATEOAS?
+
+**Definition:**
+HATEOAS steht für **Hypermedia as the Engine of Application State**.
+
+* Es ist ein Prinzip von REST (aus Roy Fieldings Dissertation).
+* Idee: Ein Client soll eine API **entdecken und navigieren können**, ohne deren Struktur im Voraus kennen zu müssen.
+* Jede Ressource liefert **Hypermedia-Links**, die auf weitere mögliche Aktionen verweisen.
+
+---
+
+**Beispiel ohne HATEOAS (klassisches REST):**
+
+```json
+{
+  "id": 42,
+  "title": "REST API lernen",
+  "author": "Sergii"
+}
+```
+
+👉 Hier muss der Client die Endpunkte (z. B. `/posts/42/comments`) kennen.
+
+---
+
+**Beispiel mit HATEOAS:**
+
+```json
+{
+  "id": 42,
+  "title": "REST API lernen",
+  "author": "Sergii",
+  "_links": {
+    "self": { "href": "/api/v1/posts/42" },
+    "comments": { "href": "/api/v1/posts/42/comments" },
+    "author": { "href": "/api/v1/users/7" }
+  }
+}
+```
+
+👉 Der Client kann anhand der Links automatisch sehen, welche nächsten Schritte möglich sind.
+
+---
+
+**Vorteile:**
+
+* API ist **selbstbeschreibend**.
+* Weniger harte Kopplung zwischen Client und Server.
+* Einfachere Weiterentwicklung/Versionierung.
+
+**Nachteile:**
+
+* Höherer Implementierungsaufwand.
+* Nicht alle Clients nutzen oder benötigen HATEOAS.
+* In modernen REST-APIs oft weggelassen zugunsten von **OpenAPI/Swagger**.
+
+---
+
+### Zusammenfassung
+
+* **HATEOAS = Hypermedia als Navigationshilfe in REST-APIs.**
+* Jede Antwort enthält **Links zu weiteren möglichen Aktionen**.
+* Stärkt die Selbstbeschreibung der API, aber heute oft durch **Swagger/OpenAPI** ersetzt.
+
+**Quellen:**
+
+* [MDN – HATEOAS](https://developer.mozilla.org/ru/docs/Glossary/HATEOAS)
+* [REST Dissertation von Roy Fielding](https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+61. ### <a name="61"></a> Wie baut man eine Versionierung für APIs in Express ein?
+
+## API-Versionierung in Express: Strategien und Umsetzung
+
+**Hauptstrategien**
+
+* **Pfadbasiert (empfohlen für Einfachheit):** `/api/v1/...`, später `/api/v2/...`.
+* **Header-basiert (Content-Negotiation):** `Accept: application/vnd.myapp.v1+json`.
+* **Query-Parameter (nicht empfohlen):** `?version=1` (leicht missbrauchbar, schwer zu cachen).
+
+**Pfadbasierte Versionierung (einfach & klar)**
+
+```js
+// src/app.js
+import express from 'express';
+import v1Routes from './v1/index.js';
+import v2Routes from './v2/index.js';
+
+const app = express();
+app.use(express.json());
+
+// v1 – stabil
+app.use('/api/v1', v1Routes);
+
+// v2 – neue Breaking Changes
+app.use('/api/v2', v2Routes);
+
+export default app;
+```
+
+```js
+// src/v1/index.js
+import { Router } from 'express';
+const r = Router();
+
+r.get('/users/:id', (req, res) => {
+  res.json({ id: req.params.id, fullName: 'V1-Name' });
+});
+
+export default r;
+```
+
+```js
+// src/v2/index.js
+import { Router } from 'express';
+const r = Router();
+
+r.get('/users/:id', (req, res) => {
+  res.json({ id: req.params.id, name: { first: 'V2', last: 'Name' } });
+});
+
+export default r;
+```
+
+**Header-basierte Versionierung (fortgeschritten)**
+
+```js
+// src/middlewares/versioning.js
+export function pickVersion(req, res, next) {
+  const accept = req.headers.accept || '';
+  if (accept.includes('vnd.myapp.v2+json')) req.apiVersion = 'v2';
+  else if (accept.includes('vnd.myapp.v1+json')) req.apiVersion = 'v1';
+  else req.apiVersion = 'v1'; // Default
+  next();
+}
+```
+
+```js
+// src/app.js
+import express from 'express';
+import { pickVersion } from './middlewares/versioning.js';
+import v1Routes from './v1/index.js';
+import v2Routes from './v2/index.js';
+
+const app = express();
+app.use(express.json());
+app.use(pickVersion);
+
+// Multiplexer
+app.use((req, res, next) => {
+  if (req.apiVersion === 'v2') return v2Routes(req, res, next);
+  return v1Routes(req, res, next);
+});
+
+export default app;
+```
+
+**Deprecation & Sunset (Kommunikation)**
+
+```js
+// Deprecation-Header für alte Versionen
+app.use('/api/v1', (req, res, next) => {
+  res.setHeader('Deprecation', 'true');            // RFC 8594
+  res.setHeader('Sunset', 'Tue, 31 Mar 2026 23:59:59 GMT');
+  res.setHeader('Link', '</api/v2>; rel="successor-version"');
+  next();
+});
+```
+
+**Best Practices**
+
+* **Stabile Basis:** Business-Logik in Services kapseln, nur DTO/Mapper pro Version anpassen.
+* **Konsistente Semantik:** 201/204/404/422 etc. beibehalten; nur **Schema** oder **Felder** zwischen Versionen ändern.
+* **Dokumentation pro Version:** Separate OpenAPI-Spezifikationen (`openapi-v1.yaml`, `openapi-v2.yaml`).
+* **Lebenszyklus definieren:** Support-Zeitraum, Deprecation-Ankündigung, Sunset-Datum.
+* **Default-Version:** Klar kommunizieren (z. B. v1), Fallbacks dokumentieren.
+* **Tests je Version:** Contract-Tests/Snapshot-Tests, um unbeabsichtigte Brüche zu vermeiden.
+* **Caching berücksichtigen:** Pfadversionierung ist HTTP-Cache-freundlich; Header-Versionierung benötigt passende Vary-Header (`Vary: Accept`).
+
+### Zusammenfassung
+
+* **Pfadversionierung** ist am einfachsten (`/api/v1`), **Header-Versionierung** ist flexibler, aber komplexer.
+* Versionen sauber trennen (eigene Router), Kernlogik teilen, nur **DTO/Antwortformate** pro Version variieren.
+* Deprecation/Sunset-Header setzen, getrennte OpenAPI-Dokumente pflegen, Tests pro Version.
+
+**Quellen**
+
+* Express.js – Guide & Routing: [https://expressjs.com/de/guide/routing.html](https://expressjs.com/de/guide/routing.html)
+* Express.js – Best Practices: [https://expressjs.com/de/advanced/best-practice-performance.html](https://expressjs.com/de/advanced/best-practice-performance.html)
+* MDN (RU) – HTTP-Header (Vary/Content Negotiation): [https://developer.mozilla.org/ru/docs/Web/HTTP/Headers](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers)
+* Node.js Dokumentation: [https://nodejs.org/docs](https://nodejs.org/docs)
 
 
   **[⬆ Наверх](#top)**
 
-57. ### <a name="57"></a> 
+62. ### <a name="62"></a> Wie verarbeitet man große Datenmengen in einer API?
 
+## Große Datenmengen in einer API verarbeiten (Express + Node.js)
+
+Strategien (kurz)
+
+* Pagination/Keyset-Cursor statt alles auf einmal laden.
+* Streams & Backpressure: Daten stückweise verarbeiten/liefern.
+* Komprimierung & Caching: weniger Bytes über die Leitung.
+* “Projektion” (nur benötigte Felder), Filter/Sort am DB-Server.
+* Hintergrundjobs für teure Tasks, asynchrone Verarbeitung.
+* Zeit- & Größenlimits, Rate-Limiting, Schutz vor Memory-Spikes.
+
+Pagination (Offset vs. Cursor/Keyset)
+
+```js
+// Sequelize – Offset-Pagination (einfach, bei großen Offsets langsam)
+const page = Number(req.query.page ?? 1);
+const limit = Number(req.query.limit ?? 50);
+const offset = (page - 1) * limit;
+const { rows, count } = await User.findAndCountAll({
+  offset, limit, order: [['id','ASC']],
+  attributes: ['id','email'] // Projektion
+});
+res.json({ data: rows, meta: { page, limit, total: count } });
+```
+
+```js
+// Keyset/Cursor-Pagination – performanter bei großen Tabellen
+// client übergibt lastId (cursor); kein COUNT(*) nötig
+const limit = Number(req.query.limit ?? 50);
+const lastId = req.query.lastId ? Number(req.query.lastId) : 0;
+const rows = await User.findAll({
+  where: lastId ? { id: { [Op.gt]: lastId } } : {},
+  order: [['id','ASC']],
+  limit,
+  attributes: ['id','email']
+});
+const nextCursor = rows.length ? rows[rows.length - 1].id : null;
+res.json({ data: rows, nextCursor });
+```
+
+Streaming aus der Datenbank
+
+```js
+// pg-Cursor: speichert nicht alles im RAM, verarbeitet Block-weise
+import pg from 'pg';
+import Cursor from 'pg-cursor';
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+
+app.get('/export-ndjson', async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    res.setHeader('Content-Type', 'application/x-ndjson');
+    const cursor = client.query(new Cursor('SELECT id, email FROM users ORDER BY id'));
+    const readNext = () => {
+      cursor.read(1000, (err, rows) => {
+        if (err) return next(err);
+        if (!rows.length) {
+          cursor.close(() => client.release());
+          return res.end();
+        }
+        for (const r of rows) {
+          if (!res.write(JSON.stringify(r) + '\n')) {
+            return res.once('drain', readNext); // Backpressure
+          }
+        }
+        readNext();
+      });
+    };
+    readNext();
+  } catch (e) {
+    client.release();
+    next(e);
+  }
+});
+```
+
+HTTP-Streaming & Backpressure (Server → Client)
+
+```js
+// NDJSON streamen; res.write() + 'drain' beachten
+app.get('/stream', async (req, res) => {
+  res.setHeader('Content-Type', 'application/x-ndjson');
+  for (let i = 0; i < 1e6; i++) {
+    if (!res.write(JSON.stringify({ n: i }) + '\n')) {
+      await new Promise(r => res.once('drain', r)); // Backpressure
+    }
+  }
+  res.end();
+});
+```
+
+Dateien/Exports als Stream senden
+
+```js
+import { createReadStream } from 'node:fs';
+import { pipeline } from 'node:stream/promises';
+
+app.get('/download', async (req, res, next) => {
+  try {
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', 'attachment; filename="dump.bin"');
+    await pipeline(createReadStream('/data/dump.bin'), res); // zero-copy Stream
+  } catch (e) { next(e); }
+});
+```
+
+Komprimierung & Caching
+
+```js
+// Gzip/Brotli spart Bandbreite; bei großen JSON-Listen relevant
+import compression from 'compression';
+app.use(compression()); // automatisch nach Accept-Encoding
+
+// ETag/Cache-Control für GET-Listen wenn möglich
+app.get('/list', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=60'); // kurzzeitiges Caching
+  res.json(/* ... */);
+});
+```
+
+Limits & Schutz
+
+```js
+// Body-Size begrenzen, um RAM zu schützen
+app.use(express.json({ limit: '1mb' }));
+// Rate-Limiting für teure Endpunkte
+import rateLimit from 'express-rate-limit';
+app.use('/api/heavy', rateLimit({ windowMs: 60_000, max: 60 }));
+// Request-Timeout (Upstream oder App)
+```
+
+DB-Performance (PostgreSQL)
+
+* Indexe auf Filter-/Sort-Spalten (z. B. `id`, `created_at`).
+* Projekte nur benötigte Spalten (`SELECT`-Liste; `attributes` in Sequelize).
+* Keine N+1-Queries: sinnvolle `include`/Joins, Batch-Loading.
+* Keyset-Pagination bei großen Offsets, kein `OFFSET 1000000`.
+* Lange Jobs als Batch/Async (siehe unten), Ergebnis in Files/Tabellen persistieren.
+
+Asynchrone Verarbeitung/Hintergrundjobs
+
+* Für große Exports/Aggregationen: Job-Queue (z. B. BullMQ/Redis).
+* API triggert Job → sofort `202 Accepted` + Status-Endpunkt → Client pollt/WS.
+* Ergebnis als Download-Link bereitstellen (S3/Blob/Datei-Store) statt Inline-JSON.
+
+Beispiel: “Accepted” + Job-ID
+
+```js
+app.post('/reports', async (req, res) => {
+  const jobId = await queue.add('build-report', { filters: req.body });
+  res.status(202).json({ jobId, statusUrl: `/reports/${jobId}/status` });
+});
+```
+
+Front-freundliche Antworten
+
+* Pagination-Meta mitsenden: `{ data, meta: { total, page, limit } }` oder `{ data, nextCursor }`.
+* Optional serverseitiges ETag für idempotente GETs.
+
+Zusammenfassung
+
+* Für große Daten: **Cursor/Keyset-Pagination**, **Streams** (DB→Server→Client), **Komprimierung** und **Projektion**.
+* **Indexe**, **keine N+1**, serverseitiges **Filtering/Sorting**.
+* Teure Jobs **asynchron** verarbeiten; API gibt `202 Accepted` + Status zurück.
+* Schütze RAM & Durchsatz mit **Backpressure**, **Limits**, **Rate-Limit** und **Caching**.
+
+Quellen
+
+* Node.js Streams & http/https: [https://nodejs.org/docs](https://nodejs.org/docs)
+* Express – Performance/Security Best Practices: [https://expressjs.com/de/advanced/best-practice-performance.html](https://expressjs.com/de/advanced/best-practice-performance.html)
+* PostgreSQL – Performance/Indexes: [https://www.postgresql.org/docs/](https://www.postgresql.org/docs/)
+* Sequelize – Queries, Pagination, Attributes: [https://sequelize.org/](https://sequelize.org/)
+* MDN Web Docs (RU) – HTTP Caching/Compression: [https://developer.mozilla.org/ru/](https://developer.mozilla.org/ru/)
 
 
   **[⬆ Наверх](#top)**
 
-58. ### <a name="58"></a> 
+63. ### <a name="63"></a> Wie integriert man Swagger oder OpenAPI mit Express?
 
+## Swagger / OpenAPI in Express integrieren
+
+Ziele
+
+* Interaktive API-Doku unter `/api-docs`.
+* OpenAPI-Schema (JSON/YAML) pflegen; optional aus JSDoc generieren.
+
+Variante A: OpenAPI aus JSDoc-Kommentaren (swagger-jsdoc) + Swagger UI
+
+```bash
+npm i swagger-ui-express swagger-jsdoc
+```
+
+```js
+// src/app.js
+import express from 'express';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJSDoc from 'swagger-jsdoc';
+
+const app = express();
+app.use(express.json());
+
+// OpenAPI-Definition (Basis)
+const swaggerDefinition = {
+  openapi: '3.0.3', // oder '3.1.0'
+  info: {
+    title: 'Meine REST API',
+    version: '1.0.0',
+    description: 'Beispiel-API mit Express + OpenAPI'
+  },
+  servers: [{ url: 'http://localhost:3000' }]
+};
+
+const options = {
+  swaggerDefinition,
+  apis: ['./src/routes/*.js'] // JSDoc-Quellen
+};
+
+const openapiSpec = swaggerJSDoc(options);
+
+// UI unter /api-docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
+
+// Beispielroute
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+export default app;
+```
+
+```js
+// src/routes/users.routes.js
+import { Router } from 'express';
+const r = Router();
+
+/**
+ * @openapi
+ * /users:
+ *   get:
+ *     summary: Liste aller Benutzer
+ *     tags: [Users]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, minimum: 1, default: 1 }
+ *     responses:
+ *       200:
+ *         description: Erfolgreich
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:   { type: integer }
+ *                       email:{ type: string, format: email }
+ */
+r.get('/users', (req, res) => {
+  res.json({ data: [{ id: 1, email: 'user@example.com' }] });
+});
+
+export default r;
+```
+
+Variante B: Externe YAML/JSON-Spezifikation einbinden
+
+```bash
+npm i swagger-ui-express yaml
+```
+
+```js
+// src/app.js
+import express from 'express';
+import swaggerUi from 'swagger-ui-express';
+import { readFileSync } from 'node:fs';
+import { parse as parseYaml } from 'yaml';
+
+const app = express();
+app.use(express.json());
+
+const file = readFileSync('./openapi.yaml', 'utf8');
+const openapiSpec = parseYaml(file);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
+
+export default app;
+```
+
+```yaml
+# openapi.yaml (kurzer Ausschnitt)
+openapi: 3.0.3
+info:
+  title: Meine REST API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+paths:
+  /health:
+    get:
+      summary: Healthcheck
+      responses:
+        '200':
+          description: OK
+```
+
+Tipps
+
+* Security-Schemes definieren (z. B. Bearer JWT) und global referenzieren.
+* Responses/Request-Bodies per `$ref` (Schemas) wiederverwenden.
+* Für CI: OpenAPI mit Linter/Validator prüfen (z. B. `spectral`).
+* In Produktion Basic-Auth für `/api-docs` erwägen oder nur nicht-prod aktivieren.
+
+Zusammenfassung
+
+* `swagger-ui-express` rendert die UI; Quelle ist ein OpenAPI-Schema.
+* Schema entweder per **swagger-jsdoc** aus JSDoc-Kommentaren generieren (Variante A) oder als **YAML/JSON** pflegen (Variante B).
+* UI unter `/api-docs`, Schema bei Bedarf auch roh unter `/openapi.json` ausliefern.
+
+Quellen
+
+* Express – Routing/Guide: [https://expressjs.com/de/](https://expressjs.com/de/)
+* swagger-ui-express (npm): [https://www.npmjs.com/package/swagger-ui-express](https://www.npmjs.com/package/swagger-ui-express)
+* swagger-jsdoc (npm): [https://www.npmjs.com/package/swagger-jsdoc](https://www.npmjs.com/package/swagger-jsdoc)
+* OpenAPI-Spezifikation: [https://spec.openapis.org/](https://spec.openapis.org/)
+* MDN (RU) – HTTP/Content types (allg. Grundlagen): [https://developer.mozilla.org/ru/](https://developer.mozilla.org/ru/)
 
 
   **[⬆ Наверх](#top)**
 
-59. ### <a name="59"></a> 
+64. ### <a name="64"></a> Was ist ein DTO (Data Transfer Object) und wie nutzt man es in Express?
 
+## DTO (Data Transfer Object) in Express
 
+**Definition**
+Ein **DTO (Data Transfer Object)** ist ein **Objekt, das Daten zwischen Schichten** einer Anwendung überträgt.
+
+* Dient als **klar definierte Schnittstelle** für Eingaben/Ausgaben (z. B. zwischen Client ↔ API oder Controller ↔ Service).
+* Schützt die interne Datenstruktur (z. B. DB-Modelle) vor direkter Exposition.
+* Ermöglicht **Validierung, Transformation und Konsistenz** der Daten.
+
+---
+
+## Warum DTOs?
+
+* **Trennung von Logik und Transport**: DB-Modelle ≠ API-Contracts.
+* **Validierung**: z. B. mit Joi oder Zod.
+* **Sicherheit**: Nur freigegebene Felder werden übertragen.
+* **Flexibilität**: API kann sich entwickeln, ohne dass interne Models geändert werden müssen.
+
+---
+
+## Beispiel in Express mit Zod
+
+### 1. DTO definieren
+
+```js
+// src/dto/user.dto.js
+import { z } from 'zod';
+
+export const CreateUserDto = z.object({
+  email: z.string().email(),
+  name: z.string().min(2),
+  password: z.string().min(8)
+});
+
+export const UpdateUserDto = z.object({
+  email: z.string().email().optional(),
+  name: z.string().min(2).optional()
+});
+```
+
+---
+
+### 2. Middleware zur Validierung
+
+```js
+// src/middlewares/validate.js
+export function validate(schema) {
+  return (req, res, next) => {
+    try {
+      req.body = schema.parse(req.body);
+      next();
+    } catch (err) {
+      return res.status(400).json({ error: err.errors });
+    }
+  };
+}
+```
+
+---
+
+### 3. Nutzung im Controller
+
+```js
+// src/routes/users.routes.js
+import { Router } from 'express';
+import { validate } from '../middlewares/validate.js';
+import { CreateUserDto, UpdateUserDto } from '../dto/user.dto.js';
+
+const r = Router();
+
+r.post('/', validate(CreateUserDto), (req, res) => {
+  const userDto = req.body; // validiertes DTO
+  // DB-Insert hier, nur mit freigegebenen Feldern
+  res.status(201).json({ message: 'User erstellt', user: userDto });
+});
+
+r.put('/:id', validate(UpdateUserDto), (req, res) => {
+  const userDto = req.body; // validiertes Update-DTO
+  // DB-Update hier
+  res.json({ message: 'User aktualisiert', user: userDto });
+});
+
+export default r;
+```
+
+---
+
+## Unterschied zu Modellen
+
+* **Model (z. B. Sequelize, Mongoose):** beschreibt die Datenstruktur in der Datenbank.
+* **DTO:** beschreibt, welche Daten **zwischen API und Client** fließen dürfen.
+
+👉 Ein User-Model kann z. B. `passwordHash`, `createdAt` enthalten, aber das DTO nur `email` und `name`.
+
+---
+
+### Zusammenfassung
+
+* **DTO = Datenobjekt für Transport zwischen Schichten.**
+* In Express typischerweise für **Request-Validierung** und **Response-Formatierung** genutzt.
+* Vorteil: Schutz der internen Models, Konsistenz der API, saubere Validierung.
+
+**Quellen:**
+
+* [Express.js – Best Practices](https://expressjs.com/de/advanced/best-practice-performance.html)
+* [Zod – npm](https://www.npmjs.com/package/zod)
+* [MDN – Datenvalidierung](https://developer.mozilla.org/ru/docs/Learn/Forms/Form_validation)
+
+---
 
   **[⬆ Наверх](#top)**
 
-60. ### <a name="60"></a> 
+65. ### <a name="65"></a> Wie testet man eine Express REST API?
 
+## Wie testet man eine Express REST API?
 
+**Ziele:** Routen/Controller testen (Statuscode, Header, Body), Fehlerfälle, Auth, Validierung, ohne echten Netzwerk-Port.
+**Tools:** **Jest** (Test-Runner/Assertions) + **supertest** (HTTP gegen Express-App), Mocks für DB/Services.
 
-  **[⬆ Наверх](#top)**
+---
 
-61. ### <a name="61"></a> 
+### Projekt-Setup (ESM) – minimal
 
+```js
+// package.json (Ausschnitt)
+{
+  "type": "module",
+  "scripts": { "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand" },
+  "devDependencies": { "jest": "^29.7.0", "supertest": "^6.3.4" }
+}
+```
 
+```js
+// jest.config.js
+export default { testEnvironment: 'node', clearMocks: true };
+```
 
-  **[⬆ Наверх](#top)**
+```js
+// src/app.js – App exportieren (nicht listen!)
+import express from 'express';
+import usersRouter from './routes/users.js';
 
-62. ### <a name="62"></a> 
+const app = express();
+app.use(express.json());
+app.use('/api/v1/users', usersRouter);
 
+// 404 + Error-Handler (gekürzt)
+app.use((req, res) => res.status(404).json({ error: 'not found' }));
+app.use((err, req, res, next) => res.status(err.status||500).json({ error: err.message }));
 
+export default app;
+```
 
-  **[⬆ Наверх](#top)**
+---
 
-63. ### <a name="63"></a> 
+### Beispiel-Router + Service (für Mocks)
 
+```js
+// src/routes/users.js
+import { Router } from 'express';
+import * as userService from '../services/user.service.js';
+const r = Router();
 
+r.get('/', async (req, res, next) => {
+  try { res.json({ data: await userService.list() }); }
+  catch (e) { next(e); }
+});
 
-  **[⬆ Наверх](#top)**
+r.post('/', async (req, res, next) => {
+  try {
+    const created = await userService.create(req.body);
+    res.status(201).json(created);
+  } catch (e) { e.status ??= 400; next(e); }
+});
 
-64. ### <a name="64"></a> 
+export default r;
+```
 
+---
 
+### Integrationstests mit supertest (happy-path + Fehlerfälle)
 
-  **[⬆ Наверх](#top)**
+```js
+// test/users.test.js
+import request from 'supertest';
+import app from '../src/app.js';
 
-65. ### <a name="65"></a> 
+// Service-Funktionen mocken (kein echter DB-Zugriff)
+jest.unstable_mockModule('../src/services/user.service.js', () => ({
+  list: jest.fn().mockResolvedValue([{ id: 1, email: 'a@b.de' }]),
+  create: jest.fn(async (dto) => {
+    if (!dto?.email) { const e = new Error('email required'); e.status = 422; throw e; }
+    return { id: 2, ...dto };
+  })
+}));
 
+// import NACH dem Mock
+const userService = await import('../src/services/user.service.js');
 
+describe('Users API', () => {
+  test('GET /api/v1/users → 200 & data', async () => {
+    const res = await request(app).get('/api/v1/users').expect(200);
+    expect(res.body.data).toEqual([{ id: 1, email: 'a@b.de' }]);
+    expect(userService.list).toHaveBeenCalled();
+  });
+
+  test('POST /api/v1/users → 201 bei validem Body', async () => {
+    const res = await request(app)
+      .post('/api/v1/users')
+      .send({ email: 'x@y.de' })
+      .expect(201);
+    expect(res.body).toMatchObject({ id: 2, email: 'x@y.de' });
+  });
+
+  test('POST /api/v1/users → 422 bei Validierungsfehler', async () => {
+    const res = await request(app).post('/api/v1/users').send({}).expect(422);
+    expect(res.body.error).toMatch(/email/i);
+  });
+
+  test('GET unknown route → 404', async () => {
+    await request(app).get('/nope').expect(404);
+  });
+});
+```
+
+---
+
+### Auth/JWT testen (Header setzen)
+
+```js
+// Beispiel: geschützte Route
+const token = 'Bearer eyJ...'; // ggf. Testtoken signen
+await request(app)
+  .get('/api/v1/secret')
+  .set('Authorization', token)
+  .expect(200);
+```
+
+---
+
+### Performance & große Antworten (Streaming)
+
+```js
+// Chunked/NDJSON prüfen
+const res = await request(app).get('/export-ndjson').expect(200);
+expect(res.text.split('\n')[0]).toContain('{'); // grobe Prüfung erster Datensatz
+```
+
+---
+
+### Best Practices
+
+* **App von Server trennen** (exportierte `app` ohne `listen`) → supertest nutzt sie direkt.
+* **DB/Externes** mocken (Service-/Repository-Schicht) → schnelle, deterministische Tests.
+* **Error-Cases** abdecken: 400/401/403/404/409/422/500.
+* **Validierung** separat testen (falsche/fehlende Felder).
+* **Fixtures/Factory** für Testdaten, keine Zufallswerte ohne Seed.
+* **runInBand** bei DB/Port-Konflikten, **Test-ENV** nutzen.
+* **Coverage** für Controller/Middleware, aber nicht blind 100% erzwingen.
+
+---
+
+### Zusammenfassung
+
+* Express-API testet man mit **Jest + supertest** ohne echten Port.
+* **App exportieren**, **Services mocken**, **Happy- und Fehlerpfade** prüfen.
+* Auth-Header, Streaming, Statuscodes/JSON-Formate gezielt testen.
+
+**Quellen:**
+
+* [Express.js – Testing-Hinweise](https://expressjs.com/de/advanced/best-practice-performance.html)
+* [Node.js Dokumentation](https://nodejs.org/docs)
+* [Jest Dokumentation](https://jestjs.io/)
+* [supertest (npm)](https://www.npmjs.com/package/supertest)
+
+---
 
   **[⬆ Наверх](#top)**
 
