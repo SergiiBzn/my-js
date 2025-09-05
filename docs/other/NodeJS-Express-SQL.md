@@ -14317,123 +14317,1891 @@ app.use(errorHandler(logger));
 
   **[⬆ Наверх](#top)**
 
-121. ### <a name="121"></a> 
+121. ### <a name="121"></a> Was ist Node.js und wofür wird es verwendet?
 
+**Node.js** ist eine **JavaScript-Laufzeitumgebung**, die auf der **V8-Engine von Google Chrome** basiert. Sie ermöglicht es, JavaScript nicht nur im Browser, sondern auch **serverseitig** auszuführen.
 
+### Hauptmerkmale:
+
+* **Event-Driven & Non-Blocking I/O**: Node.js arbeitet asynchron und eignet sich für Anwendungen mit vielen gleichzeitigen Verbindungen.
+* **Single-Threaded mit Event Loop**: Ein Thread verwaltet viele Anfragen effizient.
+* **Cross-Plattform**: Funktioniert auf Windows, macOS, Linux.
+* **Umfangreiches Ökosystem**: Über **npm** (Node Package Manager) stehen hunderttausende Pakete zur Verfügung.
+
+### Typische Anwendungsfälle:
+
+* **Backend-APIs** (REST, GraphQL)
+* **Echtzeitanwendungen** (Chats, Multiplayer-Spiele, WebSockets)
+* **Microservices**
+* **Serverless Functions**
+* **Build-Tools** (Webpack, Gulp, ESLint laufen selbst auf Node.js)
+
+### Einfaches Beispiel:
+
+```js
+// server.js
+const http = require('http');
+
+// Einfache HTTP-Response
+const server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain');
+  res.end('Hallo aus Node.js!');
+});
+
+server.listen(3000, () => {
+  console.log('Server läuft auf http://localhost:3000');
+});
+```
+
+➡️ Starten: `node server.js`
+
+---
+
+### Zusammenfassung
+
+Node.js ist eine serverseitige JavaScript-Laufzeitumgebung mit **asynchronem, eventbasiertem Modell**, ideal für **skalierbare Netzwerk- und Webanwendungen**.
+
+📖 Quellen:
+
+* [Node.js Dokumentation](https://nodejs.org/docs)
+* [MDN: Einführung in Node.js (RU)](https://developer.mozilla.org/ru/docs/Learn/Server-side/Express_Nodejs/Introduction)
+
+---
 
   **[⬆ Наверх](#top)**
 
-122. ### <a name="122"></a> 
+122. ### <a name="122"></a> Wie funktioniert die V8 Engine?
 
+**V8** ist die von Google entwickelte **JavaScript-Engine**, die in **Google Chrome** und **Node.js** verwendet wird. Sie übersetzt JavaScript-Code direkt in **Maschinencode**, was ihn sehr schnell und effizient macht.
 
+---
+
+### Funktionsweise von V8
+
+1. **Parsing (Parser-Phase)**
+
+   * Der Quellcode wird in einen **Abstract Syntax Tree (AST)** umgewandelt.
+   * Beispiel: `let x = 5 + 2;` → Baumstruktur, die Operatoren und Operanden darstellt.
+
+2. **Bytecode-Erzeugung (Ignition Interpreter)**
+
+   * Der AST wird in **Bytecode** übersetzt, eine Zwischensprache, die schnell interpretiert werden kann.
+
+3. **Optimierung (TurboFan JIT Compiler)**
+
+   * Häufig ausgeführte Codebereiche (Hot Code) werden erkannt.
+   * Dieser Code wird **Just-in-Time (JIT)** kompiliert und direkt in **Maschinencode** umgewandelt.
+
+4. **Inline Caching & Hidden Classes**
+
+   * **Hidden Classes**: Objekte erhalten interne Strukturen, ähnlich wie Klassen in Java oder C++, um den Zugriff auf Properties zu beschleunigen.
+   * **Inline Caching**: Speichert, wie auf bestimmte Objekte zugegriffen wird, und optimiert wiederholte Zugriffe.
+
+5. **Garbage Collection (Speicherverwaltung)**
+
+   * V8 verwendet eine **Generational Garbage Collection** (Jung- und Altspeicherbereiche).
+   * Unbenutzte Objekte werden regelmäßig entfernt, um Speicher freizugeben.
+
+---
+
+### Visualisierung (vereinfacht)
+
+```text
+JS-Code → Parser → AST → Ignition (Bytecode) 
+       ↘ Hot Code → TurboFan (optimierter Maschinencode)
+```
+
+---
+
+### Beispiel im Code
+
+```js
+function add(a, b) {
+  return a + b;
+}
+
+for (let i = 0; i < 1_000_000; i++) {
+  add(10, 20); // "Hot Code" → wird von V8 optimiert
+}
+```
+
+* Anfangs läuft `add()` als **Bytecode**.
+* Nach vielen Wiederholungen erkennt V8 ein Muster → kompiliert in **Maschinencode**.
+
+---
+
+### Zusammenfassung
+
+Die **V8 Engine** übersetzt JavaScript in **Maschinencode** mit Hilfe von:
+
+* **AST + Bytecode (Ignition Interpreter)**
+* **JIT-Kompilierung (TurboFan Optimizer)**
+* **Optimierungen wie Hidden Classes & Inline Caching**
+* **Automatisches Speicher-Management (Garbage Collector)**
+
+Dadurch läuft JavaScript in Node.js und Chrome **sehr performant**.
+
+📖 Quellen:
+
+* [V8 JavaScript Engine Docs](https://v8.dev/)
+* [MDN: JavaScript engines](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Introduction_to_the_JavaScript_shell)
+
+---
 
   **[⬆ Наверх](#top)**
 
-123. ### <a name="123"></a> 
+123. ### <a name="123"></a> Was ist Event Loop und wie funktioniert er?
 
+Der **Event Loop** ist das zentrale Konzept in **Node.js**, das für die **asynchrone, nicht-blockierende Verarbeitung** von Operationen sorgt. Da Node.js **Single-Threaded** ist, übernimmt der Event Loop die Koordination von **Callbacks, Promises und I/O-Operationen**.
 
+---
+
+### Ablauf des Event Loops
+
+Der Event Loop arbeitet in **Phasen**. Jede Phase verarbeitet eine bestimmte Art von Aufgaben:
+
+1. **Timers**
+
+   * Führt Callbacks von `setTimeout` und `setInterval` aus.
+
+2. **Pending Callbacks**
+
+   * Callbacks von abgeschlossenen I/O-Operationen, die auf ihre Ausführung warten.
+
+3. **Idle/Prepare** *(intern, selten relevant)*
+
+4. **Poll**
+
+   * Kernstück: verarbeitet eingehende I/O-Events (z. B. Netzwerk, Filesystem).
+   * Falls keine Events vorhanden: wartet oder wechselt in die nächste Phase.
+
+5. **Check**
+
+   * Führt `setImmediate`-Callbacks aus.
+
+6. **Close Callbacks**
+
+   * Callbacks für geschlossene Ressourcen, z. B. `socket.on('close')`.
+
+**Microtasks (Promises, process.nextTick)**
+
+* Werden **zwischen den Phasen** verarbeitet, bevor der Event Loop weitergeht.
+* Haben höhere Priorität als Timer oder I/O.
+
+---
+
+### Beispiel
+
+```js
+setTimeout(() => console.log("Timeout"), 0);
+setImmediate(() => console.log("Immediate"));
+process.nextTick(() => console.log("NextTick"));
+Promise.resolve().then(() => console.log("Promise"));
+
+console.log("Sync");
+```
+
+**Mögliche Ausgabe:**
+
+```
+Sync
+NextTick
+Promise
+Timeout
+Immediate
+```
+
+**Erklärung:**
+
+* `console.log("Sync")` → sofort ausgeführt.
+* `process.nextTick` und **Promises (Microtasks)** → vor Timern.
+* `setTimeout(..., 0)` → nächste Timer-Phase.
+* `setImmediate` → Check-Phase.
+
+---
+
+### Visualisierung (vereinfacht)
+
+```text
+┌───────────────────────────┐
+│   Event Loop              │
+│ ┌─────┬─────┬─────┬─────┐ │
+│ │Timers│Poll │Check│Close│ │
+│ └─────┴─────┴─────┴─────┘ │
+│   ↑ Microtasks (NextTick, Promises) 
+└───────────────────────────┘
+```
+
+---
+
+### Zusammenfassung
+
+Der **Event Loop** sorgt dafür, dass Node.js trotz **Single-Threading** viele Anfragen gleichzeitig bearbeiten kann:
+
+* **Asynchron** durch Callbacks, Promises, async/await.
+* **Phasenbasiert**: Timer → I/O → Check → Close.
+* **Microtasks** (Promises, `process.nextTick`) haben **höchste Priorität**.
+
+📖 Quellen:
+
+* [Node.js Docs – Event Loop](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick)
+* [MDN – Concurrency model and Event Loop](https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop)
+
+---
 
   **[⬆ Наверх](#top)**
 
-124. ### <a name="124"></a> 
+124. ### <a name="124"></a> Unterschied zwischen Call Stack, Callback Queue und Event Loop?
 
+### **1. Call Stack (Aufruf-Stack)**
 
+* Eine **Stack-Struktur**, in der die aktuell ausgeführten Funktionen gespeichert werden.
+* Arbeitet nach dem Prinzip **LIFO (Last In, First Out)**.
+* Wenn eine Funktion beendet ist, wird sie vom Stack entfernt.
+
+**Beispiel:**
+
+```js
+function a() { b(); }
+function b() { c(); }
+function c() { console.log("Hallo"); }
+
+a(); 
+// Stack: [a] → [a,b] → [a,b,c] → Ausgabe → Stack leer
+```
+
+---
+
+### **2. Callback Queue (Task Queue / Message Queue)**
+
+* Enthält **Callbacks von asynchronen Operationen** (z. B. `setTimeout`, I/O).
+* Wenn der Call Stack leer ist, schiebt der **Event Loop** den nächsten Callback in den Call Stack.
+
+**Beispiel:**
+
+```js
+setTimeout(() => console.log("Timeout"), 0);
+console.log("Sync");
+```
+
+* `console.log("Sync")` läuft sofort im Call Stack.
+* Der `setTimeout`-Callback landet in der **Callback Queue** und wird erst ausgeführt, wenn der Call Stack frei ist.
+
+---
+
+### **3. Event Loop**
+
+* Vermittler zwischen **Call Stack** und **Callback Queue**.
+* Aufgabe: **Überprüfen, ob der Call Stack leer ist**, und dann den nächsten Callback aus der Queue hineinlegen.
+* Steuert auch die Ausführung von **Microtasks** (Promises, `process.nextTick`).
+
+---
+
+### **Zusammenspiel**
+
+```js
+console.log("Start");
+
+setTimeout(() => console.log("Timeout"), 0);
+
+Promise.resolve().then(() => console.log("Promise"));
+
+console.log("End");
+```
+
+**Ablauf:**
+
+1. Call Stack: `"Start"` → `"End"` wird direkt ausgeführt.
+2. Promise-Callback landet in der **Microtask Queue** → wird **vor** `setTimeout` ausgeführt.
+3. `setTimeout`-Callback kommt aus der **Callback Queue**, wenn der Stack leer ist.
+
+**Ausgabe:**
+
+```
+Start
+End
+Promise
+Timeout
+```
+
+---
+
+### **Visualisierung**
+
+```text
+        ┌───────────────┐
+        │   Call Stack  │
+        └───────▲───────┘
+                │
+        ┌───────┴───────┐
+        │  Event Loop    │
+        └───────▲───────┘
+                │
+        ┌───────┴───────┐
+        │ Callback Queue │
+        └───────────────┘
+```
+
+👉 Microtasks laufen **zwischen** den Event Loop Zyklen, bevor normale Callbacks verarbeitet werden.
+
+---
+
+### **Zusammenfassung**
+
+* **Call Stack**: Führt synchronen Code aus, speichert aktive Funktionen.
+* **Callback Queue**: Warteschlange für asynchrone Callbacks (z. B. Timer, I/O).
+* **Event Loop**: Kontrollmechanismus, der den Stack und die Queue verbindet; sorgt für asynchrone Verarbeitung.
+
+📖 Quellen:
+
+* [MDN – Event Loop](https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop)
+* [Node.js Docs – Event Loop](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick)
+
+---
 
   **[⬆ Наверх](#top)**
 
-125. ### <a name="125"></a> 
+125. ### <a name="125"></a> Unterschied zwischen asynchronem und synchronem Code in Node.js?
 
+### **Synchroner Code**
 
+* Befehle werden **der Reihe nach** ausgeführt.
+* Jeder Schritt blockiert die Ausführung, bis er abgeschlossen ist.
+* Geeignet für **CPU-intensive Aufgaben**.
+
+**Beispiel:**
+
+```js
+const fs = require('fs');
+
+// Synchrones Lesen einer Datei
+const data = fs.readFileSync('file.txt', 'utf8');
+console.log(data);
+
+console.log("Dieser Code wartet, bis die Datei gelesen wurde.");
+```
+
+➡️ Der zweite `console.log` wird **erst nach dem Lesen** der Datei ausgeführt.
+
+---
+
+### **Asynchroner Code**
+
+* Befehle werden gestartet, aber **blockieren den Event Loop nicht**.
+* Stattdessen wird ein **Callback, Promise oder async/await** genutzt, wenn die Operation fertig ist.
+* Geeignet für **I/O-intensive Aufgaben** (Datenbank, API, Dateisystem).
+
+**Beispiel mit Callback:**
+
+```js
+const fs = require('fs');
+
+// Asynchrones Lesen einer Datei
+fs.readFile('file.txt', 'utf8', (err, data) => {
+  if (err) throw err;
+  console.log(data);
+});
+
+console.log("Dieser Code läuft, während die Datei gelesen wird.");
+```
+
+➡️ `console.log("Dieser Code läuft...")` wird **vor** dem Dateiinhalten ausgeführt.
+
+**Beispiel mit Promise / async/await:**
+
+```js
+const fs = require('fs').promises;
+
+async function readFile() {
+  const data = await fs.readFile('file.txt', 'utf8');
+  console.log(data);
+}
+
+readFile();
+console.log("Code läuft parallel weiter...");
+```
+
+---
+
+### **Vergleich**
+
+| Merkmal     | Synchroner Code        | Asynchroner Code            |
+| ----------- | ---------------------- | --------------------------- |
+| Ablauf      | Schritt für Schritt    | Parallel, non-blocking      |
+| Performance | Blockiert Event Loop   | Hohe Skalierbarkeit         |
+| Einsatz     | Kleine, schnelle Tasks | I/O, Netzwerke, DB-Abfragen |
+| Beispiel    | `fs.readFileSync()`    | `fs.readFile()`, Promises   |
+
+---
+
+### **Zusammenfassung**
+
+* **Synchron**: blockiert die Ausführung, einfacher Ablauf, aber nicht skalierbar.
+* **Asynchron**: blockiert nicht, nutzt **Callbacks, Promises, async/await**, ideal für skalierbare Netzwerk-Apps.
+
+📖 Quellen:
+
+* [Node.js File System – fs](https://nodejs.org/api/fs.html)
+* [MDN – async und await](https://developer.mozilla.org/de/docs/Learn/JavaScript/Asynchronous/Promises)
+
+---
 
   **[⬆ Наверх](#top)**
 
-126. ### <a name="126"></a> 
+126. ### <a name="126"></a> Unterschied zwischen process.nextTick(), setImmediate() und setTimeout()?
 
+### **1. process.nextTick()**
 
+* Führt eine Callback-Funktion **sofort nach der aktuellen Operation**, aber **vor dem nächsten Event Loop Durchlauf** aus.
+* Hat höchste Priorität.
+* Gefahr: Bei zu vielen `process.nextTick`-Aufrufen kann der Event Loop blockiert werden.
+
+**Beispiel:**
+
+```js
+console.log("Start");
+
+process.nextTick(() => {
+  console.log("nextTick");
+});
+
+console.log("End");
+```
+
+➡️ Ausgabe:
+
+```
+Start
+End
+nextTick
+```
+
+---
+
+### **2. setImmediate()**
+
+* Führt eine Callback-Funktion in der **Check-Phase** des Event Loops aus.
+* Läuft **nach I/O-Operationen** und nach `setTimeout(..., 0)` (in den meisten Fällen).
+
+**Beispiel:**
+
+```js
+console.log("Start");
+
+setImmediate(() => {
+  console.log("Immediate");
+});
+
+console.log("End");
+```
+
+➡️ Ausgabe:
+
+```
+Start
+End
+Immediate
+```
+
+---
+
+### **3. setTimeout(fn, 0)**
+
+* Führt eine Callback-Funktion in der **Timer-Phase** des Event Loops aus.
+* `0 ms` bedeutet nicht "sofort", sondern **mindestens eine Tick-Verzögerung**.
+* Kann durch Systemlatenzen verzögert werden.
+
+**Beispiel:**
+
+```js
+console.log("Start");
+
+setTimeout(() => {
+  console.log("Timeout 0");
+}, 0);
+
+console.log("End");
+```
+
+➡️ Ausgabe:
+
+```
+Start
+End
+Timeout 0
+```
+
+---
+
+### **Vergleich**
+
+| Funktion               | Phase im Event Loop        | Priorität                                         | Typische Nutzung           |
+| ---------------------- | -------------------------- | ------------------------------------------------- | -------------------------- |
+| **process.nextTick()** | Microtask-Queue (vor Loop) | Höchste Priorität                                 | Sofort nach aktuellem Code |
+| **setImmediate()**     | Check-Phase                | Niedriger als nextTick, aber stabiler als Timeout | Callbacks nach I/O         |
+| **setTimeout(fn, 0)**  | Timer-Phase                | Nach Microtasks, I/O abhängig                     | Verzögerte Ausführung      |
+
+---
+
+### **Kombiniertes Beispiel**
+
+```js
+setTimeout(() => console.log("Timeout 0"), 0);
+setImmediate(() => console.log("Immediate"));
+process.nextTick(() => console.log("NextTick"));
+Promise.resolve().then(() => console.log("Promise"));
+
+console.log("Sync");
+```
+
+**Typische Ausgabe:**
+
+```
+Sync
+NextTick
+Promise
+Timeout 0
+Immediate
+```
+
+---
+
+### **Zusammenfassung**
+
+* **process.nextTick()**: höchste Priorität, **vor** Event Loop Tick.
+* **setImmediate()**: ausgeführt in der **Check-Phase**, meist nach Timern.
+* **setTimeout(fn, 0)**: ausgeführt in der **Timer-Phase**, kann verzögert werden.
+
+📖 Quellen:
+
+* [Node.js Docs – process.nextTick()](https://nodejs.org/api/process.html#processnexttickcallback-args)
+* [Node.js Docs – timers](https://nodejs.org/api/timers.html)
+* [MDN – Concurrency model](https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop)
+
+---
 
   **[⬆ Наверх](#top)**
 
-127. ### <a name="127"></a> 
+127. ### <a name="127"></a> Was sind Streams in Node.js und welche Typen gibt es?
 
+### **Streams in Node.js**
 
+Ein **Stream** ist eine **abstrakte Schnittstelle** für die Arbeit mit Daten, die **stückweise (chunked)** anstatt komplett auf einmal verarbeitet werden.
+Das ist besonders nützlich für **große Dateien, Netzwerkkommunikation oder Daten-Pipelines**, da nicht der gesamte Inhalt in den Speicher geladen werden muss.
+
+---
+
+### **Typen von Streams**
+
+1. **Readable Streams (lesbar)**
+
+   * Daten können **gelesen** werden.
+   * Beispiele: `fs.createReadStream()`, HTTP-Anfragen (`req`).
+
+   ```js
+   const fs = require('fs');
+   const readable = fs.createReadStream('input.txt', { encoding: 'utf8' });
+
+   readable.on('data', chunk => {
+     console.log("Chunk:", chunk);
+   });
+   ```
+
+2. **Writable Streams (schreibbar)**
+
+   * Daten können **geschrieben** werden.
+   * Beispiele: `fs.createWriteStream()`, HTTP-Antwort (`res`).
+
+   ```js
+   const fs = require('fs');
+   const writable = fs.createWriteStream('output.txt');
+
+   writable.write("Hallo Welt\n");
+   writable.end("Ende der Datei");
+   ```
+
+3. **Duplex Streams**
+
+   * Können **gleichzeitig lesen und schreiben**.
+   * Beispiele: TCP-Sockets (`net.Socket`).
+
+   ```js
+   const { Duplex } = require('stream');
+
+   const duplex = new Duplex({
+     read(size) { this.push("Daten vom Duplex\n"); this.push(null); },
+     write(chunk, encoding, callback) { console.log("Geschrieben:", chunk.toString()); callback(); }
+   });
+
+   duplex.on('data', data => console.log("Gelesen:", data.toString()));
+   duplex.write("Input");
+   ```
+
+4. **Transform Streams** (Spezialfall von Duplex)
+
+   * Lesen, verarbeiten und schreiben Daten **transformiert**.
+   * Beispiele: `zlib.createGzip()`, `crypto.createCipher()`.
+
+   ```js
+   const { Transform } = require('stream');
+
+   const upperCase = new Transform({
+     transform(chunk, encoding, callback) {
+       callback(null, chunk.toString().toUpperCase());
+     }
+   });
+
+   process.stdin.pipe(upperCase).pipe(process.stdout);
+   // Eingabe in Konsole → Ausgabe in Großbuchstaben
+   ```
+
+---
+
+### **Zusammenfassung**
+
+* **Streams** = effiziente Verarbeitung großer Datenmengen **in kleinen Blöcken**.
+* Typen:
+
+  * **Readable** (lesen)
+  * **Writable** (schreiben)
+  * **Duplex** (lesen + schreiben)
+  * **Transform** (lesen + schreiben + transformieren)
+
+📖 Quellen:
+
+* [Node.js Docs – Stream](https://nodejs.org/api/stream.html)
+* [MDN – Streams](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API)
+
+---
 
   **[⬆ Наверх](#top)**
 
-128. ### <a name="128"></a> 
+128. ### <a name="128"></a> Unterschied zwischen Buffer und Stream?
 
+### **Buffer**
 
+* Ein **temporärer Speicherbereich** im **RAM**, der Binärdaten speichert.
+* Wird genutzt, wenn Daten **komplett oder teilweise** vorliegen müssen.
+* Ideal für **kleine Datenmengen** oder wenn man **direkt mit Binärdaten** arbeitet.
+
+**Beispiel:**
+
+```js
+const buffer = Buffer.from("Hallo");
+console.log(buffer);           // <Buffer 48 61 6c 6c 6f>
+console.log(buffer.toString()); // "Hallo"
+```
+
+➡️ Alles wird **sofort in den Speicher geladen**.
+
+---
+
+### **Stream**
+
+* Abstraktion für **kontinuierliche Datenflüsse**.
+* Daten werden **stückweise (chunks)** verarbeitet, ohne alles in den Speicher zu laden.
+* Ideal für **große Dateien oder Netzwerkeingaben**.
+
+**Beispiel:**
+
+```js
+const fs = require('fs');
+const readable = fs.createReadStream('großeDatei.txt');
+
+readable.on('data', chunk => {
+  console.log("Chunk:", chunk.length);
+});
+```
+
+➡️ Datei wird **Stück für Stück gelesen**, nicht komplett in den RAM geladen.
+
+---
+
+### **Vergleich**
+
+| Merkmal          | Buffer                        | Stream                                   |
+| ---------------- | ----------------------------- | ---------------------------------------- |
+| Datenmenge       | Klein bis mittelgroß          | Groß (z. B. GB-Dateien, Video, Netzwerk) |
+| Verarbeitung     | Alles im Speicher             | Stückweise (chunks)                      |
+| Speicherbedarf   | Hoch bei großen Daten         | Konstant niedrig                         |
+| Typische Nutzung | String → Binärdaten, Encoding | Dateisystem, HTTP, Pipes                 |
+
+---
+
+### **Zusammenfassung**
+
+* **Buffer**: Speichert Daten vollständig im RAM → schneller Zugriff, aber nicht für große Daten geeignet.
+* **Stream**: Verarbeitet Daten **nach und nach** → effizient und skalierbar bei großen Datenmengen.
+
+📖 Quellen:
+
+* [Node.js Docs – Buffer](https://nodejs.org/api/buffer.html)
+* [Node.js Docs – Stream](https://nodejs.org/api/stream.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
-129. ### <a name="129"></a> 
+129. ### <a name="129"></a> Wie arbeitet Node.js intern mit Non-Blocking I/O?
 
+### **Non-Blocking I/O in Node.js**
 
+Node.js ist **Single-Threaded**, aber dank **Non-Blocking I/O** kann es viele parallele Aufgaben gleichzeitig abwickeln, ohne den Event Loop zu blockieren. Das funktioniert durch die Kombination von:
+
+1. **Libuv**
+
+   * C-Bibliothek, die für **asynchrone I/O-Operationen** zuständig ist.
+   * Verwaltet ein **Thread-Pool** (Standard: 4 Threads).
+   * Nutzt **Betriebssystem-APIs** (epoll, kqueue, IOCP etc.) für effizientes Event-basiertes I/O.
+
+2. **Event Loop**
+
+   * Koordiniert Callbacks, Microtasks und I/O-Events.
+   * Nimmt die Ergebnisse von Libuv entgegen und legt sie in die **Callback Queue**.
+
+3. **Thread Pool**
+
+   * Einige I/O-Operationen (z. B. **Dateisystem, DNS-Auflösung**) werden auf separate Threads ausgelagert.
+   * Dadurch blockiert der Haupt-Thread (Event Loop) nicht.
+
+---
+
+### **Ablauf (vereinfacht)**
+
+1. JavaScript-Code ruft eine I/O-Operation auf (z. B. `fs.readFile`).
+2. Node.js übergibt die Anfrage an **Libuv**.
+3. Libuv entscheidet:
+
+   * Netzwerkoperation → nutzt **Betriebssystem-Events** (non-blocking Sockets).
+   * Dateisystem/DNS → nutzt **Thread Pool**.
+4. Wenn die Operation abgeschlossen ist, wird das Ergebnis zurück an den Event Loop geschickt.
+5. Der Event Loop legt den zugehörigen Callback in die **Callback Queue**, sobald der Call Stack leer ist.
+
+---
+
+### **Beispiel: Datei asynchron lesen**
+
+```js
+const fs = require('fs');
+
+console.log("Start");
+
+fs.readFile("file.txt", "utf8", (err, data) => {
+  if (err) throw err;
+  console.log("Datei-Inhalt:", data);
+});
+
+console.log("End");
+```
+
+**Ablauf:**
+
+1. `fs.readFile` → Libuv Thread Pool übernimmt.
+2. `console.log("End")` läuft sofort, da `readFile` nicht blockiert.
+3. Sobald die Datei fertig gelesen ist → Callback in die Queue.
+4. Event Loop führt Callback aus.
+
+**Ausgabe:**
+
+```
+Start
+End
+Datei-Inhalt: ...
+```
+
+---
+
+### **Visualisierung**
+
+```text
+JS Code → Event Loop → Libuv → OS / Thread Pool → Callback Queue → Call Stack
+```
+
+---
+
+### **Zusammenfassung**
+
+* Node.js nutzt **Libuv + Event Loop + Thread Pool**, um I/O **nicht-blockierend** auszuführen.
+* Netzwerk-I/O: Betriebssystem-Events (sehr effizient).
+* File-System/DNS: Libuv-Thread-Pool.
+* Vorteil: **Skalierbarkeit** → viele gleichzeitige Clients auf einem Single-Thread.
+
+📖 Quellen:
+
+* [Node.js Docs – Event Loop](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick)
+* [Libuv Documentation](https://libuv.org/)
+* [MDN – Asynchronous concepts](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Concepts)
+
+---
 
   **[⬆ Наверх](#top)**
 
-130. ### <a name="130"></a> 
+130. ### <a name="130"></a> Wie funktioniert das Modul-System in Node.js (CommonJS vs. ES Modules)?
 
+### **Modul-System in Node.js**
+
+Node.js unterstützt zwei Modulsysteme:
+
+1. **CommonJS (CJS)** – traditionelles System, Standard bis Node.js v12.
+2. **ES Modules (ESM)** – modernes System, basierend auf dem **ECMAScript-Standard**.
+
+---
+
+### **1. CommonJS (CJS)**
+
+* Standard in Node.js (ältere Projekte).
+* Module werden **synchron** geladen.
+* Verwendung von `require()` und `module.exports`.
+
+**Beispiel:**
+
+```js
+// math.js
+function add(a, b) {
+  return a + b;
+}
+module.exports = { add };
+
+// index.js
+const math = require('./math');
+console.log(math.add(2, 3)); // 5
+```
+
+---
+
+### **2. ES Modules (ESM)**
+
+* ECMAScript-Standard, seit Node.js **v14 stabil**.
+* Module werden **asynchron** geladen.
+* Verwendung von `import` und `export`.
+* Aktivierung:
+
+  * `package.json` → `"type": "module"`
+  * oder Dateiendung `.mjs`.
+
+**Beispiel:**
+
+```js
+// math.mjs oder in "type": "module"
+export function add(a, b) {
+  return a + b;
+}
+
+// index.mjs
+import { add } from './math.js';
+console.log(add(2, 3)); // 5
+```
+
+---
+
+### **Vergleich**
+
+| Merkmal      | CommonJS (CJS)              | ES Modules (ESM)                  |
+| ------------ | --------------------------- | --------------------------------- |
+| Syntax       | `require`, `module.exports` | `import`, `export`                |
+| Laden        | Synchron (zur Laufzeit)     | Asynchron (zur Parse-Zeit)        |
+| Dateiendung  | `.js`                       | `.mjs` oder `"type": "module"`    |
+| Standard in  | Node.js älteren Versionen   | Moderne JS-Umgebungen, Browser    |
+| Tree-Shaking | ❌ Nicht unterstützt         | ✅ Unterstützt (z. B. in Bundlern) |
+
+---
+
+### **Besonderheiten**
+
+* **Interop**:
+
+  * In **ESM** kann man CJS-Module via `import pkg from 'cjs-modul'` nutzen.
+  * In **CJS** kann man ESM nur dynamisch laden (`import()` statt `require`).
+* **Top-Level Await**:
+
+  * Nur in **ESM** erlaubt (`await` außerhalb von Funktionen).
+
+**Beispiel:**
+
+```js
+// index.mjs
+const response = await fetch("https://jsonplaceholder.typicode.com/todos/1");
+const data = await response.json();
+console.log(data);
+```
+
+---
+
+### **Zusammenfassung**
+
+* **CommonJS**: älteres Node.js-Modulsystem, synchron, `require/module.exports`.
+* **ESM**: modernes System, asynchron, `import/export`, unterstützt Tree-Shaking und Top-Level Await.
+* Heute: **neue Projekte → ESM**, alte Projekte oft noch **CJS**.
+
+📖 Quellen:
+
+* [Node.js Docs – Modules: CommonJS](https://nodejs.org/docs/latest/api/modules.html)
+* [Node.js Docs – Modules: ECMAScript](https://nodejs.org/docs/latest/api/esm.html)
+* [MDN – import/export](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/import)
+
+---
 
 
   **[⬆ Наверх](#top)**  
 
-131. ### <a name="131"></a> 
+131. ### <a name="131"></a> Was ist require und was ist import?
 
+### **require**
 
+* Teil von **CommonJS (CJS)**.
+* Lädt Module **synchron** zur Laufzeit.
+* Gibt das zurück, was mit `module.exports` exportiert wurde.
+
+**Beispiel:**
+
+```js
+// math.js
+function add(a, b) {
+  return a + b;
+}
+module.exports = { add };
+
+// index.js
+const math = require('./math');
+console.log(math.add(2, 3)); // 5
+```
+
+---
+
+### **import**
+
+* Teil von **ES Modules (ESM)**.
+* Lädt Module **asynchron** bereits beim Parsen.
+* Kann **benannte Exporte** oder einen **Default-Export** importieren.
+
+**Beispiel:**
+
+```js
+// math.js (ESM)
+export function add(a, b) {
+  return a + b;
+}
+
+// index.mjs oder in "type": "module"
+import { add } from './math.js';
+console.log(add(2, 3)); // 5
+```
+
+---
+
+### **Vergleich require vs. import**
+
+| Merkmal         | `require` (CJS)             | `import` (ESM)                                   |
+| --------------- | --------------------------- | ------------------------------------------------ |
+| System          | CommonJS                    | ECMAScript Module                                |
+| Ladeart         | **Synchron** (zur Laufzeit) | **Asynchron** (zur Parse-Zeit)                   |
+| Syntax          | `const x = require('x')`    | `import x from 'x'` oder `import { y } from 'x'` |
+| Export          | `module.exports`            | `export` / `export default`                      |
+| Tree-Shaking    | ❌ Nicht möglich             | ✅ Möglich (optimierte Bundles)                   |
+| Top-Level Await | ❌ Nicht unterstützt         | ✅ Unterstützt                                    |
+
+---
+
+### **Besonderheiten**
+
+* In **ESM** kann man **CJS-Module** importieren:
+
+  ```js
+  import pkg from 'lodash'; // lodash ist CJS
+  ```
+* In **CJS** kann man **ESM nur dynamisch** laden:
+
+  ```js
+  async function loadModule() {
+    const esm = await import('./esmModule.mjs');
+    esm.doSomething();
+  }
+  ```
+
+---
+
+### **Zusammenfassung**
+
+* **require**: CommonJS, synchron, für ältere Node.js-Projekte.
+* **import**: ES Modules, moderner Standard, asynchron, für neue Projekte.
+* Heutzutage wird für **neue Node.js-Projekte ESM (import)** empfohlen.
+
+📖 Quellen:
+
+* [Node.js Docs – require (CJS)](https://nodejs.org/docs/latest/api/modules.html#requireid)
+* [Node.js Docs – import (ESM)](https://nodejs.org/docs/latest/api/esm.html#import-statements)
+* [MDN – import](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/import)
+
+---
 
   **[⬆ Наверх](#top)**
 
-132. ### <a name="132"></a> 
+132. ### <a name="132"></a> Unterschied zwischen module.exports und exports?
 
+### **Grundidee**
 
+In **CommonJS (CJS)** sind `module.exports` und `exports` eng miteinander verbunden:
+
+* `module.exports` ist das **eigentliche Objekt**, das aus einer Datei exportiert wird.
+* `exports` ist nur eine **Referenz** auf `module.exports`.
+
+Am Anfang gilt:
+
+```js
+module.exports === exports; // true
+```
+
+---
+
+### **1. module.exports**
+
+* Das **wirkliche Export-Objekt**.
+* Alles, was hier zugewiesen wird, ist nach außen sichtbar.
+
+**Beispiel:**
+
+```js
+// math.js
+module.exports = function add(a, b) {
+  return a + b;
+};
+
+// index.js
+const add = require('./math');
+console.log(add(2, 3)); // 5
+```
+
+➡️ Hier wird eine **Funktion direkt exportiert**.
+
+---
+
+### **2. exports**
+
+* Ein **Alias auf module.exports**.
+* Praktisch für **mehrere Exporte**.
+
+**Beispiel:**
+
+```js
+// math.js
+exports.add = (a, b) => a + b;
+exports.sub = (a, b) => a - b;
+
+// index.js
+const math = require('./math');
+console.log(math.add(5, 2)); // 3
+console.log(math.sub(5, 2)); // 3
+```
+
+---
+
+### ⚠️ Wichtig
+
+Wenn du `exports` **neu zuweist**, verliert es die Verbindung zu `module.exports`.
+
+**Beispiel – Fehler:**
+
+```js
+// math.js
+exports = function add(a, b) { return a + b; };
+
+// index.js
+const add = require('./math');
+console.log(add(2, 3)); // ❌ undefined
+```
+
+➡️ Weil hier nur `exports` überschrieben wird, aber nicht `module.exports`.
+
+**Richtige Version:**
+
+```js
+module.exports = function add(a, b) { return a + b; };
+```
+
+---
+
+### **Vergleich**
+
+| Merkmal              | `module.exports`                      | `exports`                                 |
+| -------------------- | ------------------------------------- | ----------------------------------------- |
+| Was es ist           | Das echte Export-Objekt               | Alias/Referenz auf module.exports         |
+| Nutzung              | Für Einzel-Export oder Überschreibung | Für mehrere Property-Exporte              |
+| Alias zu Beginn      | ✅ Gleich                              | ✅ Gleich                                  |
+| Neu zuweisen möglich | ✅ Ja                                  | ⚠️ Nein (dann verliert es die Verbindung) |
+
+---
+
+### **Zusammenfassung**
+
+* `module.exports` = **das eigentliche Export-Objekt** (wird von `require` zurückgegeben).
+* `exports` = **Referenz auf module.exports**, praktisch für mehrere Exporte.
+* **Nie `exports = ...` nutzen**, sondern immer `module.exports = ...`, wenn man das Objekt komplett ersetzen will.
+
+📖 Quellen:
+
+* [Node.js Docs – module.exports](https://nodejs.org/docs/latest/api/modules.html#moduleexports)
+* [MDN – CommonJS](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Modules/Modules_commonjs)
+
+---
 
   **[⬆ Наверх](#top)**
 
-133. ### <a name="133"></a> 
+133. ### <a name="133"></a> Wie setzt man Umgebungsvariablen in Node.js (process.env)?
 
+### **Umgebungsvariablen in Node.js**
 
+Umgebungsvariablen werden in Node.js über das Objekt **`process.env`** bereitgestellt.
+Sie dienen dazu, **Konfigurationswerte** wie API-Keys, Datenbank-URLs oder Ports **außerhalb des Codes** zu speichern.
+
+---
+
+### **1. Zugriff**
+
+```js
+// Zugriff auf eine Variable
+console.log(process.env.NODE_ENV); // z. B. "development"
+console.log(process.env.PORT);     // z. B. 3000
+```
+
+---
+
+### **2. Setzen von Umgebungsvariablen**
+
+#### a) Direkt beim Starten
+
+* **Linux / macOS**
+
+```bash
+PORT=4000 NODE_ENV=production node server.js
+```
+
+* **Windows (CMD)**
+
+```cmd
+set PORT=4000 && set NODE_ENV=production && node server.js
+```
+
+* **Windows (PowerShell)**
+
+```powershell
+$env:PORT=4000; $env:NODE_ENV="production"; node server.js
+```
+
+---
+
+#### b) Nutzung einer `.env`-Datei mit `dotenv`
+
+1. Installation:
+
+```bash
+npm install dotenv
+```
+
+2. `.env` Datei:
+
+```
+PORT=5000
+NODE_ENV=development
+DB_HOST=localhost
+```
+
+3. Nutzung in Node.js:
+
+```js
+require('dotenv').config();
+
+console.log(process.env.PORT);     // 5000
+console.log(process.env.DB_HOST);  // localhost
+```
+
+---
+
+### **3. Typische Verwendung in Express**
+
+```js
+const express = require('express');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server läuft auf Port ${PORT}`);
+});
+```
+
+---
+
+### **Best Practices**
+
+* **Keine geheimen Schlüssel im Code** → immer in `.env`.
+* `.env` in **.gitignore** eintragen.
+* Für Produktion: Variablen direkt im **Deployment-Environment** setzen (z. B. Docker, Kubernetes, Vercel, Heroku).
+
+---
+
+### **Zusammenfassung**
+
+* Zugriff über **`process.env`**.
+* Setzen per CLI (`PORT=3000 node app.js`) oder `.env` + `dotenv`.
+* Wichtig für **Konfigurationsmanagement und Sicherheit**.
+
+📖 Quellen:
+
+* [Node.js Docs – process.env](https://nodejs.org/docs/latest/api/process.html#processenv)
+* [dotenv Doku](https://www.npmjs.com/package/dotenv)
+
+---
 
   **[⬆ Наверх](#top)**
 
-134. ### <a name="134"></a> 
+134. ### <a name="134"></a> Was ist package-lock.json und warum wichtig?
 
+### **package-lock.json**
 
+Die Datei **`package-lock.json`** wird automatisch von **npm** erstellt, wenn du Pakete installierst.
+Sie dokumentiert den **exakten Zustand der Abhängigkeiten** in einem Projekt.
+
+---
+
+### **Hauptzwecke**
+
+1. **Exakte Versionssicherung**
+
+   * Speichert die **konkreten Versionen** aller installierten Pakete (inkl. Unterabhängigkeiten).
+   * Gewährleistet, dass alle Entwickler\:innen und Deployments **identische Pakete** nutzen.
+
+2. **Schnellere Installationen**
+
+   * npm kann Abhängigkeiten direkt aus `package-lock.json` installieren, ohne die Versionen neu aufzulösen.
+
+3. **Sicherheit & Nachvollziehbarkeit**
+
+   * Hilft beim **Auditing** (`npm audit`), da exakte Versionen bekannt sind.
+   * Stellt sicher, dass keine unerwarteten Updates Bugs oder Sicherheitslücken einschleusen.
+
+---
+
+### **Beispiel**
+
+`package.json` (nur Hauptpakete):
+
+```json
+{
+  "dependencies": {
+    "express": "^4.18.0"
+  }
+}
+```
+
+`package-lock.json` (genauer Zustand inkl. Unterabhängigkeiten):
+
+```json
+{
+  "name": "mein-projekt",
+  "lockfileVersion": 3,
+  "dependencies": {
+    "express": {
+      "version": "4.18.2",
+      "resolved": "https://registry.npmjs.org/express/-/express-4.18.2.tgz",
+      "integrity": "sha512-...",
+      "requires": {
+        "accepts": "~1.3.8",
+        "body-parser": "1.20.1"
+      }
+    }
+  }
+}
+```
+
+➡️ Während `package.json` nur sagt *„nimm eine 4.x Version von Express“*, fixiert `package-lock.json` exakt **4.18.2** + alle Unterabhängigkeiten.
+
+---
+
+### **Best Practices**
+
+* **Immer im Repository versionieren** (zusammen mit `package.json`).
+* **Nicht manuell bearbeiten** → nur durch `npm install` ändern lassen.
+* Für Produktionsumgebungen:
+
+  ```bash
+  npm ci
+  ```
+
+  → Installiert **exakt** nach `package-lock.json` (schneller, stabiler).
+
+---
+
+### **Zusammenfassung**
+
+* `package.json` = gewünschte Abhängigkeiten (mit Version-Range).
+* `package-lock.json` = exakte Abhängigkeitsstruktur mit Versionen.
+* Wichtig für **Reproduzierbarkeit, Konsistenz und Sicherheit** in Node.js-Projekten.
+
+📖 Quellen:
+
+* [npm Docs – package-lock.json](https://docs.npmjs.com/cli/v9/configuring-npm/package-lock-json)
+* [npm Docs – npm ci](https://docs.npmjs.com/cli/v9/commands/npm-ci)
+
+---
 
   **[⬆ Наверх](#top)**
 
-135. ### <a name="135"></a> 
+135. ### <a name="135"></a> Unterschied zwischen global und lokaler Installation von npm-Paketen?
 
+### **Lokale Installation**
 
+* Standardmäßig installiert npm Pakete **projektbezogen** im Ordner `node_modules`.
+* Abhängigkeiten werden in **`package.json` → dependencies/devDependencies** gespeichert.
+* Jedes Projekt kann unterschiedliche Versionen desselben Pakets nutzen.
+
+**Beispiel:**
+
+```bash
+npm install express
+```
+
+→ installiert `express` in `./node_modules/express`
+→ Eintrag in `package.json`
+
+```json
+"dependencies": {
+  "express": "^4.18.2"
+}
+```
+
+---
+
+### **Globale Installation**
+
+* Pakete werden **systemweit** installiert.
+* Geeignet für **CLI-Tools**, die von überall aufrufbar sein sollen.
+* Abhängig vom Betriebssystem landen sie z. B. unter:
+
+  * Linux/macOS: `/usr/local/lib/node_modules`
+  * Windows: `%AppData%\npm\node_modules`
+
+**Beispiel:**
+
+```bash
+npm install -g nodemon
+```
+
+→ `nodemon` kann jetzt überall im Terminal genutzt werden:
+
+```bash
+nodemon server.js
+```
+
+---
+
+### **Vergleich**
+
+| Merkmal                | Lokale Installation                     | Globale Installation                        |
+| ---------------------- | --------------------------------------- | ------------------------------------------- |
+| Speicherort            | `./node_modules` im Projekt             | Systemweit (`/usr/local/...`)               |
+| Sichtbarkeit           | Nur im Projekt verfügbar                | Überall verfügbar (CLI)                     |
+| Nutzung                | Bibliotheken, Frameworks, Projektabh.   | Tools wie `nodemon`, `eslint`, `npm`        |
+| Versionsunabhängigkeit | Jedes Projekt kann eigene Version haben | Alle Projekte teilen eine Version           |
+| package.json Eintrag   | Ja (`dependencies`)                     | Nein (außer man installiert explizit lokal) |
+
+---
+
+### **Best Practices**
+
+* **Lokal installieren**: Bibliotheken/Frameworks (Express, React, Sequelize).
+* **Global installieren**: Nur CLI-Tools, die projektübergreifend gebraucht werden (z. B. `nodemon`, `eslint`, `typescript`).
+* Für Build/CI/CD → immer **lokale Installation** (reproduzierbar mit `package-lock.json`).
+
+---
+
+### **Zusammenfassung**
+
+* **Lokal**: im Projekt, für Abhängigkeiten (Standard).
+* **Global**: systemweit, für Tools im Terminal.
+* Regel: *Bibliotheken lokal, Tools global.*
+
+📖 Quellen:
+
+* [npm Docs – global vs local installation](https://docs.npmjs.com/downloading-and-installing-packages-globally)
+* [npm Docs – installing locally](https://docs.npmjs.com/downloading-and-installing-packages-locally)
+
+---
 
   **[⬆ Наверх](#top)**
 
-136. ### <a name="136"></a> 
+136. ### <a name="136"></a> Was sind Worker Threads in Node.js?
 
+### **Worker Threads in Node.js**
 
+**Problem:**
+Node.js läuft standardmäßig **Single-Threaded**. Für **I/O-bound Tasks** (Datenbank, Netzwerk, Filesystem) reicht das, da Non-Blocking I/O effizient arbeitet.
+Aber bei **CPU-bound Tasks** (z. B. Bildbearbeitung, Verschlüsselung, Machine Learning) blockiert der Event Loop → die App wird langsam.
+
+**Lösung:**
+Mit **Worker Threads** kann man **JavaScript in separaten Threads** ausführen, ohne den Haupt-Event-Loop zu blockieren.
+
+---
+
+### **Hauptmerkmale**
+
+* Jeder Worker hat **eigenen Event Loop, V8-Instanz und Speicher**.
+* Kommunikation erfolgt über **Message Passing** (`postMessage` / `on('message')`).
+* Daten können auch über **SharedArrayBuffer** gemeinsam genutzt werden.
+* Ideal für **CPU-intensive Berechnungen**.
+
+---
+
+### **Beispiel**
+
+```js
+// worker.js
+const { parentPort } = require('worker_threads');
+
+// Lange Berechnung
+let result = 0;
+for (let i = 0; i < 1e9; i++) {
+  result += i;
+}
+
+parentPort.postMessage(result);
+```
+
+```js
+// main.js
+const { Worker } = require('worker_threads');
+
+console.log("Main Thread gestartet");
+
+const worker = new Worker('./worker.js');
+
+worker.on('message', result => {
+  console.log("Ergebnis aus Worker:", result);
+});
+
+console.log("Main Thread blockiert nicht");
+```
+
+**Mögliche Ausgabe:**
+
+```
+Main Thread gestartet
+Main Thread blockiert nicht
+Ergebnis aus Worker: 499999999500000000
+```
+
+➡️ Der Main Thread bleibt responsiv, während der Worker rechnet.
+
+---
+
+### **Vergleich zu Child Processes**
+
+| Merkmal       | Worker Threads               | Child Processes (z. B. `spawn`)                    |
+| ------------- | ---------------------------- | -------------------------------------------------- |
+| Sprache       | JS im gleichen Prozess       | Separater Prozess (kann auch andere Sprachen sein) |
+| Speicher      | Gemeinsamer Speicher möglich | Kein gemeinsamer Speicher                          |
+| Kommunikation | Schneller (In-Memory)        | Langsamer (IPC)                                    |
+| Einsatzgebiet | CPU-intensive Tasks in JS    | Externe Programme, Multisprache                    |
+
+---
+
+### **Zusammenfassung**
+
+* **Worker Threads** = parallele Threads für **CPU-bound Tasks** in Node.js.
+* Lösen Performanceprobleme bei rechenintensiven Aufgaben.
+* Kommunikation über **Messages** oder **Shared Memory**.
+* Unterschied zu Child Processes: leichter, schneller, aber auf JavaScript beschränkt.
+
+📖 Quellen:
+
+* [Node.js Docs – Worker Threads](https://nodejs.org/api/worker_threads.html)
+* [MDN – Web Workers (ähnliches Konzept im Browser)](https://developer.mozilla.org/de/docs/Web/API/Web_Workers_API/Using_web_workers)
+
+---
 
   **[⬆ Наверх](#top)**
 
-137. ### <a name="137"></a> 
+137. ### <a name="137"></a> Unterschied zwischen cluster und child_process?
 
+### **1. child\_process Modul**
 
+* Dient zum **Starten neuer Prozesse** in Node.js.
+* Jeder Prozess hat **eigene Speicherumgebung, eigenen Event Loop und eigene V8-Instanz**.
+* Kommunikation über **Inter-Process Communication (IPC)**: `process.send()` und Events.
+* Kann auch **externe Programme/Skripte** starten (z. B. `python`, `bash`).
+
+**Beispiel:**
+
+```js
+const { spawn } = require('child_process');
+
+const ls = spawn('ls', ['-lh']); // Linux/macOS
+
+ls.stdout.on('data', data => {
+  console.log(`Output: ${data}`);
+});
+```
+
+➡️ Hier wird ein **Bash-Befehl** als separater Prozess gestartet.
+
+---
+
+### **2. cluster Modul**
+
+* Baut **auf child\_process** auf.
+* Speziell entwickelt, um Node.js-Server auf **mehreren CPU-Kernen** parallel laufen zu lassen.
+* Jeder Cluster-Worker ist ein eigener Node.js-Prozess (wie bei `child_process`), aber die Verwaltung übernimmt das **cluster-Modul**.
+* Hauptprozess („Master“) verteilt eingehende Verbindungen automatisch an Worker-Prozesse.
+
+**Beispiel:**
+
+```js
+const cluster = require('cluster');
+const http = require('http');
+const os = require('os');
+
+if (cluster.isPrimary) {
+  const numCPUs = os.cpus().length;
+
+  console.log(`Master ${process.pid} läuft`);
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork(); // Startet Worker
+  }
+} else {
+  http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end(`Hallo von Worker ${process.pid}`);
+  }).listen(3000);
+
+  console.log(`Worker ${process.pid} gestartet`);
+}
+```
+
+➡️ Master verteilt eingehende Anfragen auf mehrere Worker.
+
+---
+
+### **Vergleich**
+
+| Merkmal          | **child\_process**                                  | **cluster**                                 |
+| ---------------- | --------------------------------------------------- | ------------------------------------------- |
+| Zweck            | Beliebige Prozesse starten (auch externe Programme) | Speziell für Skalierung von Node.js-Servern |
+| Architektur      | Eigenes Management durch Entwickler                 | Automatisiertes Master/Worker-System        |
+| Kommunikation    | IPC (`process.send`)                                | IPC (eingebaut für Master ↔ Worker)         |
+| CPU-Auslastung   | Nicht optimiert                                     | Nutzt alle CPU-Kerne                        |
+| Typische Nutzung | Skripte starten, Python, Shell-Befehle              | HTTP/Express-Server skalieren               |
+
+---
+
+### **Zusammenfassung**
+
+* **child\_process**: Generisches Modul, startet neue Prozesse (Node.js oder externe Programme).
+* **cluster**: Nutzt intern `child_process`, aber optimiert für **Lastverteilung auf mehrere CPU-Kerne** bei Node.js-Servern.
+
+📖 Quellen:
+
+* [Node.js Docs – child\_process](https://nodejs.org/api/child_process.html)
+* [Node.js Docs – cluster](https://nodejs.org/api/cluster.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
-138. ### <a name="138"></a> 
+138. ### <a name="138"></a> Wie behandelt man Exceptions (try/catch vs. process.on('uncaughtException'))?
 
+### **1. Exceptions mit try/catch**
 
+* Standardmethode für **synchronen Code**.
+* Fängt Fehler ab, bevor sie den Event Loop verlassen.
+* Sollte **immer bevorzugt** werden.
+
+**Beispiel:**
+
+```js
+try {
+  const result = JSON.parse("{ invalid json }");
+  console.log(result);
+} catch (err) {
+  console.error("Fehler beim Parsen:", err.message);
+}
+```
+
+---
+
+### **2. Asynchrone Fehlerbehandlung**
+
+* `try/catch` funktioniert **nicht direkt** bei asynchronem Code (Callbacks, Promises).
+
+**Callback-Beispiel:**
+
+```js
+const fs = require('fs');
+
+fs.readFile("file.txt", (err, data) => {
+  if (err) {
+    console.error("Fehler:", err.message);
+    return;
+  }
+  console.log(data.toString());
+});
+```
+
+**Promise/async-Beispiel:**
+
+```js
+async function loadFile() {
+  try {
+    const data = await fs.promises.readFile("file.txt", "utf8");
+    console.log(data);
+  } catch (err) {
+    console.error("Fehler:", err.message);
+  }
+}
+```
+
+---
+
+### **3. process.on('uncaughtException')**
+
+* Fängt **ungefangene Fehler** ab, die sonst den Prozess beenden würden.
+* **Nur als Notfalllösung** – nicht als normale Fehlerbehandlung!
+* Nach einer `uncaughtException` ist der Prozess **instabil** → Empfehlung: **Fehler loggen und Prozess beenden**.
+
+**Beispiel:**
+
+```js
+process.on('uncaughtException', (err) => {
+  console.error("Uncaught Exception:", err.message);
+  // Cleanup (Logs, offene Verbindungen schließen)
+  process.exit(1); // kontrollierter Neustart empfohlen (z. B. mit PM2)
+});
+
+throw new Error("Fataler Fehler");
+```
+
+---
+
+### **Best Practices**
+
+* **Immer try/catch oder Promises mit `.catch()` nutzen** für erwartbare Fehler.
+* `process.on('uncaughtException')` nur für Logging/Notfälle.
+* Für **unbehandelte Promise-Fehler** gibt es `process.on('unhandledRejection')`.
+* In Produktion: Prozessmanager (z. B. **PM2, Docker, Kubernetes**) nutzen, um Neustarts nach Abstürzen sicherzustellen.
+
+---
+
+### **Vergleich**
+
+| Mechanismus                          | Zweck                                               | Empfehlung                          |
+| ------------------------------------ | --------------------------------------------------- | ----------------------------------- |
+| **try/catch**                        | Normale Fehlerbehandlung (sync/async via `await`)   | ✅ Ja                                |
+| **Callback-Error-Pattern** (`err`)   | Asynchrone Fehlerbehandlung in Callbacks            | ✅ Ja                                |
+| **process.on('uncaughtException')**  | Letzte Rettung, wenn Fehler nicht abgefangen wurden | ⚠️ Nur Logging, Prozess neu starten |
+| **process.on('unhandledRejection')** | Fängt nicht behandelte Promise-Rejections           | ⚠️ Logging + Prozess neu starten    |
+
+---
+
+### **Zusammenfassung**
+
+* **try/catch** und `.catch()` für kontrollierte Fehlerbehandlung.
+* **process.on('uncaughtException')** = Notfall, Prozess danach beenden.
+* Best Practice: Logging + Neustart durch Prozessmanager.
+
+📖 Quellen:
+
+* [Node.js Docs – Error Handling](https://nodejs.org/api/errors.html)
+* [Node.js Docs – process events](https://nodejs.org/api/process.html#event-uncaughtexception)
+
+---
 
   **[⬆ Наверх](#top)**
 
-139. ### <a name="139"></a> 
+139. ### <a name="139"></a> Was ist Garbage Collection in Node.js?
 
+### **Garbage Collection in Node.js**
 
+**Definition:**
+Garbage Collection (GC) ist der Prozess, bei dem die **V8 Engine** (auf der Node.js läuft) automatisch **nicht mehr genutzte Objekte aus dem Speicher entfernt**, um Speicherplatz freizugeben.
+
+---
+
+### **Wie funktioniert es?**
+
+* Node.js verwendet die **V8 Garbage Collector Implementierung**.
+* Nutzt ein **Generational Garbage Collection Modell**:
+
+  1. **New Space (Junggeneration)** → kleine, kurzlebige Objekte.
+  2. **Old Space (Alte Generation)** → langlebige Objekte.
+  3. **Large Object Space** → sehr große Objekte (z. B. Buffers).
+* Der GC verfolgt Referenzen → wenn ein Objekt **nicht mehr erreichbar** ist, wird es entfernt.
+
+---
+
+### **GC-Strategien**
+
+1. **Mark-and-Sweep**
+
+   * GC markiert erreichbare Objekte und löscht alle nicht markierten.
+
+2. **Minor GC**
+
+   * Räumt nur den **New Space** auf (schnell, häufig).
+
+3. **Major GC**
+
+   * Räumt den **Old Space** auf (langsamer, weniger oft).
+
+---
+
+### **Praktisches Beispiel**
+
+```js
+function test() {
+  let data = new Array(1e6).fill("Hallo"); 
+  // 'data' wird nach Funktionsende nicht mehr referenziert
+}
+
+test();
+
+// Nach einiger Zeit sammelt der Garbage Collector 'data' ein.
+```
+
+---
+
+### **Manuelles Triggern (nicht empfohlen in Produktion)**
+
+```bash
+node --expose-gc app.js
+```
+
+```js
+if (global.gc) {
+  global.gc(); // Erzwingt Garbage Collection
+}
+```
+
+➡️ Nur zu Debugging-Zwecken (z. B. Memory-Leaks analysieren).
+
+---
+
+### **Monitoring Tools**
+
+* `--inspect` mit Chrome DevTools → Heap-Snapshots.
+* `clinic.js` oder `node --inspect-brk`.
+* APM-Tools (z. B. New Relic, Datadog).
+
+---
+
+### **Best Practices**
+
+* **Keine globalen Variablen ohne Grund** → verhindern Freigabe.
+* **Event Listener entfernen**, wenn nicht mehr benötigt.
+* **Große Arrays/Objekte dereferenzieren** (`obj = null`).
+* Für **Streams** → `.destroy()` oder `.end()` nutzen.
+
+---
+
+### **Zusammenfassung**
+
+* Garbage Collection in Node.js wird durch die **V8 Engine** erledigt.
+* Entfernt automatisch **nicht mehr erreichbare Objekte**.
+* Arbeitet mit **Minor/Major GC (Generational Model)**.
+* Manuelles GC ist möglich, aber nur für Debugging sinnvoll.
+
+📖 Quellen:
+
+* [Node.js Docs – Memory Management](https://nodejs.org/en/docs/guides/garbage-collection/)
+* [V8 Blog – Garbage Collection](https://v8.dev/blog/trash-talk)
+* [MDN – Garbage collection](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management)
+
+---
 
   **[⬆ Наверх](#top)**
 
-140. ### <a name="140"></a> 
+140. ### <a name="140"></a> Welche Nachteile hat Node.js bei CPU-intensiven Aufgaben?
 
+### **Nachteile von Node.js bei CPU-intensiven Aufgaben**
 
+1. **Single-Threaded Event Loop**
+
+   * Node.js arbeitet standardmäßig mit **einem Thread**.
+   * CPU-intensive Tasks (z. B. Bildbearbeitung, Hashing, Machine Learning) blockieren den **Event Loop** → keine weiteren Anfragen können bearbeitet werden.
+
+2. **Blockierende Auswirkungen**
+
+   * Während eine rechenintensive Funktion läuft, können **keine I/O-Operationen** (HTTP-Anfragen, DB-Abfragen) bearbeitet werden.
+   * Führt zu **hoher Latenz** oder sogar **Time-outs** bei Clients.
+
+3. **Fehlende native Parallelität**
+
+   * Im Gegensatz zu Sprachen wie **Java, Go, C++** bietet Node.js keine echte Thread-basierte Parallelität für CPU-lastige Tasks.
+   * Lösung nur über **Worker Threads**, **Cluster** oder **Child Processes**.
+
+4. **Hoher Energieverbrauch bei Workarounds**
+
+   * Parallelisierung über Worker Threads oder Cluster erfordert **mehr Speicher und Prozess-Kommunikation** (Overhead).
+
+5. **Nicht optimal für bestimmte Anwendungen**
+
+   * Schlechte Wahl für:
+
+     * **Video-Transcoding**
+     * **Bildverarbeitung**
+     * **Wissenschaftliche Berechnungen**
+     * **Kryptographie auf hohem Level**
+
+---
+
+### **Beispiel: CPU-bound Blockade**
+
+```js
+// CPU-intensive Berechnung
+function heavyTask() {
+  let sum = 0;
+  for (let i = 0; i < 1e9; i++) {
+    sum += i;
+  }
+  return sum;
+}
+
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+  const result = heavyTask(); // Blockiert Event Loop
+  res.send(`Ergebnis: ${result}`);
+});
+
+app.listen(3000, () => console.log("Server läuft auf Port 3000"));
+```
+
+➡️ Während `heavyTask()` läuft, können **andere Requests nicht beantwortet werden**.
+
+---
+
+### **Workarounds**
+
+* **Worker Threads** für CPU-intensive Berechnungen.
+* **Cluster** für Skalierung über mehrere CPU-Kerne.
+* **Microservices-Architektur**: CPU-lastige Aufgaben in separaten Services (z. B. Python).
+* **Offloading** in Message Queues (RabbitMQ, Kafka) und Verarbeitung durch spezialisierte Worker.
+
+---
+
+### **Zusammenfassung**
+
+* CPU-intensive Aufgaben blockieren den **Event Loop** → schlechte Skalierung und hohe Latenz.
+* Node.js ist für **I/O-bound** Workloads ideal, aber nicht für **CPU-bound**.
+* Lösungen: **Worker Threads, Cluster, externe Services**.
+
+📖 Quellen:
+
+* [Node.js Docs – Worker Threads](https://nodejs.org/api/worker_threads.html)
+* [Node.js Event Loop Guide](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick)
+* [MDN – Concurrency model](https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop)
+
+---
 
   **[⬆ Наверх](#top)**  
 
