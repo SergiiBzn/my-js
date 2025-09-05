@@ -926,21 +926,23 @@ app.listen(3000, () => {
 
 11. ### <a name="11"></a> Wie funktioniert Routing in Express.js?
 
-Wie funktioniert Routing in Express.js?
+## Wie funktioniert Routing in Express.js?
 
-Definition:
+**Definition:**
 Routing in Express.js bedeutet, dass HTTP-Anfragen (basierend auf URL und HTTP-Methode) bestimmten Handler-Funktionen zugeordnet werden. Jeder Handler bestimmt, wie auf eine Anfrage reagiert wird.
 
-Wichtige Aspekte:
-	•	Methoden: app.get(), app.post(), app.put(), app.delete(), usw.
-	•	Pfade: können statisch (/about) oder dynamisch (/users/:id) sein.
-	•	Middleware-Prinzip: Routen sind selbst Middleware-Funktionen.
-	•	Router-Objekte: Express erlaubt die Modularisierung von Routen mit express.Router().
+**Wichtige Aspekte:**
 
-⸻
+* **Methoden:** `app.get()`, `app.post()`, `app.put()`, `app.delete()`, usw.
+* **Pfade:** können statisch (`/about`) oder dynamisch (`/users/:id`) sein.
+* **Middleware-Prinzip:** Routen sind selbst Middleware-Funktionen.
+* **Router-Objekte:** Express erlaubt die Modularisierung von Routen mit `express.Router()`.
 
-Einfaches Beispiel:
+---
 
+**Einfaches Beispiel:**
+
+```js
 import express from 'express';
 
 const app = express();
@@ -963,12 +965,13 @@ app.get('/users/:id', (req, res) => {
 app.listen(3000, () => {
   console.log('Server läuft auf Port 3000');
 });
+```
 
+---
 
-⸻
+**Router-Modularisierung:**
 
-Router-Modularisierung:
-
+```js
 // routes/users.js
 import { Router } from 'express';
 
@@ -983,7 +986,9 @@ router.get('/:id', (req, res) => {
 });
 
 export default router;
+```
 
+```js
 // server.js
 import express from 'express';
 import userRoutes from './routes/users.js';
@@ -994,30 +999,33 @@ app.use('/users', userRoutes);
 app.listen(3000, () => {
   console.log('Server läuft auf Port 3000');
 });
+```
 
+---
 
-⸻
+### Zusammenfassung
 
-Zusammenfassung
+Routing in Express ordnet Anfragen (Methode + Pfad) spezifischen Handlern zu. Es unterstützt statische und dynamische Routen sowie Modularisierung über `express.Router()`.
 
-Routing in Express ordnet Anfragen (Methode + Pfad) spezifischen Handlern zu. Es unterstützt statische und dynamische Routen sowie Modularisierung über express.Router().
+**Quellen:**
 
-Quellen:
-	•	Express.js – Routing
+* [Express.js – Routing](https://expressjs.com/de/guide/routing.html)
 
 
   **[⬆ Наверх](#top)**
 
 12. ### <a name="12"></a> Was ist der Unterschied zwischen app.get() und app.post()?
 
-Unterschied zwischen app.get() und app.post()
+## Unterschied zwischen `app.get()` und `app.post()`
 
-1. app.get()
-	•	Wird für HTTP-GET-Anfragen verwendet.
-	•	Dient hauptsächlich zum Abrufen von Daten.
-	•	Daten werden in der Regel über Query-Parameter oder Route-Parameter übergeben.
-	•	GET-Anfragen sind idempotent (mehrfaches Aufrufen hat keine Seiteneffekte).
+**1. app.get()**
 
+* Wird für **HTTP-GET-Anfragen** verwendet.
+* Dient hauptsächlich zum **Abrufen von Daten**.
+* Daten werden in der Regel über **Query-Parameter** oder **Route-Parameter** übergeben.
+* GET-Anfragen sind **idempotent** (mehrfaches Aufrufen hat keine Seiteneffekte).
+
+```js
 import express from 'express';
 const app = express();
 
@@ -1028,16 +1036,18 @@ app.get('/users/:id', (req, res) => {
 });
 
 app.listen(3000);
+```
 
+---
 
-⸻
+**2. app.post()**
 
-2. app.post()
-	•	Wird für HTTP-POST-Anfragen verwendet.
-	•	Dient zum Senden von Daten an den Server (z. B. Formulardaten, JSON).
-	•	Die Daten stehen im Request-Body (daher oft express.json() als Middleware nötig).
-	•	POST-Anfragen sind nicht idempotent (mehrfaches Senden kann neue Ressourcen erzeugen oder Zustand ändern).
+* Wird für **HTTP-POST-Anfragen** verwendet.
+* Dient zum **Senden von Daten an den Server** (z. B. Formulardaten, JSON).
+* Die Daten stehen im **Request-Body** (daher oft `express.json()` als Middleware nötig).
+* POST-Anfragen sind **nicht idempotent** (mehrfaches Senden kann neue Ressourcen erzeugen oder Zustand ändern).
 
+```js
 import express from 'express';
 const app = express();
 
@@ -1049,33 +1059,37 @@ app.post('/users', (req, res) => {
 });
 
 app.listen(3000);
+```
 
+---
 
-⸻
+### Zusammenfassung
 
-Zusammenfassung
-	•	app.get(): Daten abrufen, Parameter kommen aus URL (Query/Route).
-	•	app.post(): Daten senden, Inhalt kommt aus dem Request-Body.
-	•	GET ist idempotent, POST nicht.
+* **`app.get()`**: Daten abrufen, Parameter kommen aus **URL** (Query/Route).
+* **`app.post()`**: Daten senden, Inhalt kommt aus dem **Request-Body**.
+* GET ist idempotent, POST nicht.
 
-Quellen:
-	•	Express.js – Routing
-	•	MDN Web Docs – HTTP-Methoden
+**Quellen:**
+
+* [Express.js – Routing](https://expressjs.com/de/guide/routing.html)
+* [MDN Web Docs – HTTP-Methoden](https://developer.mozilla.org/ru/docs/Web/HTTP/Methods)
+
 
   **[⬆ Наверх](#top)**
 
 13. ### <a name="13"></a> Was macht app.use() im Zusammenhang mit Routing?
 
-Was macht app.use() im Zusammenhang mit Routing?
+## Was macht `app.use()` im Zusammenhang mit Routing?
 
-Definition:
-app.use() registriert Middleware in Express. Im Zusammenhang mit Routing bedeutet das, dass man entweder Middleware-Funktionen oder Router-Objekte an bestimmte Pfade binden kann.
+**Definition:**
+`app.use()` registriert Middleware in Express. Im Zusammenhang mit Routing bedeutet das, dass man entweder **Middleware-Funktionen** oder **Router-Objekte** an bestimmte Pfade binden kann.
 
-⸻
+---
 
-1. Globale Middleware (ohne Pfad):
-Wird für alle Anfragen ausgeführt, unabhängig von der Route oder HTTP-Methode.
+**1. Globale Middleware (ohne Pfad):**
+Wird für **alle Anfragen** ausgeführt, unabhängig von der Route oder HTTP-Methode.
 
+```js
 import express from 'express';
 const app = express();
 
@@ -1084,13 +1098,14 @@ app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next(); // zur nächsten Middleware oder Route
 });
+```
 
+---
 
-⸻
-
-2. Middleware für einen bestimmten Pfad:
+**2. Middleware für einen bestimmten Pfad:**
 Nur Anfragen, die mit diesem Pfad beginnen, durchlaufen die Middleware.
 
+```js
 app.use('/api', (req, res, next) => {
   console.log('Middleware für /api');
   next();
@@ -1099,13 +1114,14 @@ app.use('/api', (req, res, next) => {
 app.get('/api/test', (req, res) => {
   res.send('API-Route erreicht');
 });
+```
 
+---
 
-⸻
+**3. Router einbinden:**
+Mit `app.use()` können Router-Module modular integriert werden.
 
-3. Router einbinden:
-Mit app.use() können Router-Module modular integriert werden.
-
+```js
 // routes/users.js
 import { Router } from 'express';
 const router = Router();
@@ -1130,34 +1146,39 @@ const app = express();
 app.use('/users', userRoutes);
 
 app.listen(3000);
+```
 
-→ Aufruf: http://localhost:3000/users oder http://localhost:3000/users/5
+→ Aufruf: `http://localhost:3000/users` oder `http://localhost:3000/users/5`
 
-⸻
+---
 
-Zusammenfassung
-	•	app.use() bindet Middleware oder Router ein.
-	•	Ohne Pfad: gilt für alle Anfragen.
-	•	Mit Pfad: gilt für Routen unterhalb dieses Pfads.
-	•	Häufig verwendet, um Router-Module (express.Router()) einzubinden.
+### Zusammenfassung
 
-Quellen:
-	•	Express.js – app.use()
-	•	Express.js – Router
+* `app.use()` bindet Middleware oder Router ein.
+* Ohne Pfad: gilt für alle Anfragen.
+* Mit Pfad: gilt für Routen unterhalb dieses Pfads.
+* Häufig verwendet, um Router-Module (`express.Router()`) einzubinden.
+
+**Quellen:**
+
+* [Express.js – app.use()](https://expressjs.com/de/4x/api.html#app.use)
+* [Express.js – Router](https://expressjs.com/de/guide/routing.html#express-router)
+
 
   **[⬆ Наверх](#top)**
 
 14. ### <a name="14"></a> Wie definiert man Routenparameter in Express?
 
-Routenparameter in Express
+## Routenparameter in Express
 
-Definition:
-Routenparameter sind Platzhalter in der URL, die mit : definiert werden. Sie dienen dazu, Werte aus der URL zu extrahieren (z. B. IDs oder Namen). Der Zugriff erfolgt über req.params.
+**Definition:**
+Routenparameter sind Platzhalter in der URL, die mit `:` definiert werden. Sie dienen dazu, Werte aus der URL zu extrahieren (z. B. IDs oder Namen). Der Zugriff erfolgt über `req.params`.
 
-⸻
+---
 
-Einfaches Beispiel:
+**Einfaches Beispiel:**
 
+```js
 import express from 'express';
 const app = express();
 
@@ -1170,56 +1191,65 @@ app.get('/users/:id', (req, res) => {
 app.listen(3000, () => {
   console.log('Server läuft auf Port 3000');
 });
+```
 
-→ Aufruf: http://localhost:3000/users/42
-Antwort: Benutzer mit ID: 42
+→ Aufruf: `http://localhost:3000/users/42`
+Antwort: `Benutzer mit ID: 42`
 
-⸻
+---
 
-Mehrere Parameter:
+**Mehrere Parameter:**
 
+```js
 app.get('/users/:userId/books/:bookId', (req, res) => {
   const { userId, bookId } = req.params;
   res.send(`User: ${userId}, Buch: ${bookId}`);
 });
+```
 
-→ Aufruf: http://localhost:3000/users/7/books/15
+→ Aufruf: `http://localhost:3000/users/7/books/15`
 
-⸻
+---
 
-Optionale Parameter:
+**Optionale Parameter:**
 
+```js
 app.get('/products/:id?', (req, res) => {
   const productId = req.params.id || 'keine ID angegeben';
   res.send(`Produkt-ID: ${productId}`);
 });
+```
 
-→ http://localhost:3000/products → Produkt-ID: keine ID angegeben
-→ http://localhost:3000/products/99 → Produkt-ID: 99
+→ `http://localhost:3000/products` → `Produkt-ID: keine ID angegeben`
+→ `http://localhost:3000/products/99` → `Produkt-ID: 99`
 
-⸻
+---
 
-Zusammenfassung
-	•	Routenparameter werden mit : definiert (/users/:id).
-	•	Zugriff auf Werte über req.params.
-	•	Unterstützung für mehrere und optionale Parameter.
+### Zusammenfassung
 
-Quellen:
-	•	Express.js – Routing
+* Routenparameter werden mit `:` definiert (`/users/:id`).
+* Zugriff auf Werte über `req.params`.
+* Unterstützung für mehrere und optionale Parameter.
+
+**Quellen:**
+
+* [Express.js – Routing](https://expressjs.com/de/guide/routing.html#route-parameter)
+
 
   **[⬆ Наверх](#top)**
 
 15. ### <a name="15"></a> Wie greift man in einer Route auf Query-Parameter zu?
 
-Zugriff auf Query-Parameter in Express
+## Zugriff auf Query-Parameter in Express
 
-Definition:
-Query-Parameter sind Schlüssel-Wert-Paare in der URL nach einem ?. In Express stehen sie im Objekt req.query als Properties zur Verfügung.
+**Definition:**
+Query-Parameter sind Schlüssel-Wert-Paare in der URL nach einem `?`. In Express stehen sie im Objekt `req.query` als Properties zur Verfügung.
 
-⸻
+---
 
-Einfaches Beispiel:
+**Einfaches Beispiel:**
 
+```js
 import express from 'express';
 const app = express();
 
@@ -1232,58 +1262,67 @@ app.get('/search', (req, res) => {
 app.listen(3000, () => {
   console.log('Server läuft auf Port 3000');
 });
+```
 
-Aufruf:
-http://localhost:3000/search?q=Node.js&limit=10
-Antwort: Suche: Node.js, Limit: 10
+**Aufruf:**
+`http://localhost:3000/search?q=Node.js&limit=10`
+Antwort: `Suche: Node.js, Limit: 10`
 
-⸻
+---
 
-Mehrere Parameter (automatisch als Objekt):
+**Mehrere Parameter (automatisch als Objekt):**
 
+```js
 app.get('/filter', (req, res) => {
   res.json(req.query); // gibt alle Query-Parameter zurück
 });
+```
 
-http://localhost:3000/filter?category=books&sort=asc
+`http://localhost:3000/filter?category=books&sort=asc`
 Antwort:
 
+```json
 {
   "category": "books",
   "sort": "asc"
 }
+```
 
+---
 
-⸻
+**Wichtige Hinweise:**
 
-Wichtige Hinweise:
-	•	Query-Parameter sind immer Strings (z. B. "10" statt 10). → ggf. konvertieren mit parseInt().
-	•	Sie sind optional – wenn nicht vorhanden, ist der Wert undefined.
+* Query-Parameter sind **immer Strings** (z. B. `"10"` statt `10`). → ggf. konvertieren mit `parseInt()`.
+* Sie sind **optional** – wenn nicht vorhanden, ist der Wert `undefined`.
 
-⸻
+---
 
-Zusammenfassung
-	•	Zugriff über req.query.
-	•	Alle Query-Parameter werden als Objekt gespeichert.
-	•	Typen sind Strings und müssen ggf. konvertiert werden.
+### Zusammenfassung
 
-Quellen:
-	•	Express.js – req.query
-	•	MDN – Query-Strings
+* Zugriff über `req.query`.
+* Alle Query-Parameter werden als Objekt gespeichert.
+* Typen sind Strings und müssen ggf. konvertiert werden.
+
+**Quellen:**
+
+* [Express.js – req.query](https://expressjs.com/de/4x/api.html#req.query)
+* [MDN – Query-Strings](https://developer.mozilla.org/ru/docs/Learn/Common_questions/What_is_a_URL#Параметры_запроса)
+
 
   **[⬆ Наверх](#top)**
 
 16. ### <a name="16"></a> Wie erstellt man verschachtelte Router (express.Router)?
 
-Verschachtelte Router in Express mit express.Router
+## Verschachtelte Router in Express mit `express.Router`
 
-Definition:
-express.Router() erlaubt es, Routen modular aufzubauen. Verschachtelte Router helfen, Routen logisch zu strukturieren, z. B. /users/:id/posts/:postId.
+**Definition:**
+`express.Router()` erlaubt es, Routen modular aufzubauen. Verschachtelte Router helfen, Routen logisch zu strukturieren, z. B. `/users/:id/posts/:postId`.
 
-⸻
+---
 
-Beispiel – Einfacher Router:
+**Beispiel – Einfacher Router:**
 
+```js
 // routes/users.js
 import { Router } from 'express';
 const router = Router();
@@ -1297,7 +1336,9 @@ router.get('/:id', (req, res) => {
 });
 
 export default router;
+```
 
+```js
 // server.js
 import express from 'express';
 import userRoutes from './routes/users.js';
@@ -1308,13 +1349,15 @@ app.use('/users', userRoutes);
 app.listen(3000, () => {
   console.log('Server läuft auf Port 3000');
 });
+```
 
-→ /users und /users/42
+→ `/users` und `/users/42`
 
-⸻
+---
 
-Beispiel – Verschachtelung:
+**Beispiel – Verschachtelung:**
 
+```js
 // routes/posts.js
 import { Router } from 'express';
 const router = Router({ mergeParams: true });
@@ -1329,7 +1372,9 @@ router.get('/:postId', (req, res) => {
 });
 
 export default router;
+```
 
+```js
 // routes/users.js
 import { Router } from 'express';
 import postRoutes from './posts.js';
@@ -1344,7 +1389,9 @@ router.get('/', (req, res) => {
 router.use('/:userId/posts', postRoutes);
 
 export default router;
+```
 
+```js
 // server.js
 import express from 'express';
 import userRoutes from './routes/users.js';
@@ -1355,33 +1402,38 @@ app.use('/users', userRoutes);
 app.listen(3000, () => {
   console.log('Server läuft auf Port 3000');
 });
+```
 
-Aufrufe:
-	•	http://localhost:3000/users/5/posts → Alle Posts von User 5
-	•	http://localhost:3000/users/5/posts/10 → Post 10 von User 5
+**Aufrufe:**
 
-⸻
+* `http://localhost:3000/users/5/posts` → *Alle Posts von User 5*
+* `http://localhost:3000/users/5/posts/10` → *Post 10 von User 5*
 
-Zusammenfassung
-	•	express.Router() ermöglicht modulare und verschachtelte Routen.
-	•	Mit mergeParams: true kann ein Kind-Router Parameter des Eltern-Routers nutzen.
-	•	Praktisch für REST-Strukturen wie /users/:id/posts/:postId.
+---
 
-Quellen:
-	•	Express.js – Router
+### Zusammenfassung
+
+* `express.Router()` ermöglicht modulare und verschachtelte Routen.
+* Mit `mergeParams: true` kann ein Kind-Router Parameter des Eltern-Routers nutzen.
+* Praktisch für REST-Strukturen wie `/users/:id/posts/:postId`.
+
+**Quellen:**
+
+* [Express.js – Router](https://expressjs.com/de/guide/routing.html#express-router)
 
   **[⬆ Наверх](#top)**
 
 17. ### <a name="17"></a> Wie kann man eine Route auf mehrere HTTP-Methoden gleichzeitig reagieren lassen?
 
-Route auf mehrere HTTP-Methoden reagieren lassen
+## Route auf mehrere HTTP-Methoden reagieren lassen
 
-In Express gibt es zwei Hauptwege:
+**In Express gibt es zwei Hauptwege:**
 
-⸻
+---
 
-1. Mit app.route() – Ketten von Methoden für denselben Pfad
+**1. Mit `app.route()` – Ketten von Methoden für denselben Pfad**
 
+```js
 import express from 'express';
 const app = express();
 
@@ -1399,23 +1451,27 @@ app.route('/users')
 app.listen(3000, () => {
   console.log('Server läuft auf Port 3000');
 });
+```
 
 → Vorteil: Saubere Gruppierung mehrerer Methoden für denselben Pfad.
 
-⸻
+---
 
-2. Mit app.all() – alle Methoden auf einer Route abfangen
+**2. Mit `app.all()` – alle Methoden auf einer Route abfangen**
 
+```js
 app.all('/test', (req, res) => {
   res.send(`Route /test reagiert auf ${req.method}`);
 });
+```
 
-→ Wird für alle HTTP-Methoden (GET, POST, PUT, DELETE …) ausgeführt.
+→ Wird für **alle HTTP-Methoden** (`GET`, `POST`, `PUT`, `DELETE` …) ausgeführt.
 
-⸻
+---
 
-3. Kombination mit Middleware (optional)
+**3. Kombination mit Middleware (optional)**
 
+```js
 app.use('/items', (req, res, next) => {
   console.log(`Items-Route wurde mit ${req.method} aufgerufen`);
   next();
@@ -1423,30 +1479,34 @@ app.use('/items', (req, res, next) => {
 
 app.get('/items', (req, res) => res.send('GET /items'));
 app.post('/items', (req, res) => res.send('POST /items'));
+```
 
+---
 
-⸻
+### Zusammenfassung
 
-Zusammenfassung
-	•	app.route(path): mehrere HTTP-Methoden für denselben Pfad gruppieren.
-	•	app.all(path): alle Methoden für eine Route behandeln.
-	•	Praktisch für REST-Endpunkte oder gemeinsame Logik.
+* **`app.route(path)`**: mehrere HTTP-Methoden für denselben Pfad gruppieren.
+* **`app.all(path)`**: alle Methoden für eine Route behandeln.
+* Praktisch für REST-Endpunkte oder gemeinsame Logik.
 
-Quellen:
-	•	Express.js – app.route()
-	•	Express.js – app.all()
+**Quellen:**
+
+* [Express.js – app.route()](https://expressjs.com/de/4x/api.html#app.route)
+* [Express.js – app.all()](https://expressjs.com/de/4x/api.html#app.all)
 
   **[⬆ Наверх](#top)**
 
 18. ### <a name="18"></a> Was ist der Unterschied zwischen app.all() und spezifischen Methoden wie app.get()?
 
-Unterschied zwischen app.all() und spezifischen Methoden wie app.get()
+## Unterschied zwischen `app.all()` und spezifischen Methoden wie `app.get()`
 
-1. app.get(), app.post(), app.put(), app.delete()
-	•	Reagieren nur auf eine bestimmte HTTP-Methode.
-	•	Typisch für REST-APIs, wo jede Methode eine eigene Bedeutung hat.
-	•	Beispiel:
+**1. `app.get()`, `app.post()`, `app.put()`, `app.delete()`**
 
+* Reagieren **nur auf eine bestimmte HTTP-Methode**.
+* Typisch für **REST-APIs**, wo jede Methode eine eigene Bedeutung hat.
+* Beispiel:
+
+```js
 import express from 'express';
 const app = express();
 
@@ -1457,52 +1517,59 @@ app.get('/users', (req, res) => {
 app.post('/users', (req, res) => {
   res.send('POST /users – neuen Benutzer erstellen');
 });
+```
 
+---
 
-⸻
+**2. `app.all()`**
 
-2. app.all()
-	•	Reagiert auf alle HTTP-Methoden (GET, POST, PUT, DELETE, PATCH, …) für den angegebenen Pfad.
-	•	Nützlich für:
-	•	Middleware-artige Funktionen für eine Route
-	•	Fehlerseiten oder Catch-All-Routen
-	•	Logging oder spezielle Regeln, bevor die spezifischen Methoden verarbeitet werden
+* Reagiert auf **alle HTTP-Methoden** (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`, …) für den angegebenen Pfad.
+* Nützlich für:
 
+  * Middleware-artige Funktionen für eine Route
+  * Fehlerseiten oder Catch-All-Routen
+  * Logging oder spezielle Regeln, bevor die spezifischen Methoden verarbeitet werden
+
+```js
 app.all('/test', (req, res) => {
   res.send(`Route /test reagiert auf ${req.method}`);
 });
+```
 
+---
 
-⸻
+**Vergleich in der Praxis:**
 
-Vergleich in der Praxis:
-	•	app.get('/route') → nur GET-Anfragen
-	•	app.post('/route') → nur POST-Anfragen
-	•	app.all('/route') → jede HTTP-Anfrage wird abgefangen
+* `app.get('/route')` → nur GET-Anfragen
+* `app.post('/route')` → nur POST-Anfragen
+* `app.all('/route')` → jede HTTP-Anfrage wird abgefangen
 
-⸻
+---
 
-Zusammenfassung
-	•	app.get() (und ähnliche): für spezifische HTTP-Methoden, REST-konform.
-	•	app.all(): für alle Methoden, oft für Middleware, Logging oder Fallback-Routen genutzt.
+### Zusammenfassung
 
-Quellen:
-	•	Express.js – app.get()
-	•	Express.js – app.all()
+* **`app.get()` (und ähnliche):** für spezifische HTTP-Methoden, REST-konform.
+* **`app.all()`:** für alle Methoden, oft für Middleware, Logging oder Fallback-Routen genutzt.
+
+**Quellen:**
+
+* [Express.js – app.get()](https://expressjs.com/de/4x/api.html#app.METHOD)
+* [Express.js – app.all()](https://expressjs.com/de/4x/api.html#app.all)
 
   **[⬆ Наверх](#top)**
 
 19. ### <a name="19"></a> Wie kann man Wildcard-Routen erstellen?
 
-Wildcard-Routen in Express
+## Wildcard-Routen in Express
 
-Definition:
-Wildcard-Routen (Platzhalter-Routen) fangen mehrere oder alle möglichen Pfade ab. Sie werden mit * oder regulären Ausdrücken definiert. Nützlich für Fallbacks, 404-Seiten oder Catch-All-Logik.
+**Definition:**
+Wildcard-Routen (Platzhalter-Routen) fangen mehrere oder alle möglichen Pfade ab. Sie werden mit `*` oder regulären Ausdrücken definiert. Nützlich für **Fallbacks, 404-Seiten oder Catch-All-Logik**.
 
-⸻
+---
 
-1. Catch-All-Route mit *:
+**1. Catch-All-Route mit `*`:**
 
+```js
 import express from 'express';
 const app = express();
 
@@ -1513,65 +1580,75 @@ app.get('*', (req, res) => {
 app.listen(3000, () => {
   console.log('Server läuft auf Port 3000');
 });
+```
 
 → Fängt alle GET-Anfragen ab, die keiner spezifischen Route entsprechen.
 
-⸻
+---
 
-2. Wildcard in Pfaden:
+**2. Wildcard in Pfaden:**
 
+```js
 app.get('/files/*', (req, res) => {
   res.send(`Dateipfad: ${req.originalUrl}`);
 });
+```
 
-→ /files/docs/readme.txt → Antwort: Dateipfad: /files/docs/readme.txt
+→ `/files/docs/readme.txt` → Antwort: *Dateipfad: /files/docs/readme.txt*
 
-⸻
+---
 
-3. Reguläre Ausdrücke für flexible Routen:
+**3. Reguläre Ausdrücke für flexible Routen:**
 
+```js
 // Alle Routen, die mit "api" beginnen
 app.get(/^\/api\/.*/, (req, res) => {
   res.send('API-Wildcard-Route');
 });
+```
 
+---
 
-⸻
+**4. Typische 404-Route (am Ende der Route-Definitionen):**
 
-4. Typische 404-Route (am Ende der Route-Definitionen):
-
+```js
 // Muss ganz am Ende stehen
 app.use((req, res) => {
   res.status(404).send('404 – Route nicht gefunden');
 });
+```
 
+---
 
-⸻
+### Zusammenfassung
 
-Zusammenfassung
-	•	Wildcard-Routen (*) dienen als Fallback oder Catch-All.
-	•	Nützlich für 404-Seiten, Logging oder das Abfangen von unbekannten Pfaden.
-	•	Auch reguläre Ausdrücke können in Express für flexible Wildcards genutzt werden.
+* Wildcard-Routen (`*`) dienen als Fallback oder Catch-All.
+* Nützlich für 404-Seiten, Logging oder das Abfangen von unbekannten Pfaden.
+* Auch reguläre Ausdrücke können in Express für flexible Wildcards genutzt werden.
 
-Quellen:
-	•	Express.js – Routing
+**Quellen:**
+
+* [Express.js – Routing](https://expressjs.com/de/guide/routing.html)
 
   **[⬆ Наверх](#top)**
 
 20. ### <a name="20"></a> Was passiert, wenn keine Route im Express-Server passt?
 
-Was passiert, wenn keine Route im Express-Server passt?
+## Was passiert, wenn keine Route im Express-Server passt?
 
-Standardverhalten:
-	•	Wenn keine definierte Route mit der Anfrage übereinstimmt, geht Express die Middleware-Kette durch.
-	•	Wird keine passende Middleware/Route gefunden, endet der Request ohne Antwort.
-	•	In diesem Fall sendet Express automatisch einen 404-Statuscode (Not Found) zurück.
+### Standardverhalten
 
-⸻
+* Wenn keine definierte Route mit der Anfrage übereinstimmt, geht Express die Middleware-Kette durch.
+* Wird keine passende Middleware/Route gefunden, endet der Request ohne Antwort.
+* In diesem Fall sendet Express automatisch einen **404-Statuscode (Not Found)** zurück.
 
-Eigene 404-Fehlerseite definieren:
+---
+
+### Eigene 404-Fehlerseite definieren
+
 Um bessere Kontrolle zu haben, legt man am Ende aller Routen eine Middleware ohne Pfad an:
 
+```js
 import express from 'express';
 const app = express();
 
@@ -1587,12 +1664,13 @@ app.use((req, res) => {
 app.listen(3000, () => {
   console.log('Server läuft auf Port 3000');
 });
+```
 
+---
 
-⸻
+### 404 + Error-Handling kombinieren
 
-404 + Error-Handling kombinieren:
-
+```js
 // 404-Handler
 app.use((req, res, next) => {
   res.status(404).json({ error: 'Route nicht gefunden' });
@@ -1603,17 +1681,19 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('500 – Interner Serverfehler');
 });
+```
 
+---
 
-⸻
+### Zusammenfassung
 
-Zusammenfassung
-	•	Ohne passende Route gibt Express standardmäßig 404 Not Found zurück.
-	•	Best Practice: Eigene 404-Middleware am Ende definieren.
-	•	Zusätzlich sollte man einen globalen Fehler-Handler für 500 einbauen.
+* Ohne passende Route gibt Express **automatisch 404 Not Found** zurück.
+* **Best Practice:** Eigene 404-Middleware am Ende definieren.
+* Zusätzlich sollte man einen globalen **500-Fehler-Handler** für Serverfehler einbauen.
 
-Quellen:
-	•	Express.js – Fehlerbehandlung
+**Quellen:**
+
+* [Express.js – Fehlerbehandlung](https://expressjs.com/de/guide/error-handling.html)
 
   **[⬆ Наверх](#top)**
 
