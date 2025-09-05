@@ -1697,122 +1697,1663 @@ app.use((err, req, res, next) => {
 
   **[⬆ Наверх](#top)**
 
-21. ### <a name="21"></a> 
+21. ### <a name="21"></a> Was ist Middleware in Express.js?
 
+## Was ist Middleware in Express.js?
+
+**Definition:**
+Middleware in Express.js sind Funktionen, die Zugriff auf die Objekte `req` (Request), `res` (Response) und die Funktion `next` haben. Sie werden in der Reihenfolge ausgeführt, wie sie mit `app.use()` oder an einer Route registriert wurden.
+
+**Aufgaben von Middleware:**
+
+* Anfragen vorverarbeiten (z. B. Body-Parser, Logging, Authentifizierung).
+* Daten an `req` anhängen oder verändern.
+* Antworten mit `res` senden.
+* Mit `next()` die Verarbeitung an die nächste Middleware oder Route weitergeben.
+
+---
+
+**Typen von Middleware:**
+
+1. **Built-in Middleware:**
+
+   * `express.json()` → JSON-Body parsen
+   * `express.urlencoded()` → Formulardaten parsen
+   * `express.static()` → statische Dateien bereitstellen
+
+2. **Third-Party Middleware:**
+
+   * `morgan` (Logging)
+   * `cors` (Cross-Origin Resource Sharing)
+   * `helmet` (Sicherheits-Header)
+
+3. **Custom Middleware:**
+
+   * Eigene Logik definieren
+
+---
+
+**Beispiele:**
+
+```js
+import express from 'express';
+const app = express();
+
+// Built-in Middleware
+app.use(express.json());
+
+// Custom Middleware (Logger)
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next(); // wichtig: geht weiter zur nächsten Middleware/Route
+});
+
+// Route
+app.get('/', (req, res) => {
+  res.send('Hallo Middleware!');
+});
+
+// Error-Handling Middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Interner Serverfehler');
+});
+
+app.listen(3000, () => {
+  console.log('Server läuft auf Port 3000');
+});
+```
+
+---
+
+### Zusammenfassung
+
+* Middleware sind Funktionen, die den Request-Response-Zyklus in Express steuern.
+* Sie können Anfragen verarbeiten, Daten anreichern, Antworten senden oder an die nächste Funktion weitergeben.
+* Es gibt **eingebaute**, **Third-Party-** und **eigene** Middleware.
+
+**Quellen:**
+
+* [Express.js – Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
 
 
   **[⬆ Наверх](#top)**
 
-22. ### <a name="22"></a> 
+22. ### <a name="22"></a> Welche Arten von Middleware gibt es?
 
+## Arten von Middleware in Express.js
+
+**1. Built-in Middleware (eingebaute Middleware)**
+Von Express direkt bereitgestellt:
+
+* `express.json()` – parst JSON-Daten im Request-Body.
+* `express.urlencoded()` – parst Formulardaten (`application/x-www-form-urlencoded`).
+* `express.static()` – liefert statische Dateien wie HTML, CSS, JS, Bilder aus.
+
+```js
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
+```
+
+---
+
+**2. Third-Party Middleware (externe Middleware)**
+Von der Community entwickelt, via npm installierbar:
+
+* `morgan` – Logging von Requests.
+* `cors` – Cross-Origin Resource Sharing aktivieren.
+* `helmet` – Security-Header setzen.
+
+```js
+import morgan from 'morgan';
+import cors from 'cors';
+import helmet from 'helmet';
+
+app.use(morgan('dev'));
+app.use(cors());
+app.use(helmet());
+```
+
+---
+
+**3. Application-Level Middleware**
+Direkt mit `app.use()` oder `app.METHOD()` definiert.
+
+```js
+app.use((req, res, next) => {
+  console.log('Application-Level Middleware');
+  next();
+});
+```
+
+---
+
+**4. Router-Level Middleware**
+Nur für bestimmte Router gültig.
+
+```js
+import { Router } from 'express';
+const router = Router();
+
+router.use((req, res, next) => {
+  console.log('Router-Level Middleware');
+  next();
+});
+
+router.get('/', (req, res) => res.send('Hallo vom Router'));
+app.use('/users', router);
+```
+
+---
+
+**5. Error-Handling Middleware**
+Besonderheit: **vier Parameter** `(err, req, res, next)`.
+
+```js
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Interner Serverfehler');
+});
+```
+
+---
+
+**6. Custom Middleware**
+Eigene Funktionen für spezielle Aufgaben, z. B. Authentifizierung:
+
+```js
+function authMiddleware(req, res, next) {
+  if (req.headers.authorization === 'secret') {
+    next();
+  } else {
+    res.status(403).send('Zugriff verweigert');
+  }
+}
+
+app.use('/admin', authMiddleware);
+```
+
+---
+
+### Zusammenfassung
+
+* **Built-in** (express.json, express.static)
+* **Third-Party** (morgan, cors, helmet)
+* **Application-Level** (app.use)
+* **Router-Level** (express.Router)
+* **Error-Handling** (mit `err`-Parameter)
+* **Custom** (eigene Logik, z. B. Auth)
+
+**Quellen:**
+
+* [Express.js – Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
 
 
   **[⬆ Наверх](#top)**
 
-23. ### <a name="23"></a> 
+23. ### <a name="23"></a> Wie unterscheidet sich globale Middleware von Router-spezifischer Middleware?
 
+## Unterschied zwischen globaler Middleware und Router-spezifischer Middleware in Express.js
+
+**1. Globale Middleware**
+
+* Wird mit `app.use()` registriert.
+* Gilt für **alle Routen** und **alle HTTP-Methoden**, die nach der Registrierung folgen.
+* Typisch für Logging, Body-Parsing oder Sicherheitsfunktionen.
+
+```js
+import express from 'express';
+const app = express();
+
+// Globale Middleware – läuft bei jeder Anfrage
+app.use((req, res, next) => {
+  console.log(`Globale Middleware: ${req.method} ${req.url}`);
+  next();
+});
+
+app.get('/', (req, res) => res.send('Startseite'));
+app.get('/about', (req, res) => res.send('Über uns'));
+
+app.listen(3000);
+```
+
+---
+
+**2. Router-spezifische Middleware**
+
+* Wird nur für einen bestimmten **Router** oder **Pfad** ausgeführt.
+* Mit `router.use()` oder beim Mounten eines Routers (`app.use('/path', router)`).
+* Typisch für Authentifizierung, Validierung oder spezielle Logik pro Router.
+
+```js
+import { Router } from 'express';
+const app = express();
+const router = Router();
+
+// Router-spezifische Middleware
+router.use((req, res, next) => {
+  console.log(`Router-Middleware für /users: ${req.method} ${req.url}`);
+  next();
+});
+
+router.get('/', (req, res) => res.send('Alle Benutzer'));
+router.get('/:id', (req, res) => res.send(`Benutzer mit ID ${req.params.id}`));
+
+// Router wird unter /users gemountet
+app.use('/users', router);
+
+app.listen(3000);
+```
+
+---
+
+### Zusammenfassung
+
+* **Globale Middleware:** wirkt auf alle Routen und Methoden im gesamten Express-App-Kontext.
+* **Router-spezifische Middleware:** wirkt nur innerhalb eines bestimmten Routers oder Pfads.
+
+**Quellen:**
+
+* [Express.js – Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
 
 
   **[⬆ Наверх](#top)**
 
-24. ### <a name="24"></a> 
+24. ### <a name="24"></a> Wie erstellt man eine eigene Middleware-Funktion?
 
+## Eigene Middleware in Express erstellen
+
+**Definition:**
+Eine eigene Middleware ist eine Funktion mit den Parametern `(req, res, next)`.
+
+* `req` → enthält die Request-Daten
+* `res` → ermöglicht das Senden einer Antwort
+* `next` → ruft die nächste Middleware oder Route auf
+
+---
+
+**Beispiel – einfache Logging-Middleware:**
+
+```js
+import express from 'express';
+const app = express();
+
+// Eigene Middleware
+function logger(req, res, next) {
+  console.log(`${req.method} ${req.url}`);
+  next(); // wichtig: geht weiter zur nächsten Middleware/Route
+}
+
+app.use(logger);
+
+app.get('/', (req, res) => {
+  res.send('Startseite');
+});
+
+app.listen(3000, () => {
+  console.log('Server läuft auf Port 3000');
+});
+```
+
+---
+
+**Beispiel – Middleware für Authentifizierung:**
+
+```js
+function auth(req, res, next) {
+  if (req.headers.authorization === 'secret') {
+    next(); // Zugriff erlaubt
+  } else {
+    res.status(403).send('Zugriff verweigert');
+  }
+}
+
+app.get('/admin', auth, (req, res) => {
+  res.send('Adminbereich');
+});
+```
+
+---
+
+**Beispiel – Error-Handling Middleware:**
+Besonderheit: hat **vier Parameter** `(err, req, res, next)`.
+
+```js
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Interner Serverfehler');
+});
+```
+
+---
+
+### Zusammenfassung
+
+* Eigene Middleware wird als Funktion `(req, res, next)` definiert.
+* Typische Aufgaben: Logging, Validierung, Authentifizierung, Fehlerbehandlung.
+* Mit `next()` wird der Request weitergereicht.
+* Fehler-Middleware benötigt **vier Parameter**.
+
+**Quellen:**
+
+* [Express.js – Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
 
 
   **[⬆ Наверх](#top)**
 
-25. ### <a name="25"></a> 
+25. ### <a name="25"></a> Was sind Third-Party-Middleware-Beispiele in Express?
 
+## Third-Party-Middleware in Express – Beispiele
+
+**Definition:**
+Third-Party-Middleware sind externe Pakete, die man per **npm** installiert und in Express integriert. Sie erweitern die Funktionalität der Anwendung, z. B. für Logging, Sicherheit oder CORS.
+
+---
+
+**1. morgan – HTTP-Request-Logger**
+Hilft beim Loggen von Anfragen im Terminal.
+
+```js
+import express from 'express';
+import morgan from 'morgan';
+
+const app = express();
+app.use(morgan('dev')); // Loggt Methode, Pfad, Statuscode
+
+app.get('/', (req, res) => res.send('Hallo Morgan!'));
+app.listen(3000);
+```
+
+---
+
+**2. cors – Cross-Origin Resource Sharing**
+Erlaubt Requests von anderen Domains (z. B. React-Frontend → Express-API).
+
+```js
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+app.use(cors()); // Alle Domains erlaubt
+// oder app.use(cors({ origin: 'http://localhost:5173' }));
+
+app.get('/data', (req, res) => res.json({ message: 'CORS aktiviert' }));
+app.listen(3000);
+```
+
+---
+
+**3. helmet – Sicherheits-Header**
+Setzt HTTP-Header, um die App sicherer zu machen.
+
+```js
+import express from 'express';
+import helmet from 'helmet';
+
+const app = express();
+app.use(helmet());
+
+app.get('/', (req, res) => res.send('Mit Sicherheits-Headern'));
+app.listen(3000);
+```
+
+---
+
+**4. cookie-parser – Cookies auslesen**
+
+```js
+import express from 'express';
+import cookieParser from 'cookie-parser';
+
+const app = express();
+app.use(cookieParser());
+
+app.get('/cookies', (req, res) => {
+  res.send(req.cookies); // zeigt alle Cookies
+});
+app.listen(3000);
+```
+
+---
+
+**5. express-session – Session-Management**
+
+```js
+import express from 'express';
+import session from 'express-session';
+
+const app = express();
+app.use(session({
+  secret: 'meinSecret',
+  resave: false,
+  saveUninitialized: true
+}));
+
+app.get('/', (req, res) => {
+  req.session.views = (req.session.views || 0) + 1;
+  res.send(`Seite besucht: ${req.session.views} mal`);
+});
+app.listen(3000);
+```
+
+---
+
+### Zusammenfassung
+
+Typische Third-Party-Middleware in Express:
+
+* **morgan** (Logging)
+* **cors** (CORS-Unterstützung)
+* **helmet** (Sicherheit)
+* **cookie-parser** (Cookies auslesen)
+* **express-session** (Sessions)
+
+**Quellen:**
+
+* [morgan](https://www.npmjs.com/package/morgan)
+* [cors](https://www.npmjs.com/package/cors)
+* [helmet](https://www.npmjs.com/package/helmet)
+* [cookie-parser](https://www.npmjs.com/package/cookie-parser)
+* [express-session](https://www.npmjs.com/package/express-session)
 
 
   **[⬆ Наверх](#top)**
 
-26. ### <a name="26"></a> 
+26. ### <a name="26"></a> Wie wird next() in Middleware verwendet?
 
+## Verwendung von `next()` in Middleware
+
+**Definition:**
+`next()` ist eine Funktion, die in Express-Middleware aufgerufen wird, um den Request an die **nächste Middleware oder Route** weiterzugeben.
+
+* Ohne `next()` bleibt der Request hängen (Timeout).
+* Mit `next(err)` wird stattdessen die **Error-Handling-Middleware** ausgelöst.
+
+---
+
+**1. Normaler Ablauf mit `next()`**
+
+```js
+import express from 'express';
+const app = express();
+
+// Logging-Middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next(); // geht weiter zur nächsten Middleware oder Route
+});
+
+app.get('/', (req, res) => {
+  res.send('Startseite');
+});
+
+app.listen(3000);
+```
+
+---
+
+**2. Bedingungen prüfen und weiterleiten**
+
+```js
+function checkAuth(req, res, next) {
+  if (req.headers.authorization === 'secret') {
+    next(); // Zugriff erlaubt → geht zur Route
+  } else {
+    res.status(403).send('Zugriff verweigert'); // bricht ab, kein next()
+  }
+}
+
+app.get('/admin', checkAuth, (req, res) => {
+  res.send('Adminbereich');
+});
+```
+
+---
+
+**3. Fehler weitergeben mit `next(err)`**
+
+```js
+app.use((req, res, next) => {
+  const error = new Error('Etwas ist schiefgelaufen');
+  next(error); // Springt zur Error-Handling-Middleware
+});
+
+// Error-Handler
+app.use((err, req, res, next) => {
+  console.error(err.message);
+  res.status(500).send('Interner Serverfehler');
+});
+```
+
+---
+
+### Zusammenfassung
+
+* `next()` leitet den Request an die nächste Middleware/Route weiter.
+* Ohne Aufruf bleibt der Request hängen.
+* `next(err)` ruft die Error-Handling-Middleware auf.
+
+**Quellen:**
+
+* [Express.js – Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
 
 
   **[⬆ Наверх](#top)**
 
-27. ### <a name="27"></a> 
+27. ### <a name="27"></a> Wie kann man Reihenfolge von Middleware steuern?
 
+## Reihenfolge von Middleware in Express steuern
+
+**Prinzip:**
+
+* Express führt Middleware in **genau der Reihenfolge** aus, in der sie mit `app.use()` oder `app.METHOD()` registriert wurde.
+* Reihenfolge = Kontrolle über den Request-Response-Flow.
+
+---
+
+**1. Globale Reihenfolge**
+
+```js
+import express from 'express';
+const app = express();
+
+// 1. Logger
+app.use((req, res, next) => {
+  console.log('Logger');
+  next();
+});
+
+// 2. Parser
+app.use(express.json());
+
+// 3. Route
+app.get('/', (req, res) => {
+  res.send('Antwort von der Route');
+});
+
+// 4. 404-Middleware (immer am Ende)
+app.use((req, res) => {
+  res.status(404).send('Nicht gefunden');
+});
+
+app.listen(3000);
+```
+
+→ Die Middleware wird strikt in dieser Reihenfolge abgearbeitet.
+
+---
+
+**2. Reihenfolge pro Route**
+Middleware kann **direkt bei einer Route** definiert werden.
+
+```js
+function mw1(req, res, next) {
+  console.log('mw1');
+  next();
+}
+
+function mw2(req, res, next) {
+  console.log('mw2');
+  next();
+}
+
+app.get('/test', mw1, mw2, (req, res) => {
+  res.send('Fertig');
+});
+```
+
+→ Reihenfolge: `mw1 → mw2 → Route`.
+
+---
+
+**3. Router-Reihenfolge**
+
+* Router selbst werden in der Reihenfolge eingebunden, in der `app.use()` sie registriert.
+
+```js
+import { Router } from 'express';
+const router1 = Router();
+const router2 = Router();
+
+router1.get('/', (req, res) => res.send('Router1'));
+router2.get('/', (req, res) => res.send('Router2'));
+
+app.use('/r1', router1); // wird vor router2 ausgeführt
+app.use('/r2', router2);
+```
+
+---
+
+**Best Practices:**
+
+* **Globale Middleware (Logger, Parser)** zuerst.
+* **Routen** in der Mitte.
+* **404-Handler** am Ende.
+* **Error-Handler** ganz am Schluss.
+
+---
+
+### Zusammenfassung
+
+* Middleware wird in der Reihenfolge der Registrierung ausgeführt.
+* Reihenfolge gilt sowohl global (`app.use`) als auch pro Route.
+* 404- und Error-Handler immer am Ende platzieren.
+
+**Quellen:**
+
+* [Express.js – Middleware](https://expressjs.com/de/guide/using-middleware.html)
 
 
   **[⬆ Наверх](#top)**
 
-28. ### <a name="28"></a> 
+28. ### <a name="28"></a> Wie kann man Middleware nur auf bestimmte Routen anwenden?
 
+## Middleware nur auf bestimmte Routen anwenden
+
+**1. Direkt bei der Route definieren**
+Man hängt die Middleware als zusätzlichen Parameter vor den Route-Handler.
+
+```js
+import express from 'express';
+const app = express();
+
+function checkAuth(req, res, next) {
+  if (req.headers.authorization === 'secret') {
+    next();
+  } else {
+    res.status(403).send('Zugriff verweigert');
+  }
+}
+
+// Nur für /admin angewendet
+app.get('/admin', checkAuth, (req, res) => {
+  res.send('Adminbereich');
+});
+
+app.get('/', (req, res) => {
+  res.send('Öffentliche Seite');
+});
+
+app.listen(3000);
+```
+
+---
+
+**2. Mehrere Middleware-Funktionen in einer Route**
+
+```js
+function mw1(req, res, next) {
+  console.log('mw1');
+  next();
+}
+
+function mw2(req, res, next) {
+  console.log('mw2');
+  next();
+}
+
+app.get('/test', mw1, mw2, (req, res) => {
+  res.send('Route mit zwei Middleware-Funktionen');
+});
+```
+
+---
+
+**3. Router-spezifische Middleware**
+Mit `express.Router()` kann Middleware für bestimmte Router gelten.
+
+```js
+import { Router } from 'express';
+const app = express();
+const userRouter = Router();
+
+function logUserRoute(req, res, next) {
+  console.log(`Benutzer-Route aufgerufen: ${req.method} ${req.url}`);
+  next();
+}
+
+// Middleware nur für userRouter
+userRouter.use(logUserRoute);
+
+userRouter.get('/', (req, res) => res.send('Alle Benutzer'));
+userRouter.get('/:id', (req, res) => res.send(`Benutzer ${req.params.id}`));
+
+app.use('/users', userRouter);
+
+app.listen(3000);
+```
+
+→ Middleware `logUserRoute` gilt **nur für `/users`**.
+
+---
+
+### Zusammenfassung
+
+* Middleware kann direkt bei einer Route definiert werden.
+* Mehrere Middleware-Funktionen sind möglich (Kette).
+* Mit `express.Router()` lässt sich Middleware nur auf bestimmte Routenbereiche anwenden.
+
+**Quellen:**
+
+* [Express.js – Router Middleware](https://expressjs.com/de/guide/using-middleware.html)
 
 
   **[⬆ Наверх](#top)**
 
-29. ### <a name="29"></a> 
+29. ### <a name="29"></a> Wie funktioniert express.json() und wofür wird es genutzt?
 
+## Wie funktioniert `express.json()` und wofür wird es genutzt?
+
+**Definition:**
+`express.json()` ist eine **eingebaute Middleware** in Express.
+
+* Sie parst den Request-Body, wenn der **Content-Type `application/json`** ist.
+* Danach stehen die Daten im Objekt `req.body` zur Verfügung.
+
+Ohne diese Middleware wäre `req.body` standardmäßig `undefined`.
+
+---
+
+**Funktionsweise:**
+
+* Bei einer Anfrage mit JSON-Body liest `express.json()` den Body-Stream.
+* Die Daten werden in ein JavaScript-Objekt geparst.
+* Dieses Objekt wird an `req.body` gehängt, sodass es in Routen-Handlern verfügbar ist.
+
+---
+
+**Beispiel – JSON-Parsing aktivieren:**
+
+```js
+import express from 'express';
+const app = express();
+
+// Middleware aktivieren
+app.use(express.json());
+
+app.post('/data', (req, res) => {
+  console.log(req.body); // enthält geparstes JSON
+  res.send(`Empfangene Daten: ${JSON.stringify(req.body)}`);
+});
+
+app.listen(3000, () => {
+  console.log('Server läuft auf Port 3000');
+});
+```
+
+**Aufruf mit POST-Request (z. B. via curl oder Postman):**
+
+```bash
+curl -X POST http://localhost:3000/data \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Sergii","age":30}'
+```
+
+**Antwort:**
+
+```
+Empfangene Daten: {"name":"Sergii","age":30}
+```
+
+---
+
+**Typische Anwendungsfälle:**
+
+* REST-APIs, die JSON-Daten empfangen (z. B. Benutzer-Registrierung, Formulardaten).
+* Kommunikation mit Frontends wie React, Angular oder Vue, die Daten als JSON senden.
+
+---
+
+### Zusammenfassung
+
+* `express.json()` ist Middleware zum automatischen Parsen von JSON-Bodys.
+* Ergebnis ist als `req.body` im Route-Handler verfügbar.
+* Unerlässlich für APIs, die JSON empfangen.
+
+**Quellen:**
+
+* [Express.js – express.json()](https://expressjs.com/de/api.html#express.json)
 
 
   **[⬆ Наверх](#top)**
 
-30. ### <a name="30"></a> 
+30. ### <a name="30"></a> Wie funktioniert express.urlencoded()?
 
+## Wie funktioniert `express.urlencoded()`?
+
+**Definition:**
+`express.urlencoded()` ist eine **eingebaute Middleware** in Express.
+
+* Sie parst **URL-encoded Daten** (Content-Type: `application/x-www-form-urlencoded`).
+* Solche Daten entstehen typischerweise, wenn man ein HTML-Formular abschickt.
+* Die geparsten Werte stehen anschließend in `req.body` zur Verfügung.
+
+---
+
+**Funktionsweise:**
+
+* Liest den Body der Anfrage ein.
+* Wandelt die `key=value&key2=value2`-Notation in ein JavaScript-Objekt um.
+* Beispiel: `name=Sergii&age=30` → `{ name: 'Sergii', age: '30' }`.
+
+---
+
+**Beispiel – Formulardaten verarbeiten:**
+
+```js
+import express from 'express';
+const app = express();
+
+// Middleware aktivieren
+app.use(express.urlencoded({ extended: true }));
+
+app.post('/form', (req, res) => {
+  console.log(req.body); // enthält geparste Formulardaten
+  res.send(`Empfangene Daten: ${JSON.stringify(req.body)}`);
+});
+
+app.listen(3000, () => {
+  console.log('Server läuft auf Port 3000');
+});
+```
+
+**HTML-Formular:**
+
+```html
+<form action="/form" method="post">
+  <input type="text" name="name" value="Sergii" />
+  <input type="number" name="age" value="30" />
+  <button type="submit">Absenden</button>
+</form>
+```
+
+**Resultat:**
+
+```json
+{
+  "name": "Sergii",
+  "age": "30"
+}
+```
+
+---
+
+**Option `extended`:**
+
+* `extended: false` → verwendet den Node.js-Standardparser (`querystring`), kann nur einfache Schlüssel-Wert-Paare parsen.
+* `extended: true` → verwendet das `qs`-Paket, unterstützt auch verschachtelte Objekte und Arrays.
+
+Beispiel:
+
+```
+user[name]=Sergii&user[age]=30
+```
+
+→ `{ user: { name: 'Sergii', age: '30' } }` (nur bei `extended: true`)
+
+---
+
+### Zusammenfassung
+
+* `express.urlencoded()` parst **Formulardaten (x-www-form-urlencoded)** in `req.body`.
+* Mit `extended: true` lassen sich auch verschachtelte Datenstrukturen parsen.
+* Typisch für klassische HTML-Formulare.
+
+**Quellen:**
+
+* [Express.js – express.urlencoded()](https://expressjs.com/de/api.html#express.urlencoded)
 
 
   **[⬆ Наверх](#top)**  
 
-31. ### <a name="31"></a> 
+31. ### <a name="31"></a> Welche Objekte sind in Express.js für HTTP-Anfragen und -Antworten zuständig?
 
+## Objekte für HTTP-Anfragen und -Antworten in Express.js
+
+**1. `req` (Request-Objekt)**
+
+* Repräsentiert die eingehende HTTP-Anfrage.
+* Enthält Daten über die Anfrage: Methode, URL, Header, Parameter, Body.
+* Wichtige Eigenschaften und Methoden:
+
+  * `req.method` → HTTP-Methode (`GET`, `POST`, …)
+  * `req.url` → angeforderte URL
+  * `req.params` → Routen-Parameter (`/users/:id`)
+  * `req.query` → Query-Parameter (`?sort=asc`)
+  * `req.body` → Body-Daten (mit Middleware wie `express.json()` oder `express.urlencoded()`)
+  * `req.headers` → Header-Informationen
+
+---
+
+**2. `res` (Response-Objekt)**
+
+* Repräsentiert die ausgehende Antwort an den Client.
+* Wird verwendet, um Daten zurückzugeben, Header zu setzen oder den Statuscode festzulegen.
+* Wichtige Methoden:
+
+  * `res.send()` → Antwort als String/Buffer/Objekt senden
+  * `res.json()` → JSON-Daten senden
+  * `res.status(code)` → HTTP-Status setzen
+  * `res.redirect(url)` → Umleitung an eine andere URL
+  * `res.end()` → Antwort beenden (niedriger Level, selten direkt genutzt)
+
+---
+
+**Beispiel:**
+
+```js
+import express from 'express';
+const app = express();
+
+app.use(express.json());
+
+app.get('/users/:id', (req, res) => {
+  console.log(req.params.id);     // Zugriff auf Route-Parameter
+  console.log(req.query.filter);  // Zugriff auf Query-Parameter
+
+  res.status(200).json({
+    message: 'Benutzerdaten',
+    id: req.params.id,
+    filter: req.query.filter || 'none'
+  });
+});
+
+app.post('/users', (req, res) => {
+  console.log(req.body); // JSON-Body
+  res.status(201).send(`Neuer Benutzer erstellt: ${req.body.name}`);
+});
+
+app.listen(3000, () => {
+  console.log('Server läuft auf Port 3000');
+});
+```
+
+---
+
+### Zusammenfassung
+
+* **`req`**: Eingehende Anfrage (enthält Methode, URL, Header, Parameter, Body).
+* **`res`**: Antwort an den Client (enthält Methoden wie `send()`, `json()`, `status()`).
+* Beide Objekte sind Wrapper um Node.js’ `http.IncomingMessage` und `http.ServerResponse`.
+
+**Quellen:**
+
+* [Express.js – Request-Objekt](https://expressjs.com/de/4x/api.html#req)
+* [Express.js – Response-Objekt](https://expressjs.com/de/4x/api.html#res)
 
 
   **[⬆ Наверх](#top)**
 
-32. ### <a name="32"></a> 
+32. ### <a name="32"></a> Wie greift man auf Request-Header zu?
 
+## Zugriff auf Request-Header in Express.js
+
+**Definition:**
+Request-Header enthalten zusätzliche Informationen über die HTTP-Anfrage (z. B. `Content-Type`, `Authorization`, `User-Agent`).
+In Express kann man mit `req.headers` oder `req.get()` darauf zugreifen.
+
+---
+
+**1. Zugriff auf alle Header:**
+
+```js
+app.get('/info', (req, res) => {
+  console.log(req.headers); // alle Header als Objekt
+  res.send(req.headers);
+});
+```
+
+---
+
+**2. Zugriff auf einen bestimmten Header:**
+
+```js
+app.get('/auth', (req, res) => {
+  const authHeader = req.get('Authorization'); // oder req.headers['authorization']
+  res.send(`Authorization-Header: ${authHeader}`);
+});
+```
+
+---
+
+**3. Beispiel mit Content-Type:**
+
+```js
+app.post('/data', (req, res) => {
+  const contentType = req.get('Content-Type');
+  res.send(`Content-Type ist: ${contentType}`);
+});
+```
+
+---
+
+**Wichtige Hinweise:**
+
+* Header-Namen sind **case-insensitive** (`Authorization` = `authorization`).
+* Viele Header werden von Browsern automatisch gesetzt (`Host`, `User-Agent`, `Accept`).
+
+---
+
+### Zusammenfassung
+
+* Mit `req.headers` bekommt man ein Objekt aller Header.
+* Mit `req.get('Header-Name')` liest man einen bestimmten Header aus.
+* Header sind wichtig für Authentifizierung, Content-Type, CORS usw.
+
+**Quellen:**
+
+* [Express.js – req.get()](https://expressjs.com/de/4x/api.html#req.get)
+* [MDN – HTTP-Header](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers)
 
 
   **[⬆ Наверх](#top)**
 
-33. ### <a name="33"></a> 
+33. ### <a name="33"></a> Wie greift man auf Body-Daten zu?
 
+## Zugriff auf Body-Daten in Express.js
+
+**Definition:**
+Der Request-Body enthält Daten, die vom Client (z. B. Browser oder API-Client) im Rahmen einer Anfrage gesendet werden – oft bei **POST**, **PUT** oder **PATCH**.
+In Express sind Body-Daten standardmäßig **nicht verfügbar** → man benötigt Middleware wie `express.json()` oder `express.urlencoded()`.
+
+---
+
+**1. JSON-Body auslesen**
+
+```js
+import express from 'express';
+const app = express();
+
+// JSON-Body-Parser aktivieren
+app.use(express.json());
+
+app.post('/user', (req, res) => {
+  console.log(req.body); // enthält geparstes JSON
+  res.send(`Empfangen: ${JSON.stringify(req.body)}`);
+});
+
+app.listen(3000);
+```
+
+**Beispiel-Request (POST mit JSON):**
+
+```bash
+curl -X POST http://localhost:3000/user \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Sergii","age":30}'
+```
+
+---
+
+**2. URL-encoded Body (Formulardaten)**
+
+```js
+app.use(express.urlencoded({ extended: true }));
+
+app.post('/form', (req, res) => {
+  console.log(req.body); // enthält Formulardaten
+  res.send(req.body);
+});
+```
+
+**Beispiel-Request:**
+
+```
+name=Sergii&age=30
+```
+
+→ `{ name: 'Sergii', age: '30' }`
+
+---
+
+**3. Zugriff auf Dateien (mit Multer als Third-Party-Middleware)**
+Wenn der Body Dateien enthält (Multipart-Formular), wird **Multer** benötigt:
+
+```js
+import multer from 'multer';
+const upload = multer({ dest: 'uploads/' });
+
+app.post('/upload', upload.single('file'), (req, res) => {
+  console.log(req.file); // Datei-Infos
+  console.log(req.body); // zusätzliche Felder
+  res.send('Upload erfolgreich');
+});
+```
+
+---
+
+### Zusammenfassung
+
+* **JSON-Daten:** mit `express.json()` → Zugriff über `req.body`.
+* **Formulardaten:** mit `express.urlencoded()` → Zugriff über `req.body`.
+* **Dateien:** mit Middleware wie `multer` → Zugriff über `req.file` / `req.files`.
+
+**Quellen:**
+
+* [Express.js – express.json()](https://expressjs.com/de/api.html#express.json)
+* [Express.js – express.urlencoded()](https://expressjs.com/de/api.html#express.urlencoded)
+* [Multer – npm](https://www.npmjs.com/package/multer)
 
 
   **[⬆ Наверх](#top)**
 
-34. ### <a name="34"></a> 
+34. ### <a name="34"></a> Wie sendet man JSON als Antwort?
 
+## JSON als Antwort in Express senden
+
+**1. Mit `res.json()`**
+
+* Wandelt automatisch ein JavaScript-Objekt in JSON um.
+* Setzt den Header `Content-Type: application/json`.
+
+```js
+import express from 'express';
+const app = express();
+
+app.get('/user', (req, res) => {
+  res.json({ name: 'Sergii', age: 30 });
+});
+
+app.listen(3000);
+```
+
+→ Antwort:
+
+```json
+{
+  "name": "Sergii",
+  "age": 30
+}
+```
+
+---
+
+**2. Mit `res.send()` (funktioniert auch, aber weniger spezifisch)**
+
+* Erkennt Objekte und konvertiert sie ebenfalls in JSON.
+* Setzt aber nicht immer explizit den richtigen Header.
+
+```js
+app.get('/info', (req, res) => {
+  res.send({ status: 'ok', version: '1.0' });
+});
+```
+
+---
+
+**3. Statuscode und JSON kombinieren**
+
+```js
+app.post('/login', (req, res) => {
+  res.status(201).json({ message: 'User erstellt', id: 123 });
+});
+```
+
+---
+
+### Zusammenfassung
+
+* **Empfohlene Methode:** `res.json(obj)` → sendet JSON + richtigen Content-Type.
+* `res.send(obj)` geht auch, ist aber weniger eindeutig.
+* Mit `res.status(code)` lässt sich ein Statuscode hinzufügen.
+
+**Quellen:**
+
+* [Express.js – res.json()](https://expressjs.com/de/4x/api.html#res.json)
+* [Express.js – res.send()](https://expressjs.com/de/4x/api.html#res.send)
 
 
   **[⬆ Наверх](#top)**
 
-35. ### <a name="35"></a> 
+35. ### <a name="35"></a> Wie funktioniert res.send()?
 
+## Wie funktioniert `res.send()` in Express?
+
+**Definition:**
+`res.send()` ist eine Methode des Response-Objekts in Express, mit der man eine Antwort an den Client schickt. Sie beendet automatisch den Request-Response-Zyklus.
+
+---
+
+**Eigenschaften von `res.send()`:**
+
+* Kann **Strings, Buffer, Objekte oder Arrays** senden.
+* Setzt automatisch den passenden `Content-Type`-Header:
+
+  * String → `text/html` oder `text/plain`
+  * Objekt/Array → `application/json`
+  * Buffer → `application/octet-stream`
+* Schließt die Verbindung nach dem Senden der Antwort.
+
+---
+
+**Beispiele:**
+
+```js
+import express from 'express';
+const app = express();
+
+// String senden
+app.get('/text', (req, res) => {
+  res.send('Hallo Welt');
+});
+
+// HTML senden
+app.get('/html', (req, res) => {
+  res.send('<h1>Hallo Express</h1>');
+});
+
+// JSON senden (automatisch)
+app.get('/json', (req, res) => {
+  res.send({ user: 'Sergii', role: 'admin' });
+});
+
+// Buffer senden
+app.get('/buffer', (req, res) => {
+  res.send(Buffer.from('Binärdaten'));
+});
+
+app.listen(3000);
+```
+
+---
+
+**Mit Statuscode kombinieren:**
+
+```js
+app.post('/login', (req, res) => {
+  res.status(201).send('Benutzer erstellt');
+});
+```
+
+---
+
+### Zusammenfassung
+
+* `res.send()` sendet eine Antwort an den Client und beendet den Zyklus.
+* Automatisch wird der passende `Content-Type` gesetzt.
+* Kann Strings, HTML, JSON, Arrays und Buffer verarbeiten.
+
+**Quellen:**
+
+* [Express.js – res.send()](https://expressjs.com/de/4x/api.html#res.send)
 
 
   **[⬆ Наверх](#top)**
 
-36. ### <a name="36"></a> 
+36. ### <a name="36"></a> Unterschied zwischen res.json() und res.send()?
 
+## Unterschied zwischen `res.json()` und `res.send()` in Express
+
+**1. `res.json()`**
+
+* Speziell für das Senden von JSON-Antworten gedacht.
+* Wandelt ein JavaScript-Objekt oder Array automatisch in JSON um.
+* Setzt den Header `Content-Type: application/json` immer korrekt.
+
+```js
+app.get('/user', (req, res) => {
+  res.json({ name: 'Sergii', age: 30 });
+});
+```
+
+Antwort:
+
+```json
+{
+  "name": "Sergii",
+  "age": 30
+}
+```
+
+---
+
+**2. `res.send()`**
+
+* Allgemeiner, kann Strings, Buffer, Objekte oder Arrays senden.
+* Wenn ein Objekt/Array übergeben wird, konvertiert Express es ebenfalls in JSON.
+* Setzt `Content-Type` automatisch anhand des Datentyps:
+
+  * String → `text/html` oder `text/plain`
+  * Objekt/Array → `application/json`
+  * Buffer → `application/octet-stream`
+
+```js
+app.get('/info', (req, res) => {
+  res.send({ status: 'ok', version: '1.0' });
+});
+```
+
+Antwort (ähnlich wie bei `res.json()`):
+
+```json
+{
+  "status": "ok",
+  "version": "1.0"
+}
+```
+
+---
+
+**3. Hauptunterschiede:**
+
+* `res.json()` ist **explizit** für JSON → sicherer und klarer bei APIs.
+* `res.send()` ist **flexibel** und erkennt den Datentyp selbst.
+* Best Practice:
+
+  * **API-Responses:** `res.json()`
+  * **Einfache Texte/HTML/sonstiges:** `res.send()`
+
+---
+
+### Zusammenfassung
+
+* `res.json()` → nur für JSON, setzt immer `application/json`.
+* `res.send()` → flexibel, erkennt Typ automatisch (String, Buffer, Objekt, Array).
+* Empfehlung: Bei **APIs** `res.json()`, bei **Textrückgaben/HTML** `res.send()`.
+
+**Quellen:**
+
+* [Express.js – res.json()](https://expressjs.com/de/4x/api.html#res.json)
+* [Express.js – res.send()](https://expressjs.com/de/4x/api.html#res.send)
 
 
   **[⬆ Наверх](#top)**
 
-37. ### <a name="37"></a> 
+37. ### <a name="37"></a> Wie setzt man einen HTTP-Statuscode?
 
+## HTTP-Statuscode in Express setzen
+
+**Definition:**
+In Express wird der HTTP-Statuscode mit der Methode `res.status(code)` gesetzt. Anschließend kann man die Antwort mit `res.send()`, `res.json()` oder anderen Methoden abschicken.
+
+---
+
+**1. Statuscode mit `res.status()` setzen**
+
+```js
+app.get('/ok', (req, res) => {
+  res.status(200).send('Alles in Ordnung');
+});
+
+app.get('/notfound', (req, res) => {
+  res.status(404).send('Seite nicht gefunden');
+});
+
+app.get('/error', (req, res) => {
+  res.status(500).json({ error: 'Interner Serverfehler' });
+});
+```
+
+---
+
+**2. Methoden-Ketten (Chaining)**
+
+```js
+app.post('/user', (req, res) => {
+  res.status(201).json({ message: 'Benutzer erstellt' });
+});
+```
+
+---
+
+**3. Shortcut für häufige Fehler (optional)**
+Manchmal wird `res.sendStatus(code)` genutzt:
+
+```js
+app.get('/unauthorized', (req, res) => {
+  res.sendStatus(401); // setzt Status und sendet den Code als Text
+});
+```
+
+→ Antwort: `401 Unauthorized`
+
+---
+
+### Zusammenfassung
+
+* Mit `res.status(code)` den HTTP-Status setzen.
+* Danach mit `res.send()` oder `res.json()` Antwort senden.
+* Alternative: `res.sendStatus(code)` (setzt + sendet direkt).
+
+**Quellen:**
+
+* [Express.js – res.status()](https://expressjs.com/de/4x/api.html#res.status)
+* [Express.js – res.sendStatus()](https://expressjs.com/de/4x/api.html#res.sendStatus)
 
 
   **[⬆ Наверх](#top)**
 
-38. ### <a name="38"></a> 
+38. ### <a name="38"></a> Wie werden Cookies gesetzt und gelesen?
 
+## Cookies in Express setzen und lesen
+
+Express selbst hat keine eingebaute Cookie-Verwaltung. Man nutzt dafür meist die **Third-Party-Middleware `cookie-parser`**.
+
+---
+
+**1. Installation von `cookie-parser`**
+
+```bash
+npm install cookie-parser
+```
+
+---
+
+**2. Setup in Express**
+
+```js
+import express from 'express';
+import cookieParser from 'cookie-parser';
+
+const app = express();
+app.use(cookieParser()); // Middleware aktivieren
+```
+
+---
+
+**3. Cookie setzen**
+
+```js
+app.get('/set-cookie', (req, res) => {
+  res.cookie('username', 'Sergii', { maxAge: 60000, httpOnly: true });
+  res.send('Cookie gesetzt');
+});
+```
+
+* `username=Sergii` wird als Cookie im Browser gespeichert.
+* `maxAge: 60000` → Ablaufzeit (1 Minute).
+* `httpOnly: true` → Cookie ist nur für Server sichtbar, nicht für JavaScript im Browser.
+
+---
+
+**4. Cookies auslesen**
+
+```js
+app.get('/get-cookie', (req, res) => {
+  const username = req.cookies.username; // Zugriff auf Cookies
+  res.send(`Gespeicherter Benutzer: ${username}`);
+});
+```
+
+---
+
+**5. Cookie löschen**
+
+```js
+app.get('/clear-cookie', (req, res) => {
+  res.clearCookie('username');
+  res.send('Cookie gelöscht');
+});
+```
+
+---
+
+### Zusammenfassung
+
+* Cookies in Express über `cookie-parser` verwalten.
+* `res.cookie(name, value, options)` → Cookie setzen.
+* `req.cookies` → Cookies lesen.
+* `res.clearCookie(name)` → Cookie löschen.
+
+**Quellen:**
+
+* [cookie-parser – npm](https://www.npmjs.com/package/cookie-parser)
+* [MDN – HTTP Cookies](https://developer.mozilla.org/ru/docs/Web/HTTP/Cookies)
 
 
   **[⬆ Наверх](#top)**
 
-39. ### <a name="39"></a> 
+39. ### <a name="39"></a> Unterschied zwischen synchronem und asynchronem Request-Handling?
 
+## Unterschied zwischen synchronem und asynchronem Request-Handling in Express
+
+**1. Synchrones Request-Handling**
+
+* Die Route oder Middleware führt eine Aufgabe **direkt und vollständig** aus.
+* Der Code blockiert nicht, da die Aufgabe sofort erledigt wird.
+* Typisch für einfache Berechnungen oder Antworten.
+
+```js
+app.get('/sync', (req, res) => {
+  const result = 2 + 2; // sofort verfügbar
+  res.send(`Ergebnis: ${result}`);
+});
+```
+
+→ Antwort erfolgt sofort, kein Warten auf externe Ressourcen.
+
+---
+
+**2. Asynchrones Request-Handling**
+
+* Wird genutzt, wenn Aufgaben **Zeit benötigen** (z. B. Datenbank, externe API, Dateisystem).
+* Express unterstützt asynchrone Funktionen (`Promise`, `async/await`).
+* Die Route wartet auf die Aufgabe, blockiert aber nicht den gesamten Server.
+
+```js
+app.get('/async', async (req, res) => {
+  const user = await getUserFromDB(); // simuliert DB-Abfrage
+  res.json(user);
+});
+
+// Beispiel: Fake-Datenbankfunktion
+function getUserFromDB() {
+  return new Promise(resolve => {
+    setTimeout(() => resolve({ id: 1, name: 'Sergii' }), 1000);
+  });
+}
+```
+
+→ Anfrage wird erst beantwortet, wenn die Datenbank-Antwort da ist.
+
+---
+
+**3. Vergleich**
+
+* **Synchron:** Direkt berechenbar, kein Warten → schnell, aber nur für einfache Logik sinnvoll.
+* **Asynchron:** Notwendig bei externen Operationen (DB, API, Filesystem). Verhindert, dass der Server blockiert.
+
+---
+
+### Zusammenfassung
+
+* **Synchron:** sofortige Antwort, kein Warten (geeignet für einfache Logik).
+* **Asynchron:** arbeitet mit `Promises`/`async/await`, wichtig für externe Ressourcen.
+* Vorteil: Node.js kann mehrere Requests parallel abarbeiten, ohne blockiert zu werden.
+
+**Quellen:**
+
+* [Express.js – Routing (mit async)](https://expressjs.com/de/guide/routing.html)
+* [MDN – async/await](https://developer.mozilla.org/ru/docs/Learn/JavaScript/Asynchronous/Promises)
 
 
   **[⬆ Наверх](#top)**
 
-40. ### <a name="40"></a> 
+40. ### <a name="40"></a> Wie behandelt man Datei-Uploads in Express?
 
+## Datei-Uploads in Express behandeln
+
+Express selbst hat keine eingebaute Unterstützung für Datei-Uploads. Dafür wird häufig die **Third-Party-Middleware [`multer`](https://www.npmjs.com/package/multer)** verwendet.
+
+---
+
+**1. Installation von Multer**
+
+```bash
+npm install multer
+```
+
+---
+
+**2. Setup in Express**
+
+```js
+import express from 'express';
+import multer from 'multer';
+
+const app = express();
+
+// Speicherort und Dateinamen festlegen
+const upload = multer({ dest: 'uploads/' });
+```
+
+---
+
+**3. Einzelne Datei hochladen**
+
+```js
+app.post('/upload', upload.single('file'), (req, res) => {
+  console.log(req.file);  // Informationen zur hochgeladenen Datei
+  res.send(`Datei ${req.file.originalname} hochgeladen`);
+});
+```
+
+* `upload.single('file')` → erwartet ein Feld mit dem Namen `file`.
+* Datei wird automatisch im Ordner `uploads/` gespeichert.
+
+---
+
+**4. Mehrere Dateien hochladen**
+
+```js
+app.post('/uploads', upload.array('files', 5), (req, res) => {
+  console.log(req.files); // Array mit Dateien
+  res.send(`${req.files.length} Dateien hochgeladen`);
+});
+```
+
+* `upload.array('files', 5)` → maximal 5 Dateien erlaubt.
+
+---
+
+**5. Kombination aus Feldern und Dateien**
+
+```js
+app.post('/profile', upload.fields([
+  { name: 'avatar', maxCount: 1 },
+  { name: 'gallery', maxCount: 5 }
+]), (req, res) => {
+  console.log(req.files); // avatar + gallery
+  console.log(req.body);  // zusätzliche Formulardaten
+  res.send('Profil gespeichert');
+});
+```
+
+---
+
+### Zusammenfassung
+
+* Datei-Uploads in Express mit **Multer**.
+* `upload.single()` → eine Datei.
+* `upload.array()` → mehrere Dateien.
+* `upload.fields()` → Kombination von Feldern + Dateien.
+* Standardmäßig werden Dateien lokal gespeichert, man kann aber auch **Cloud-Speicher** (AWS S3, Cloudinary) konfigurieren.
+
+**Quellen:**
+
+* [Multer – npm](https://www.npmjs.com/package/multer)
+* [Express.js – Working with forms](https://expressjs.com/en/resources/middleware/multer.html)
 
 
   **[⬆ Наверх](#top)**  
