@@ -8181,242 +8181,6108 @@ Quellen
 
   **[⬆ Наверх](#top)**
 
-76. ### <a name="76"></a> 
+76. ### <a name="76"></a> Welche Projektstruktur ist für Express empfehlenswert?
 
+**Empfohlene Projektstruktur für Express-Anwendungen**
+
+Eine klare und skalierbare Projektstruktur erleichtert Wartung, Tests und Erweiterbarkeit. Eine typische Struktur für kleine bis mittlere Express-Apps sieht so aus:
+
+```
+projekt-root/
+├── src/
+│   ├── app.js              // Express App-Konfiguration
+│   ├── server.js           // Einstiegspunkt (Start der App)
+│   ├── routes/             // Routing-Definitionen
+│   │   └── user.routes.js
+│   ├── controllers/        // Controller-Logik
+│   │   └── user.controller.js
+│   ├── models/             // DB-Modelle (z. B. Sequelize)
+│   │   └── user.model.js
+│   ├── middleware/         // Eigene Middleware
+│   │   └── auth.middleware.js
+│   ├── services/           // Business-Logik
+│   │   └── user.service.js
+│   ├── config/             // Konfiguration (DB, Env)
+│   │   └── db.config.js
+│   └── utils/              // Hilfsfunktionen
+│       └── logger.js
+├── .env                    // Umgebungsvariablen
+├── package.json
+└── README.md
+```
+
+**Beispiel: app.js**
+
+```js
+import express from "express";
+import userRoutes from "./routes/user.routes.js";
+
+const app = express();
+
+// Middleware
+app.use(express.json());
+
+// Routes
+app.use("/api/users", userRoutes);
+
+export default app;
+```
+
+**Beispiel: server.js**
+
+```js
+import app from "./app.js";
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server läuft auf Port ${PORT}`);
+});
+```
+
+**Beispiel: routes/user.routes.js**
+
+```js
+import { Router } from "express";
+import { getUsers } from "../controllers/user.controller.js";
+
+const router = Router();
+
+router.get("/", getUsers);
+
+export default router;
+```
+
+**Beispiel: controllers/user.controller.js**
+
+```js
+export const getUsers = (req, res) => {
+  res.json([{ id: 1, name: "Max Mustermann" }]);
+};
+```
+
+---
+
+### **Zusammenfassung**
+
+* Eine modulare Struktur mit **Trennung von Routen, Controllern, Services und Modellen** ist empfehlenswert.
+* Einstiegspunkt (`server.js`) und App-Konfiguration (`app.js`) sollten klar getrennt sein.
+* Für größere Projekte: zusätzliche Ebenen wie **services**, **middleware**, **utils** einführen.
+
+📚 Quellen:
+
+* [Express.js Dokumentation – Strukturierung](https://expressjs.com/de/starter/faq.html#wie-strukturiere-ich-meine-anwendung)
+* [Node.js Docs](https://nodejs.org/docs)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+77. ### <a name="77"></a> Was sind Controller in einer Express-App?
+
+**Controller in einer Express-App**
+
+Ein **Controller** ist die Schicht, die die **Geschäftslogik** oder die **Verarbeitungslogik** einer bestimmten Route kapselt. Er nimmt die Anfrage entgegen, verarbeitet die Daten (z. B. mithilfe eines Services oder Modells) und sendet eine Antwort zurück.
+Damit trennt man **Routing** (nur die URL und HTTP-Methode) von der eigentlichen Logik.
+
+---
+
+### **Beispiel ohne Controller (alles im Router):**
+
+```js
+import { Router } from "express";
+const router = Router();
+
+router.get("/users", (req, res) => {
+  // Hier Logik im Router selbst
+  res.json([{ id: 1, name: "Max" }]);
+});
+
+export default router;
+```
+
+❌ Nachteile: unübersichtlich, schwer testbar, keine klare Trennung.
+
+---
+
+### **Beispiel mit Controller**
+
+**routes/user.routes.js**
+
+```js
+import { Router } from "express";
+import { getUsers } from "../controllers/user.controller.js";
+
+const router = Router();
+
+router.get("/", getUsers);
+
+export default router;
+```
+
+**controllers/user.controller.js**
+
+```js
+// Controller verarbeitet die Anfrage
+export const getUsers = (req, res) => {
+  const users = [{ id: 1, name: "Max Mustermann" }];
+  res.json(users);
+};
+```
+
+**Optional mit Service-Schicht**
+
+```js
+// services/user.service.js
+export const findAllUsers = () => {
+  return [{ id: 1, name: "Max Mustermann" }];
+};
+
+// controllers/user.controller.js
+import { findAllUsers } from "../services/user.service.js";
+
+export const getUsers = (req, res) => {
+  const users = findAllUsers();
+  res.json(users);
+};
+```
+
+---
+
+### **Zusammenfassung**
+
+* Controller = zentrale Stelle für die Request-Logik.
+* Sie erhalten **Request** und geben **Response** zurück.
+* Gute Praxis: Controller ruft Services/Models auf, selbst enthält er wenig Logik.
+* Vorteil: **Trennung von Routing und Logik**, bessere Testbarkeit und Wartbarkeit.
+
+📚 Quellen:
+
+* [Express.js Dokumentation – Routing](https://expressjs.com/de/guide/routing.html)
+* [Node.js Docs](https://nodejs.org/docs)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+78. ### <a name="78"></a> Was ist der Unterschied zwischen MVC und einer service-basierten Architektur in Express?
+
+**Unterschied zwischen MVC und service-basierter Architektur in Express**
+
+---
+
+### **1. MVC (Model–View–Controller)**
+
+* **Model**: Daten- und Geschäftslogik (z. B. Sequelize-Modelle, Datenbankabfragen).
+* **View**: Präsentationsschicht (in Express eher selten, da man oft APIs baut; könnte z. B. EJS oder Handlebars sein).
+* **Controller**: Vermittler zwischen Request/Response und Model/View.
+
+**Beispiel (MVC in Express):**
+
+```js
+// models/user.model.js
+export const User = sequelize.define("User", { name: DataTypes.STRING });
+
+// controllers/user.controller.js
+import { User } from "../models/user.model.js";
+export const getUsers = async (req, res) => {
+  const users = await User.findAll();
+  res.json(users);
+};
+
+// routes/user.routes.js
+import { Router } from "express";
+import { getUsers } from "../controllers/user.controller.js";
+const router = Router();
+router.get("/", getUsers);
+export default router;
+```
+
+👉 Hier liegt die komplette Geschäftslogik (DB-Abfrage) im Controller.
+
+---
+
+### **2. Service-basierte Architektur**
+
+* **Service-Schicht** kapselt die Geschäftslogik.
+* Controller ist nur „Orchestrator“ → ruft Services auf und sendet Antwort zurück.
+* Vorteil: Services sind **wiederverwendbar** (z. B. von anderen Controllern oder bei Tests).
+
+**Beispiel (mit Service-Schicht):**
+
+```js
+// services/user.service.js
+import { User } from "../models/user.model.js";
+
+export const findAllUsers = async () => {
+  return await User.findAll();
+};
+
+// controllers/user.controller.js
+import { findAllUsers } from "../services/user.service.js";
+
+export const getUsers = async (req, res) => {
+  const users = await findAllUsers();
+  res.json(users);
+};
+```
+
+👉 Controller enthält keine Business-Logik, nur Request/Response-Handling.
+
+---
+
+### **Vergleich**
+
+| Aspekt                   | MVC                             | Service-basiert                         |
+| ------------------------ | ------------------------------- | --------------------------------------- |
+| **Controller**           | Enthält auch Geschäftslogik     | Nur Orchestrierung (ruft Services auf)  |
+| **Wiederverwendbarkeit** | Eingeschränkt                   | Hoch (Services können mehrfach genutzt) |
+| **Testbarkeit**          | Controller schwer zu testen     | Services isoliert testbar               |
+| **Skalierbarkeit**       | Für kleine Projekte ausreichend | Besser für größere Projekte             |
+| **Trennung der Logik**   | Weniger strikt                  | Strikter (klar getrennte Schichten)     |
+
+---
+
+### **Zusammenfassung**
+
+* **MVC**: geeignet für kleine Projekte, einfache Struktur. Controller kümmert sich direkt um die Logik.
+* **Service-basiert**: bessere Trennung von Verantwortlichkeiten, wiederverwendbare Services, testbarer, empfehlenswert für **mittelgroße bis große Express-Apps**.
+
+📚 Quellen:
+
+* [Express.js Routing](https://expressjs.com/de/guide/routing.html)
+* [Sequelize Docs](https://sequelize.org/)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+79. ### <a name="79"></a> Wie trennt man Business-Logik von Routing?
+
+**Trennung von Business-Logik und Routing in Express**
+
+Die wichtigste Regel: **Routing nur für Endpunkte, Business-Logik in separaten Schichten (Controller/Service).**
+
+---
+
+### **1. Routing-Schicht**
+
+* Definiert nur **HTTP-Methode + Pfad**.
+* Enthält keine Business-Logik.
+* Leitet die Anfrage an den entsprechenden Controller weiter.
+
+```js
+// routes/user.routes.js
+import { Router } from "express";
+import { getUsers } from "../controllers/user.controller.js";
+
+const router = Router();
+router.get("/", getUsers);
+export default router;
+```
+
+---
+
+### **2. Controller-Schicht**
+
+* Orchestriert die Anfrage.
+* Liest Request-Daten, ruft Services auf, sendet Response.
+* Enthält keine komplexe Geschäftslogik.
+
+```js
+// controllers/user.controller.js
+import { findAllUsers } from "../services/user.service.js";
+
+export const getUsers = async (req, res, next) => {
+  try {
+    const users = await findAllUsers();
+    res.json(users);
+  } catch (error) {
+    next(error); // Fehler an Middleware weiterleiten
+  }
+};
+```
+
+---
+
+### **3. Service-Schicht**
+
+* Enthält die **Business-Logik** (z. B. DB-Abfragen, Validierungen, Berechnungen).
+* Ist unabhängig von Express und kann auch außerhalb genutzt oder getestet werden.
+
+```js
+// services/user.service.js
+import { User } from "../models/user.model.js";
+
+export const findAllUsers = async () => {
+  return await User.findAll({
+    attributes: ["id", "name"], // Business-Regel: nur bestimmte Felder
+  });
+};
+```
+
+---
+
+### **4. Ergebnis**
+
+* Routing: definiert API-Endpunkte.
+* Controller: Request ↔ Response Koordinator.
+* Service: zentrale Stelle für Business-Logik.
+* Vorteil: **bessere Testbarkeit, Wiederverwendbarkeit und klare Verantwortlichkeiten.**
+
+---
+
+### **Zusammenfassung**
+
+* **Routing = Endpunktdefinition**
+* **Controller = Request-/Response-Handling**
+* **Service = Business-Logik**
+* Dadurch entsteht eine **saubere Schichtentrennung**, die bei größeren Projekten unerlässlich ist.
+
+📚 Quellen:
+
+* [Express.js Guide – Routing](https://expressjs.com/de/guide/routing.html)
+* [Sequelize Docs – Models & Queries](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+80. ### <a name="80"></a> Warum sollte man .env-Dateien in Express verwenden?
+
+**Warum sollte man `.env`-Dateien in Express verwenden?**
+
+`.env`-Dateien speichern **Umgebungsvariablen**, die nicht im Code fest verdrahtet werden sollten. Typische Beispiele:
+
+* Datenbank-URL, Benutzername, Passwort
+* API-Keys (z. B. für externe Dienste)
+* Port-Konfiguration
+* Geheimnisse wie JWT-Secrets
+
+---
+
+### **Vorteile**
+
+1. **Sicherheit**: Sensible Daten bleiben außerhalb des Codes (werden nicht in Git hochgeladen, wenn `.gitignore` genutzt wird).
+2. **Portabilität**: Unterschiedliche Umgebungen (Entwicklung, Test, Produktion) können eigene `.env`-Dateien haben.
+3. **Flexibilität**: Einfaches Umschalten von Konfigurationen ohne Codeänderung.
+4. **Best Practice**: Entspricht dem [12-Factor App Prinzip](https://12factor.net/config).
+
+---
+
+### **Beispiel**
+
+**.env**
+
+```
+PORT=5000
+DB_HOST=localhost
+DB_USER=postgres
+DB_PASS=geheim123
+JWT_SECRET=mein_super_secret
+```
+
+**app.js**
+
+```js
+import express from "express";
+import dotenv from "dotenv";
+
+dotenv.config(); // Lädt .env-Datei in process.env
+
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server läuft auf Port ${PORT}`);
+});
+```
+
+**Datenbank-Config**
+
+```js
+// config/db.config.js
+export const dbConfig = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+};
+```
+
+---
+
+### **Zusammenfassung**
+
+* `.env`-Dateien trennen **Konfiguration** vom **Code**.
+* Sie erhöhen **Sicherheit**, **Flexibilität** und folgen **Best Practices**.
+* Zugriff erfolgt über `process.env.VARIABLE_NAME`.
+
+📚 Quellen:
+
+* [Node.js Dokumentation – process.env](https://nodejs.org/docs/latest/api/process.html#processenv)
+* [dotenv npm-Paket](https://www.npmjs.com/package/dotenv)
+
+---
+
+  **[⬆ Наверх](#top)**  
+
+81. ### <a name="81"></a> Wie implementiert man Dependency Injection in Express?
+
+**Dependency Injection (DI) in Express – praxisnah**
+
+DI = Abhängigkeiten (z. B. Services, Repos, Logger) **nicht im Modul selber instanziieren**, sondern **von außen** übergeben. Ziel: testbare, austauschbare, entkoppelte Komponenten.
+
+---
+
+### 1) Leichtgewichtiger Ansatz (Factory + Higher-Order Controller)
+
+```js
+// services/user.service.js
+export function createUserService({ userRepo, logger }) {
+  return {
+    async list() {
+      logger.info("list users");
+      return userRepo.findAll({ attributes: ["id", "name"] });
+    },
+  };
+}
+```
+
+```js
+// controllers/user.controller.js
+export function createUserController({ userService }) {
+  return {
+    getUsers: async (req, res, next) => {
+      try {
+        const users = await userService.list();
+        res.json(users);
+      } catch (e) { next(e); }
+    },
+  };
+}
+```
+
+```js
+// routes/user.routes.js
+import { Router } from "express";
+export function createUserRouter({ userController }) {
+  const r = Router();
+  r.get("/", userController.getUsers);
+  return r;
+}
+```
+
+```js
+// app.js (Composition Root)
+import express from "express";
+import { createUserService } from "./services/user.service.js";
+import { createUserController } from "./controllers/user.controller.js";
+import { createUserRouter } from "./routes/user.routes.js";
+import { UserRepo } from "./infra/user.repo.js"; // z. B. Sequelize-Repo
+import { logger } from "./infra/logger.js";
+
+const app = express();
+
+// Build dependencies (Singletons)
+const userRepo = new UserRepo();
+const userService = createUserService({ userRepo, logger });
+const userController = createUserController({ userService });
+
+app.use(express.json());
+app.use("/api/users", createUserRouter({ userController }));
+
+export default app;
+```
+
+> Vorteil: Keine Framework-Magie, **explizite Abhängigkeitsübergabe**, sehr testbar.
+
+---
+
+### 2) Request-Scope (pro Request eigene Instanzen)
+
+Wenn du request-spezifische Abhängigkeiten brauchst (z. B. Trace-ID, Tenant):
+
+```js
+// di/request-scope.js
+export function requestScope(deps) {
+  return (req, _res, next) => {
+    // pro Request eigene "Scope"-Objekte
+    req.scope = {
+      ...deps,
+      // z. B. Trace-ID aus Header
+      traceId: req.get("x-trace-id") || crypto.randomUUID(),
+    };
+    next();
+  };
+}
+```
+
+```js
+// controllers/user.controller.js
+export function createUserController() {
+  return {
+    getUsers: async (req, res, next) => {
+      try {
+        const { userService, traceId } = req.scope;
+        const users = await userService.list();
+        // optional: traceId im Log weitergeben
+        res.json({ traceId, users });
+      } catch (e) { next(e); }
+    },
+  };
+}
+```
+
+```js
+// app.js
+import { requestScope } from "./di/request-scope.js";
+const baseDeps = { userService, logger };
+app.use(requestScope(baseDeps));
+```
+
+> Vorteil: **Saubere Trennung** globaler vs. request-lokaler Abhängigkeiten.
+
+---
+
+### 3) Container-basiert (z. B. Awilix) – optional
+
+```js
+// di/container.js
+import { createContainer, asClass, asFunction, asValue } from "awilix";
+import { scopePerRequest } from "awilix-express";
+import { UserRepo } from "../infra/user.repo.js";
+import { createUserService } from "../services/user.service.js";
+
+export function buildContainer() {
+  const c = createContainer();
+  c.register({
+    userRepo: asClass(UserRepo).singleton(),
+    userService: asFunction(createUserService).singleton(),
+    logger: asValue(console),
+  });
+  return c;
+}
+```
+
+```js
+// app.js
+import { buildContainer } from "./di/container.js";
+import { scopePerRequest } from "awilix-express";
+
+const container = buildContainer();
+app.use(scopePerRequest(container)); // req.container
+
+// Controller kann aus req.container.resolve("userService") beziehen
+```
+
+> Vorteil: Lebenszyklen (Singleton/Scoped), Auto-Wiring möglich. Nachteil: zusätzliche Lib, Lernkurve.
+
+---
+
+### 4) Testbarkeit (Mocking durch DI)
+
+```js
+// controllers/user.controller.test.js
+import { createUserController } from "../controllers/user.controller.js";
+
+test("getUsers liefert Liste", async () => {
+  const userServiceMock = { list: jest.fn().mockResolvedValue([{ id: 1 }]) };
+  const controller = createUserController({ userService: userServiceMock });
+
+  const req = {}, res = { json: jest.fn() }, next = jest.fn();
+  await controller.getUsers(req, res, next);
+
+  expect(res.json).toHaveBeenCalledWith([{ id: 1 }]);
+});
+```
+
+> Da `userService` injiziert wird, ist **Unit-Testing trivial**.
+
+---
+
+### 5) Typische Stolpersteine
+
+* **Hard-Coding** in Modulen (z. B. `import foo from "./foo"; const f = new Foo()` direkt im Controller) → schwer mockbar.
+* **Globale Singletons überall** → schwierig für parallele Tests.
+* **Vermischung von Express-Details in Services** → Services framework-agnostisch halten.
+
+---
+
+### Zusammenfassung
+
+* DI trennt **Erzeugung** von **Verwendung** von Abhängigkeiten.
+* Für Express empfehlenswert: **Factories + Composition Root**, optional **Request-Scope** oder **Container**.
+* Ergebnis: **testbare**, **austauschbare**, **saubere** Architektur.
+
+**Quellen**
+
+* Express: [Guide – Routing & Middleware](https://expressjs.com/de/guide/routing.html), [Using middleware](https://expressjs.com/de/guide/using-middleware.html)
+* Node.js: [Module / ES-Module `import`](https://nodejs.org/docs/latest/api/esm.html)
+* MDN (RU): [`import` оператор](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/import)
 
 
   **[⬆ Наверх](#top)**
 
-77. ### <a name="77"></a> 
+82. ### <a name="82"></a> Wie geht man mit Konfigurationen in verschiedenen Umgebungen (Dev/Prod) um?
 
+**Konfiguration in Dev/Prod für Express/Node.js**
+
+---
+
+### Grundprinzipien
+
+* **Konfiguration ≠ Code**: Werte aus **Umgebungsvariablen** beziehen (12-Factor).
+* **`NODE_ENV`** steuert Verhalten (`development` | `test` | `production`).
+* **Sensible Daten** nie committen; in Prod aus Secret-Store (z. B. Docker/K8s/Vault), in Dev per `.env`.
+
+---
+
+### Struktur (zentrales Config-Modul)
+
+```js
+// src/config/index.js
+import dotenv from "dotenv";
+
+// .env nur lokal laden
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: `.env${process.env.NODE_ENV ? `.${process.env.NODE_ENV}` : ""}` });
+}
+
+// Minimal-Validierung mit Fallbacks
+function requireEnv(name) {
+  const v = process.env[name];
+  if (!v) throw new Error(`Missing env var: ${name}`);
+  return v;
+}
+
+export const config = {
+  env: process.env.NODE_ENV || "development",
+  port: parseInt(process.env.PORT || "3000", 10),
+  logLevel: process.env.LOG_LEVEL || "info",
+  db: {
+    url: requireEnv("DATABASE_URL"),      // z. B. postgres://user:pass@host:5432/db
+    ssl: process.env.DB_SSL === "true",   // in Prod häufig true
+    poolMin: parseInt(process.env.DB_POOL_MIN || "0", 10),
+    poolMax: parseInt(process.env.DB_POOL_MAX || "10", 10),
+  },
+  security: {
+    jwtSecret: requireEnv("JWT_SECRET"),
+    corsOrigin: process.env.CORS_ORIGIN || "*",
+  },
+};
+```
+
+```js
+// src/app.js
+import express from "express";
+import { config } from "./config/index.js";
+
+const app = express();
+app.use(express.json());
+
+// Prod-spezifische Middleware/Settings
+if (config.env === "production") {
+  app.set("trust proxy", 1); // korrektes IP/HTTPS-Handling hinter Proxy
+}
+
+export default app;
+```
+
+```js
+// src/server.js
+import app from "./app.js";
+import { config } from "./config/index.js";
+
+app.listen(config.port, () => {
+  console.log(`[${config.env}] Server läuft auf Port ${config.port}`);
+});
+```
+
+---
+
+### .env-Beispiele (lokal)
+
+```
+# .env.development
+PORT=5000
+DATABASE_URL=postgres://postgres:devpass@localhost:5432/appdb
+DB_SSL=false
+DB_POOL_MIN=0
+DB_POOL_MAX=5
+JWT_SECRET=dev_secret
+CORS_ORIGIN=http://localhost:5173
+```
+
+```
+# .env.production  (nicht committen – nur als Beispiel)
+PORT=8080
+DATABASE_URL=postgres://user:pass@db:5432/appdb
+DB_SSL=true
+DB_POOL_MIN=2
+DB_POOL_MAX=20
+JWT_SECRET=please_change_me
+CORS_ORIGIN=https://example.com
+LOG_LEVEL=warn
+```
+
+> Tipp: Für mehrere `.env`-Dateien kann man mittels `dotenv.config({path})` nach `NODE_ENV` laden oder `dotenv-flow` nutzen.
+
+---
+
+### Nützliche Patterns
+
+* **Config pro Umgebung**: Defaults in `config/index.js`, Override via Env-Variablen.
+* **Validierung**: Enforcer wie `envalid`, `joi` oder `zod` nutzen, um früh zu scheitern.
+* **Prod-Optimierungen**: `trust proxy`, striktes CORS, Rate Limiting, sichere Cookies, `helmet`.
+* **DB-Eigenheiten (Postgres/Sequelize)**:
+
+  * In Prod oft **SSL** aktivieren.
+  * Pool-Größen je nach Deployment (z. B. PaaS Verbindungs-Limits).
+  * Verbindung via **`DATABASE_URL`** bevorzugen.
+
+```js
+// Sequelize mit Env
+import { Sequelize } from "sequelize";
+import { config } from "../config/index.js";
+
+export const sequelize = new Sequelize(config.db.url, {
+  dialect: "postgres",
+  dialectOptions: config.db.ssl ? { ssl: { require: true, rejectUnauthorized: false } } : {},
+  pool: { min: config.db.poolMin, max: config.db.poolMax },
+  logging: config.env === "development" ? console.log : false,
+});
+```
+
+---
+
+### Scripts und Start
+
+```json
+{
+  "scripts": {
+    "dev": "NODE_ENV=development node src/server.js",
+    "start": "NODE_ENV=production node src/server.js"
+  }
+}
+```
+
+> Cross-Platform: `cross-env NODE_ENV=development ...`
+
+---
+
+### Secrets in Produktion
+
+* Keine `.env` deployen; stattdessen **Runtime-Env** injizieren:
+
+  * Docker: `docker run -e DATABASE_URL=... -e JWT_SECRET=...`
+  * Docker Compose: `environment:` oder `secrets:`
+  * Kubernetes: `Secret` + `envFrom`
+  * Plattform-Variablen (Railway/Render/Fly/Heroku)
+
+---
+
+### Zusammenfassung
+
+* **Ein zentrales Config-Modul** baut Werte aus `process.env` (Dev via `.env`, Prod via Secrets).
+* **`NODE_ENV`** differenziert Verhalten; Prod erhält zusätzliche Sicherheits- und Performance-Settings.
+* **Frühe Validierung** der Env-Variablen; **keine Secrets** im Repo; **DATABASE\_URL** für PG/Sequelize.
+
+**Quellen**
+
+* Node.js: [`process.env`](https://nodejs.org/docs/latest/api/process.html#processenv)
+* Express (Best Practices & Prod): [Best Practices: Production](https://expressjs.com/de/advanced/best-practice-performance.html), [Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
+* MDN (RU): [`import` оператор ES6](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/import)
+* PostgreSQL: [Libpq-URI-Connection Strings](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING)
+* Sequelize: [Verbindung zu PostgreSQL](https://sequelize.org/docs/v6/other-topics/dialect-specific-things/#postgres)
 
 
   **[⬆ Наверх](#top)**
 
-78. ### <a name="78"></a> 
+83. ### <a name="83"></a> Was sind Best Practices für Error Logging in Express?
 
+**Best Practices für Error Logging in Express**
+
+---
+
+### 1) Zentrale Error-Handling-Middleware
+
+* Alle Fehler mit `next(err)` weiterreichen.
+* HTTP-Status (4xx vs. 5xx) unterscheiden.
+* Keine Stacktraces an den Client, aber **voll** ins Log.
+
+```js
+// src/middleware/error-handler.js
+export function errorHandler(logger) {
+  // Vier Parameter => Error-Middleware
+  return (err, req, res, _next) => {
+    const status = err.statusCode && Number.isInteger(err.statusCode) ? err.statusCode : 500;
+
+    // strukturiert loggen
+    logger.error({
+      msg: err.message,
+      name: err.name,
+      status,
+      stack: err.stack,
+      path: req.path,
+      method: req.method,
+      traceId: req.id, // s. u.
+    });
+
+    // generische Antwort
+    res.status(status).json({
+      error: status >= 500 ? "Internal Server Error" : err.message,
+      traceId: req.id, // Client kann logs korrelieren
+    });
+  };
+}
+```
+
+---
+
+### 2) Strukturierte Logs (JSON) & Logger (z. B. pino)
+
+* JSON-Logs sind maschinenlesbar (ELK/Datadog/Grafana).
+* Level nutzen: `debug` < `info` < `warn` < `error` < `fatal`.
+* Sensible Daten **redacten**.
+
+```js
+// src/infra/logger.js
+import pino from "pino";
+
+export const logger = pino({
+  level: process.env.LOG_LEVEL || "info",
+  redact: { paths: ["req.headers.authorization", "password", "token"], censor: "[REDACTED]" },
+});
+```
+
+```js
+// src/app.js
+import express from "express";
+import pinoHttp from "pino-http";
+import { logger } from "./infra/logger.js";
+import { errorHandler } from "./middleware/error-handler.js";
+import crypto from "crypto";
+
+const app = express();
+
+// Request-ID (Correlation ID)
+app.use((req, _res, next) => {
+  req.id = req.get("x-trace-id") || crypto.randomUUID();
+  next();
+});
+
+// HTTP-Logging (Request/Response)
+app.use(pinoHttp({ logger, genReqId: req => req.id }));
+
+// … deine Routen …
+app.use("/health", (_req, res) => res.json({ ok: true }));
+
+// Zentrales Error-Handling (als letztes)
+app.use(errorHandler(logger));
+
+export default app;
+```
+
+---
+
+### 3) Asynchrone Handler sicher machen
+
+* Async-Fehler müssen zu `next(err)` gelangen (Wrapper nutzen).
+
+```js
+// src/utils/async-handler.js
+export const asyncHandler = fn => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+// usage
+router.get("/", asyncHandler(async (req, res) => {
+  const data = await service.load();
+  res.json(data);
+}));
+```
+
+---
+
+### 4) Eigene Fehlerklassen (Operational Errors)
+
+* Erwartbare Fehler (Validierung, NotFound) als Klassen mit `statusCode`.
+
+```js
+export class AppError extends Error {
+  constructor(message, statusCode = 500) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+export class NotFoundError extends AppError {
+  constructor(msg = "Not Found") { super(msg, 404); }
+}
+```
+
+---
+
+### 5) Prozessweite Fehler abfangen (als letzte Schutzlinie)
+
+* **Loggen** und **geordnet beenden** (bei Programmierfehlern).
+
+```js
+process.on("uncaughtException", (err) => {
+  logger.fatal({ msg: "uncaughtException", err });
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason) => {
+  logger.fatal({ msg: "unhandledRejection", reason });
+  process.exit(1);
+});
+```
+
+---
+
+### 6) Signal-Handling & Sauberes Shutdown
+
+* DB/Queues schließen; laufende Requests auslaufen lassen.
+
+```js
+const server = app.listen(port);
+const shutdown = (sig) => () => {
+  logger.warn({ msg: `received ${sig}, shutting down` });
+  server.close(() => process.exit(0));
+};
+["SIGTERM","SIGINT"].forEach(sig => process.on(sig, shutdown(sig)));
+```
+
+---
+
+### 7) Inhalt & Datenschutz
+
+* **PII/Secrets nie loggen** (Tokens, Passwörter, komplette Bodies).
+* Große Payloads drosseln/trunkieren.
+* Health-Checks von Log-Lärm ausschließen.
+
+---
+
+### 8) Produktionseinstellungen
+
+* `app.set("trust proxy", 1)` hinter Proxy, damit IP/Proto korrekt sind.
+* `helmet`, Rate Limiting, CORS restriktiv.
+* Logging-Level in Prod z. B. `warn` oder `error`, in Dev `debug`.
+
+---
+
+### 9) DB/ORM-Fehler sinnvoll abbilden (Postgres/Sequelize)
+
+* DB-Constraint-Fehler auf 409/400 mappen.
+* Sequelize-Fehlerklassen prüfen (`Sequelize.ValidationError`, `UniqueConstraintError`) und **gezielt loggen**.
+
+```js
+import { ValidationError, UniqueConstraintError } from "sequelize";
+
+function toHttpStatus(err) {
+  if (err instanceof ValidationError) return 400;
+  if (err instanceof UniqueConstraintError) return 409;
+  return 500;
+}
+```
+
+---
+
+### Zusammenfassung
+
+* **Zentrale Error-Middleware**, strukturierte **JSON-Logs**, **Correlation ID** pro Request.
+* **Async-Wrapper**, **eigene Fehlerklassen**, **prozessweite** Fehler-Handler.
+* **PII-Redaktion**, sinnvolle **HTTP-Status-Mappings**, Prod-sichere Settings.
+
+**Quellen**
+
+* Express: [Error Handling](https://expressjs.com/de/guide/error-handling.html), [Best Practices: Production](https://expressjs.com/de/advanced/best-practice-performance.html)
+* Node.js: [`process`-Events](https://nodejs.org/docs/latest/api/process.html#process_event_uncaughtexception), [`console` & Logging](https://nodejs.org/docs/latest/api/console.html)
+* MDN (RU): [`try...catch`](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/try...catch)
+* Sequelize: [Errors](https://sequelize.org/docs/v6/other-topics/errors/)
 
 
   **[⬆ Наверх](#top)**
 
-79. ### <a name="79"></a> 
+84. ### <a name="84"></a> Warum sollte man asynchrone Fehler immer mit try/catch oder asyncHandler behandeln?
 
+**Warum asynchrone Fehler mit `try/catch` oder `asyncHandler` behandeln?**
+
+---
+
+### Problem
+
+* Express erkennt **nur synchrone Fehler** automatisch.
+* In **async-Funktionen** (Promises) fliegen Fehler nicht automatisch in Express’ Error-Handler.
+* Ohne Abfangen: **UnhandledPromiseRejection** → Prozess kann abstürzen oder in inkonsistentem Zustand laufen.
+
+---
+
+### Beispiel: Fehler geht verloren
+
+```js
+router.get("/users", async (req, res) => {
+  const users = await db.query("SELECT * FROM users"); // DB down → Fehler
+  res.json(users); // dieser Code wird nie erreicht
+});
+```
+
+👉 Ohne `try/catch` wird der Fehler nicht an Express übergeben.
+
+---
+
+### Lösung 1: try/catch in jedem Handler
+
+```js
+router.get("/users", async (req, res, next) => {
+  try {
+    const users = await db.query("SELECT * FROM users");
+    res.json(users);
+  } catch (err) {
+    next(err); // leitet an zentrale Error-Middleware
+  }
+});
+```
+
+❌ Nachteil: Viel Boilerplate bei vielen Routen.
+
+---
+
+### Lösung 2: Utility `asyncHandler`
+
+```js
+// utils/asyncHandler.js
+export const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+// usage
+router.get("/users", asyncHandler(async (req, res) => {
+  const users = await db.query("SELECT * FROM users");
+  res.json(users);
+}));
+```
+
+✅ Vorteil: Weniger Code, alle async-Fehler gehen zuverlässig an den zentralen Error-Handler.
+
+---
+
+### Lösung 3: Middleware-Libraries
+
+* [express-async-errors](https://www.npmjs.com/package/express-async-errors) patcht Express intern → async-Fehler landen automatisch bei `next()`.
+* Empfehlung: Für größere Projekte lieber **explizit mit asyncHandler**, damit Code klar bleibt.
+
+---
+
+### Zusammenfassung
+
+* Asynchrone Fehler landen **ohne try/catch oder Wrapper** nicht im Error-Handler.
+* Folge: **UnhandledPromiseRejection** → unsauberer Zustand, potenzieller Absturz.
+* Best Practice: `asyncHandler(fn)` oder eigene Utility, damit **alle async-Fehler zentral** behandelt werden können.
+
+📚 Quellen:
+
+* [Express.js – Error Handling](https://expressjs.com/de/guide/error-handling.html)
+* [Node.js Prozess – unhandledRejection](https://nodejs.org/docs/latest/api/process.html#event-unhandledrejection)
+* [MDN RU – async/await](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/async_function)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+85. ### <a name="85"></a> Wie implementiert man eine saubere API-Dokumentation?
+
+**Saubere API-Dokumentation in Express (OpenAPI-basiert)**
+
+---
+
+### Ziele
+
+* **Eine Quelle der Wahrheit**: OpenAPI (OAS 3.x) als Spezifikation.
+* **Automatisierte Auslieferung**: UI unter `/docs`, JSON/YAML unter `/docs.json`.
+* **Versionierung & Tests**: CI-Validierung, semantische Versionen.
+
+---
+
+### Ordnerstruktur
+
+```
+src/
+  app.js
+  routes/
+  controllers/
+  ...
+docs/
+  openapi.yaml        // Spezifikation (Quelle der Wahrheit)
+```
+
+---
+
+### 1) OpenAPI-UI in Express einbinden
+
+```js
+// src/app.js
+import express from "express";
+import path from "node:path";
+import fs from "node:fs";
+import yaml from "js-yaml";
+import swaggerUi from "swagger-ui-express";
+
+const app = express();
+app.use(express.json());
+
+// OpenAPI laden
+const specPath = path.resolve("docs/openapi.yaml");
+const openapi = yaml.load(fs.readFileSync(specPath, "utf8"));
+
+// UI & Raw Spec bereitstellen
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapi));
+app.get("/docs.json", (_req, res) => res.json(openapi));
+
+// ... deine Routen
+export default app;
+```
+
+*Hinweis:* UI nur in Dev öffentlich machen (z. B. via Basic-Auth/Firewall in Prod).
+
+---
+
+### 2) Beispiel: Spezifikation (Ausschnitt)
+
+```js
+# docs/openapi.yaml
+openapi: 3.0.3
+info:
+  title: User API
+  version: 1.0.0
+servers:
+  - url: /api
+paths:
+  /users:
+    get:
+      summary: Liste aller Benutzer
+      tags: [Users]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+  /users/{id}:
+    get:
+      summary: Benutzer per ID
+      tags: [Users]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Gefunden
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "404": { description: Nicht gefunden }
+components:
+  schemas:
+    User:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: "Max Mustermann" }
+```
+
+---
+
+### 3) Routen an die Spec anpassen (Contract-First)
+
+```js
+// src/routes/user.routes.js
+import { Router } from "express";
+import { getUsers, getUserById } from "../controllers/user.controller.js";
+
+const r = Router();
+r.get("/", getUsers);       // entspricht GET /users
+r.get("/:id", getUserById); // entspricht GET /users/{id}
+export default r;
+```
+
+```js
+// src/controllers/user.controller.js
+export async function getUsers(req, res, next) {
+  try {
+    const users = [{ id: 1, name: "Max Mustermann" }];
+    res.json(users);
+  } catch (e) { next(e); }
+}
+
+export async function getUserById(req, res, next) {
+  try {
+    const { id } = req.params;
+    if (Number(id) !== 1) return res.status(404).end();
+    res.json({ id: 1, name: "Max Mustermann" });
+  } catch (e) { next(e); }
+}
+```
+
+---
+
+### 4) Validierung zur Laufzeit (Request/Response)
+
+* **Request-Validierung**: Middleware gegen OpenAPI (z. B. Validierung von `params`, `query`, `body`).
+* **Response-Validierung**: Optionale Absicherung, dass Antworten dem Schema entsprechen.
+* Vorteil: **Fehler früh sichtbar**, Docs bleiben **synchron** zum Code.
+
+*(Implementierung je nach gewählter Middleware/Lib; Prinzip: Schema-Validierung vor/after Handler.)*
+
+---
+
+### 5) Sicherheit & Versionierung
+
+* **SecuritySchemes** in der Spec definieren (z. B. Bearer-JWT) und per `security` referenzieren.
+* **API-Versionierung**: `/v1`, `/v2` **oder** `info.version` + Deprecation-Header.
+* UI in Prod nur geschützt ausliefern (Basic-Auth, IP-Allowlist, Reverse-Proxy).
+
+---
+
+### 6) CI-Checks
+
+* **Linter/Validator** für OpenAPI in CI ausführen (Syntax & Style).
+* **Contract-Tests**: Beispiel-Anfragen gegen Staging, Abgleich mit Spec.
+* **„Docs as Code“**: PR-Review inkl. Spec-Änderungen.
+
+---
+
+### 7) Zusätzliche Hinweise
+
+* Beispiel-Payloads in `examples`/`example` aufnehmen → bessere Verständlichkeit.
+* Konsistente **Fehlerobjekte** (Problem-Details-ähnlich) dokumentieren.
+* **Tags** und **operationId** pflegen → Client-Code-Gen wird stabiler.
+
+---
+
+### Zusammenfassung
+
+* **OpenAPI als Single Source of Truth**, UI unter `/docs`, Roh-Spec unter `/docs.json`.
+* **Contract-First** + **Laufzeit-Validierung** halten Implementierung und Dokumentation synchron.
+* **Sicherheit/Versionierung/CI-Checks** stellen Qualität in Prod sicher.
+
+**Quellen**
+
+* Express: [Using Middleware](https://expressjs.com/de/guide/using-middleware.html), [Routing](https://expressjs.com/de/guide/routing.html)
+* Node.js: [`fs` & ES-Module](https://nodejs.org/docs/latest/api/fs.html), [`path`](https://nodejs.org/docs/latest/api/path.html)
+* MDN (RU): [`import` оператор](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/import)
 
 
   **[⬆ Наверх](#top)**
 
-80. ### <a name="80"></a> 
+86. ### <a name="86"></a> Welche Tools nutzt man zum Testen einer Express-App?
 
+**Tools zum Testen einer Express-App**
+
+---
+
+### 1) **Test-Runner**
+
+* **[Jest](https://jestjs.io/)**
+
+  * Sehr verbreitet in Node.js-Projekten.
+  * Enthält Assertions, Mocks, Coverage out-of-the-box.
+  * Einfach in CI/CD integrierbar.
+
+```js
+// __tests__/sum.test.js
+import { sum } from "../src/utils/sum.js";
+
+test("addiert zwei Zahlen", () => {
+  expect(sum(1, 2)).toBe(3);
+});
+```
+
+---
+
+### 2) **HTTP-Integrationstests**
+
+* **[Supertest](https://www.npmjs.com/package/supertest)**
+
+  * Ideal für API-Tests mit Express.
+  * Simuliert HTTP-Anfragen direkt gegen die App (kein echter Server nötig).
+
+```js
+// __tests__/user.routes.test.js
+import request from "supertest";
+import app from "../src/app.js";
+
+describe("GET /api/users", () => {
+  it("liefert Benutzerliste", async () => {
+    const res = await request(app).get("/api/users");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(expect.arrayContaining([expect.objectContaining({ id: 1 })]));
+  });
+});
+```
+
+---
+
+### 3) **Unit-Tests für Services/Controller**
+
+* **Jest-Mocks** oder **Sinon.js** zum Mocken von DB/Services.
+
+```js
+// __tests__/user.service.test.js
+import { findAllUsers } from "../src/services/user.service.js";
+
+test("liefert User-Array zurück", async () => {
+  const users = await findAllUsers();
+  expect(Array.isArray(users)).toBe(true);
+});
+```
+
+---
+
+### 4) **DB-bezogene Tests**
+
+* **[Testcontainers](https://www.testcontainers.org/)** (Node.js-Client: [testcontainers-node](https://github.com/testcontainers/testcontainers-node))
+
+  * Startet echte Docker-Container (z. B. PostgreSQL) für Integrationstests.
+* **Alternativ**: SQLite-In-Memory (nur für einfache Tests, Vorsicht bei PG-spezifischen Features).
+
+```js
+// Jest setup (Beispiel)
+beforeAll(async () => {
+  postgresContainer = await new PostgreSqlContainer("postgres:15").start();
+  process.env.DATABASE_URL = postgresContainer.getConnectionUri();
+  await sequelize.authenticate();
+});
+```
+
+---
+
+### 5) **Linting & Static Analysis**
+
+* **[ESLint](https://eslint.org/)**: Codequalität, Fehler frühzeitig finden.
+* **[Prettier](https://prettier.io/)**: Einheitliches Format.
+* **[TypeScript](https://www.typescriptlang.org/)** (falls genutzt): Typ-Sicherheit.
+
+---
+
+### 6) **End-to-End (E2E)-Tests**
+
+* **\[Jest + Supertest]** reicht oft für Backend.
+* Bei Frontend/Backend-Kombi: **[Cypress](https://www.cypress.io/)** oder **[Playwright](https://playwright.dev/)**.
+
+---
+
+### 7) **Test-Utilities**
+
+* **[Nock](https://github.com/nock/nock)**: Mocking von HTTP-Requests zu externen APIs.
+* **[Faker.js](https://fakerjs.dev/)**: Testdaten generieren.
+
+---
+
+### 8) **Coverage & CI**
+
+* Jest: `--coverage` Flag → Testabdeckung.
+* CI/CD (GitHub Actions, GitLab CI): Tests automatisch ausführen.
+
+---
+
+### Zusammenfassung
+
+* **Unit-Tests**: Jest (mit Mocks).
+* **Integrationstests**: Supertest (API), Testcontainers (DB).
+* **Linting/Static Analysis**: ESLint, Prettier, TypeScript.
+* **E2E**: Cypress/Playwright, wenn Frontend angebunden.
+* Tools wie **Nock/Faker** helfen beim Mocken von Abhängigkeiten.
+
+📚 Quellen
+
+* Express: [Testing Express](https://expressjs.com/en/advanced/best-practice-performance.html#use-a-test-framework)
+* Jest: [Dokumentation](https://jestjs.io/docs/getting-started)
+* Supertest: [NPM-Paket](https://www.npmjs.com/package/supertest)
+* Testcontainers Node: [Repo](https://github.com/testcontainers/testcontainers-node)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+87. ### <a name="87"></a> Wie testet man einzelne Endpoints?
+
+**Endpoints in Express gezielt testen (Jest + Supertest)**
+
+---
+
+### Setup
+
+```js
+// src/app.js
+import express from "express";
+export function createApp({ userController }) {
+  const app = express();
+  app.use(express.json());
+  app.get("/api/users", userController.list);
+  app.post("/api/users", userController.create);
+  // zentrale Error-Middleware (vereinfacht)
+  app.use((err, _req, res, _next) => res.status(err.statusCode || 500).json({ error: err.message }));
+  return app;
+}
+```
+
+```js
+// src/controllers/user.controller.js
+export function createUserController({ userService }) {
+  return {
+    list: async (_req, res, next) => {
+      try { res.json(await userService.findAll()); }
+      catch (e) { next(e); }
+    },
+    create: async (req, res, next) => {
+      try {
+        const { name, email } = req.body;
+        if (!name || !email) return res.status(400).json({ error: "Validation failed" });
+        const user = await userService.create({ name, email });
+        res.status(201).json(user);
+      } catch (e) { next(e); }
+    },
+  };
+}
+```
+
+---
+
+### Tests pro Endpoint (Happy Path + Fehlerfälle)
+
+```js
+// __tests__/user.endpoints.test.js
+import request from "supertest";
+import { createApp } from "../src/app.js";
+import { createUserController } from "../src/controllers/user.controller.js";
+
+describe("User Endpoints", () => {
+  // Service mocken (DI!) – kein echter DB-Zugriff
+  const userService = {
+    findAll: jest.fn(),
+    create: jest.fn(),
+  };
+  const app = createApp({ userController: createUserController({ userService }) });
+
+  beforeEach(() => jest.clearAllMocks());
+
+  test("GET /api/users -> 200 + JSON-Liste", async () => {
+    userService.findAll.mockResolvedValue([{ id: 1, name: "Max" }]);
+
+    const res = await request(app).get("/api/users");
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/application\/json/);
+    expect(res.body).toEqual([{ id: 1, name: "Max" }]);
+    expect(userService.findAll).toHaveBeenCalledTimes(1);
+  });
+
+  test("POST /api/users -> 201 bei validem Body", async () => {
+    userService.create.mockResolvedValue({ id: 2, name: "Eva", email: "eva@test.de" });
+
+    const res = await request(app)
+      .post("/api/users")
+      .send({ name: "Eva", email: "eva@test.de" });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({ id: 2, name: "Eva" });
+    expect(userService.create).toHaveBeenCalledWith({ name: "Eva", email: "eva@test.de" });
+  });
+
+  test("POST /api/users -> 400 bei Validierungsfehler", async () => {
+    const res = await request(app).post("/api/users").send({ name: "OhneEmail" });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "Validation failed" });
+    expect(userService.create).not.toHaveBeenCalled();
+  });
+
+  test("GET /api/users -> 500 wenn Service wirft", async () => {
+    userService.findAll.mockRejectedValue(Object.assign(new Error("DB down"), { statusCode: 500 }));
+    const res = await request(app).get("/api/users");
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "DB down" });
+  });
+
+  test("Auth/Headers prüfen (Beispiel)", async () => {
+    // Beispiel: Header setzen & prüfen
+    userService.findAll.mockResolvedValue([]);
+    const res = await request(app).get("/api/users").set("Authorization", "Bearer testtoken");
+    expect(res.status).toBe(200);
+  });
+});
+```
+
+**Tipps**
+
+* **DI/Mocks**: Controller mit gemocktem Service instanziieren → schnelle, deterministische Tests.
+* **Matrix testen**: Happy Path (2xx), Validation (400), Auth (401/403), Not Found (404), Serverfehler (5xx).
+* **Kontrakte**: Content-Type, Status, Body-Form (Felder, Typen).
+* **Coverage**: mindestens alle öffentlichen Endpoints + Fehlerpfade.
+* **Integrationstests mit echter DB**: zusätzlich mit **Testcontainers** (PostgreSQL) prüfen.
+
+---
+
+### Zusammenfassung
+
+* **Supertest** für HTTP-Aufrufe gegen Express-`app` ohne echten Server.
+* **Jest** für Assertions/Mocks, Services mocken via DI.
+* Pro Endpoint: **Happy Path + Fehlerpfade + Header/Content-Type** testen.
+* Für DB-Pfade zusätzlich **Integrationstests** (z. B. Testcontainers).
+
+**Quellen**
+
+* Express: [Routing](https://expressjs.com/de/guide/routing.html), [Error Handling](https://expressjs.com/de/guide/error-handling.html)
+* Node.js: [assertions/Testing](https://nodejs.org/docs/latest/api/test.html)
+* MDN (RU): [`async`/`await`](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/async_function)
+* PostgreSQL (für Integrationstests): [Conn. Strings](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING)
+* Sequelize (falls ORM genutzt wird): [Testing-Hinweise & Fehler](https://sequelize.org/docs/v6/other-topics/errors/)
+
+
+  **[⬆ Наверх](#top)**
+
+88. ### <a name="88"></a> Was ist Supertest und wie wird es in Express eingesetzt?
+
+**Supertest in Express**
+
+---
+
+### Definition
+
+* **[Supertest](https://www.npmjs.com/package/supertest)** ist ein Node.js-Test-Framework für HTTP.
+* Es baut auf **Superagent** auf und ermöglicht, HTTP-Requests **direkt gegen eine Express-App** zu simulieren – **ohne echten Server** (kein `.listen()` nötig).
+* Typisch in Kombination mit **Jest** oder **Mocha**.
+
+---
+
+### Vorteile
+
+* **Einfache Syntax**: `request(app).get("/route")…`
+* **Kein echter Port** nötig → schnell, deterministisch.
+* Unterstützt **Headers, Query, Body, Cookies**.
+* Integration in **Assertions** (z. B. `expect`) nahtlos.
+
+---
+
+### Installation
+
+```bash
+npm install --save-dev supertest jest
+```
+
+---
+
+### Einsatz in Express
+
+**1. Express-App exportieren**
+
+```js
+// src/app.js
+import express from "express";
+const app = express();
+
+app.use(express.json());
+app.get("/api/hello", (req, res) => res.json({ message: "Hallo Welt" }));
+
+export default app;
+```
+
+---
+
+**2. Test mit Supertest**
+
+```js
+// __tests__/hello.test.js
+import request from "supertest";
+import app from "../src/app.js";
+
+describe("GET /api/hello", () => {
+  it("liefert JSON mit 'Hallo Welt'", async () => {
+    const res = await request(app).get("/api/hello");
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/application\/json/);
+    expect(res.body).toEqual({ message: "Hallo Welt" });
+  });
+});
+```
+
+---
+
+**3. POST mit Body testen**
+
+```js
+// src/app.js (weiteres Beispiel)
+app.post("/api/users", (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: "Name fehlt" });
+  res.status(201).json({ id: 1, name });
+});
+```
+
+```js
+// __tests__/users.test.js
+describe("POST /api/users", () => {
+  it("erstellt neuen User", async () => {
+    const res = await request(app)
+      .post("/api/users")
+      .send({ name: "Max" });
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({ id: 1, name: "Max" });
+  });
+
+  it("400 wenn Name fehlt", async () => {
+    const res = await request(app).post("/api/users").send({});
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "Name fehlt" });
+  });
+});
+```
+
+---
+
+### Best Practices
+
+* App als **Modul exportieren** (`export default app`) und in Tests nutzen → kein `app.listen()`.
+* **Happy Path + Fehlerfälle** testen (200, 400, 404, 500).
+* **Headers, Auth, Query-Parameter** ebenfalls prüfen.
+* Für DB-Endpunkte: Services mocken oder Testcontainers (Postgres).
+
+---
+
+### Zusammenfassung
+
+* **Supertest = Tool für HTTP-Integrationstests in Express**.
+* Macht Requests gegen `app` ohne echten Server.
+* Einfach in Jest integrierbar → schnelle Tests für Endpoints.
+
+📚 Quellen
+
+* [Supertest NPM](https://www.npmjs.com/package/supertest)
+* [Express Error Handling](https://expressjs.com/de/guide/error-handling.html)
+* [Jest Getting Started](https://jestjs.io/docs/getting-started)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+89. ### <a name="89"></a> Wie simuliert man Requests im Unit-Test?
+
+**Requests im Unit-Test simulieren (Express/Node.js)**
+
+Beim **Unit-Test** (im Gegensatz zum Integrationstest mit **Supertest**) will man den Controller oder die Middleware **isoliert** testen, ohne Express-Router und echten HTTP-Request. Dafür baut man sich **Mocks für `req`, `res`, `next`**.
+
+---
+
+### 1) Minimaler Mock für Controller
+
+```js
+// controllers/user.controller.js
+export const getUser = (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "ID fehlt" });
+    res.json({ id, name: "Max Mustermann" });
+  } catch (e) { next(e); }
+};
+```
+
+```js
+// __tests__/user.controller.test.js
+import { getUser } from "../src/controllers/user.controller.js";
+
+test("liefert User bei gültiger ID", () => {
+  const req = { params: { id: "1" } };
+  const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+  const next = jest.fn();
+
+  getUser(req, res, next);
+
+  expect(res.json).toHaveBeenCalledWith({ id: "1", name: "Max Mustermann" });
+  expect(next).not.toHaveBeenCalled();
+});
+
+test("400 wenn ID fehlt", () => {
+  const req = { params: {} };
+  const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+  const next = jest.fn();
+
+  getUser(req, res, next);
+
+  expect(res.status).toHaveBeenCalledWith(400);
+  expect(res.json).toHaveBeenCalledWith({ error: "ID fehlt" });
+});
+```
+
+---
+
+### 2) Mock für Middleware
+
+```js
+// middleware/auth.middleware.js
+export const auth = (req, _res, next) => {
+  if (!req.headers?.authorization) return next(new Error("Unauthorized"));
+  next();
+};
+```
+
+```js
+// __tests__/auth.middleware.test.js
+import { auth } from "../src/middleware/auth.middleware.js";
+
+test("wirft Fehler ohne Auth-Header", () => {
+  const req = { headers: {} };
+  const res = {};
+  const next = jest.fn();
+
+  auth(req, res, next);
+
+  expect(next).toHaveBeenCalledWith(expect.any(Error));
+  expect(next.mock.calls[0][0].message).toBe("Unauthorized");
+});
+```
+
+---
+
+### 3) Vorteil dieser Methode
+
+* Controller/Middleware werden **ohne Express-Server** getestet.
+* Man kann gezielt `req.params`, `req.body`, `req.headers` simulieren.
+* **`res.status`, `res.json`** lassen sich mit `jest.fn()` oder `sinon.stub()` mocken.
+* Fehlerfälle (`next(err)`) sind einfach prüfbar.
+
+---
+
+### 4) Wann Supertest statt Mocks?
+
+* **Unit-Test**: Nur Controller/Middleware → Mock von `req`, `res`, `next`.
+* **Integrationstest**: Gesamte Route mit Middleware → **Supertest** (HTTP-Simulation).
+
+---
+
+### Zusammenfassung
+
+* In Unit-Tests simuliert man Requests durch **Mock-Objekte für `req`, `res`, `next`**.
+* `res.status` sollte `this` zurückgeben → `jest.fn().mockReturnThis()`.
+* Damit kann man gezielt **Parameter, Body, Headers** testen, ohne Server zu starten.
+* Für komplette Endpoints ist **Supertest** besser geeignet.
+
+📚 Quellen
+
+* Express: [Error Handling](https://expressjs.com/de/guide/error-handling.html)
+* Node.js: [assert/test](https://nodejs.org/docs/latest/api/test.html)
+* Jest: [Mock Functions](https://jestjs.io/docs/mock-functions)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+90. ### <a name="90"></a> Wie testet man Middleware?
+
+**Middleware in Express testen (Unit & Integration)**
+
+---
+
+### Ziele
+
+* Verhalten einer Middleware **isoliert** prüfen: ruft sie `next()`/`next(err)`? setzt sie Header? modifiziert sie `req`?
+* **Fehler-Middleware** (4 Parameter) gesondert testen.
+* Bei Bedarf **Integration** über Route mit **Supertest**.
+
+---
+
+### 1) Unit-Test (synchron): `req`, `res`, `next` mocken
+
+```js
+// src/middleware/auth.js
+export function auth(req, res, next) {
+  const token = req.headers?.authorization?.replace("Bearer ", "");
+  if (!token) return res.status(401).json({ error: "Unauthorized" });
+  req.user = { id: 1, role: "user" }; // Beispiel
+  next();
+}
+```
+
+```js
+// __tests__/auth.middleware.test.js
+import { auth } from "../src/middleware/auth.js";
+
+const mkRes = () => {
+  const res = {};
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
+  return res;
+};
+
+test("401 ohne Authorization-Header", () => {
+  const req = { headers: {} };
+  const res = mkRes();
+  const next = jest.fn();
+
+  auth(req, res, next);
+
+  expect(res.status).toHaveBeenCalledWith(401);
+  expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized" });
+  expect(next).not.toHaveBeenCalled();
+});
+
+test("setzt req.user und ruft next() bei gültigem Token", () => {
+  const req = { headers: { authorization: "Bearer testtoken" } };
+  const res = mkRes();
+  const next = jest.fn();
+
+  auth(req, res, next);
+
+  expect(req.user).toEqual(expect.objectContaining({ id: 1 }));
+  expect(next).toHaveBeenCalledTimes(1);
+});
+```
+
+---
+
+### 2) Unit-Test (asynchron): `await` und Fehlerpfad
+
+```js
+// src/middleware/permissions.js
+export async function needAdmin(req, _res, next) {
+  try {
+    const user = req.user ?? {};
+    if (user.role !== "admin") throw Object.assign(new Error("Forbidden"), { statusCode: 403 });
+    next();
+  } catch (e) { next(e); }
+}
+```
+
+```js
+// __tests__/permissions.middleware.test.js
+import { needAdmin } from "../src/middleware/permissions.js";
+
+test("next(err) wenn kein Admin", async () => {
+  const req = { user: { role: "user" } };
+  const res = {};
+  const next = jest.fn();
+
+  await needAdmin(req, res, next);
+
+  expect(next).toHaveBeenCalledWith(expect.any(Error));
+  const err = next.mock.calls[0][0];
+  expect(err.message).toBe("Forbidden");
+  expect(err.statusCode).toBe(403);
+});
+
+test("next() bei Admin", async () => {
+  const req = { user: { role: "admin" } };
+  const res = {};
+  const next = jest.fn();
+
+  await needAdmin(req, res, next);
+  expect(next).toHaveBeenCalledWith(); // kein Fehler
+});
+```
+
+---
+
+### 3) Fehler-Handling-Middleware testen (4-Param-Signatur)
+
+```js
+// src/middleware/error-handler.js
+export function errorHandler(err, _req, res, _next) {
+  const code = err.statusCode ?? 500;
+  res.status(code).json({ error: code >= 500 ? "Internal Server Error" : err.message });
+}
+```
+
+```js
+// __tests__/error-handler.test.js
+import { errorHandler } from "../src/middleware/error-handler.js";
+
+const mkRes = () => {
+  const res = {};
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
+  return res;
+};
+
+test("400 Meldung bei Validation-Fehler", () => {
+  const err = Object.assign(new Error("Invalid email"), { statusCode: 400 });
+  const res = mkRes();
+  errorHandler(err, {}, res, () => {});
+  expect(res.status).toHaveBeenCalledWith(400);
+  expect(res.json).toHaveBeenCalledWith({ error: "Invalid email" });
+});
+
+test("500 generisch ohne statusCode", () => {
+  const res = mkRes();
+  errorHandler(new Error("boom"), {}, res, () => {});
+  expect(res.status).toHaveBeenCalledWith(500);
+  expect(res.json).toHaveBeenCalledWith({ error: "Internal Server Error" });
+});
+```
+
+---
+
+### 4) Integrationstest mit Supertest (Reihenfolge & Zusammenspiel)
+
+```js
+// src/app.js
+import express from "express";
+import { auth } from "./middleware/auth.js";
+import { errorHandler } from "./middleware/error-handler.js";
+
+export function createApp() {
+  const app = express();
+  app.get("/secure", auth, (_req, res) => res.json({ ok: true }));
+  app.use(errorHandler);
+  return app;
+}
+```
+
+```js
+// __tests__/auth.integration.test.js
+import request from "supertest";
+import { createApp } from "../src/app.js";
+
+const app = createApp();
+
+test("GET /secure -> 401 ohne Token", async () => {
+  const res = await request(app).get("/secure");
+  expect(res.status).toBe(401);
+});
+
+test("GET /secure -> 200 mit Token", async () => {
+  const res = await request(app).get("/secure").set("Authorization", "Bearer x");
+  expect(res.status).toBe(200);
+  expect(res.body).toEqual({ ok: true });
+});
+```
+
+---
+
+### 5) Tipps & Stolpersteine
+
+* **`res.status().json()`**: `status` muss `this` zurückgeben → im Mock `mockReturnThis()`.
+* **Seiteneffekte prüfen**: Änderungen an `req` (z. B. `req.user`, `req.locals`, Header).
+* **Keine echten externen Aufrufe** im Unit-Test: Abhängigkeiten mocken (z. B. JWT-Verify, Redis).
+* **Async** immer `await`/`return` im Test, sonst „false positive“.
+* **Reihenfolge**: Für komplexe Chains (z. B. `auth` → `needAdmin`) lieber Integrationstest mit Supertest.
+
+---
+
+### Zusammenfassung
+
+* **Unit**: Middleware isoliert testen, `req`/`res`/`next` mocken; sync & async Pfade, `next(err)` prüfen.
+* **Error-Middleware** separat testen (4 Parameter).
+* **Integration**: Zusammenspiel und Reihenfolge mit **Supertest** absichern.
+
+📚 Quellen
+
+* Express: [Error Handling](https://expressjs.com/de/guide/error-handling.html), [Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
+* Node.js: [Test API](https://nodejs.org/docs/latest/api/test.html)
+* MDN (RU): [`try...catch`](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/try...catch)
+
+---
+
+**Zusammenfassung**
+
+* Middleware-Unit-Tests mit Jest-Mocks für `req`/`res`/`next`.
+* Asynchrone Pfade explizit `await`en; Fehler via `next(err)` validieren.
+* Integration mit Supertest für Reihenfolge und End-to-End-Verhalten.
 
 
   **[⬆ Наверх](#top)**  
 
-81. ### <a name="81"></a> 
+91. ### <a name="91"></a> Was ist der Unterschied zwischen Unit-Tests und Integrationstests in Express?
 
+**Unterschied zwischen Unit-Tests und Integrationstests in Express**
+
+---
+
+### 1) **Unit-Tests**
+
+* Testen **eine kleine, isolierte Einheit** (z. B. Controller, Middleware, Service).
+* Abhängigkeiten (DB, externe APIs, Services) werden **gemockt oder gestubbt**.
+* Ziel: **Korrekte Logik der Komponente** unabhängig von der Infrastruktur.
+* **Schnell** (kein HTTP-Stack, keine DB-Verbindung).
+
+**Beispiel (Controller-Unit-Test mit Mocks):**
+
+```js
+// controllers/user.controller.js
+export const getUser = (req, res, next) => {
+  if (!req.params.id) return res.status(400).json({ error: "ID fehlt" });
+  res.json({ id: req.params.id, name: "Max" });
+};
+
+// __tests__/user.controller.test.js
+test("liefert 400 ohne ID", () => {
+  const req = { params: {} };
+  const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+  const next = jest.fn();
+
+  getUser(req, res, next);
+
+  expect(res.status).toHaveBeenCalledWith(400);
+  expect(res.json).toHaveBeenCalledWith({ error: "ID fehlt" });
+});
+```
+
+👉 Hier wird **Express nicht gestartet**, `req`/`res` sind nur Mock-Objekte.
+
+---
+
+### 2) **Integrationstests**
+
+* Testen **mehrere Komponenten zusammen**: Router, Middleware, Controller, ggf. DB.
+* Läuft gegen die **Express-App** (z. B. mit **Supertest**), aber ohne echten Port.
+* Ziel: **Sicherstellen, dass das Zusammenspiel funktioniert** (Routing → Middleware → Controller → Antwort).
+* Langsamer als Unit-Tests, aber näher an echter Nutzung.
+
+**Beispiel (Route-Test mit Supertest):**
+
+```js
+import request from "supertest";
+import app from "../src/app.js";
+
+describe("GET /api/users", () => {
+  it("liefert Liste der Benutzer", async () => {
+    const res = await request(app).get("/api/users");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(expect.arrayContaining([expect.objectContaining({ id: 1 })]));
+  });
+});
+```
+
+👉 Hier wird **Express gestartet** (aber nur im Speicher, kein echter Server).
+
+---
+
+### 3) **Vergleich**
+
+| Aspekt              | Unit-Test                     | Integrationstest                        |
+| ------------------- | ----------------------------- | --------------------------------------- |
+| **Scope**           | Einzelne Funktion/Modul       | Zusammenspiel mehrerer Komponenten      |
+| **Mocks**           | Ja (DB, Services, req/res)    | Selten (DB optional per Testcontainers) |
+| **Geschwindigkeit** | Sehr schnell                  | Etwas langsamer                         |
+| **Fehler finden**   | Logik-Fehler                  | Schnittstellen-/Integrationsfehler      |
+| **Beispiel**        | `user.controller.js` isoliert | `GET /api/users` Route inkl. Middleware |
+
+---
+
+### 4) **Best Practice**
+
+* **Unit-Tests** → viele, schnell, decken Logik ab.
+* **Integrationstests** → wenige, aber wichtige „Happy Path“ + Fehlerpfade (z. B. Auth, DB, Routing).
+* **Kombination** bringt Sicherheit und Geschwindigkeit.
+
+---
+
+### Zusammenfassung
+
+* **Unit-Test**: Einzelne Komponente, mit Mocks, sehr schnell.
+* **Integrationstest**: Zusammenspiel mehrerer Schichten (Router, Middleware, DB), näher an echter Nutzung.
+* Beide sind **komplementär** und sollten in einer Express-App kombiniert werden.
+
+📚 Quellen:
+
+* [Express Testing Best Practices](https://expressjs.com/en/advanced/best-practice-performance.html#use-a-test-framework)
+* [Jest Doku](https://jestjs.io/docs/getting-started)
+* [Supertest NPM](https://www.npmjs.com/package/supertest)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+92. ### <a name="92"></a> Wie implementiert man Mocking im Express-Test?
+
+**Mocking im Express-Test (Jest + Supertest/Unit)**
+
+---
+
+### Ziele
+
+* Abhängigkeiten (DB, externe APIs, Logger) **isolieren**.
+* Verhalten steuern: **`resolve/reject`**, Rückgabewerte, Aufruf-Assertions.
+* Tests schnell & deterministisch halten.
+
+---
+
+### Strategien (überblick)
+
+1. **DI-basierte Mocks**: Services/Repos als Parameter (empfohlen).
+2. **`jest.mock()`**: ganze Module stubben (z. B. `sequelize`, eigene Repos).
+3. **`req`/`res`/`next`-Mocks**: für Controller-/Middleware-Unit-Tests.
+4. **HTTP-Mocks**: externe API-Calls mit **Nock** abfangen.
+5. **Timer/Date**: `jest.useFakeTimers()`/`setSystemTime` für Zeitabhängigkeiten.
+
+---
+
+### 1) DI-basierte Mocks (ohne echten DB-Zugriff)
+
+```js
+// src/controllers/user.controller.js
+export function createUserController({ userService, logger }) {
+  return {
+    list: async (_req, res, next) => {
+      try { res.json(await userService.findAll()); }
+      catch (e) { logger.error(e); next(e); }
+    },
+  };
+}
+
+// __tests__/user.controller.unit.test.js
+import { createUserController } from "../src/controllers/user.controller.js";
+
+test("list -> gibt User zurück", async () => {
+  const userService = { findAll: jest.fn().mockResolvedValue([{ id: 1 }]) };
+  const logger = { error: jest.fn() };
+  const { list } = createUserController({ userService, logger });
+
+  const req = {};
+  const res = { json: jest.fn() };
+  const next = jest.fn();
+
+  await list(req, res, next);
+
+  expect(res.json).toHaveBeenCalledWith([{ id: 1 }]);
+  expect(userService.findAll).toHaveBeenCalledTimes(1);
+  expect(next).not.toHaveBeenCalled();
+});
+```
+
+---
+
+### 2) Module mocken mit `jest.mock`
+
+```js
+// src/services/mail.service.js
+export async function sendMail(dto) { /* echter SMTP-Call */ }
+
+// src/controllers/notify.controller.js
+import * as mail from "../services/mail.service.js";
+export async function notify(req, res, next) {
+  try { await mail.sendMail(req.body); res.status(204).end(); }
+  catch (e) { next(e); }
+}
+
+// __tests__/notify.controller.test.js
+import { notify } from "../src/controllers/notify.controller.js";
+jest.mock("../src/services/mail.service.js", () => ({
+  sendMail: jest.fn(),
+}));
+import { sendMail } from "../src/services/mail.service.js";
+
+test("ruft sendMail mit Body auf", async () => {
+  const req = { body: { to: "a@b.de" } };
+  const res = { status: jest.fn().mockReturnThis(), end: jest.fn() };
+  const next = jest.fn();
+
+  await notify(req, res, next);
+
+  expect(sendMail).toHaveBeenCalledWith({ to: "a@b.de" });
+  expect(res.status).toHaveBeenCalledWith(204);
+});
+```
+
+---
+
+### 3) Endpoints mit Supertest + gemockten Services
+
+```js
+// src/app.js
+import express from "express";
+export function createApp({ userController }) {
+  const app = express();
+  app.get("/api/users", userController.list);
+  return app;
+}
+
+// __tests__/user.routes.test.js
+import request from "supertest";
+import { createApp } from "../src/app.js";
+import { createUserController } from "../src/controllers/user.controller.js";
+
+test("GET /api/users -> 200", async () => {
+  const userService = { findAll: jest.fn().mockResolvedValue([{ id: 1 }]) };
+  const app = createApp({ userController: createUserController({ userService, logger: console }) });
+
+  const res = await request(app).get("/api/users");
+  expect(res.status).toBe(200);
+  expect(res.body).toEqual([{ id: 1 }]);
+});
+```
+
+---
+
+### 4) Externe HTTP-Calls mocken (Nock)
+
+```js
+// src/services/weather.service.js
+import fetch from "node-fetch";
+export async function getTemp(city) {
+  const r = await fetch(`https://api.example.com/weather?city=${city}`);
+  return (await r.json()).temp;
+}
+
+// __tests__/weather.service.test.js
+import nock from "nock";
+import { getTemp } from "../src/services/weather.service.js";
+
+test("liefert Temperatur vom Mock", async () => {
+  nock("https://api.example.com")
+    .get("/weather")
+    .query({ city: "Leipzig" })
+    .reply(200, { temp: 21 });
+
+  await expect(getTemp("Leipzig")).resolves.toBe(21);
+});
+```
+
+---
+
+### 5) Sequelize/Repo stubben (ohne echte DB)
+
+```js
+// src/repos/user.repo.js
+export class UserRepo {
+  constructor({ model }) { this.model = model; }
+  findAll() { return this.model.findAll({ attributes: ["id","name"] }); }
+}
+
+// __tests__/user.repo.test.js
+import { UserRepo } from "../src/repos/user.repo.js";
+test("delegiert an model.findAll", async () => {
+  const model = { findAll: jest.fn().mockResolvedValue([{ id: 1 }]) };
+  const repo = new UserRepo({ model });
+
+  await expect(repo.findAll()).resolves.toEqual([{ id: 1 }]);
+  expect(model.findAll).toHaveBeenCalledWith({ attributes: ["id","name"] });
+});
+```
+
+> Für echte DB-Integration später **Testcontainers** nutzen; für reine Unit-Tests genügt Mocking.
+
+---
+
+### 6) `req`/`res`/`next`-Mocks (Schnellvorlage)
+
+```js
+export function mkRes() {
+  const res = {};
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
+  res.end = jest.fn().mockReturnValue(res);
+  setImmediate; // nur, damit Editor kein Auto-Import vorschlägt :)
+  return res;
+}
+```
+
+---
+
+### 7) Tipps
+
+* **Kein echter Netzwerk-/DB-Zugriff** in Unit-Tests.
+* **Nur öffentliche API** einer Einheit testen (Blackbox).
+* **Mocks nach jedem Test zurücksetzen**: `jest.clearAllMocks()`.
+* **Fehlerpfade** explizit simulieren: `mockRejectedValue(new Error("boom"))`.
+* **Zeitabhängiges**: `jest.useFakeTimers(); jest.setSystemTime(new Date("2025-09-05"))`.
+
+---
+
+### Zusammenfassung
+
+* DI oder `jest.mock()` nutzen, um Abhängigkeiten (DB, HTTP, Logger) zu isolieren.
+* Controller/Middleware: `req`/`res`/`next` mocken; Endpoints: Supertest + gemockte Services.
+* Externe HTTP-Calls mit **Nock**, DB-Schicht mit **stubs** testen; echte Integration separat prüfen.
+
+📚 Quellen
+
+* Express: [Using Middleware](https://expressjs.com/de/guide/using-middleware.html), [Error Handling](https://expressjs.com/de/guide/error-handling.html)
+* Node.js: [Test API](https://nodejs.org/docs/latest/api/test.html), [ES Modules](https://nodejs.org/docs/latest/api/esm.html)
+* MDN (RU): [`async/await`](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/async_function)
+* Sequelize: [Model Querying Basics](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+93. ### <a name="93"></a> Wie kann man CI/CD mit Tests für Express automatisieren?
+
+**CI/CD für Express mit automatisierten Tests (Beispiel GitHub Actions + optional GitLab CI)**
+
+---
+
+### 1) `package.json`—klare Scripts für CI
+
+```js
+{
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit || echo 'skip' ", // entfernen, falls kein TS
+    "test": "jest --runInBand",
+    "test:coverage": "jest --coverage --runInBand",
+    "start": "node src/server.js"
+  }
+}
+```
+
+*→ CI ruft nur Scripts auf; keine Inline-Kommandos.*
+
+---
+
+### 2) GitHub Actions: Node-Matrix, Caching, Lint, Tests, Coverage
+
+```js
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install deps (clean)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit/Integration tests (no DB)
+        run: npm run test:coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.node-version }}
+          path: coverage/
+```
+
+---
+
+### 3) Integrationstests mit echter PostgreSQL-DB (Services)
+
+*Variante A: DB als Service—gut für Sequelize/pg ohne Testcontainers.*
+
+```js
+# .github/workflows/ci-db.yml
+name: CI-DB
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  test-db:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        ports: [ "5432:5432" ]
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: appdb
+        options: >-
+          --health-cmd="pg_isready -U test -d appdb"
+          --health-interval=10s --health-timeout=5s --health-retries=5
+
+    env:
+      DATABASE_URL: postgres://test:test@localhost:5432/appdb
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'npm' }
+      - run: npm ci
+
+      # ggf. Migrations/Seed
+      - name: DB migrate
+        run: npx sequelize-cli db:migrate
+
+      - name: Run tests (DB)
+        run: npm test
+```
+
+**Sequelize-Init (Beispiel):**
+
+```js
+// src/db/sequelize.js
+import { Sequelize } from "sequelize";
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: "postgres",
+  logging: false
+});
+export default sequelize;
+```
+
+---
+
+### 4) Integrationstests mit **Testcontainers** (Variante B)
+
+*Keine „services“-Sektion nötig; Docker wird on-the-fly gestartet. Ideal, wenn Tests selbst Container kontrollieren.*
+
+```js
+# .github/workflows/ci-testcontainers.yml
+name: CI-Testcontainers
+on: [push, pull_request]
+
+jobs:
+  test-tc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'npm' }
+      - run: npm ci
+      - name: Enable Docker for Testcontainers
+        run: |
+          docker version
+          docker info
+      - name: Run tests (Testcontainers)
+        env:
+          NODE_ENV: test
+        run: npm test
+```
+
+**Testcontainers-Nutzung (Ausschnitt):**
+
+```js
+// __tests__/setup-db.test.js
+import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import sequelize from "../src/db/sequelize.js";
+
+let container;
+beforeAll(async () => {
+  container = await new PostgreSqlContainer("postgres:15").start();
+  process.env.DATABASE_URL = container.getConnectionUri();
+  await sequelize.authenticate();
+});
+afterAll(async () => {
+  await sequelize.close();
+  await container.stop();
+});
+```
+
+---
+
+### 5) Pull-Requests blocken, wenn Tests/Lint failen
+
+*GitHub Branch Protection aktivieren; nur „grüne“ Checks dürfen mergen.*
+
+---
+
+### 6) CD (Deployment) – Beispiel Docker Build & Push (optional)
+
+```js
+# .github/workflows/cd.yml
+name: CD
+on:
+  push:
+    tags: [ "v*" ]  # Release-Tags triggern Deployment
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ghcr.io/<org>/<image>:${{ github.ref_name }}
+          build-args: |
+            NODE_ENV=production
+```
+
+*Auf der Zielplattform (z. B. Render/Fly/K8s) Umgebung/Secrets setzen und Container aus diesem Image starten.*
+
+---
+
+### 7) Pre-Commit & lokale Qualitätssicherung
+
+```js
+// .husky/pre-commit
+#!/bin/sh
+npm run lint && npm test
+```
+
+*Verhindert fehlerhafte Commits schon lokal.*
+
+---
+
+### 8) Tipps & Praxis
+
+* **Konfiguration**: `DATABASE_URL`, `JWT_SECRET`, etc. in **Repo-Secrets**/CI-Variablen; nie committen.
+* **Schnelle Pipelines**: Unit-Tests ohne DB separat laufen lassen; DB-Tests parallel.
+* **Artefakte**: Coverage-Berichte und Lint-Reports hochladen.
+* **Matrix-Strategie**: wichtige Node-Versionen (LTS + Current) testen.
+* **Deterministisch**: Netzwerkanfragen zu Dritt-APIs mocken (z. B. Nock).
+* **Health & Migrations**: CI soll Migrationen ausführen und scheitern, wenn Schema inkonsistent.
+
+---
+
+### Zusammenfassung
+
+* CI führt **Lint**, **Typecheck**, **Tests** (Unit/Integration) automatisiert aus.
+* DB-Integration via **Services** oder **Testcontainers**.
+* CD baut ein **Docker-Image** und deployt nach erfolgreicher CI.
+* Secrets in CI verwalten; **Branch Protection** verhindert fehlerhafte Merges.
+
+**Quellen**
+
+* Express: [Using Middleware](https://expressjs.com/de/guide/using-middleware.html), [Best Practices: Production](https://expressjs.com/de/advanced/best-practice-performance.html)
+* Node.js: [Process & Umgebungsvariablen](https://nodejs.org/docs/latest/api/process.html#processenv)
+* PostgreSQL: [Conn. Strings](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING)
+* Sequelize: [Postgres-Verbindung](https://sequelize.org/docs/v6/other-topics/dialect-specific-things/#postgres)
+* MDN (RU): [`import` оператор](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/import)
 
 
   **[⬆ Наверх](#top)**
 
-82. ### <a name="82"></a> 
+94. ### <a name="94"></a> Was ist Test Coverage und wie misst man sie in Express?
 
+**Test Coverage in Express**
+
+---
+
+### Definition
+
+**Test Coverage** misst, **wie viel Prozent deines Codes durch Tests ausgeführt werden**.
+Typische Metriken:
+
+* **Line Coverage** → Welche Zeilen wurden ausgeführt?
+* **Statement Coverage** → Welche Statements (auch mehrere pro Zeile)?
+* **Branch Coverage** → Wurden alle if/else-Äste getestet?
+* **Function Coverage** → Wurden alle Funktionen aufgerufen?
+
+👉 Ziel: **Qualitätssicherung** – aber 100 % Coverage ≠ 100 % fehlerfrei.
+
+---
+
+### 1) Test Coverage mit **Jest**
+
+Jest hat integriertes Coverage-Reporting (basiert auf [Istanbul/NYC](https://istanbul.js.org/)).
+
+**Installation (falls noch nicht):**
+
+```bash
+npm install --save-dev jest supertest
+```
+
+**package.json**
+
+```json
+{
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  }
+}
+```
+
+**Ausführen:**
+
+```bash
+npm run test:coverage
+```
+
+**Output (Beispiel):**
+
+```
+File                | % Stmts | % Branch | % Funcs | % Lines 
+--------------------|---------|----------|---------|--------
+src/app.js          |     95% |     85%  |    100% |     95%
+src/controllers/... |     80% |     70%  |     75% |     80%
+```
+
+👉 Zeigt, welche Dateien/Zeilen nicht getestet wurden.
+
+---
+
+### 2) Beispiel in Express
+
+```js
+// src/controllers/user.controller.js
+export const getUser = (req, res) => {
+  if (!req.params.id) return res.status(400).json({ error: "ID fehlt" });
+  res.json({ id: req.params.id, name: "Max Mustermann" });
+};
+```
+
+**Test:**
+
+```js
+// __tests__/user.controller.test.js
+import { getUser } from "../src/controllers/user.controller.js";
+
+const mkRes = () => {
+  const res = {};
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
+  return res;
+};
+
+test("400 wenn keine ID", () => {
+  const req = { params: {} };
+  const res = mkRes();
+  getUser(req, res);
+  expect(res.status).toHaveBeenCalledWith(400);
+});
+
+test("200 wenn ID vorhanden", () => {
+  const req = { params: { id: "1" } };
+  const res = mkRes();
+  getUser(req, res);
+  expect(res.json).toHaveBeenCalledWith({ id: "1", name: "Max Mustermann" });
+});
+```
+
+👉 Ergebnis:
+
+* Beide Äste (`if` und `else`) sind getestet → **Branch Coverage = 100 %**.
+
+---
+
+### 3) Coverage in CI/CD
+
+* In **GitHub Actions** oder **GitLab CI** `jest --coverage` laufen lassen.
+* Reports als **Artefakt hochladen** oder mit Tools wie **Codecov**/ **Coveralls** visualisieren.
+* Branch Protection: PRs nur mergen, wenn Coverage ≥ Schwellwert.
+
+**jest.config.js** (optional)
+
+```js
+export default {
+  collectCoverage: true,
+  collectCoverageFrom: ["src/**/*.js"],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+  },
+};
+```
+
+---
+
+### 4) Best Practices
+
+* **Nicht nur auf Zahlen schauen** → Sinnvolle Testfälle > 100 % Coverage.
+* **Wichtige Pfade** (Auth, Error-Handler, DB-Queries) abdecken.
+* **Untestbare Codebereiche** (z. B. `process.exit`) mit `/* istanbul ignore next */` markieren.
+* **Mix Unit + Integration Tests** für hohe Aussagekraft.
+
+---
+
+### Zusammenfassung
+
+* **Test Coverage = Anteil des getesteten Codes** (Zeilen, Branches, Funktionen).
+* In Express meist mit **Jest (`--coverage`)** gemessen.
+* Reports zeigen ungetestete Pfade; können in CI/CD geprüft werden.
+* Ziel: sinnvolle Coverage ≥ 80 %, Fokus auf kritische Logik.
+
+📚 Quellen
+
+* Jest: [Coverage Report](https://jestjs.io/docs/cli#--coverage)
+* Istanbul/NYC: [Offizielle Docs](https://istanbul.js.org/)
+* Express: [Best Practices Testing](https://expressjs.com/en/advanced/best-practice-performance.html#use-a-test-framework)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+95. ### <a name="95"></a> Was sind gängige Fehler beim Testen von Express-Apps?
+
+**Gängige Fehler beim Testen von Express-Apps**
+
+---
+
+### 1) **Kein Unterschied zwischen Unit- und Integrationstests**
+
+* Alles wird nur mit **Supertest** getestet → Tests laufen langsam, Logik schwer isolierbar.
+* Oder nur Unit-Tests mit Mocks → Zusammenspiel von Router/Middleware/DB bleibt ungetestet.
+  👉 **Best Practice**: Kombination nutzen (Unit + Integration).
+
+---
+
+### 2) **Vergessen `req`, `res`, `next` zu mocken**
+
+* Bei Controller-/Middleware-Tests fehlen `mockReturnThis()` in `res.status()`.
+
+```js
+res.status = jest.fn().mockReturnThis(); // wichtig für res.status(400).json()
+```
+
+👉 Sonst wirft der Test Fehler oder Controller lässt sich nicht isoliert prüfen.
+
+---
+
+### 3) **Async-Fehler nicht richtig abfangen**
+
+* `await` oder `return` bei async-Tests vergessen → Fehler bleibt unentdeckt, Test wird grün.
+* Kein `asyncHandler`/`try-catch` → Express schluckt Fehler nicht automatisch.
+  👉 Immer `await` bei Supertest und async-Handlern nutzen.
+
+---
+
+### 4) **Globale Zustände nicht zurücksetzen**
+
+* Mocks (`jest.fn()`), DB-Daten, Umgebungsvariablen bleiben zwischen Tests bestehen.
+  👉 Lösung: `beforeEach(() => jest.clearAllMocks())` + DB-Reset/Transaktionen.
+
+---
+
+### 5) **Externe Services nicht mocken**
+
+* Tests machen echte HTTP-Requests (z. B. Payment-API) → langsam, instabil, unkontrolliert.
+  👉 HTTP-Calls mit **Nock** oder DI-Mocks abfangen.
+
+---
+
+### 6) **Testen gegen `app.listen()`**
+
+* `app.listen()` im Test starten → blockiert Ports, macht parallele Tests schwer.
+  👉 Besser: `request(app)` mit **Supertest**, **ohne Serverstart**.
+
+---
+
+### 7) **Unvollständige Fehlerpfade**
+
+* Nur Happy Path getestet (200er).
+* Keine Tests für:
+
+  * Validierungsfehler (400)
+  * Auth fehlgeschlagen (401/403)
+  * Nicht gefunden (404)
+  * Serverfehler (500)
+    👉 Gute Tests decken **positive und negative Pfade** ab.
+
+---
+
+### 8) **Datenbank-Tests unsauber**
+
+* DB wird nicht vor jedem Test bereinigt → Tests hängen voneinander ab.
+* Nutzung von echter Prod-DB (!) anstatt Test-DB.
+  👉 Lösung:
+* Eigene Test-DB nutzen (z. B. `app_test`).
+* **Transaktionen + Rollback** oder **Testcontainers**.
+
+---
+
+### 9) **Falsche Erwartung an Coverage**
+
+* 100 % Coverage erzwingen → Entwickler schreiben Dummy-Tests.
+* Nur auf Zahlen achten, nicht auf sinnvolle Szenarien.
+  👉 Coverage als Hinweis, nicht als Selbstzweck.
+
+---
+
+### 10) **Kein CI/CD-Testlauf**
+
+* Tests nur lokal → im Team bricht Code auf anderen Umgebungen.
+  👉 Tests immer in **CI-Pipeline** laufen lassen (GitHub Actions, GitLab CI).
+
+---
+
+### 11) **Performance- und Parallelitätsprobleme ignorieren**
+
+* Lange laufende DB- oder API-Tests bremsen Pipeline.
+* Keine Tests für Race Conditions (z. B. gleichzeitige Requests).
+  👉 Tests optimieren + Integration/E2E nur für kritische Pfade.
+
+---
+
+### Zusammenfassung
+
+* Häufige Fehler: fehlendes Mocking, Async-Probleme, ungetestete Fehlerpfade, falscher DB-Einsatz.
+* Best Practices: **Unit + Integration kombinieren**, **req/res/next richtig mocken**, **Async/Fehlerpfade testen**, **DB sauber resetten**, **externe Services mocken**, Tests in **CI** einbinden.
+
+📚 Quellen
+
+* Express: [Error Handling](https://expressjs.com/de/guide/error-handling.html)
+* Jest: [Mock Functions](https://jestjs.io/docs/mock-functions)
+* Supertest: [NPM-Doku](https://www.npmjs.com/package/supertest)
+* Testcontainers: [Node-Doku](https://github.com/testcontainers/testcontainers-node)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+96. ### <a name="96"></a> Wie optimiert man Performance in Express?
+
+**Performance-Optimierung in Express**
+
+---
+
+### 1) Node/Express richtig konfigurieren
+
+```js
+// app.js
+import express from "express";
+import helmet from "helmet";
+
+const app = express();
+
+// Prod-Flags
+app.set("env", process.env.NODE_ENV || "development");
+if (app.get("env") === "production") {
+  app.set("trust proxy", 1);        // korrektes IP/Proto hinter Proxy
+  app.disable("x-powered-by");
+}
+
+app.use(helmet());                   // sichere Default-Header
+app.use(express.json({ limit: "1mb" }));  // Body-Limit verringern
+export default app;
+```
+
+* `NODE_ENV=production` setzen (deaktiviert einige Dev-Pfade, beschleunigt Libs).
+* Body-Limits, nur nötige Parser aktivieren (kein `urlencoded`, wenn unnötig).
+
+---
+
+### 2) Middleware & Routing schlank halten
+
+* Reihenfolge: **preiswerte Middleware zuerst**, teure/seltene zuletzt.
+* Logging in Prod **asynchron/JSON** (z. B. `pino-http`), keine heavy Console-Logs im Hotpath.
+* Nur notwendige Routen mounten; **Router splitten**.
+
+```js
+import pinoHttp from "pino-http";
+import { logger } from "./infra/logger.js";
+
+app.use(pinoHttp({ logger }));           // schnelles strukturiertes Logging
+app.use("/api/users", userRouter);       // nur benötigte Pfade
+```
+
+---
+
+### 3) Komprimierung & Caching
+
+```js
+// selektive Komprimierung (nicht für Bilder/PDF)
+import compression from "compression";
+app.use(compression({ filter: (req, res) => {
+  const type = res.getHeader("Content-Type") || "";
+  return /json|text|javascript/.test(type); // Binary ausnehmen
+}}));
+
+// HTTP-Caching-Header
+app.get("/api/config", (req, res) => {
+  res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=60");
+  res.json({ /* … */ });
+});
+```
+
+* Statische Assets (über CDN/Proxy) mit **ETag/Cache-Control** ausliefern.
+* Keine doppelten Komprimierungen (CDN/Nginx kann gzip/brotli übernehmen).
+
+---
+
+### 4) Payloads klein halten & Streaming nutzen
+
+```js
+// Pagination statt großer Listen
+router.get("/", async (req, res) => {
+  const limit = Math.min(Number(req.query.limit) || 20, 100);
+  const offset = Number(req.query.offset) || 0;
+  const data = await svc.list({ limit, offset });
+  res.json(data);
+});
+```
+
+* **Pagination**, **Feld-Whitelists** (`attributes`), **filterbare Queries**.
+* **Streams** für große Dateien/Exports statt `buffer()`:
+
+```js
+// Datei streamen statt in den Speicher zu laden
+import fs from "node:fs";
+router.get("/export", (req, res) => {
+  res.set("Content-Type", "text/csv");
+  fs.createReadStream("report.csv").pipe(res);
+});
+```
+
+---
+
+### 5) DB/ORM-Optimierung (PostgreSQL/Sequelize)
+
+* **Connection-Pool** korrekt konfigurieren (Max/Min, Idle-Timeout).
+* **Indizes** für Filter/Joins; **N+1** vermeiden (eager loading/`include`).
+* Nur benötigte Spalten holen:
+
+```js
+// Sequelize
+User.findAll({ attributes: ["id", "name"], limit, offset, where: { active: true } });
+```
+
+* Lange Queries analysieren (`EXPLAIN ANALYZE`), **Prepared Statements** nutzen.
+* Caching von häufigen Reads (z. B. Redis) mit **Cache-Invalidierung**.
+
+```js
+// sehr vereinfachtes Endpoint-Caching (Redis)
+import redis from "ioredis";
+const r = new redis();
+router.get("/:id", async (req, res, next) => {
+  const key = `user:${req.params.id}`;
+  const cached = await r.get(key);
+  if (cached) return res.json(JSON.parse(cached));
+  const user = await svc.getById(req.params.id);
+  await r.setex(key, 60, JSON.stringify(user)); // 60s TTL
+  res.json(user);
+});
+```
+
+---
+
+### 6) Concurrency & Skalierung
+
+* **Node-Prozess** ist single-threaded → **mehrere Instanzen** (Cluster/PM2/K8s) hinter einem Reverse-Proxy.
+* **Sticky Sessions** vermeiden (oder per Proxy konfigurieren), JWT/Server-Stateless bevorzugen.
+
+```bash
+# PM2 Beispiel
+pm2 start src/server.js -i max    # 1 Prozess pro CPU-Kern
+pm2 monit
+```
+
+---
+
+### 7) Sicherheit & Limits (schützt Performance)
+
+* **Rate Limiting** gegen Abuse:
+
+```js
+import rateLimit from "express-rate-limit";
+app.use(rateLimit({ windowMs: 60_000, max: 300 })); // 300 req/min/IP
+```
+
+* **CORS** restriktiv; **input validation** (z. B. `zod/joi`) früh im Request.
+* **Timeouts** für externe Calls (`fetch` mit Timeout, Circuit Breaker).
+
+---
+
+### 8) Beobachtbarkeit & Hotspots finden
+
+* **Metriken** (Latenz, Throughput, Fehlerquoten) – z. B. Prometheus-Exporter.
+* **Profiling** (CPU/Heap) in Staging: `node --prof`, Clinic.js, Flamegraphs.
+* **response-time** messen:
+
+```js
+import responseTime from "response-time";
+app.use(responseTime((req, res, time) => {
+  // an Metrik-Backend schicken
+}));
+```
+
+---
+
+### 9) Produktionsumgebung & Runtime
+
+* Reverse-Proxy (Nginx/Traefik/Cloud) für **TLS, Keep-Alive, gzip/brotli, HTTP/2**.
+* **GC/Heap** tunen, wenn nötig (große Workloads): `NODE_OPTIONS="--max-old-space-size=2048"`.
+* Keine **synchronen**/blockierenden Operationen im Hotpath (fs sync, crypto sync).
+
+---
+
+### 10) Frontdoor-Strategien
+
+* **BFF/Backend-for-Frontend**: nur benötigte Daten fürs UI zusammenstellen.
+* **GraphQL/REST**: Overfetching minimieren; bei REST sparsames Feld-Set anbieten (`?fields=id,name`).
+
+---
+
+### Beispiel: leichtgewichtiger Performance-Stack
+
+```js
+// app.js
+import express from "express";
+import helmet from "helmet";
+import compression from "compression";
+import pinoHttp from "pino-http";
+import rateLimit from "express-rate-limit";
+
+const app = express();
+app.disable("x-powered-by");
+app.use(helmet());
+app.use(pinoHttp());
+app.use(express.json({ limit: "1mb" }));
+app.use(compression());
+app.use(rateLimit({ windowMs: 60_000, max: 300 }));
+
+// … Routen
+export default app;
+```
+
+---
+
+### Zusammenfassung
+
+* **Schlanke Middleware**, selektive **Komprimierung**, sinnvolle **Cache-Header**.
+* **Pagination/Streaming**, **ORM-Queries optimieren**, **Pooling/Indices**.
+* **Mehrere Instanzen** (PM2/K8s) hinter Proxy; **Rate Limit**, **Validation**, keine Sync-Calls.
+* **Metriken/Profiling** einsetzen, Bottlenecks messen statt raten.
+
+📚 Quellen
+
+* Express: [Best Practices – Production](https://expressjs.com/de/advanced/best-practice-performance.html), [Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
+* Node.js: [Process & `NODE_ENV`](https://nodejs.org/docs/latest/api/process.html#processenv), [Streams](https://nodejs.org/docs/latest/api/stream.html)
+* MDN (RU): [HTTP Caching](https://developer.mozilla.org/ru/docs/Web/HTTP/Caching), [Content-Encoding](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Content-Encoding)
+* PostgreSQL: [Indexen & EXPLAIN](https://www.postgresql.org/docs/current/sql-explain.html)
+* Sequelize: [Querying Basics / Attributes & Include](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/)
+
+---
+
+**Zusammenfassung**
+
+* Konfiguration (Prod-Flags), Middleware-Reihenfolge und Logging optimieren.
+* Komprimierung/Caching selektiv, Daten paginieren/streamen.
+* DB sauber: Indizes, Pooling, nur nötige Spalten.
+* Horizontal skalieren (PM2/K8s), Limits/Validation setzen, messen & proﬁlen.
 
 
   **[⬆ Наверх](#top)**
 
-83. ### <a name="83"></a> 
+97. ### <a name="97"></a> Welche Möglichkeiten gibt es zum Caching von Responses?
 
+**Caching von Responses in Express – Möglichkeiten**
+
+---
+
+### 1) **HTTP-Caching über Header (Client-/Proxy-Cache)**
+
+* Einfachste Methode: Response mit **Cache-Control**, **ETag**, **Last-Modified** ausstatten.
+* Browser & Proxies (CDN, Reverse-Proxy) übernehmen Caching.
+
+```js
+app.get("/api/config", (req, res) => {
+  res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=60");
+  res.json({ version: "1.2.3" });
+});
+```
+
+* **ETag**: Express kann automatisch ETags setzen (`app.set("etag", true)`).
+* **Last-Modified**: Manuell setzen, Clients schicken `If-Modified-Since`.
+
+👉 Vorteil: kein zusätzlicher Speicher; gut für **statische/seltene Daten**.
+👉 Nachteil: weniger flexibel, abhängig vom Client/Proxy.
+
+---
+
+### 2) **In-Memory-Cache (Server-seitig)**
+
+* Responses im Arbeitsspeicher halten.
+* Pakete wie [apicache](https://www.npmjs.com/package/apicache) oder [memory-cache](https://www.npmjs.com/package/memory-cache).
+
+```js
+import apicache from "apicache";
+const cache = apicache.middleware;
+
+// Cache für 5 Minuten
+app.get("/api/users", cache("5 minutes"), async (req, res) => {
+  const users = await db.User.findAll();
+  res.json(users);
+});
+```
+
+👉 Vorteil: sehr schnell, einfach.
+👉 Nachteil: nicht persistent, skaliert schlecht bei mehreren Instanzen.
+
+---
+
+### 3) **Redis/Memcached (verteiltes Cache-Backend)**
+
+* Responses oder Daten in Redis/Memcached ablegen → **Clusterfähig**.
+* Flexibel: TTL, Invalidation, Shared zwischen Instanzen.
+
+```js
+import redis from "ioredis";
+const r = new redis();
+
+app.get("/api/users/:id", async (req, res, next) => {
+  const key = `user:${req.params.id}`;
+  const cached = await r.get(key);
+  if (cached) return res.json(JSON.parse(cached));
+
+  try {
+    const user = await db.User.findByPk(req.params.id);
+    await r.setex(key, 60, JSON.stringify(user)); // TTL 60s
+    res.json(user);
+  } catch (e) { next(e); }
+});
+```
+
+👉 Vorteil: geeignet für **große APIs** mit Skalierung.
+👉 Nachteil: zusätzliche Infrastruktur nötig.
+
+---
+
+### 4) **Reverse-Proxy / CDN-Caching**
+
+* **Nginx**, **Varnish**, **Cloudflare**, **Fastly** etc. können ganze Responses cachen.
+* Steuerung über Cache-Header (`Cache-Control`, `Vary`).
+
+```nginx
+# Beispiel Nginx
+location /api/ {
+    proxy_pass http://localhost:5000;
+    proxy_cache my_cache;
+    proxy_cache_valid 200 5m;
+}
+```
+
+👉 Vorteil: entlastet Node/Express komplett.
+👉 Nachteil: komplexeres Setup, Invalidation schwieriger.
+
+---
+
+### 5) **Application-level Caching (Partial Cache)**
+
+* Nicht die ganze Response, sondern **Teile** der Daten cachen (z. B. häufig genutzte DB-Queries).
+* Service-Schicht entscheidet, ob Cache oder DB.
+
+```js
+// Service-Ebene
+async function getPopularPosts() {
+  const key = "popular_posts";
+  const cached = await r.get(key);
+  if (cached) return JSON.parse(cached);
+
+  const posts = await db.Post.findAll({ order: [["likes", "DESC"]], limit: 10 });
+  await r.set(key, JSON.stringify(posts), "EX", 300); // 5min TTL
+  return posts;
+}
+```
+
+👉 Vorteil: mehr Kontrolle; geeignet bei komplexen Responses.
+👉 Nachteil: eigener Invalidation-Mechanismus nötig.
+
+---
+
+### 6) **Conditional Requests (304 Not Modified)**
+
+* Client fragt mit `If-None-Match` (ETag) oder `If-Modified-Since`.
+* Server antwortet **304**, wenn keine Änderung.
+
+```js
+app.get("/api/data", (req, res) => {
+  const data = { version: "1.0" };
+  res.set("ETag", "v1");
+  if (req.headers["if-none-match"] === "v1") {
+    return res.status(304).end();
+  }
+  res.json(data);
+});
+```
+
+👉 Vorteil: Bandbreite sparen.
+👉 Nachteil: Client muss Requests trotzdem stellen.
+
+---
+
+### Vergleich
+
+| Methode               | Scope        | Vorteil                        | Nachteil                       |
+| --------------------- | ------------ | ------------------------------ | ------------------------------ |
+| HTTP-Header (ETag)    | Client/Proxy | Einfach, standardisiert        | Keine Kontrolle serverseitig   |
+| In-Memory             | Node-Prozess | Schnell, leicht                | Kein Cluster-Support           |
+| Redis/Memcached       | Verteilt     | Skalierbar, TTL/Invalidation   | Externe Infrastruktur          |
+| Reverse-Proxy/CDN     | Netzwerkrand | Entlastet App, sehr performant | Setup komplexer, Invalidierung |
+| Partial/Service-Cache | App-intern   | Granular, flexibel             | Logik nötig, Fehleranfälliger  |
+
+---
+
+### Zusammenfassung
+
+* **Kleine Apps** → HTTP-Header + evtl. In-Memory.
+* **Skalierbare Systeme** → Redis/Memcached.
+* **High-Traffic / globale Nutzer** → Reverse-Proxy/CDN.
+* **Komplexe Logik** → Teil-Caching in Services.
+
+📚 Quellen:
+
+* Express: [Best Practices: Performance](https://expressjs.com/de/advanced/best-practice-performance.html)
+* MDN (RU): [HTTP Caching](https://developer.mozilla.org/ru/docs/Web/HTTP/Caching)
+* Redis: [Redis.io Docs](https://redis.io/docs/latest/develop/)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+98. ### <a name="98"></a> Wie kann man eine Express-App in Docker deployen?
+
+**Deployment einer Express-App mit Docker (inkl. PostgreSQL/Sequelize)**
+
+---
+
+### 1) Projekt vorbereiten
+
+* **Prod-Startskript** in `package.json`:
+
+```js
+{
+  "scripts": {
+    "start": "node src/server.js",
+    "start:prod": "NODE_ENV=production node src/server.js"
+  }
+}
+```
+
+* **`.dockerignore`** (reduziert Image-Größe):
+
+```
+node_modules
+npm-debug.log
+.git
+.env*
+coverage
+```
+
+---
+
+### 2) Multi-Stage `Dockerfile` (schlankes Prod-Image)
+
+```Dockerfile
+# 1) Builder: nur Abhängigkeiten installieren
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# 2) Runner: sauberes, kleines Image
+FROM node:20-alpine AS runner
+ENV NODE_ENV=production
+WORKDIR /app
+
+# optional: nicht als root laufen
+RUN addgroup -S nodejs && adduser -S node -G nodejs
+
+# nur nötige Dateien kopieren
+COPY --from=deps /app/node_modules ./node_modules
+COPY src ./src
+COPY package*.json ./
+
+# Healthcheck (optional)
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget -qO- http://localhost:3000/health || exit 1
+
+EXPOSE 3000
+USER node
+CMD ["node", "src/server.js"]
+```
+
+> Hinweise:
+>
+> * **Layer-Order**: zuerst `package*.json` → bessere Cache-Nutzung.
+> * In Prod `npm ci --omit=dev` (keine DevDeps).
+> * `USER node` → sicherer Betrieb ohne root.
+
+---
+
+### 3) Docker Compose mit PostgreSQL (lokale/CI-Umgebung)
+
+```yaml
+# docker-compose.yml
+version: "3.9"
+services:
+  api:
+    build: .
+    ports: ["3000:3000"]
+    env_file: [.env]
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: appdb
+    ports: ["5432:5432"] # nur lokal nötig
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d appdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
+```
+
+**.env (Beispiel)**
+
+```
+NODE_ENV=production
+PORT=3000
+DATABASE_URL=postgres://app:app@db:5432/appdb
+JWT_SECRET=change_me
+```
+
+---
+
+### 4) Sequelize/pg verbinden (SSL optional für Cloud)
+
+```js
+// src/db/sequelize.js
+import { Sequelize } from "sequelize";
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: "postgres",
+  logging: false
+});
+export default sequelize;
+```
+
+> **Migrations** (falls `sequelize-cli`): im Entrypoint/CI ausführen, z. B.
+> `docker compose run --rm api npx sequelize-cli db:migrate`
+
+---
+
+### 5) Server starten & Health-Route
+
+```js
+// src/app.js
+import express from "express";
+const app = express();
+app.use(express.json());
+app.get("/health", (_req, res) => res.json({ ok: true }));
+export default app;
+
+// src/server.js
+import app from "./app.js";
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Listening on ${PORT}`));
+```
+
+---
+
+### 6) Build & Run
+
+```bash
+# Image bauen
+docker build -t my-express-app .
+
+# Container starten
+docker run -p 3000:3000 --env-file .env my-express-app
+
+# Mit Compose (API + DB)
+docker compose up --build
+```
+
+---
+
+### 7) Best Practices
+
+* **Konfiguration via Env** (keine Secrets im Image).
+* **Readiness/Healthchecks** für Orchestrierung (Compose/K8s).
+* **Logs** in STDOUT/STDERR (z. B. pino) → von Docker abgegriffen.
+* **Security**: non-root, minimal Base-Image, `helmet`, Rate-Limit.
+* **Caching**: `package*.json` separat kopieren; nur notwendige Dateien ins Image.
+* **Mehrere Instanzen** hinter Proxy (Nginx/K8s/Cloud) für Skalierung.
+
+---
+
+### Zusammenfassung
+
+* Multi-Stage `Dockerfile` für kleines, sicheres Prod-Image.
+* Compose startet **API + PostgreSQL**, Env über `.env`.
+* Sequelize/pg via `DATABASE_URL`; Migrations in CI/Entrypoint ausführen.
+* Healthcheck, non-root, STDOUT-Logging, sichere Defaults.
+
+📚 Quellen
+
+* Express: [Best Practices – Production](https://expressjs.com/de/advanced/best-practice-performance.html)
+* Node.js: [Docker-Leitfaden (Allg. Runtime)](https://nodejs.org/docs/latest/api/)
+* PostgreSQL: [Conn. Strings](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING)
+* Sequelize: [Postgres-Verbindung](https://sequelize.org/docs/v6/other-topics/dialect-specific-things/#postgres)
+* MDN (RU): [HTTP-Headers/Best Practices](https://developer.mozilla.org/ru/)
+
+---
+
+**Zusammenfassung**
+
+* Docker-Deployment: Multi-Stage Build, `.dockerignore`, Env-Konfig, Health-Route.
+* Compose für lokale/CI-Setups mit Postgres, Migrations separat.
+* Sicherheit/Performance: non-root, schlanke Images, STDOUT-Logs, Proxy/Orchestrator nutzen.
 
 
   **[⬆ Наверх](#top)**
 
-84. ### <a name="84"></a> 
+99. ### <a name="99"></a> Wie deployt man eine Express-Anwendung auf Heroku oder Vercel?
 
+**Deployment einer Express-Anwendung auf Heroku und Vercel**
+
+---
+
+### Heroku (klassischer Server, Dynos)
+
+1. **App vorbereiten**
+
+```js
+// src/server.js
+import app from "./app.js";
+const PORT = process.env.PORT || 3000;   // Heroku setzt $PORT
+app.listen(PORT, () => console.log(`Listening on ${PORT}`));
+```
+
+```json
+// package.json (Ausschnitt)
+{
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "engines": { "node": ">=18 <=22" }
+}
+```
+
+2. **Procfile anlegen** (ohne Dateiendung)
+
+```
+web: node src/server.js
+```
+
+3. **Deploy**
+
+```bash
+heroku create
+heroku config:set NODE_ENV=production
+git push heroku main
+heroku logs --tail
+```
+
+Hinweise
+
+* Heroku-Dynos sind Container; nur der **web**-Prozess erhält HTTP-Traffic. Setze `web:` im Procfile. ([Heroku Dev Center][1])
+* Node-Apps benötigen deklarierte Abhängigkeiten, Node-Version und Startskript. ([Heroku Dev Center][2])
+
+---
+
+### Vercel (Serverless/Fluid Compute)
+
+**Option A – Express direkt exportieren (empfohlen von Vercel)**
+
+> Vercel erkennt Express automatisch, wenn du die App **als Default-Export** in einer der Standard-Dateien bereitstellst.
+
+```js
+// src/index.js  (eine der von Vercel erkannten Dateien)
+import express from "express";
+const app = express();
+
+app.get("/", (_req, res) => res.json({ message: "Hello from Express on Vercel!" }));
+
+export default app; // wichtig: Default-Export
+```
+
+Danach:
+
+```bash
+npm i -g vercel
+vercel        # Projekt verknüpfen, dann "vercel deploy"
+```
+
+**Option B – klassisches `app.listen`**
+Auch möglich; Vercel startet die App als Funktion/Server automatisch. ([Vercel][3])
+
+Hinweise
+
+* Beim Deploy wird deine Express-App als **eine Vercel Function** ausgeführt und **skaliert automatisch** (keine Serververwaltung). ([Vercel][3])
+* Alternativ: eigene Functions/Handler unter `api/` erstellen, wenn du keine komplette Express-App brauchst. ([Vercel][4])
+* Beispiel-/Vorlagenprojekte stehen bereit (Ein-Klick-Deploy). ([Vercel][5])
+
+---
+
+### Gemeinsame Best Practices
+
+* **Konfiguration über Env** (`process.env.*`), keine Secrets im Repo.
+* **Health-Route** (z. B. `/health`) für Monitoring/Healthchecks.
+* **Logs auf STDOUT** (z. B. `pino`), von Plattform gesammelt.
+* **Statische Assets** über CDN/Proxy; **Compression/Caching** aktivieren.
+* **DB-Verbindung** via `DATABASE_URL` (PostgreSQL), Migrations im Release-/CI-Schritt ausführen.
+
+---
+
+### Zusammenfassung
+
+* **Heroku**: `Procfile` mit `web: …`, `process.env.PORT` nutzen, `start`-Script/Node-Version deklarieren, dann `git push heroku main`. ([Heroku Dev Center][2])
+* **Vercel**: Express-App **als Default-Export** (oder `app.listen`) in erkannter Datei bereitstellen; Vercel deployt als skalierende Function. ([Vercel][3])
+
+📚 Quellen
+
+* Heroku: *Deploying Node.js Apps on Heroku*, *Getting Started*, *Dynos/Procfile*. ([Heroku Dev Center][2])
+* Vercel: *Using Express with Vercel*, *Functions*, *Templates (Express)*. ([Vercel][3])
+* MDN (RU): Общие рекомендации по деплою Express. ([MDN Web Docs][6])
+
+[1]: https://devcenter.heroku.com/articles/dynos?utm_source=chatgpt.com "Dynos (App Containers)"
+[2]: https://devcenter.heroku.com/articles/deploying-nodejs?utm_source=chatgpt.com "Deploying Node.js Apps on Heroku"
+[3]: https://vercel.com/guides/using-express-with-vercel?utm_source=chatgpt.com "Using Express.js with Vercel"
+[4]: https://vercel.com/docs/functions/functions-api-reference?utm_source=chatgpt.com "Functions API Reference"
+[5]: https://vercel.com/templates/backend/express-js-on-vercel?utm_source=chatgpt.com "Express.js on Vercel"
+[6]: https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/Express_Nodejs/deployment?utm_source=chatgpt.com "Express Tutorial Part 7: Deploying to production - MDN"
 
 
   **[⬆ Наверх](#top)**
 
-85. ### <a name="85"></a> 
+100. ### <a name="100"></a> Wie geht man mit Skalierung von Express-Servern um?
 
+**Skalierung von Express-Servern**
 
+---
 
-  **[⬆ Наверх](#top)**
+### 1) Grundprinzipien
 
-86. ### <a name="86"></a> 
+* **Stateless API**: Keine Session-/State-Daten im Prozess; Zustände in DB/Redis halten.
+* **Horizontale Skalierung**: Mehrere Instanzen hinter einem Load-Balancer/Proxy.
+* **Vertikale Skalierung**: Mehr CPU/RAM pro Instanz (nur begrenzt wirksam).
+* **Backpressure & Timeouts**: Externe Aufrufe mit Timeouts/Circuit-Breaker; eingehende Last drosseln (Rate-Limit).
 
+---
 
+### 2) Node intern: mehrere Kerne nutzen (Cluster/PM2)
 
-  **[⬆ Наверх](#top)**
+```js
+// cluster-server.js
+import cluster from "node:cluster";
+import os from "node:os";
+import app from "./src/app.js";
 
-87. ### <a name="87"></a> 
+const PORT = process.env.PORT || 3000;
 
+if (cluster.isPrimary) {
+  const cpuCount = os.cpus().length;
+  for (let i = 0; i < cpuCount; i++) cluster.fork();
+  cluster.on("exit", () => cluster.fork()); // Worker neu starten
+} else {
+  app.listen(PORT, () => console.log(`Worker ${process.pid} on ${PORT}`));
+}
+```
 
+* Nutzt **alle CPU-Kerne**; bei Ausfall startet der Master neu.
+* Alternativ **PM2** (`pm2 start src/server.js -i max`) mit integrierter Prozessverwaltung.
 
-  **[⬆ Наверх](#top)**
+> Achtung: Für **WebSockets/Sessions** ggf. **Sticky Sessions** am Proxy aktivieren oder ein gemeinsames Backend (Redis) nutzen.
 
-88. ### <a name="88"></a> 
+---
 
+### 3) Vor den App-Instanzen: Reverse-Proxy/CDN
 
+* **Nginx/Traefik/Cloud-LB**: TLS, Keep-Alive, HTTP/2, gzip/brotli, Caching, Rate-Limit.
+* **Sticky Sessions** nur, wenn unbedingt nötig; JWT/Stateless bevorzugen.
 
-  **[⬆ Наверх](#top)**
+---
 
-89. ### <a name="89"></a> 
+### 4) Container & Orchestrierung
 
+* **Docker + Kubernetes**: Replikate (`replicas`), **Horizontal Pod Autoscaler**, **Readiness/Liveness Probes**, Rolling Updates.
+* **Env-Konfig/Secrets** statt Dateien; Logs nach **STDOUT** (structured).
 
+---
 
-  **[⬆ Наверх](#top)**
+### 5) Datenbank- & Cache-Schicht
 
-90. ### <a name="90"></a> 
+* **Connection Pooling** korrekt dimensionieren (Summe aller Instanzen beachten).
+* **Indizes/Queries** optimieren; Read-Replicas erwägen.
+* **Caching** (Redis/Memcached): teure Reads cachen; saubere Invalidierung.
+* **Queues** (z. B. BullMQ/RabbitMQ) für Hintergrund-Jobs/Spitzen abfedern.
 
+---
 
+### 6) Performance-Hebel in der App
 
-  **[⬆ Наверх](#top)**  
+* Schlanke Middleware, **Pagination**, selektive **Komprimierung**.
+* **Streaming** statt große Buffers (Dateien/Reports).
+* Keine synchronen/blockierenden Calls im Hot-Path (kein `fs.readFileSync`, `bcrypt.hashSync` etc.).
 
-91. ### <a name="91"></a> 
+---
 
+### 7) Beobachtbarkeit
 
+* **Metriken** (Latenz, Throughput, Fehlerquote), **Tracing** (Correlation-ID), **strukturierte Logs**.
+* **Health-Endpoint** (`/health`) + **/ready** für LB/Orchestrator.
+* Lasttests (k6, autocannon) vor Live-Traffic.
 
-  **[⬆ Наверх](#top)**
+---
 
-92. ### <a name="92"></a> 
+### 8) Beispiel: Rate-Limit + Trust Proxy
 
+```js
+import express from "express";
+import rateLimit from "express-rate-limit";
 
+const app = express();
+app.set("trust proxy", 1); // korrekte IP hinter LB
+app.use(rateLimit({ windowMs: 60_000, max: 300 }));
+app.get("/health", (_req, res) => res.json({ ok: true }));
+export default app;
+```
 
-  **[⬆ Наверх](#top)**
+---
 
-93. ### <a name="93"></a> 
+### Zusammenfassung
 
+* **Stateless** designen, **horizontal** skalieren (Cluster/PM2/K8s) hinter Proxy.
+* **DB/Cache** skalierungsfähig machen (Pooling, Indizes, Redis).
+* **Backpressure, Timeouts, Rate-Limit**, schlanke Middleware, **Streaming**.
+* **Observability** & Healthchecks einbauen; Lasttests durchführen.
 
+📚 Quellen
 
-  **[⬆ Наверх](#top)**
-
-94. ### <a name="94"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-95. ### <a name="95"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-96. ### <a name="96"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-97. ### <a name="97"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-98. ### <a name="98"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-99. ### <a name="99"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-100. ### <a name="100"></a> 
-
+* Express: [Best Practices – Production](https://expressjs.com/de/advanced/best-practice-performance.html), [Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
+* Node.js: [`cluster` Modul](https://nodejs.org/docs/latest/api/cluster.html), [`process.env`/Runtimes](https://nodejs.org/docs/latest/api/process.html)
+* MDN (RU): [HTTP Caching/Headers](https://developer.mozilla.org/ru/docs/Web/HTTP/Caching)
 
 
   **[⬆ Наверх](#top)**    
 
-101. ### <a name="101"></a> 
+101. ### <a name="101"></a> Unterschied zwischen Cluster-Mode und Single-Threaded Mode in Node/Express?
 
+**Unterschied zwischen Cluster-Mode und Single-Threaded Mode in Node/Express**
+
+---
+
+### 1) **Single-Threaded Mode (Default in Node.js)**
+
+* **Node.js** läuft per Event Loop in **einem einzigen Thread**.
+* Ein Prozess kann **nur einen CPU-Kern** aktiv nutzen.
+* Vorteil: Einfachheit, keine Synchronisationsprobleme.
+* Nachteil: Auf Multi-Core-Servern wird Leistung nicht ausgeschöpft.
+
+**Beispiel:**
+
+```bash
+node src/server.js   # nutzt nur 1 CPU-Kern
+```
+
+👉 Für kleine/mittlere Apps oder Dev völlig ausreichend.
+
+---
+
+### 2) **Cluster Mode**
+
+* Mit dem **Cluster-Modul** oder Tools wie **PM2** können mehrere Worker-Prozesse gestartet werden.
+* Jeder Worker ist **ein eigener Node-Prozess** (eigene Event Loop), aber sie teilen sich denselben Port.
+* Der Master verteilt eingehende Requests auf die Worker (Load Balancing).
+* Vorteil: Alle CPU-Kerne werden genutzt, höhere Parallelität, Ausfallsicherheit (Worker kann neu gestartet werden).
+* Nachteil: Mehr Speicherverbrauch (jeder Prozess hat eigenen Heap), kein Shared Memory → Daten zwischen Workern nur über IPC/extern (Redis/DB).
+
+**Beispiel mit Cluster:**
+
+```js
+import cluster from "node:cluster";
+import os from "node:os";
+import app from "./src/app.js";
+
+if (cluster.isPrimary) {
+  const cpus = os.cpus().length;
+  for (let i = 0; i < cpus; i++) cluster.fork();
+  cluster.on("exit", () => cluster.fork());
+} else {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Worker ${process.pid} listening`));
+}
+```
+
+👉 Übliche Nutzung in **Produktion** (z. B. PM2 `-i max`).
+
+---
+
+### 3) **Vergleich**
+
+| Merkmal            | Single-Threaded           | Cluster-Mode                        |
+| ------------------ | ------------------------- | ----------------------------------- |
+| **CPU-Nutzung**    | Nur 1 Kern                | Alle verfügbaren Kerne              |
+| **Performance**    | Begrenzt bei hoher Last   | Höhere Parallelität                 |
+| **Stabilität**     | Ein Absturz = Server down | Worker-Absturz → Master startet neu |
+| **Speicherbedarf** | Weniger                   | Höher (mehrere Prozesse)            |
+| **State Sharing**  | Direkt möglich            | Nur via externe Systeme (Redis/DB)  |
+| **Setup**          | Einfach                   | Etwas komplexer (Cluster/PM2)       |
+
+---
+
+### Zusammenfassung
+
+* **Single-Threaded Mode**: einfacher, für kleine Apps oder Dev. Nutzt nur einen CPU-Kern.
+* **Cluster Mode**: mehrere Worker → bessere Skalierung, Stabilität, volle CPU-Nutzung.
+* Für **Produktion** meist **Cluster/PM2/Kubernetes** sinnvoll; in Dev genügt Single-Thread.
+
+📚 Quellen
+
+* Node.js: [Cluster-Modul](https://nodejs.org/docs/latest/api/cluster.html)
+* Express: [Best Practices – Production](https://expressjs.com/de/advanced/best-practice-performance.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+102. ### <a name="102"></a> Wie funktioniert Load Balancing bei Express?
+
+**Load Balancing bei Express**
+
+---
+
+### 1) Grundidee
+
+* **Express selbst kann kein Load Balancing.**
+* Lastverteilung geschieht **außerhalb** der App:
+
+  * **Node.js Cluster-Modul / PM2** → verteilt Requests auf Worker-Prozesse (gleicher Server).
+  * **Reverse Proxy / Load Balancer (Nginx, HAProxy, Traefik, Cloud-LB)** → verteilt Traffic auf mehrere Server oder Container.
+* Ziel: **CPU-Kerne besser ausnutzen**, **Verfügbarkeit steigern**, **Spitzenlast abfangen**.
+
+---
+
+### 2) Load Balancing auf einem Server (Cluster / PM2)
+
+**Cluster-Modul** (Node.js Standard)
+
+```js
+import cluster from "node:cluster";
+import os from "node:os";
+import app from "./src/app.js";
+
+if (cluster.isPrimary) {
+  const numCPUs = os.cpus().length;
+  for (let i = 0; i < numCPUs; i++) cluster.fork();
+
+  cluster.on("exit", (worker) => {
+    console.log(`Worker ${worker.process.pid} gestorben, starte neu...`);
+    cluster.fork();
+  });
+} else {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Worker ${process.pid} auf Port ${PORT}`));
+}
+```
+
+* Der **Master-Prozess** erstellt mehrere Worker.
+* Eingehende Requests werden vom Master **rund-robin** auf Worker verteilt.
+
+**PM2 (einfacher)**
+
+```bash
+npm install -g pm2
+pm2 start src/server.js -i max   # Startet 1 Worker pro CPU
+pm2 list
+```
+
+👉 Vorteil: volle CPU-Nutzung, mehr Stabilität (Worker-Neustart bei Crash).
+
+---
+
+### 3) Load Balancing über Proxy (Nginx Beispiel)
+
+**nginx.conf**
+
+```nginx
+http {
+  upstream express_app {
+    server 127.0.0.1:3000;
+    server 127.0.0.1:3001;
+    server 127.0.0.1:3002;
+  }
+
+  server {
+    listen 80;
+    location / {
+      proxy_pass http://express_app;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+    }
+  }
+}
+```
+
+* Nginx verteilt Anfragen auf mehrere Express-Instanzen (verschiedene Ports oder Container).
+* Load-Balancing-Strategien: **round robin, least connections, IP hash**.
+
+---
+
+### 4) Load Balancing in der Cloud
+
+* **Docker/Kubernetes**: Services + Ingress/LoadBalancer verteilen Requests auf Pods.
+* **Cloud-Anbieter** (AWS ELB, GCP Load Balancer, Azure ALB) bieten automatisches LB mit Healthchecks.
+
+👉 In K8s:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: express-deploy
+spec:
+  replicas: 4
+  selector: { matchLabels: { app: express } }
+  template:
+    metadata: { labels: { app: express } }
+    spec:
+      containers:
+      - name: express
+        image: my-express-app
+        ports: [{ containerPort: 3000 }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: express-service
+spec:
+  type: LoadBalancer
+  selector: { app: express }
+  ports:
+  - port: 80
+    targetPort: 3000
+```
+
+---
+
+### 5) Besonderheiten
+
+* **Sticky Sessions**: Wenn Sessions genutzt werden, muss der Proxy dafür sorgen, dass Requests desselben Clients immer beim gleichen Worker landen (oder besser: Session-Daten in Redis/DB).
+* **Stateless bevorzugen**: JWT, externe Stores → Load Balancer kann frei verteilen.
+* **Healthchecks**: LB entfernt nicht-gesunde Instanzen.
+* **Horizontal Scaling**: Instanzen können dynamisch hoch/runter skaliert werden (Autoscaling).
+
+---
+
+### Zusammenfassung
+
+* **Express selbst** macht kein Load Balancing.
+* **Ein Server**: Cluster-Modul oder PM2 verteilt Requests auf CPU-Kerne.
+* **Mehrere Server/Container**: Load Balancer (Nginx, HAProxy, Cloud-LB) verteilt Traffic.
+* **Cloud/K8s**: Services + Ingress für automatische Skalierung & Healthchecks.
+* Best Practice: **Stateless Design + externe Stores** → Load Balancer kann effizient arbeiten.
+
+📚 Quellen
+
+* Node.js: [Cluster API](https://nodejs.org/docs/latest/api/cluster.html)
+* Express: [Best Practices Production](https://expressjs.com/de/advanced/best-practice-performance.html)
+* Nginx: [Load Balancing](https://nginx.org/en/docs/http/load_balancing.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+103. ### <a name="103"></a> Wie überwacht man eine Express-App im Betrieb?
+
+**Überwachung einer Express-App im Betrieb (Logging, Metriken, Tracing, Alerts)**
+
+---
+
+### 1) Strukturierte Logs (JSON) + Korrelation
+
+```js
+// src/app.js
+import express from "express";
+import pino from "pino";
+import pinoHttp from "pino-http";
+import crypto from "node:crypto";
+
+const logger = pino({ level: process.env.LOG_LEVEL || "info" });
+const app = express();
+
+// Korrelation: Request-ID
+app.use((req, _res, next) => {
+  req.id = req.get("x-trace-id") || crypto.randomUUID();
+  next();
+});
+
+// HTTP-Logs
+app.use(pinoHttp({ logger, genReqId: req => req.id }));
+
+// Health
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
+export default app;
+```
+
+**Zweck:** maschinenlesbare Logs (ELK/Datadog/Grafana), Korrelation von Request → Log/Trace.
+**Express-Doku:** „Using middleware“, „Best Practices: Production“.
+
+---
+
+### 2) Metriken für Prometheus (Latenz, Fehler, Durchsatz)
+
+```js
+// src/metrics.js
+import client from "prom-client";
+export const register = new client.Registry();
+client.collectDefaultMetrics({ register }); // Prozess/GC/Heap
+
+export const httpLatency = new client.Histogram({
+  name: "http_request_duration_seconds",
+  help: "HTTP Latenz",
+  labelNames: ["method", "route", "status_code"],
+  buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2]
+});
+register.registerMetric(httpLatency);
+
+// Middleware zum Messen
+export function metricsMiddleware(req, res, next) {
+  const start = process.hrtime.bigint();
+  res.on("finish", () => {
+    const dur = Number(process.hrtime.bigint() - start) / 1e9;
+    httpLatency.labels(req.method, req.route?.path || req.path, String(res.statusCode)).observe(dur);
+  });
+  next();
+}
+```
+
+```js
+// src/app.js (Ausschnitt)
+import { register, metricsMiddleware } from "./metrics.js";
+app.use(metricsMiddleware);
+app.get("/metrics", async (_req, res) => {
+  res.set("Content-Type", register.contentType);
+  res.end(await register.metrics());
+});
+```
+
+**Zweck:** SLOs (z. B. 95%-Latenz), Alerting auf Fehlerquote/Latency/Throughput.
+
+---
+
+### 3) Distributed Tracing mit OpenTelemetry (OTLP)
+
+```js
+// tracing.js (früh importieren, z. B. via node -r ./tracing.js src/server.js)
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter({ url: process.env.OTLP_URL }), // z. B. OTel Collector
+  instrumentations: [getNodeAutoInstrumentations()],
+});
+sdk.start();
+```
+
+**Zweck:** End-to-End Traces (Express → DB → externe APIs), Root-Cause-Analyse, Latenz-Breakdown.
+
+---
+
+### 4) Fehler-Tracking (Sentry/Elastic APM/Datadog)
+
+```js
+// src/app.js (Sentry-Beispiel)
+import * as Sentry from "@sentry/node";
+import express from "express";
+
+Sentry.init({ dsn: process.env.SENTRY_DSN, environment: process.env.NODE_ENV });
+const app = express();
+app.use(Sentry.Handlers.requestHandler());
+
+// … Routen …
+
+// zentrale Error-Middleware (Sentry first, dann eigene)
+app.use(Sentry.Handlers.errorHandler());
+app.use((err, _req, res, _next) => {
+  const code = err.statusCode || 500;
+  res.status(code).json({ error: code >= 500 ? "Internal Server Error" : err.message });
+});
+```
+
+**Zweck:** Stacktraces, Release-Marker, Alerting bei neuen/gehäuften Fehlern.
+
+---
+
+### 5) Health-/Readiness-Probes & Uptime-Monitoring
+
+* **Endpoints:** `/health` (lebt Prozess?), optional `/ready` (DB/Queues erreichbar?).
+* **Externes Monitoring:** UptimeRobot, Grafana Cloud, Pingdom.
+* In Kubernetes: `livenessProbe` + `readinessProbe` (entfernt Instanzen aus LB, wenn ungesund).
+
+---
+
+### 6) Rate Limiting, Timeouts, Circuit Breaker (stabiler Betrieb)
+
+```js
+import rateLimit from "express-rate-limit";
+app.use(rateLimit({ windowMs: 60_000, max: 300 }));
+
+// Beispiel: fetch mit Timeout
+const fetchWithTimeout = (url, ms = 3000) =>
+  Promise.race([fetch(url), new Promise((_, r) => setTimeout(() => r(new Error("timeout")), ms))]);
+```
+
+**Zweck:** Schutz vor Lastspitzen/Hängern → indirekt bessere SLOs.
+
+---
+
+### 7) Log-Aggregation & Dashboards
+
+* **Logs:** ELK/Opensearch, Datadog, Loki+Grafana.
+* **Metriken/Traces:** Prometheus + Grafana, Tempo/Jaeger, Datadog/New Relic.
+* Dashboards: Latenz (P50/P95/P99), Fehlerquote pro Route, Throughput, DB-Query-Latenzen, GC/Heap.
+
+---
+
+### 8) Profiling & Diagnostik (bei Bedarf)
+
+* Node Profiler: `node --prof`, Clinic.js, Heap Snapshots für Leaks.
+* Feature-Flags für teures Debug-Logging, nur in Staging aktivieren.
+
+---
+
+### 9) Alerts (Beispiele)
+
+* **Error-Rate** > x% in 5 min.
+* **Latenz P95** > Schwelle.
+* **CPU/Heap** > 85% über Zeitraum.
+* **DB-Fehler**/Pool-Erschöpfung/Queue-Backlog.
+
+---
+
+### Minimal-Setup (schnell produktiv)
+
+1. **pino + pino-http** (JSON-Logs, Request-IDs).
+2. **Prometheus `/metrics`** mit `prom-client` (Default + HTTP-Histogram).
+3. **Sentry** (Fehler/Alerts).
+4. **/health** + optional **/ready**.
+5. **Dashboards & Alerts** in Grafana/Datadog/Jaeger.
+
+---
+
+### Zusammenfassung
+
+* **Logs:** strukturiert (JSON) mit Request-ID.
+* **Metriken:** Prometheus (`/metrics`) für Latenz/Fehler/Throughput.
+* **Tracing:** OpenTelemetry → Ursachen & Abhängigkeiten sichtbar.
+* **Fehler-Tracking:** Sentry/APM mit Alerts.
+* **Health/Readiness:** Endpoints & Probes; Uptime-Checks.
+* **Dashboards/Alerts:** auf SLOs ausrichten; Profiling bei Bedarf.
+
+**Quellen & Vertiefung**
+
+* Express: „Using Middleware“, „Best Practices: Production“ – [https://expressjs.com/de/guide/using-middleware.html](https://expressjs.com/de/guide/using-middleware.html) | [https://expressjs.com/de/advanced/best-practice-performance.html](https://expressjs.com/de/advanced/best-practice-performance.html)
+* Node.js: `process`/Diagnose/Cluster – [https://nodejs.org/docs/latest/api/](https://nodejs.org/docs/latest/api/)
+* MDN (RU): HTTP-Caching/Headers – [https://developer.mozilla.org/ru/docs/Web/HTTP/Caching](https://developer.mozilla.org/ru/docs/Web/HTTP/Caching)
+* Prometheus (Node/Express): [https://prometheus.io/docs/instrumenting/clientlibs/](https://prometheus.io/docs/instrumenting/clientlibs/)
+* OpenTelemetry Node: [https://opentelemetry.io/docs/languages/js/](https://opentelemetry.io/docs/languages/js/)
+* Sentry for Node/Express: [https://docs.sentry.io/platforms/node/](https://docs.sentry.io/platforms/node/)
 
 
   **[⬆ Наверх](#top)**
 
-102. ### <a name="102"></a> 
+104. ### <a name="104"></a> Was sind typische Bottlenecks in Express-Anwendungen?
 
+**Typische Bottlenecks in Express-Anwendungen**
+
+---
+
+### 1) **Blockierende (synchron) Operationen im Event Loop**
+
+* Node ist single-threaded → blockierende Calls stoppen alle Requests.
+* Beispiele:
+
+  * `fs.readFileSync`, `bcrypt.hashSync`, `JSON.stringify` großer Objekte.
+  * Komplexe Berechnungen im Controller.
+
+👉 Lösung: **Async-APIs** nutzen (`fs.promises`), CPU-intensive Tasks in **Worker Threads/Queues** auslagern.
+
+---
+
+### 2) **Unoptimierte Datenbankzugriffe**
+
+* **N+1 Queries**: Jeder User-Record lädt separat seine Posts.
+* Fehlende **Indizes** → langsame WHERE/JOINS.
+* Zu kleine/große Connection-Pools → Warteschlangen oder Verbindungs-Overhead.
+
+👉 Lösung:
+
+* Joins/`include` in Sequelize nutzen, Indizes prüfen (`EXPLAIN`).
+* Connection Pool korrekt dimensionieren (`pool.min/max`).
+
+---
+
+### 3) **Fehlendes Caching**
+
+* Jeder Request geht gegen DB/API → hohe Latenz.
+* Keine HTTP-Caching-Header → Clients/Proxy müssen alles neu laden.
+
+👉 Lösung:
+
+* **Redis/Memcached** für häufige Queries.
+* **Cache-Control / ETag / Last-Modified** setzen.
+
+---
+
+### 4) **Zu große Responses / Payloads**
+
+* Riesige JSON-Antworten oder unkomprimierte Daten.
+* Keine Pagination → 10.000 Datensätze pro Request.
+
+👉 Lösung:
+
+* Pagination & Feld-Selektion (`attributes` in Sequelize).
+* Komprimierung (gzip/brotli), Streaming bei großen Dateien.
+
+---
+
+### 5) **Ineffiziente Middleware-Ketten**
+
+* Alle Requests durchlaufen teure Middlewares, auch wenn unnötig.
+* Beispiel: Auth-Check für `/public/assets`.
+
+👉 Lösung:
+
+* Middleware nur für relevante Routen mounten.
+* Reihenfolge optimieren: günstige Checks zuerst.
+
+---
+
+### 6) **Logging / Monitoring im Hotpath**
+
+* Synchrone/teure Log-Ausgaben (`console.log`) blockieren Event Loop.
+* Ungedrosseltes Error-Reporting (Sentry/Datadog) → Flut bei Peak.
+
+👉 Lösung:
+
+* **Asynchrones, strukturiertes Logging** (z. B. `pino`).
+* Sampling/Rate-Limits für Error-Reporter.
+
+---
+
+### 7) **Fehlende Limits & Schutz**
+
+* Keine Body-Limits → Angreifer schickt 1 GB JSON.
+* Keine Rate-Limits → API wird geflutet.
+
+👉 Lösung:
+
+```js
+app.use(express.json({ limit: "1mb" }));
+import rateLimit from "express-rate-limit";
+app.use(rateLimit({ windowMs: 60_000, max: 300 }));
+```
+
+---
+
+### 8) **Ungünstige Skalierung**
+
+* Nur 1 Node-Prozess auf Multi-Core-Server.
+* Kein Load Balancer zwischen Instanzen.
+
+👉 Lösung:
+
+* **Cluster/PM2** für mehrere Worker-Prozesse.
+* **Nginx/K8s/Cloud-LB** für horizontale Skalierung.
+
+---
+
+### 9) **Langsame externe Services**
+
+* Express hängt, weil externe API keine Timeouts hat.
+* Keine Circuit-Breaker → Kaskadierende Fehler.
+
+👉 Lösung:
+
+* **Timeouts** bei `fetch/axios`.
+* Circuit-Breaker (z. B. [opossum](https://www.npmjs.com/package/opossum)).
+
+---
+
+### 10) **Memory Leaks & GC-Pressure**
+
+* Ungenutzte Objekte in Caches/Globals → Heap wächst.
+* Häufige Full-GC-Zyklen → Stop-the-world-Pausen.
+
+👉 Lösung:
+
+* Caches mit TTL/LRU.
+* Heap Snapshots/Profiler (`clinic`, `node --inspect`).
+
+---
+
+### Zusammenfassung
+
+**Bottlenecks in Express** entstehen meist durch:
+
+* **Sync-Operationen** im Event Loop.
+* **DB-Zugriffe** ohne Optimierung.
+* **Fehlendes Caching** & Pagination.
+* **Teure Middlewares** oder Logging.
+* **Skalierungsprobleme** (1 Worker, kein LB).
+* **Langsame externe Dienste** ohne Timeout.
+* **Memory Leaks**.
+
+📚 Quellen
+
+* Express: [Best Practices – Performance](https://expressjs.com/de/advanced/best-practice-performance.html)
+* Node.js: [Event Loop & Async](https://nodejs.org/docs/latest/api/process.html)
+* MDN (RU): [HTTP-Caching](https://developer.mozilla.org/ru/docs/Web/HTTP/Caching)
+* PostgreSQL: [Indexen & EXPLAIN](https://www.postgresql.org/docs/current/sql-explain.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+105. ### <a name="105"></a> Wie misst man Response-Zeiten in Express?
+
+**Response-Zeiten in Express messen**
+
+---
+
+### 1) Fertige Middleware: `response-time`
+
+```js
+// npm i response-time
+import express from "express";
+import responseTime from "response-time";
+
+const app = express();
+
+// setzt "X-Response-Time" Header, z. B. "123.4 ms"
+app.use(responseTime());
+
+app.get("/api", (_req, res) => res.json({ ok: true }));
+export default app;
+```
+
+* Schnell einsetzbar; liefert Messwert pro Request über HTTP-Header.
+
+---
+
+### 2) Eigene Middleware mit `process.hrtime.bigint()` (präzise, ohne Abhängigkeit)
+
+```js
+// src/middleware/latency.js
+export function latencyHeader() {
+  return (req, res, next) => {
+    const start = process.hrtime.bigint();
+    res.on("finish", () => {
+      const ns = Number(process.hrtime.bigint() - start); // Nanosekunden
+      const ms = ns / 1e6;
+      res.setHeader("X-Response-Time", `${ms.toFixed(1)} ms`);
+    });
+    next();
+  };
+}
+
+// usage
+import express from "express";
+import { latencyHeader } from "./middleware/latency.js";
+const app = express();
+app.use(latencyHeader());
+```
+
+* Hohe Auflösung, unabhängig von Event-Loop-Delays.
+
+---
+
+### 3) Prometheus-Metriken (SLOs, P95/P99)
+
+```js
+// npm i prom-client
+// src/metrics.js
+import client from "prom-client";
+export const registry = new client.Registry();
+client.collectDefaultMetrics({ register: registry });
+
+export const httpLatency = new client.Histogram({
+  name: "http_request_duration_seconds",
+  help: "HTTP Latenz je Route",
+  labelNames: ["method", "route", "status_code"],
+  buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2] // Sekunden
+});
+registry.registerMetric(httpLatency);
+
+export function metricsMiddleware(req, res, next) {
+  const start = process.hrtime.bigint();
+  res.on("finish", () => {
+    const s = Number(process.hrtime.bigint() - start) / 1e9;
+    httpLatency.labels(req.method, req.route?.path ?? req.path, String(res.statusCode)).observe(s);
+  });
+  next();
+}
+
+// app.js
+import express from "express";
+import { registry, metricsMiddleware } from "./metrics.js";
+const app = express();
+app.use(metricsMiddleware);
+app.get("/metrics", async (_req, res) => {
+  res.set("Content-Type", registry.contentType);
+  res.end(await registry.metrics());
+});
+```
+
+* Für Dashboards/Alerts (Grafana/Prometheus), Messung je Route + Status.
+
+---
+
+### 4) Server-Timing-Header (im Browser sichtbar)
+
+```js
+// npm i server-timing
+import serverTiming from "server-timing";
+app.use(serverTiming()); // setzt "Server-Timing" Basis-Header
+
+app.get("/report", (req, res) => {
+  const start = process.hrtime.bigint();
+  // ... teure Operation ...
+  const durMs = (Number(process.hrtime.bigint() - start) / 1e6).toFixed(1);
+  res.serverTiming.from("db", durMs, "DB query"); // im DevTools-Netzwerk sichtbar
+  res.json({ ok: true });
+});
+```
+
+* Praktisch für Frontend/Perf-Analysen (Chrome DevTools zeigt Zeiten an).
+
+---
+
+### 5) Logging mit Dauer (z. B. `pino-http`)
+
+```js
+// npm i pino pino-http
+import pino from "pino";
+import pinoHttp from "pino-http";
+
+const logger = pino();
+app.use(pinoHttp({ logger, customLogLevel: (_req, res, err) => err ? "error" : "info" }));
+// pino-http loggt automatisch responseTime (in ms) je Request
+```
+
+* Dauer landet strukturiert im JSON-Log → auswertbar (ELK/Grafana/Loki).
+
+---
+
+### 6) Externe Messung (Load-Tests)
+
+* **autocannon** / **k6** messen End-to-End-Latenz von außerhalb:
+
+```bash
+npx autocannon http://localhost:3000/api
+```
+
+* Ergänzend zu internen Messungen, zeigt Nutzer-sichtbare Latenzen.
+
+---
+
+### Hinweise
+
+* Messung **nach** `res.on("finish")` erfasst komplette Zeit bis Antwort gesendet wurde.
+* Bei Streaming-Responses ggf. zusätzlich **Teilabschnitte** messen (z. B. DB-Zeit, Render-Zeit).
+* Routenname statt `req.path` verwenden (`req.route?.path`), um Metriken zu bündeln.
+* Keine teure Synchron-Arbeit in Mess-Middleware; Messung leichtgewichtig halten.
+
+---
+
+### Zusammenfassung
+
+* Schnellstart: **`response-time`** oder **eigene hrtime-Middleware** → `X-Response-Time`.
+* Für Monitoring/SLOs: **Prometheus Histogram** + `/metrics` (P95/P99).
+* Für Frontend/DevTools: **Server-Timing**.
+* Strukturierte Logs mit **pino-http** enthalten Response-Dauer; extern ergänzen mit **autocannon/k6**.
+
+📚 Quellen
+
+* Express: [Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
+* Node.js: [`process.hrtime()`/BigInt](https://nodejs.org/docs/latest/api/process.html#processhrtimetime)
+* MDN (RU): [Server-Timing](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Server-Timing)
+* Prometheus JS-Client: [prom-client](https://github.com/siimon/prom-client)
 
 
   **[⬆ Наверх](#top)**
 
-103. ### <a name="103"></a> 
+106. ### <a name="106"></a> Wie integriert man GraphQL in Express?
 
+**GraphQL in Express integrieren (3 gängige Wege)**
+
+---
+
+### 1) Apollo Server v4 + Express (empfohlen für volle Ökosystem-Features)
+
+```js
+// npm i @apollo/server @as-integrations/express5 graphql express cors
+import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
+import { ApolloServer } from "@apollo/server";
+import { expressMiddleware } from "@as-integrations/express5";
+
+const typeDefs = /* GraphQL */ `
+  type Query { hello: String! }
+`;
+const resolvers = {
+  Query: { hello: () => "Hallo GraphQL" },
+};
+
+const app = express();
+const server = new ApolloServer({ typeDefs, resolvers });
+await server.start();
+
+app.use(
+  "/graphql",
+  cors(),
+  bodyParser.json(),
+  // Kontext pro Request (Auth, DI, Loader)
+  expressMiddleware(server, {
+    context: async ({ req }) => ({ token: req.headers.authorization || null }),
+  })
+);
+
+app.listen(4000, () => console.log("http://localhost:4000/graphql"));
+```
+
+* `expressMiddleware` hängt Apollo an Express; Body-Parsing/CORS musst du selbst setzen. ([apollographql.com][1], [GitHub][2])
+
+---
+
+### 2) GraphQL Yoga + Express (leichtgewichtig, sehr einfach)
+
+```js
+// npm i graphql-yoga graphql express
+import express from "express";
+import { createYoga, createSchema } from "graphql-yoga";
+
+const app = express();
+const yoga = createYoga({
+  schema: createSchema({
+    typeDefs: /* GraphQL */`type Query{ ping:String! }`,
+    resolvers: { Query: { ping: () => "pong" } },
+  }),
+  context: ({ request }) => ({ ip: request.headers["x-forwarded-for"] }),
+});
+
+app.use("/graphql", yoga);            // GraphiQL inklusive
+app.listen(4000, () => console.log("http://localhost:4000/graphql"));
+```
+
+* Yoga integriert sich direkt als Express-Middleware; Context pro Request ist eingebaut. ([The Guild][3])
+
+---
+
+### 3) `graphql-http` (referenzierte, standardnahe HTTP-Implementierung)
+
+```js
+// npm i graphql graphql-http express
+import express from "express";
+import { buildSchema } from "graphql";
+import { createHandler } from "graphql-http/lib/use/express";
+
+const schema = buildSchema(`type Query{ now:String! }`);
+const rootValue = { now: () => new Date().toISOString() };
+
+const app = express();
+app.all("/graphql", createHandler({ schema, rootValue }));
+app.listen(4000, () => console.log("http://localhost:4000/graphql"));
+```
+
+* **Hinweis:** `express-graphql` ist deprecatet; stattdessen `graphql-http` verwenden. ([graphql.org][4], [GitHub][5])
+
+---
+
+### Wichtige Praxispunkte
+
+* **HTTP/Body-Format:** Nutze `application/json` (das alte `application/graphql` ist deprecatet). ([graphql.org][6], [Shopify][7])
+* **CORS & Body-Limits:** bei Apollo/Express selbst setzen (z. B. `cors()`, `express.json({limit:"1mb"})`). ([apollographql.com][1])
+* **Fehlerformat:** GraphQL-Errors werden als `errors[]` im Response geliefert; strukturiere Codes/Extensions. ([apollographql.com][8])
+* **Schema & Doku:** GraphiQL/Explorer ist bei Yoga out-of-the-box; bei Apollo via Sandbox. ([The Guild][3])
+
+---
+
+### Zusammenfassung
+
+* **Apollo v4**: mächtiges Ökosystem, Express-Integration via `expressMiddleware`.
+* **GraphQL Yoga**: minimaler Setup, GraphiQL inklusive, sehr DX-freundlich.
+* **graphql-http**: standardnahe, schlanke Middleware; Ersatz für `express-graphql` (deprecated).
+* Achte auf **CORS**, **Body-Parsing**, **Context** pro Request und **JSON** als Content-Type.
+
+**Quellen**
+
+* Apollo Server v4 Express-Middleware: ([apollographql.com][1], [GitHub][2])
+* GraphQL Yoga + Express: ([The Guild][3])
+* `express-graphql` Deprecation & Empfehlung `graphql-http`: ([graphql.org][4], [GitHub][5])
+* GraphQL über HTTP / Content-Type: ([graphql.org][6], [Shopify][7])
+* Fehlerhandhabung in Apollo: ([apollographql.com][8])
+
+[1]: https://www.apollographql.com/docs/apollo-server/api/express-middleware?utm_source=chatgpt.com "API Reference: expressMiddleware - Apollo GraphQL Docs"
+[2]: https://github.com/apollographql/apollo-server?utm_source=chatgpt.com "apollographql/apollo-server"
+[3]: https://the-guild.dev/graphql/yoga-server/docs/integrations/integration-with-express?utm_source=chatgpt.com "Integration with Express | Yoga"
+[4]: https://graphql.org/blog/2022-11-07-graphql-http/?utm_source=chatgpt.com "GraphQL Foundation adopts graphql-http"
+[5]: https://github.com/cypress-io/cypress/issues/30127?utm_source=chatgpt.com "Replace deprecated `express-graphql` · Issue #30127"
+[6]: https://graphql.org/learn/serving-over-http/?utm_source=chatgpt.com "Serving over HTTP"
+[7]: https://shopify.dev/changelog/content-type-application-graphql-is-deprecated?utm_source=chatgpt.com "Content type application/graphql is deprecated"
+[8]: https://www.apollographql.com/docs/apollo-server/data/errors?utm_source=chatgpt.com "Error Handling - Apollo GraphQL Docs"
 
 
   **[⬆ Наверх](#top)**
 
-104. ### <a name="104"></a> 
+107. ### <a name="107"></a> Unterschied zwischen REST- und gRPC-Integration mit Express?
 
+**REST vs. gRPC in/mit Express – die wichtigsten Unterschiede**
+
+---
+
+### Architektur & Transport
+
+* **REST + Express**
+
+  * JSON über **HTTP/1.1** (oder 2), klassische **Routes/Router** in Express. ([expressjs.com][1])
+* **gRPC**
+
+  * **HTTP/2** + **Protocol Buffers** (binär), RPC-Aufrufe (Unary & Streaming). Node-Seite mit **@grpc/grpc-js**; eigener Server, nicht Teil von Express. ([gRPC][2], [npm][3])
+
+---
+
+### Schema/Contracts & Doku
+
+* **REST**: oft **OpenAPI**/Swagger (Contract-First oder Code-First).
+* **gRPC**: **.proto** als Single Source of Truth (Service/Messages). ([gRPC][2])
+
+---
+
+### Fehler-/Statusmodell
+
+* **REST**: HTTP-Statuscodes + JSON-Fehlerkörper.
+* **gRPC**: **gRPC-Statuscodes** (z. B. `NOT_FOUND`) im Trailer + optionale `details`. ([gRPC][2])
+
+---
+
+### Streaming
+
+* **REST**: meist Request/Response; Streams nur mit Zusatzaufwand.
+* **gRPC**: **Server-, Client- und Bidirectional-Streaming** nativ. ([gRPC][2])
+
+---
+
+### Browser-Support
+
+* **REST**: nativ im Browser.
+* **gRPC im Browser**: über **gRPC-Web** + Proxy (typisch **Envoy**) – oder alternative Protokolle wie **Connect** (spricht gRPC/gRPC-Web/JSON über HTTP/1.1/2). ([gRPC][4], [GitHub][5], [envoyproxy.io][6], [Protobuf RPC that works][7])
+
+---
+
+### Integration mit Express (Muster)
+
+**A) REST (klassisch)**
+
+```js
+// REST in Express
+import express from "express";
+const app = express();
+app.get("/api/users/:id", (req, res) => res.json({ id: req.params.id }));
+export default app;
+```
+
+([expressjs.com][1])
+
+**B) gRPC neben Express (separater Server/Port)**
+
+```js
+// gRPC-Server (Node) – getrennt von Express
+import * as grpc from "@grpc/grpc-js";
+import { loadPackageDefinition } from "@grpc/grpc-js";
+import { loadSync } from "@grpc/proto-loader";
+
+const pkgDef = loadSync("user.proto");
+const userPkg = loadPackageDefinition(pkgDef).user;
+
+const server = new grpc.Server();
+server.addService(userPkg.UserService.service, {
+  GetUser: (call, cb) => cb(null, { id: call.request.id, name: "Max" }),
+});
+server.bindAsync("0.0.0.0:50051", grpc.ServerCredentials.createInsecure(), () => {
+  server.start();
+});
+```
+
+* Express läuft z. B. auf `:3000`, gRPC auf `:50051`. ([gRPC][8], [npm][3])
+
+**C) Protobuf-APIs **im** Express-Prozess (ConnectRPC-Middleware)**
+
+```js
+// ConnectRPC in Express (spricht gRPC, gRPC-Web, JSON)
+import express from "express";
+import { createConnectRouter } from "@connectrpc/connect-express";
+import { UserService } from "./gen/user_connect.js";
+
+const app = express();
+app.use("/grpc", createConnectRouter({
+  routes: (r) => r.service(UserService, {
+    getUser: async (req) => ({ id: req.id, name: "Max" }),
+  }),
+}));
+app.listen(3000);
+```
+
+* Vorteil: **eine** Express-App; Clients können gRPC-Web/HTTP/1.1 nutzen. ([npm][9], [Protobuf RPC that works][10], [GitHub][11])
+
+---
+
+### Performance & Einsatz
+
+* **REST**: maximal kompatibel; JSON ist schwerer (Parsing/Payload), kein natives Streaming → perfekt für Browser/öffentliches API.
+* **gRPC**: kompakt & schnell (HTTP/2, Protobuf, Multiplexing), stark bei **Service-to-Service**, Streaming, strikten Contracts. ([gRPC][2], [Google Cloud][12])
+
+---
+
+### Betrieb
+
+* **REST** über Express skaliert mit gängigen Mustern (Proxy, Cluster, K8s).
+* **gRPC** benötigt **HTTP/2**-fähig LB/Proxy; für Browser meist **gRPC-Web + Envoy** oder **Connect**. ([envoyproxy.io][6], [Protobuf RPC that works][7])
+
+---
+
+### Kurzvergleich
+
+| Kriterium   | REST + Express     | gRPC (Node)                                  |
+| ----------- | ------------------ | -------------------------------------------- |
+| Transport   | HTTP/1.1 (JSON)    | HTTP/2 + Protobuf (binär)                    |
+| Contract    | OpenAPI (optional) | `.proto` (Pflicht)                           |
+| Streaming   | begrenzt           | nativ (uni/bi-direktional)                   |
+| Browser     | nativ              | gRPC-Web/Proxy oder Connect                  |
+| Integration | direkt in Express  | separater Server **oder** Connect-Middleware |
+
+---
+
+### Zusammenfassung
+
+* **REST+Express**: maximal kompatibel, schnell integrierbar, ideal für Browser/öffentliche APIs.
+* **gRPC**: schema-first, schnell & streaming-fähig; für interne Services top.
+* Integration: **nebeneinander** (Express + gRPC-Server) oder **gemeinsam** via **Connect-Middleware** in Express.
+
+**Quellen**
+
+* Express Routing/Starter. ([expressjs.com][1])
+* gRPC Docs (Node, Web) & @grpc/grpc-js. ([gRPC][2], [npm][3])
+* gRPC-Web & Envoy Proxy. ([GitHub][5], [envoyproxy.io][6])
+* ConnectRPC (Express/Node, Mixed gRPC/gRPC-Web/JSON). ([npm][9], [Protobuf RPC that works][10], [GitHub][11])
+
+[1]: https://expressjs.com/en/guide/routing.html?utm_source=chatgpt.com "Express routing"
+[2]: https://grpc.io/docs/?utm_source=chatgpt.com "Documentation"
+[3]: https://www.npmjs.com/package/%40grpc/grpc-js?utm_source=chatgpt.com "grpc/grpc-js"
+[4]: https://grpc.io/docs/platforms/web/basics/?utm_source=chatgpt.com "Basics tutorial | Web"
+[5]: https://github.com/grpc/grpc-web?utm_source=chatgpt.com "gRPC for Web Clients"
+[6]: https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_web_filter?utm_source=chatgpt.com "gRPC-Web — envoy 1.36.0-dev-0685d7 documentation"
+[7]: https://connectrpc.com/docs/node/getting-started/?utm_source=chatgpt.com "Getting started - Connect RPC"
+[8]: https://grpc.io/docs/languages/node/basics/?utm_source=chatgpt.com "Basics tutorial | Node"
+[9]: https://www.npmjs.com/package/%40connectrpc%2Fconnect-express?utm_source=chatgpt.com "connectrpc/connect-express"
+[10]: https://connectrpc.com/docs/node/server-plugins?utm_source=chatgpt.com "Server plugins - Connect RPC"
+[11]: https://github.com/connectrpc/connect-es?utm_source=chatgpt.com "connectrpc/connect-es: The TypeScript implementation of ..."
+[12]: https://cloud.google.com/api-gateway/docs/grpc-overview?utm_source=chatgpt.com "gRPC overview | API Gateway Documentation"
 
 
   **[⬆ Наверх](#top)**
 
-105. ### <a name="105"></a> 
+108. ### <a name="108"></a> Wie nutzt man EventEmitter in Express?
 
+**EventEmitter in Express nutzen**
+
+---
+
+### 1) Grundidee
+
+* **`EventEmitter`** ist ein Kernmodul in Node.js (`events`).
+* Damit kann man **Events asynchron feuern** und **Listener registrieren**.
+* In einer Express-App nützlich für:
+
+  * lose Kopplung (z. B. Logging, Benachrichtigung, Analytics)
+  * asynchrone Nebenaufgaben (z. B. E-Mail, Queue-Trigger)
+  * internes Pub/Sub zwischen Modulen
+
+📚 [Node.js – events Modul](https://nodejs.org/docs/latest/api/events.html)
+
+---
+
+### 2) Einfaches Beispiel: Logging-Event
+
+```js
+// events/logger.js
+import { EventEmitter } from "node:events";
+export const appEvents = new EventEmitter();
+
+// Listener definieren
+appEvents.on("user:created", (user) => {
+  console.log("Neuer User angelegt:", user.name);
+});
+```
+
+```js
+// routes/user.routes.js
+import express from "express";
+import { appEvents } from "../events/logger.js";
+const router = express.Router();
+
+router.post("/", (req, res) => {
+  const user = { id: 1, name: req.body.name }; // Beispiel
+  appEvents.emit("user:created", user);        // Event feuern
+  res.status(201).json(user);
+});
+
+export default router;
+```
+
+* Request erstellt User → Event wird gefeuert → Logger hört zu.
+* Vorteil: Route muss Logger nicht direkt kennen.
+
+---
+
+### 3) Mehrere Listener (z. B. Mail + Metrics)
+
+```js
+// listeners.js
+import { appEvents } from "./events/logger.js";
+
+appEvents.on("user:created", (user) => {
+  console.log("📩 Sende Willkommens-Mail an", user.name);
+});
+
+appEvents.on("user:created", (user) => {
+  console.log("📊 Metrics: User registriert:", user.id);
+});
+```
+
+---
+
+### 4) Async Listener
+
+* Listener dürfen async sein. Fehler immer behandeln, sonst: `unhandledRejection`.
+
+```js
+appEvents.on("order:paid", async (order) => {
+  try {
+    await sendInvoice(order);
+  } catch (e) {
+    console.error("Fehler beim Senden der Rechnung:", e);
+  }
+});
+```
+
+---
+
+### 5) Best Practices
+
+* **Singleton-Emitter** (z. B. `appEvents`) pro App, sonst mehrere Instanzen.
+* **Namespaces/Präfixe** für Events (`user:created`, `order:paid`).
+* Keine **kritischen Business-Logiken** ausschließlich über Events abwickeln → Emitter ist In-Memory, nicht persistent.
+* Für **skalierte Systeme** (mehrere Instanzen/Server) besser Message-Broker (Redis Pub/Sub, Kafka, RabbitMQ).
+* Fehler-Handling: `.on("error", handler)` registrieren.
+
+---
+
+### 6) Beispiel-Setup in Express
+
+```js
+// src/app.js
+import express from "express";
+import userRouter from "./routes/user.routes.js";
+import "./listeners.js"; // Events registrieren
+
+const app = express();
+app.use(express.json());
+app.use("/users", userRouter);
+
+export default app;
+```
+
+---
+
+### Zusammenfassung
+
+* **EventEmitter** = internes Pub/Sub für Node/Express.
+* Einsatz: Logging, Benachrichtigungen, Nebenaufgaben → entkoppelt von Routen.
+* Events per `emit` auslösen, per `on` oder `once` abfangen.
+* Für produktive Skalierung → externe Broker einsetzen.
+
+📚 Quellen
+
+* Node.js: [events Modul](https://nodejs.org/docs/latest/api/events.html)
+* Express: [Middleware/Architektur-Best Practices](https://expressjs.com/de/advanced/best-practice-performance.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+109. ### <a name="109"></a> Wie integriert man Message Queues (z. B. RabbitMQ, Kafka) mit Express?
+
+**Message Queues (RabbitMQ, Kafka) mit Express integrieren**
+
+---
+
+### Architekturprinzip
+
+* **Express (HTTP) = Producer**: nimmt Requests an, validiert, publiziert Nachricht in die Queue/Topic, antwortet schnell (202/201).
+* **Worker/Consumer (separater Prozess)**: liest Nachrichten, führt **langlaufende/zuverlässige** Aufgaben aus (z. B. E-Mail, Billing, ETL).
+* Vorteile: **Entkopplung**, **Retry**, **Backpressure**, **Resilienz**.
+
+---
+
+### RabbitMQ (AMQP) – minimaler Flow
+
+**1) Verbindung & Channel (Singleton)**
+
+```js
+// src/queues/rabbit.js
+import amqplib from "amqplib";
+
+let channel;
+export async function getChannel() {
+  if (channel) return channel;
+  const conn = await amqplib.connect(process.env.AMQP_URL); // z.B. amqp://user:pass@host:5672
+  channel = await conn.createChannel();
+  process.on("SIGINT", async () => { await channel?.close(); await conn?.close(); process.exit(0); });
+  return channel;
+}
+```
+
+**2) Producer im Express-Route**
+
+```js
+// src/routes/order.routes.js
+import { Router } from "express";
+import { getChannel } from "../queues/rabbit.js";
+
+const r = Router();
+r.post("/", async (req, res, next) => {
+  try {
+    const order = { id: crypto.randomUUID(), items: req.body.items };
+    const ch = await getChannel();
+    const q = "order.created";
+    await ch.assertQueue(q, { durable: true });
+    ch.sendToQueue(q, Buffer.from(JSON.stringify(order)), { persistent: true });
+    res.status(202).json({ accepted: true, id: order.id });
+  } catch (e) { next(e); }
+});
+export default r;
+```
+
+**3) Consumer (separater Node-Prozess)**
+
+```js
+// workers/order-consumer.js
+import { getChannel } from "../src/queues/rabbit.js";
+
+const run = async () => {
+  const ch = await getChannel();
+  const q = "order.created";
+  await ch.assertQueue(q, { durable: true });
+  ch.prefetch(10); // Backpressure
+  ch.consume(q, async (msg) => {
+    if (!msg) return;
+    const order = JSON.parse(msg.content.toString());
+    try {
+      // ... Domain-Logik (idempotent!) ...
+      ch.ack(msg);
+    } catch (e) {
+      // Retry/Dead-Letter: nack requeue=false → DLX nutzen
+      ch.nack(msg, false, false);
+    }
+  }, { noAck: false });
+};
+run();
+```
+
+**Hinweise (RabbitMQ):**
+
+* **Durable Queues** + **persistent Messages** für Zuverlässigkeit.
+* **Dead-Letter-Exchange (DLX)** für gescheiterte Nachrichten & **Retry**-Strategien.
+* **Idempotenz** (z. B. anhand `order.id`) ist Pflicht.
+
+---
+
+### Kafka – minimaler Flow
+
+**1) Client & Topic**
+
+```js
+// src/queues/kafka.js
+import { Kafka } from "kafkajs";
+const kafka = new Kafka({ clientId: "api", brokers: process.env.KAFKA_BROKERS.split(",") });
+
+export const producer = kafka.producer();
+export const consumer = kafka.consumer({ groupId: "order-workers" });
+
+export async function initKafka() {
+  await producer.connect();
+  process.on("SIGINT", async () => { await producer.disconnect(); process.exit(0); });
+}
+```
+
+**2) Producer im Express-Route**
+
+```js
+// src/routes/order.routes.js
+import { Router } from "express";
+import { producer } from "../queues/kafka.js";
+
+const r = Router();
+r.post("/", async (req, res, next) => {
+  try {
+    const order = { id: crypto.randomUUID(), items: req.body.items };
+    await producer.send({
+      topic: "order.created",
+      messages: [{ key: order.id, value: JSON.stringify(order) }],
+    });
+    res.status(202).json({ accepted: true, id: order.id });
+  } catch (e) { next(e); }
+});
+export default r;
+```
+
+**3) Consumer (separater Prozess)**
+
+```js
+// workers/order-consumer.js
+import { consumer } from "../src/queues/kafka.js";
+
+await consumer.connect();
+await consumer.subscribe({ topic: "order.created" });
+
+await consumer.run({
+  autoCommit: false,
+  eachMessage: async ({ topic, partition, message, heartbeat, commitOffsetsIfNecessary }) => {
+    const order = JSON.parse(message.value.toString());
+    try {
+      // ... Domain-Logik (idempotent) ...
+      await commitOffsetsIfNecessary(); // Commit nach erfolgreicher Verarbeitung
+      await heartbeat();
+    } catch (e) {
+      // Keine Commits → Nachricht bleibt zum Retry im Log (At-least-once)
+    }
+  },
+});
+```
+
+**Hinweise (Kafka):**
+
+* **At-least-once**-Semantik ⇒ Idempotenz sicherstellen.
+* **Partitions & Keys** steuern **Ordering** (gleicher Key → gleiche Partition).
+* **Offset-Commit** kontrollieren (manuell für präzise Kontrolle).
+
+---
+
+### Cross-Cutting Best Practices
+
+* **Separate Prozesse**: API (Express) und Worker (Consumer) trennen.
+* **Schema**: JSON mit Versionierung oder **Avro/Protobuf** (Schema Registry).
+* **Retries/Backoff** + **DLQ** (RabbitMQ DLX, Kafka Dead Letter Topic).
+* **Idempotenz**: z. B. dedizierte Tabelle/Cache für verarbeitete IDs.
+* **Observability**: strukturierte Logs, Metriken (Verbrauchslatenz, Lag), Tracing (OpenTelemetry).
+* **Graceful Shutdown**: Consumer anhalten, offene Messages fertig verarbeiten.
+* **Sicherheit**: TLS/SASL (Kafka), Auth für RabbitMQ.
+* **Konfiguration via Env**; **kein Secret im Code**.
+
+---
+
+### Express-Integration (App-Aufbau)
+
+```js
+// src/app.js
+import express from "express";
+import orderRoutes from "./routes/order.routes.js";
+import { initKafka } from "./queues/kafka.js"; // oder RabbitMQ init
+
+const app = express();
+app.use(express.json());
+await initKafka(); // Producer verbinden
+app.use("/orders", orderRoutes);
+export default app;
+```
+
+---
+
+### Zusammenfassung
+
+* **Express produziert** Nachrichten; **Worker konsumieren** asynchron.
+* **RabbitMQ** (AMQP): Queues/Exchanges, **ack/nack**, DLX; gut für Work-Queues/Retry.
+* **Kafka**: Topics/Partitions, **Offsets**, **at-least-once**; stark für Streaming & Event-Driven.
+* Kritisch: **Idempotenz, Retry/DLQ, Observability, Graceful Shutdown**.
+
+📚 Quellen
+
+* Node.js: [`events`, Prozess/Signals](https://nodejs.org/docs/latest/api/)
+* Express: [Using Middleware / Best Practices](https://expressjs.com/de/guide/using-middleware.html)
+* MDN (RU): [HTTP/Headers, JSON](https://developer.mozilla.org/ru/)
+* RabbitMQ: *Tutorials & AMQP Concepts* – [https://www.rabbitmq.com/tutorials/](https://www.rabbitmq.com/tutorials/)
+* KafkaJS: *Getting Started* – [https://kafka.js.org/docs/getting-started](https://kafka.js.org/docs/getting-started)
+
+---
 
 
   **[⬆ Наверх](#top)**
 
-106. ### <a name="106"></a> 
+110. ### <a name="110"></a> Wie baut man eine Multitenant-Anwendung mit Express?
 
+**Multitenancy mit Express – Architektur, Patterns, Codebeispiele**
+
+---
+
+### 1) Mandanten-Modelle (Tenant-Isolation)
+
+* **Database-per-tenant**: jede Firma/EU-Kunde hat **eigene DB**. Maximale Isolation, teuer in Betrieb (viele Verbindungen/Migrationen).
+* **Schema-per-tenant (PostgreSQL)**: ein Cluster, **ein DB**, pro Tenant eigenes **Schema**. Gute Isolation, einfacher Betrieb als viele DBs.
+* **Row-level (Shared Schema)**: eine DB/ein Schema, alle Daten enthalten `tenant_id`. Schnell & günstig, braucht strenge **RLS/Filters**.
+  📚 PG: [Schemas & `search_path`](https://www.postgresql.org/docs/current/ddl-schemas.html), [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
+
+---
+
+### 2) Tenant-Auflösung (Middleware)
+
+* Quellen: **Subdomain** (`acme.example.com`), **Header** (`X-Tenant-Id`), **JWT-Claim** (`tenant_id`).
+* Ergebnis im Request-Kontext ablegen.
+
+```js
+// src/middleware/tenant.js
+export function tenantResolver(req, _res, next) {
+  const host = req.hostname;                 // z. B. acme.example.com
+  const sub = host.split(".")[0];
+  const fromHeader = req.get("x-tenant-id");
+  const fromJwt = req.user?.tenant_id;       // nach Auth-Middleware
+  req.tenant = fromHeader || fromJwt || sub || "public";
+  next();
+}
+```
+
+📚 Express: [Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
+
+---
+
+### 3) Variante A – Row-Level-Tenancy (shared schema)
+
+**DB-Design**
+
+```sql
+-- Tabelle mit Mandanten-Spalte
+CREATE TABLE invoices (
+  id bigserial PRIMARY KEY,
+  tenant_id text NOT NULL,
+  amount numeric NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX ON invoices (tenant_id);
+
+-- (Optional, sicher): RLS aktivieren
+ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
+CREATE POLICY invoices_tenant_isolation ON invoices
+  USING (tenant_id = current_setting('app.tenant_id', true));
+```
+
+**Per-Request Tenant setzen + Queries erzwingen**
+
+```js
+// src/db/withTenant.js (pg oder sequelize: roher Query vor der Transaktion)
+export async function withTenant(clientOrSequelize, tenant, fn) {
+  // SET LOCAL gilt nur innerhalb der Transaktion/Session
+  await clientOrSequelize.query(`SET LOCAL app.tenant_id = $1`, { bind: [tenant] });
+  return fn();
+}
+```
+
+**Repository erzwingt Filter**
+
+```js
+// src/repos/invoice.repo.js (Sequelize)
+export class InvoiceRepo {
+  constructor(model) { this.model = model; }
+  list(tenant) {
+    return this.model.findAll({ where: { tenant_id: tenant }, attributes: ["id","amount"] });
+  }
+  create(tenant, dto) {
+    return this.model.create({ ...dto, tenant_id: tenant });
+  }
+}
+```
+
+---
+
+### 4) Variante B – Schema-per-Tenant (PostgreSQL)
+
+**Schema anlegen & migrieren**
+
+```sql
+CREATE SCHEMA IF NOT EXISTS tenant_acme;
+-- Migrationen pro Schema ausführen (z. B. mit Platzhaltern)
+SET search_path TO tenant_acme;
+-- CREATE TABLE ...;
+```
+
+**Sequelize: `searchPath` pro Request setzen**
+
+```js
+// src/db/sequelize.js
+import { Sequelize } from "sequelize";
+export const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: "postgres",
+  logging: false
+});
+
+// pro Request/Transaktion das Schema setzen
+export async function withSchema(schema, fn) {
+  return sequelize.transaction(async (t) => {
+    await sequelize.query(`SET LOCAL search_path TO ${schema}`, { transaction: t });
+    return fn(t); // alle Model-Queries nutzen nun das Schema
+  });
+}
+```
+
+**Route nutzt Resolver + Schema**
+
+```js
+// src/routes/invoices.routes.js
+import { Router } from "express";
+import { withSchema } from "../db/sequelize.js";
+import { Invoice } from "../models/Invoice.js";
+
+const r = Router();
+r.get("/", async (req, res, next) => {
+  try {
+    const schema = `tenant_${req.tenant}`;
+    const data = await withSchema(schema, () => Invoice.findAll({ attributes: ["id","amount"] }));
+    res.json(data);
+  } catch (e) { next(e); }
+});
+export default r;
+```
+
+📚 Sequelize: [Schemas & `searchPath`](https://sequelize.org/docs/v6/other-topics/other-data-types-and-features/#postgresql-schemas), [Model Querying Basics](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/)
+
+---
+
+### 5) AuthZ & Isolation
+
+* **Stets serverseitig filtern** (niemals nur vom Client übergebenen `tenant_id` trauen).
+* **RLS** (PG) bietet einen harten Sicherheitszaun auf DB-Ebene.
+* **Secrets/Keys** pro Tenant trennen (z. B. Webhooks, API-Keys).
+
+---
+
+### 6) Caching, Jobs, Files
+
+* **Cache Keys prefixen**: `tenant:${tenant}:...` (Redis/Memcached).
+* **Queues/Jobs**: Topic/Queue pro Tenant oder Message-Key = `tenant_id`.
+* **File Storage**: S3-Prefix pro Tenant (`s3://bucket/tenant/{id}/...`).
+
+---
+
+### 7) Migrations & Provisioning
+
+* **DB-per-Tenant**: Migrations pro DB laufen lassen.
+* **Schema-per-Tenant**: beim Onboarding neues Schema + Basisdaten erzeugen.
+* **Row-Level**: einmalige Migration; keine Per-Tenant-DDL, dafür Governance/RLS.
+
+---
+
+### 8) Observability & Limits
+
+* **Logs/Metriken** um `tenant` labeln (pino/Prometheus).
+* **Rate Limits** pro Tenant (z. B. Key = `tenant_id`).
+* **Dashboards**: Error-Rate/Latenz per Tenant.
+
+---
+
+### 9) Teststrategie
+
+* **Unit**: Repos/Services mit injiziertem `tenant`.
+* **Integration**: Für Schema-Tenancy Test-Schemas (`tenant_test1/test2`) anlegen; für RLS Policies aktivieren und `SET LOCAL app.tenant_id`.
+
+---
+
+### 10) Auswahlhilfe
+
+* **Hohe Isolation/Compliance** → *DB-per-Tenant*.
+* **Gutes Mittelmaß** (viele Tenants, kontrollierte Isolation) → *Schema-per-Tenant*.
+* **Einfach & günstig** → *Row-Level* + **RLS**.
+
+---
+
+### Zusammenfassung
+
+* Drei Kernmuster: **DB-per-Tenant**, **Schema-per-Tenant**, **Row-Level**.
+* Tenant wird per Middleware (Subdomain/Header/JWT) ermittelt und **serverseitig erzwungen**.
+* PostgreSQL bietet starke Unterstützung: **Schemas/`search_path`** und **RLS**.
+* Sequelize: je nach Muster **`searchPath`** oder **`where: { tenant_id }`** nutzen.
+* Ergänzen: **Caching/Queues/Files** mit Tenant-Prefix, **Metriken/Rate-Limits** pro Tenant.
+
+**Quellen**
+
+* Express: [Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
+* PostgreSQL: [Schemas & `search_path`](https://www.postgresql.org/docs/current/ddl-schemas.html), [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
+* Sequelize: [PostgreSQL Schemas / `searchPath`](https://sequelize.org/docs/v6/other-topics/other-data-types-and-features/#postgresql-schemas), [Querying Basics](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/)
 
 
   **[⬆ Наверх](#top)**
 
-107. ### <a name="107"></a> 
+111. ### <a name="111"></a> Was ist ein Proxy in Express und wie implementiert man ihn?
 
+**Proxy in Express – Begriff & Implementierung**
+
+---
+
+### Begriff
+
+* **Reverse Proxy**: nimmt Client-Requests entgegen und leitet sie an **Upstream-Services** weiter (z. B. API-Gateway, BFF).
+* In Express zwei Kontexte:
+
+  1. **Express hinter einem externen Proxy** (Nginx/Cloud LB). Wichtig: `app.set("trust proxy", ...)` für korrektes Lesen von `X-Forwarded-*`.
+  2. **Express als Proxy** (weiterleiten an andere Dienste), z. B. via Middleware.
+
+---
+
+### 1) Express hinter einem Proxy (Forwarded-Header korrekt nutzen)
+
+```js
+// app.js
+import express from "express";
+const app = express();
+
+// hinter Nginx/Heroku/Render o. Ä.:
+app.set("trust proxy", 1); // oder IP/Subnetz: "loopback", "127.0.0.1", "10.0.0.0/8"
+
+app.get("/ip", (req, res) => {
+  res.json({
+    ip: req.ip,                     // aus X-Forwarded-For
+    proto: req.protocol,            // http/https
+    host: req.get("x-forwarded-host") || req.get("host"),
+  });
+});
+
+export default app;
+```
+
+* Notwendig für **Rate-Limiting**, **HTTPS-Erkennung**, **korrekte IP-Logs**.
+
+---
+
+### 2) Express als Reverse-Proxy (http-proxy-middleware)
+
+```js
+// npm i http-proxy-middleware
+import express from "express";
+import { createProxyMiddleware } from "http-proxy-middleware";
+
+const app = express();
+
+// /api → Upstream unter http://localhost:5001
+app.use("/api", createProxyMiddleware({
+  target: "http://localhost:5001",
+  changeOrigin: true,          // Host-Header an Ziel anpassen
+  xfwd: true,                  // X-Forwarded-* hinzufügen
+  pathRewrite: { "^/api": "" } // optional: /api entfernen
+}));
+
+// WebSocket-Proxy (z. B. /ws → ws://localhost:4000)
+app.use("/ws", createProxyMiddleware({
+  target: "ws://localhost:4000",
+  ws: true,
+  changeOrigin: true
+}));
+
+app.listen(3000);
+```
+
+**Typische Optionen**
+
+* `changeOrigin`: setzt `Host` auf Ziel-Host (wichtig bei CORS/Origin-Checks).
+* `pathRewrite`: Pfade umschreiben.
+* `onProxyReq`/`onProxyRes`: Header anpassen, Logging, Fehlerbehandlung.
+
+---
+
+### 3) Eigener, minimaler Proxy (Node `http`/`http2`) – seltener nötig
+
+```js
+// Vorsicht: für Lernzwecke – in Prod lieber battle-tested Middleware/Proxy
+import express from "express";
+import http from "node:http";
+
+const app = express();
+app.use("/up", (req, res) => {
+  const upstream = http.request(
+    { hostname: "localhost", port: 5002, path: req.url, method: req.method, headers: req.headers },
+    (upRes) => {
+      res.writeHead(upRes.statusCode || 502, upRes.headers);
+      upRes.pipe(res);
+    }
+  );
+  req.pipe(upstream);
+  upstream.on("error", () => res.status(502).end());
+});
+```
+
+---
+
+### 4) Sicherheit, CORS & Timeouts
+
+* **CORS**: Wenn Express als Proxy dient, kann er CORS „umgehen“ (BFF-Pattern) oder passende Header setzen:
+
+```js
+import cors from "cors";
+app.use(cors({ origin: "https://example.com", credentials: true }));
+```
+
+* **Timeouts/Retries**: Upstream-Hänger vermeiden (eigene Timeouts/Circuit-Breaker).
+* **Rate-Limiting** vor Proxy-Routen platzieren.
+* **Header-Hygiene**: sensible Header entfernen/setzen (z. B. `via`, `x-powered-by` deaktivieren).
+* **HTTPS**: vor Express terminieren (Proxy/LB) und in App via `trust proxy` korrekt erkennen.
+
+---
+
+### 5) Häufige Einsatzmuster
+
+* **BFF (Backend-for-Frontend)**: Express bündelt mehrere Microservices hinter `/api/*`.
+* **API-Gateway light**: Auth/Rate-Limit/Logging in Express, Weiterleitung an Services.
+* **Dev-Setup**: Frontend-Dev-Server → Proxy zu API (CORS-frei).
+
+---
+
+### Zusammenfassung
+
+* **Proxy** verteilt/terminiert Requests zwischen Client und Upstream-Diensten.
+* Hinter externen Proxies: **`app.set("trust proxy", ...)`** für korrekte `X-Forwarded-*`.
+* Express als Proxy: **`http-proxy-middleware`** für stabiles Forwarding (Path-Rewrite, WebSockets, Headers).
+* Beachtung von **CORS**, **Security-Headern**, **Timeouts/Rate-Limits**.
+
+📚 Quellen
+
+* Express: [Best Practices & „trust proxy“](https://expressjs.com/de/guide/behind-proxies.html), [Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
+* Node.js: [`http` Modul](https://nodejs.org/docs/latest/api/http.html), [`net`/`http2`](https://nodejs.org/docs/latest/api/http2.html)
+* MDN (RU): [HTTP заголовки `Forwarded`/`X-Forwarded-*`](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Forwarded)
+
+---
+
+### Mini-Checkliste
+
+* `trust proxy` korrekt setzen
+* Proxy-Middleware konfigurieren (`target`, `changeOrigin`, `pathRewrite`, `ws`)
+* CORS/Rate-Limit/Timeouts vorsehen
+* Logs/Korrelation (Request-ID) auch über Proxy hinweg weitergeben
 
 
   **[⬆ Наверх](#top)**
 
-108. ### <a name="108"></a> 
+112. ### <a name="112"></a> Wie konfiguriert man Middleware global und dynamisch?
 
+**Middleware in Express global & dynamisch konfigurieren**
+
+---
+
+### 1) **Globale Middleware**
+
+* Gilt für **alle Routen** (alle Requests).
+* Direkt mit `app.use()` registrieren, **vor den Routes**.
+
+```js
+import express from "express";
+import helmet from "helmet";
+import cors from "cors";
+
+const app = express();
+
+// globale Middleware
+app.use(helmet());               // Security-Header
+app.use(cors());                 // CORS für alle
+app.use(express.json({ limit: "1mb" })); // Body-Parser mit Limit
+```
+
+👉 Wird bei jedem Request ausgeführt, egal welche Route.
+
+---
+
+### 2) **Route-spezifische Middleware**
+
+* Gilt nur für bestimmte Pfade/Router.
+
+```js
+import { Router } from "express";
+const router = Router();
+
+function authMiddleware(req, res, next) {
+  if (!req.user) return res.status(401).end();
+  next();
+}
+
+router.get("/profile", authMiddleware, (req, res) => {
+  res.json({ user: req.user });
+});
+
+app.use("/api", router);
+```
+
+---
+
+### 3) **Dynamische Middleware (abhängig von Bedingung/Umgebung)**
+
+#### a) Nach **Umgebung** (Dev/Prod)
+
+```js
+if (process.env.NODE_ENV === "development") {
+  const morgan = await import("morgan"); // ESM dynamic import
+  app.use(morgan.default("dev"));        // Request-Logger nur im Dev
+}
+```
+
+#### b) Nach **Request-Attributen** (z. B. Header, Tenant, Route)
+
+```js
+function tenantLogger(req, res, next) {
+  if (req.headers["x-tenant-id"] === "admin") {
+    console.log("Admin-Request:", req.method, req.url);
+  }
+  next();
+}
+app.use(tenantLogger);
+```
+
+#### c) Dynamische Auswahl (Wrapper)
+
+```js
+function conditional(middleware, conditionFn) {
+  return (req, res, next) => {
+    if (conditionFn(req)) {
+      return middleware(req, res, next);
+    }
+    next();
+  };
+}
+
+import rateLimit from "express-rate-limit";
+const limiter = rateLimit({ windowMs: 60_000, max: 10 });
+
+app.use(conditional(limiter, req => req.path.startsWith("/login")));
+```
+
+👉 Middleware nur aktiv für `/login`.
+
+---
+
+### 4) **Middleware-Reihenfolge**
+
+* Reihenfolge in `app.use()` ist entscheidend.
+* Beispiel:
+
+  1. Logging/Tracing
+  2. Security (Helmet, RateLimit)
+  3. Body-Parser
+  4. Auth
+  5. Routes
+  6. Error-Handler (letzte Middleware)
+
+```js
+app.use(logger);
+app.use(helmet());
+app.use(authMiddleware);
+app.use("/api", apiRouter);
+
+// Error-Handler als letztes
+app.use((err, req, res, _next) => {
+  res.status(500).json({ error: err.message });
+});
+```
+
+---
+
+### 5) **Globale vs. Dynamische Konfiguration**
+
+| Aspekt    | Global (`app.use()`)    | Dynamisch (Bedingung)                  |
+| --------- | ----------------------- | -------------------------------------- |
+| Scope     | Jeder Request           | Nur bei Bedingung (Route, Header, Env) |
+| Vorteile  | Einfach, einheitlich    | Flexibel, weniger Overhead             |
+| Nachteile | Kann unnötig teuer sein | Mehr Code, mögliche Komplexität        |
+
+---
+
+### Zusammenfassung
+
+* **Global**: `app.use(middleware)` → gilt für alle Requests.
+* **Dynamisch**: Bedingte Wrapper oder `if`-Checks → nur in bestimmten Fällen aktiv.
+* Typische Dynamik: **Umgebungsabhängig** (Dev/Prod), **Routenabhängig**, **Header/JWT**.
+* Reihenfolge ist entscheidend; Error-Handler immer zuletzt.
+
+📚 Quellen
+
+* Express: [Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
+* Express: [Error Handling](https://expressjs.com/de/guide/error-handling.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+113. ### <a name="113"></a> Wie geht man mit Dateistreams in Express um?
+
+**Dateistreams in Express – Lesen, Schreiben, Weiterleiten**
+
+---
+
+### 1) Datei **zum Client streamen** (Download)
+
+```js
+// GET /files/:name -> streamt Datei ohne sie in den RAM zu laden
+import fs from "node:fs";
+import path from "node:path";
+
+app.get("/files/:name", (req, res, next) => {
+  const filePath = path.resolve("storage", req.params.name);
+  const stream = fs.createReadStream(filePath);
+
+  // sinnvolle Header
+  res.setHeader("Content-Type", "application/octet-stream");
+  res.setHeader("Content-Disposition", `attachment; filename="${req.params.name}"`);
+
+  stream.on("error", next);
+  // Backpressure wird automatisch via .pipe gehandhabt
+  stream.pipe(res);
+});
+```
+
+---
+
+### 2) **Sicheres Pipelining** (Fehler + Backpressure korrekt)
+
+```js
+import { pipeline } from "node:stream";
+import { promisify } from "node:util";
+const pipe = promisify(pipeline);
+
+app.get("/logs/today", async (req, res, next) => {
+  try {
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    await pipe(
+      fs.createReadStream("logs/today.log"),
+      res
+    );
+  } catch (e) { next(e); }
+});
+```
+
+> `stream.pipeline` schließt alle Streams bei Fehlern, verhindert Leaks.
+
+---
+
+### 3) **Range-Requests** (z. B. Video „Seek“)
+
+```js
+// GET /video -> unterstützt "Range: bytes=start-"
+app.get("/video", (req, res, next) => {
+  const file = "media/sample.mp4";
+  const stat = fs.statSync(file);
+  const range = req.headers.range;
+  if (!range) return res.status(416).end(); // Range required
+
+  const [startStr, endStr] = range.replace(/bytes=/, "").split("-");
+  const start = parseInt(startStr, 10);
+  const end = endStr ? parseInt(endStr, 10) : stat.size - 1;
+  const chunkSize = (end - start) + 1;
+
+  res.status(206).set({
+    "Content-Range": `bytes ${start}-${end}/${stat.size}`,
+    "Accept-Ranges": "bytes",
+    "Content-Length": chunkSize,
+    "Content-Type": "video/mp4",
+  });
+
+  fs.createReadStream(file, { start, end }).on("error", next).pipe(res);
+});
+```
+
+---
+
+### 4) **Upload als Stream verarbeiten** (ohne RAM-Vollauslastung)
+
+* Für echte Streaming-Uploads: **`busboy`** (oder `multer` mit disk/storage).
+
+```js
+// npm i busboy
+import Busboy from "busboy";
+import fs from "node:fs";
+import path from "node:path";
+
+app.post("/upload", (req, res, next) => {
+  const bb = Busboy({ headers: req.headers, limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB
+  let saved = false;
+
+  bb.on("file", (name, file, info) => {
+    const saveTo = path.resolve("uploads", info.filename);
+    const out = fs.createWriteStream(saveTo);
+    file.on("limit", () => out.destroy(new Error("File too large")));
+    file.pipe(out);
+    out.on("finish", () => (saved = true));
+    out.on("error", next);
+  });
+
+  bb.on("field", (name, val) => { /* optional: Formfelder */ });
+  bb.on("close", () => res.status(saved ? 201 : 400).json({ ok: saved }));
+  bb.on("error", next);
+
+  req.pipe(bb);
+});
+```
+
+---
+
+### 5) **Proxy-Streaming** (von externen Quellen weiterleiten)
+
+```js
+// Stream von Upstream zu Client (keine Pufferung)
+app.get("/proxy-image", async (req, res, next) => {
+  try {
+    const upstream = await fetch("https://example.com/image.jpg");
+    if (!upstream.ok || !upstream.body) return res.sendStatus(502);
+
+    res.setHeader("Content-Type", upstream.headers.get("content-type") ?? "image/jpeg");
+    pipeline(upstream.body, res, err => err && next(err));
+  } catch (e) { next(e); }
+});
+```
+
+---
+
+### 6) **Robustheit & Performance**
+
+* **Header früh setzen** (`Content-Type`, `Content-Disposition`, `Cache-Control`), optional `res.flushHeaders()`.
+* **Abort behandeln**: `req.on("aborted", () => readStream.destroy());`.
+* **Limits**: `express.json({ limit: ... })` für JSON; bei Dateien statt JSON **echtes Streaming** nutzen.
+* **Kein Sync-IO** im Hotpath (`readFileSync`), lieber Streams.
+* **Sicherheit**: Pfade whitelisten/validieren, MIME korrekt setzen.
+
+---
+
+### Zusammenfassung
+
+* Downloads/Weiterleitungen mit **`fs.createReadStream().pipe(res)`**; sicher mit **`stream.pipeline`**.
+* **Range-Requests (206)** ermöglichen Seek bei Medien.
+* Uploads **streamend** verarbeiten (z. B. `busboy`) statt in den Speicher zu laden.
+* Header/Abbrüche/Fehler sauber handhaben; keine sync-Blocking-Calls.
+
+📚 Quellen
+
+* Node.js: [Streams](https://nodejs.org/docs/latest/api/stream.html), [`fs.createReadStream`](https://nodejs.org/docs/latest/api/fs.html#fscreatereadstreampath-options), [`stream.pipeline`](https://nodejs.org/docs/latest/api/stream.html#streampipelinestreams-callback)
+* Express: [Using Middleware](https://expressjs.com/de/guide/using-middleware.html), [Best Practices – Performance](https://expressjs.com/de/advanced/best-practice-performance.html)
+* MDN (RU): [HTTP Range Requests](https://developer.mozilla.org/ru/docs/Web/HTTP/Range_requests), [Content-Disposition](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Content-Disposition), [Content-Type](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Content-Type)
 
 
   **[⬆ Наверх](#top)**
 
-109. ### <a name="109"></a> 
+114. ### <a name="114"></a> Wie implementiert man Soft-Delete in Express mit einer DB?
 
+**Soft-Delete in Express mit Datenbank (PostgreSQL + Sequelize/SQL)**
+
+---
+
+### Grundidee
+
+* **Nicht wirklich löschen**, sondern Datensatz als „gelöscht“ markieren (z. B. `deleted_at TIMESTAMPTZ`).
+* Standard-Reads schließen gelöschte Datensätze aus; **Restore** durch Zurücksetzen des Flags.
+
+---
+
+### Variante A — Reines SQL (PostgreSQL)
+
+**Schema & Indexe**
+
+```sql
+-- Tabelle mit Soft-Delete-Spalte
+CREATE TABLE users (
+  id BIGSERIAL PRIMARY KEY,
+  email TEXT NOT NULL,
+  name TEXT NOT NULL,
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Partielle Unique-Constraint: erlaubt gleiche E-Mail bei gelöschten Zeilen nicht,
+-- aber ignoriert rows mit deleted_at IS NOT NULL
+CREATE UNIQUE INDEX users_email_unique_active
+  ON users (lower(email))
+  WHERE deleted_at IS NULL;
+
+-- (optional) nur aktive schnell finden
+CREATE INDEX users_active_idx ON users ((deleted_at IS NULL));
+```
+
+**Standard-Queries (nur aktive)**
+
+```sql
+-- nur aktive
+SELECT id, email, name FROM users WHERE deleted_at IS NULL;
+
+-- Soft-Delete
+UPDATE users SET deleted_at = now() WHERE id = $1 AND deleted_at IS NULL;
+
+-- Restore
+UPDATE users SET deleted_at = NULL WHERE id = $1 AND deleted_at IS NOT NULL;
+```
+
+**(Optional) Sicht erzwingen**
+
+```sql
+CREATE VIEW users_active AS
+SELECT * FROM users WHERE deleted_at IS NULL;
+```
+
+---
+
+### Variante B — Sequelize mit `paranoid`
+
+**Model**
+
+```js
+// models/user.model.js
+import { DataTypes, Model } from "sequelize";
+export class User extends Model {}
+
+export function initUser(sequelize) {
+  User.init(
+    {
+      email: { type: DataTypes.STRING, allowNull: false },
+      name:  { type: DataTypes.STRING, allowNull: false },
+    },
+    {
+      sequelize,
+      modelName: "User",
+      paranoid: true,               // nutzt deletedAt-Spalte
+      deletedAt: "deleted_at",      // custom Spaltenname
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      indexes: [
+        // partieller Unique-Index muss via Migration in PG angelegt werden (s.o.)
+      ],
+      defaultScope: {               // standardmäßig nur aktive
+        where: { deleted_at: null },
+      },
+      scopes: {
+        withDeleted: {},            // alles
+        onlyDeleted: { where: { deleted_at: { [Op.ne]: null } } },
+      },
+    }
+  );
+}
+```
+
+**Soft-Delete / Restore / Hard-Delete**
+
+```js
+// Soft-Delete (setzt deleted_at)
+await User.destroy({ where: { id }, individualHooks: true }); // paranoid=true → Soft-Delete
+
+// Restore
+const row = await User.scope("withDeleted").findByPk(id);
+if (row) await row.restore();
+
+// Hard-Delete (endgültig löschen)
+await User.destroy({ where: { id }, force: true });
+```
+
+**Lesen**
+
+```js
+await User.findAll();                       // nur aktive (defaultScope)
+await User.scope("withDeleted").findAll();  // inkl. gelöschte
+await User.scope("onlyDeleted").findAll();  // nur gelöschte
+```
+
+---
+
+### Express-Routen (Beispiel)
+
+```js
+// routes/users.routes.js
+import { Router } from "express";
+import { User } from "../models/user.model.js";
+import { Op } from "sequelize";
+
+const r = Router();
+
+// Soft-Delete
+r.delete("/:id", async (req, res, next) => {
+  try {
+    const n = await User.destroy({ where: { id: req.params.id } }); // paranoid=true
+    if (!n) return res.status(404).json({ error: "Not found" });
+    res.status(204).end();
+  } catch (e) { next(e); }
+});
+
+// Restore
+r.post("/:id/restore", async (req, res, next) => {
+  try {
+    const row = await User.scope("withDeleted").findByPk(req.params.id);
+    if (!row || !row.deleted_at) return res.status(404).json({ error: "Not deleted" });
+    await row.restore();
+    res.json(row);
+  } catch (e) { next(e); }
+});
+
+// Liste inkl. Filter (active/deleted/all)
+r.get("/", async (req, res, next) => {
+  try {
+    const mode = req.query.mode; // 'active' | 'deleted' | 'all'
+    const scope =
+      mode === "deleted" ? "onlyDeleted" :
+      mode === "all"     ? "withDeleted" :
+      undefined; // defaultScope=active
+    const rows = await (scope ? User.scope(scope).findAll() : User.findAll());
+    res.json(rows);
+  } catch (e) { next(e); }
+});
+
+export default r;
+```
+
+---
+
+### Wichtige Praxispunkte
+
+* **Eindeutigkeit**: Partielle Unique-Indizes (PostgreSQL) für „nur aktive eindeutig“.
+* **Kaskaden-Soft-Delete**: bei Beziehungen (z. B. `User` → `Posts`) per Transaktion orchestrieren:
+
+  ```js
+  await sequelize.transaction(async (t) => {
+    await Post.destroy({ where: { user_id: id }, transaction: t });
+    await User.destroy({ where: { id }, transaction: t });
+  });
+  ```
+* **Auditing**: `deleted_by`, `deleted_reason` Felder einführen.
+* **Datenschutz/DSGVO**: Periodische **Hard-Delete**-Jobs (Cron/Worker) für abgelaufene Soft-Deletes.
+* **Sicherheit**: Immer serverseitig filtern (kein Trust auf Client-Flags).
+* **Performance**: Indexe auf `deleted_at IS NULL` bzw. `tenant_id, deleted_at` kombinieren.
+
+---
+
+### Zusammenfassung
+
+* Soft-Delete = „Löschen“ via `deleted_at`, nicht physisch entfernen.
+* PostgreSQL: **partielle Unique-Indexe**, Standard-Filter `deleted_at IS NULL`.
+* Sequelize: **`paranoid: true`**, `destroy/restore`, Scopes (`withDeleted/onlyDeleted`).
+* Express: Endpunkte für **Soft-Delete**, **Restore**, optional **Hard-Delete**; Transaktionen bei Kaskaden.
+
+📚 Quellen
+
+* PostgreSQL: [Schemas/DDL & partielle Indexe](https://www.postgresql.org/docs/current/indexes-partial.html), [Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html)
+* Sequelize: [Paranoid (Soft Delete)](https://sequelize.org/docs/v6/other-topics/paranoid/) , [Querying Basics](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/)
+* Express: [Using Middleware](https://expressjs.com/de/guide/using-middleware.html)
+* Node.js: [ES Modules/FS/Streams (allg.)](https://nodejs.org/docs/latest/api/)
 
 
   **[⬆ Наверх](#top)**
 
-110. ### <a name="110"></a> 
+115. ### <a name="115"></a> Welche Patterns gibt es für saubere Express-Architekturen?
 
+**Saubere Express-Architekturen – erprobte Patterns**
 
+---
 
-  **[⬆ Наверх](#top)**
+### 1) **Layered Architecture (Router → Controller → Service → Repository)**
 
-111. ### <a name="111"></a> 
+* Klare Trennung von HTTP, Business-Logik und DB-Zugriff.
 
+```js
+// routes/user.routes.js
+import { Router } from "express"; import { userController } from "../controllers/user.controller.js";
+const r = Router(); r.get("/", userController.list); export default r;
 
+// controllers/user.controller.js
+export const userController = {
+  list: async (_req, res, next) => { try { res.json(await userService.list()); } catch (e) { next(e); } }
+};
 
-  **[⬆ Наверх](#top)**
+// services/user.service.js
+import { userRepo } from "../repos/user.repo.js";
+export const userService = { list: () => userRepo.findAll() };
 
-112. ### <a name="112"></a> 
+// repos/user.repo.js (Sequelize)
+export const userRepo = { findAll: () => User.findAll({ attributes:["id","name"] }) };
+```
 
+---
 
+### 2) **Dependency Injection (Composition Root)**
 
-  **[⬆ Наверх](#top)**
+* Abhängigkeiten injizieren statt hart zu importieren → testbar, austauschbar.
 
-113. ### <a name="113"></a> 
+```js
+// app.js
+const deps = { userRepo, logger: console };
+const userService = createUserService(deps);
+const userController = createUserController({ userService });
+app.use("/api/users", createUserRouter({ userController }));
+```
 
+---
 
+### 3) **Hexagonal / Ports & Adapters**
 
-  **[⬆ Наверх](#top)**
+* Domain (Port-Interfaces) ist framework-agnostisch; Express/DB als Adapter.
 
-114. ### <a name="114"></a> 
+```js
+// domain/ports/UserPort.ts (Pseudo)
+export interface UserPort { list(): Promise<User[]>; }
+// adapters/db/UserRepo implements UserPort
+// adapters/http/express verbindet Controller ↔ Service/Port
+```
 
+---
 
+### 4) **CQRS (Read/Write trennen)**
 
-  **[⬆ Наверх](#top)**
+* Lesepfade (schnell, ggf. Caching) getrennt von Schreiblogik (Transaktionen/Validierung).
 
-115. ### <a name="115"></a> 
+```js
+// services/user.query.js  (Reads)
+export const userQuery = { list: () => User.findAll({ attributes:["id","name"] }) };
+// services/user.command.js (Writes)
+export const userCommand = { create: (dto) => User.create(dto) };
+```
 
+---
+
+### 5) **Middleware-Pipeline & Cross-Cutting Concerns**
+
+* Auth, Rate-Limit, Logging, Validation, Error-Handler als Middlewares.
+
+```js
+app.use(pinoHttp()); app.use(helmet()); app.use(rateLimit({ windowMs:60_000, max:300 }));
+app.use("/api", apiRouter);
+app.use((err, _req, res, _next) => res.status(err.statusCode||500).json({ error: err.message }));
+```
+
+---
+
+### 6) **Validation & DTOs (Schema-first)**
+
+* Früh validieren; Controller erhalten saubere DTOs.
+
+```js
+// zod/joi validieren, Express-Handler bekommt validierte Daten
+const createUser = asyncHandler(async (req, res) => {
+  const dto = schema.parse(req.body); // nur gültige Felder
+  res.status(201).json(await userCommand.create(dto));
+});
+```
+
+---
+
+### 7) **Repository + Unit of Work (Transaktion pro Request)**
+
+* Konsistenz bei mehreren DB-Schreiboperationen.
+
+```js
+// per-Request-Transaktion
+app.use(async (req, _res, next) => {
+  req.tx = await sequelize.transaction(); try { next(); } catch(e){ await req.tx.rollback(); throw e; }
+});
+app.use(async (err, req, _res, next) => { if (req.tx) await req.tx.rollback(); next(err); });
+// im Controller nach Erfolg: await req.tx.commit()
+```
+
+---
+
+### 8) **Request-Scoped Context**
+
+* Trace-ID, Tenant, User im Scope; weiterreichen an Services/Repos.
+
+```js
+app.use((req, _res, next) => { req.ctx = { traceId: crypto.randomUUID(), tenant: req.get("x-tenant-id") }; next(); });
+```
+
+---
+
+### 9) **Domain Events (intern)**
+
+* Nebenwirkungen entkoppeln (E-Mail, Auditing) via EventEmitter.
+
+```js
+appEvents.on("user:created", async (u) => auditLog(u));
+await userCommand.create(dto).then(u => appEvents.emit("user:created", u));
+```
+
+---
+
+### 10) **Feature-Folder statt rein technischer Ordner**
+
+* Bündelung pro Feature: `users/{routes,controller,service,repo,tests}` → lokale Kohäsion, Scaling der Codebasis.
+
+---
+
+### 11) **Konfiguration & Secrets**
+
+* Zentrales Config-Modul (`process.env`), Validation, pro Umgebung (Dev/Prod) unterschiedlich.
+
+```js
+export const config = { port:+(process.env.PORT||3000), dbUrl: process.env.DATABASE_URL };
+```
+
+---
+
+### 12) **Observability eingebaut**
+
+* Pino (JSON-Logs), Response-Time/Prometheus, zentrale Error-MW; SLOs/Tracing vorbereiten.
+
+---
+
+### 13) **Caching-Schichten**
+
+* HTTP-Header (ETag/Cache-Control), Redis für Hot-Reads, klare Invalidierung (Keys pro Ressource).
+
+---
+
+### 14) **Security-First Defaults**
+
+* `helmet`, Input-Validation, Rate-Limits, `trust proxy`, `app.disable("x-powered-by")`, sichere Cookies.
+
+---
+
+### 15) **Testbarkeit als Architekturziel**
+
+* DI + Ports/Adapter → Unit-Tests ohne Express/DB; Supertest für Routing/Integration; Testcontainers für echte DB.
+
+---
+
+### Mini-Blueprint (alles zusammen)
+
+```js
+// src/app.js
+app.use(pinoHttp()); app.use(helmet()); app.use(express.json({ limit:"1mb" }));
+app.use(authz); app.use(tenantResolver); app.use(requestScope(baseDeps));
+app.use("/api/users", userRouter); // Router → Controller → Service → Repo
+app.use(errorHandler(logger));
+```
+
+---
+
+### Zusammenfassung
+
+* Kernmuster: **Layered**, **DI**, **Hexagonal/Ports & Adapters**, **CQRS**, **Repository+UoW**, **Request-Scoped Context**, **Domain Events**.
+* Cross-Cutting: **Validation**, **Observability**, **Security**, **Caching**, **Config**.
+* Ordnerstruktur feature-orientiert; Tests durch DI/Adapter einfach.
+
+📚 Quellen
+
+* Express: [Using Middleware](https://expressjs.com/de/guide/using-middleware.html), [Best Practices – Production](https://expressjs.com/de/advanced/best-practice-performance.html)
+* Node.js: [Events](https://nodejs.org/docs/latest/api/events.html), [Process/ENV](https://nodejs.org/docs/latest/api/process.html)
+* MDN (RU): [`try...catch`, HTTP-Header](https://developer.mozilla.org/ru/)
+* PostgreSQL: [Transaktionen/Constraints](https://www.postgresql.org/docs/current/tutorial-transactions.html)
+* Sequelize: [Querying Basics, Transactions](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/), [Transactions](https://sequelize.org/docs/v6/other-topics/transactions/)
 
 
   **[⬆ Наверх](#top)**
