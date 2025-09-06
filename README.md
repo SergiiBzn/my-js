@@ -124,6 +124,8 @@
 
 ---
 
+- :memo:&nbsp;&nbsp;[Вопросы по Express](./docs/other/Express.md)
+- :memo:&nbsp;&nbsp;[Вопросы по NodeJS, DBs](./docs/other/NodeJS-DBs.md)
 - :memo:&nbsp;&nbsp;[Вопросы по NodeJS, Express, SQL](./docs/other/NodeJS-Express-SQL.md)
 - :memo:&nbsp;&nbsp;[Вопросы по NodeJS](./docs/other/NodeJS-Interview-Questions.md)
 - :memo:&nbsp;&nbsp;[Вопросы по NodeJS](./docs/other/NodeJS-Questions.md)
