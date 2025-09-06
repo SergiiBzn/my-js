@@ -18156,117 +18156,1866 @@ INNER JOIN orders o ON u.id = o.user_id;
 
   **[⬆ Наверх](#top)**
 
-162. ### <a name="162"></a> 
+162. ### <a name="162"></a> Unterschied zwischen UNIQUE und PRIMARY KEY?
 
+**Unterschied zwischen `UNIQUE` und `PRIMARY KEY` in SQL**
+
+---
+
+### **PRIMARY KEY**
+
+* Eindeutiger Identifikator einer Zeile.
+* Eigenschaften:
+
+  * Jede Tabelle darf **nur einen PRIMARY KEY** haben.
+  * Impliziert automatisch **UNIQUE** und **NOT NULL**.
+  * Wird oft als **Clustered Index** (physische Sortierung) umgesetzt.
+* Typisch: Spalte `id` mit AUTO INCREMENT / SERIAL.
+
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(100) UNIQUE
+);
+```
+
+---
+
+### **UNIQUE**
+
+* Gewährleistet, dass **alle Werte in einer Spalte (oder Kombination von Spalten) einzigartig** sind.
+* Unterschiede:
+
+  * **Mehrere UNIQUE Constraints** pro Tabelle erlaubt.
+  * Erlaubt **NULL-Werte** (Ausnahme: manche DBs behandeln mehrere NULLs als erlaubt, z. B. PostgreSQL).
+  * Nicht automatisch Primärschlüssel.
+
+```sql
+CREATE TABLE employees (
+  emp_id SERIAL PRIMARY KEY,
+  email VARCHAR(100) UNIQUE,
+  phone VARCHAR(20) UNIQUE
+);
+```
+
+➡️ `emp_id` identifiziert eindeutig den Datensatz.
+➡️ `email` und `phone` dürfen nicht doppelt vorkommen, aber können NULL sein.
+
+---
+
+### **Vergleich**
+
+| Merkmal            | PRIMARY KEY                       | UNIQUE                            |
+| ------------------ | --------------------------------- | --------------------------------- |
+| Eindeutigkeit      | Ja                                | Ja                                |
+| NULL erlaubt?      | Nein                              | Ja (je nach DB, z. B. PostgreSQL) |
+| Anzahl pro Tabelle | Nur **1**                         | Mehrere möglich                   |
+| Zweck              | Identifiziert Datensatz eindeutig | Verhindert doppelte Werte         |
+
+---
+
+### **Zusammenfassung**
+
+* **PRIMARY KEY** = eindeutiger Hauptschlüssel, genau 1 pro Tabelle, **keine NULLs**.
+* **UNIQUE** = zusätzliche Eindeutigkeitsbedingung, mehrere pro Tabelle möglich, **NULL erlaubt**.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html)
+* [MySQL Docs – Unique Constraints](https://dev.mysql.com/doc/refman/8.0/en/create-table.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+163. ### <a name="163"></a> Unterschied zwischen HAVING und WHERE in SQL?
+
+**Unterschied zwischen `WHERE` und `HAVING` in SQL**
+
+---
+
+### **WHERE**
+
+* Filtert **Zeilen**, bevor eine Aggregation (`GROUP BY`) ausgeführt wird.
+* Kann **keine Aggregatfunktionen** (`COUNT, SUM, AVG …`) enthalten.
+
+```sql
+-- Beispiel: Nur aktive Benutzer auswählen
+SELECT name, city
+FROM users
+WHERE active = true;
+```
+
+---
+
+### **HAVING**
+
+* Filtert **Gruppen** nach einer Aggregation (`GROUP BY`).
+* Kann **Aggregatfunktionen** enthalten.
+
+```sql
+-- Beispiel: Nur Städte mit mehr als 5 Benutzern
+SELECT city, COUNT(*) AS user_count
+FROM users
+GROUP BY city
+HAVING COUNT(*) > 5;
+```
+
+---
+
+### **Vergleich mit GROUP BY**
+
+```sql
+-- Kombination von WHERE und HAVING
+SELECT city, COUNT(*) AS user_count
+FROM users
+WHERE active = true               -- Zeilen-Filter
+GROUP BY city
+HAVING COUNT(*) > 5;              -- Gruppen-Filter
+```
+
+➡️ Ablauf:
+
+1. `WHERE` filtert Zeilen.
+2. `GROUP BY` fasst zusammen.
+3. `HAVING` filtert die Gruppen.
+
+---
+
+### **Zusammenfassung**
+
+* **WHERE**: Zeilenfilter → vor der Aggregation, keine Aggregatfunktionen.
+* **HAVING**: Gruppenfilter → nach der Aggregation, mit Aggregatfunktionen.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – SELECT](https://www.postgresql.org/docs/current/sql-select.html)
+* [MySQL Docs – GROUP BY & HAVING](https://dev.mysql.com/doc/refman/8.0/en/group-by-handling.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+164. ### <a name="164"></a> Was sind Aggregate-Funktionen in SQL (z. B. COUNT, SUM, AVG)?
+
+**Aggregate-Funktionen in SQL**
+
+---
+
+### **Definition**
+
+* **Aggregatfunktionen** berechnen aus **mehreren Zeilen** einer Tabelle **einen einzelnen Wert**.
+* Werden häufig mit **`GROUP BY`** kombiniert, können aber auch ohne Gruppierung auf die gesamte Tabelle angewendet werden.
+
+---
+
+### **Wichtige Aggregate-Funktionen**
+
+1. **COUNT()** – Anzahl der Zeilen
+
+```sql
+SELECT COUNT(*) AS total_users
+FROM users;
+```
+
+➡️ Zählt alle Zeilen.
+
+2. **SUM()** – Summe von Werten
+
+```sql
+SELECT SUM(amount) AS total_sales
+FROM orders;
+```
+
+➡️ Summiert die Werte der Spalte `amount`.
+
+3. **AVG()** – Durchschnitt
+
+```sql
+SELECT AVG(salary) AS avg_salary
+FROM employees;
+```
+
+➡️ Durchschnitt aller Gehälter.
+
+4. **MIN() / MAX()** – Kleinster und größter Wert
+
+```sql
+SELECT MIN(price) AS lowest_price, MAX(price) AS highest_price
+FROM products;
+```
+
+➡️ Zeigt Minimal- und Maximalwert.
+
+---
+
+### **Mit GROUP BY**
+
+```sql
+SELECT city, COUNT(*) AS user_count, AVG(age) AS avg_age
+FROM users
+GROUP BY city
+HAVING COUNT(*) > 10;
+```
+
+➡️ Aggregiert Benutzer pro Stadt, filtert Städte mit mehr als 10 Benutzern.
+
+---
+
+### **Eigenschaften**
+
+* Aggregatfunktionen ignorieren standardmäßig **NULL-Werte** (außer `COUNT(*)`).
+* Können nicht direkt in **WHERE** verwendet werden → stattdessen `HAVING`.
+
+---
+
+### **Zusammenfassung**
+
+* **Aggregate-Funktionen** fassen Daten zusammen (z. B. Anzahl, Summe, Durchschnitt).
+* Typische Funktionen: **COUNT, SUM, AVG, MIN, MAX**.
+* In Kombination mit **`GROUP BY`** → Analyse pro Gruppe möglich.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Aggregate Functions](https://www.postgresql.org/docs/current/functions-aggregate.html)
+* [MySQL Docs – Aggregate Functions](https://dev.mysql.com/doc/refman/8.0/en/group-by-functions.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+165. ### <a name="165"></a> Wie baut man Many-to-Many Beziehungen in SQL?
+
+**Many-to-Many (n\:m) Beziehungen in SQL**
+
+---
+
+### **Definition**
+
+* Eine **n\:m-Beziehung** tritt auf, wenn mehrere Zeilen einer Tabelle mit mehreren Zeilen einer anderen Tabelle verknüpft werden können.
+* Beispiel:
+
+  * Ein **Student** besucht mehrere **Kurse**.
+  * Ein **Kurs** wird von mehreren **Studenten** besucht.
+* Lösung: eine **Zwischentabelle (Join Table / Mapping Table)** mit **Fremdschlüsseln** zu beiden Tabellen.
+
+---
+
+### **Beispiel**
+
+#### 1) Tabellen erstellen
+
+```sql
+-- Studenten-Tabelle
+CREATE TABLE students (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL
+);
+
+-- Kurse-Tabelle
+CREATE TABLE courses (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(100) NOT NULL
+);
+```
+
+#### 2) Zwischentabelle für n\:m-Beziehung
+
+```sql
+CREATE TABLE student_courses (
+  student_id INT REFERENCES students(id) ON DELETE CASCADE,
+  course_id INT REFERENCES courses(id) ON DELETE CASCADE,
+  PRIMARY KEY (student_id, course_id) -- zusammengesetzter PK
+);
+```
+
+---
+
+### **Einfügen von Daten**
+
+```sql
+-- Studenten
+INSERT INTO students (name) VALUES ('Anna'), ('Tom');
+
+-- Kurse
+INSERT INTO courses (title) VALUES ('Mathe'), ('Informatik');
+
+-- Beziehungen
+INSERT INTO student_courses (student_id, course_id) VALUES 
+(1, 1), -- Anna → Mathe
+(1, 2), -- Anna → Informatik
+(2, 2); -- Tom → Informatik
+```
+
+---
+
+### **Abfragen**
+
+* Alle Kurse eines Studenten:
+
+```sql
+SELECT s.name, c.title
+FROM students s
+JOIN student_courses sc ON s.id = sc.student_id
+JOIN courses c ON c.id = sc.course_id
+WHERE s.name = 'Anna';
+```
+
+➡️ Ergebnis: Anna → Mathe, Informatik
+
+* Alle Studenten in einem Kurs:
+
+```sql
+SELECT c.title, s.name
+FROM courses c
+JOIN student_courses sc ON c.id = sc.course_id
+JOIN students s ON s.id = sc.student_id
+WHERE c.title = 'Informatik';
+```
+
+➡️ Ergebnis: Informatik → Anna, Tom
+
+---
+
+### **Zusammenfassung**
+
+* **n\:m-Beziehungen** werden in SQL mit einer **Zwischentabelle** modelliert.
+* Diese enthält die **Primärschlüssel beider Tabellen als Fremdschlüssel**.
+* Abfragen erfolgen mit **JOINs** über die Zwischentabelle.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html)
+* [MDN – Relationale DB-Designs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/SQL/Database_design)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+166. ### <a name="166"></a> Wie arbeitet man mit Transaktionen in PostgreSQL?
+
+**Arbeiten mit Transaktionen in PostgreSQL**
+
+---
+
+### **Definition**
+
+* Eine **Transaktion** ist eine Folge von SQL-Befehlen, die als **eine logische Einheit** ausgeführt wird.
+* Sie garantiert **ACID-Eigenschaften**:
+
+  * **Atomicity**: Alles oder nichts.
+  * **Consistency**: DB bleibt konsistent.
+  * **Isolation**: Parallele Transaktionen stören sich nicht.
+  * **Durability**: Nach COMMIT dauerhaft gespeichert.
+
+---
+
+### **Grundbefehle in PostgreSQL**
+
+```sql
+BEGIN;                    -- Start einer Transaktion
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+COMMIT;                   -- Änderungen bestätigen
+```
+
+* Wenn ein Fehler auftritt:
+
+```sql
+ROLLBACK;                 -- Alle Änderungen rückgängig machen
+```
+
+---
+
+### **Beispiel: Geldüberweisung**
+
+```sql
+BEGIN;
+
+UPDATE accounts SET balance = balance - 500 WHERE id = 1;
+-- Fehler prüfen, z. B. falls Konto nicht existiert
+UPDATE accounts SET balance = balance + 500 WHERE id = 2;
+
+COMMIT;
+```
+
+➡️ Wenn ein Schritt fehlschlägt → `ROLLBACK`.
+
+---
+
+### **Transaktionen mit Isolation Level**
+
+```sql
+BEGIN ISOLATION LEVEL SERIALIZABLE;
+
+UPDATE products SET stock = stock - 1 WHERE id = 100;
+INSERT INTO orders (product_id, quantity) VALUES (100, 1);
+
+COMMIT;
+```
+
+➡️ Isolation Level bestimmt, wie stark parallele Transaktionen voneinander abgeschirmt werden.
+
+---
+
+### **Mit Node.js (pg Paket)**
+
+```js
+import pkg from "pg";
+const { Pool } = pkg;
+
+const pool = new Pool({ connectionString: "postgres://user:pass@localhost/db" });
+
+async function transfer(fromId, toId, amount) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("UPDATE accounts SET balance = balance - $1 WHERE id = $2", [amount, fromId]);
+    await client.query("UPDATE accounts SET balance = balance + $1 WHERE id = $2", [amount, toId]);
+    await client.query("COMMIT");
+    console.log("✅ Transaktion erfolgreich");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("❌ Fehler:", err.message);
+  } finally {
+    client.release();
+  }
+}
+```
+
+---
+
+### **Zusammenfassung**
+
+* Transaktionen = logische Einheit von SQL-Operationen.
+* Steuerung über `BEGIN`, `COMMIT`, `ROLLBACK`.
+* Garantieren **ACID**.
+* In Node.js über `pg` oder ORM (z. B. Sequelize `transaction`).
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Transactions](https://www.postgresql.org/docs/current/tutorial-transactions.html)
+* [Node-postgres Transactions](https://node-postgres.com/features/transactions)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+167. ### <a name="167"></a> Was ist ACID in Datenbanken?
+
+**ACID in Datenbanken**
+
+ACID ist ein Akronym für die vier zentralen Eigenschaften, die **Transaktionen in relationalen Datenbanken** sicherstellen:
+
+---
+
+### **1. Atomicity (Atomarität)**
+
+* Eine Transaktion wird **entweder vollständig oder gar nicht** ausgeführt.
+* Fehler → alle Änderungen werden mit **ROLLBACK** rückgängig gemacht.
+
+```sql
+BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+COMMIT;  -- entweder beide Updates oder keines
+```
+
+---
+
+### **2. Consistency (Konsistenz)**
+
+* Nach einer Transaktion muss die Datenbank **in einem gültigen Zustand** bleiben.
+* Integritätsregeln, Constraints (z. B. FOREIGN KEY, CHECK) dürfen nicht verletzt werden.
+
+```sql
+-- Konsistenzregel: balance >= 0
+CHECK (balance >= 0);
+```
+
+---
+
+### **3. Isolation (Isolation)**
+
+* Parallele Transaktionen dürfen sich nicht gegenseitig beeinflussen.
+* PostgreSQL unterstützt verschiedene **Isolation Levels**:
+
+  * READ UNCOMMITTED
+  * READ COMMITTED (Standard)
+  * REPEATABLE READ
+  * SERIALIZABLE
+
+---
+
+### **4. Durability (Dauerhaftigkeit)**
+
+* Nach **COMMIT** bleiben Änderungen dauerhaft gespeichert – auch bei Systemabsturz.
+* Wird durch Write-Ahead Logging (WAL) in PostgreSQL gewährleistet.
+
+---
+
+### **Zusammenfassung**
+
+* **A (Atomicity)** → Alles oder nichts.
+* **C (Consistency)** → Daten bleiben gültig.
+* **I (Isolation)** → Parallele Transaktionen stören sich nicht.
+* **D (Durability)** → Dauerhafte Speicherung nach COMMIT.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Transactions](https://www.postgresql.org/docs/current/tutorial-transactions.html)
+* [MDN – Database Transactions](https://developer.mozilla.org/en-US/docs/Glossary/ACID)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+168. ### <a name="168"></a> Unterschied zwischen ACID und BASE Prinzipien?
+
+**Unterschied zwischen ACID und BASE Prinzipien**
+
+---
+
+### **ACID (klassische relationale DBs, z. B. PostgreSQL, MySQL)**
+
+* **Atomicity** → Transaktion: alles oder nichts.
+* **Consistency** → DB bleibt immer in gültigem Zustand (Constraints, Regeln).
+* **Isolation** → parallele Transaktionen stören sich nicht.
+* **Durability** → Änderungen nach `COMMIT` dauerhaft gespeichert.
+
+➡️ Ziel: **maximale Datenintegrität**, wichtig für Banken, ERP, Buchhaltung.
+
+---
+
+### **BASE (häufig in NoSQL-Systemen, z. B. MongoDB, Cassandra)**
+
+* **Basically Available** → hohe Verfügbarkeit, System reagiert immer, auch wenn nicht alle Daten aktuell sind.
+* **Soft state** → Zustand kann sich ändern, auch ohne Eingriff (z. B. durch Replikation).
+* **Eventually consistent** → Daten werden irgendwann konsistent, aber nicht sofort.
+
+➡️ Ziel: **Skalierbarkeit und Performance**, wichtig für Big Data, Social Media, Realtime-Apps.
+
+---
+
+### **Vergleich**
+
+| Prinzip           | ACID (SQL, Relationale DBs) | BASE (NoSQL, Verteilte DBs)            |
+| ----------------- | --------------------------- | -------------------------------------- |
+| **Fokus**         | Konsistenz & Integrität     | Verfügbarkeit & Skalierbarkeit         |
+| **Konsistenz**    | Strikt (sofort)             | Eventual Consistency (zeitverzögert)   |
+| **Transaktionen** | Stark (atomar)              | Schwach oder nicht klassisch vorhanden |
+| **Nutzung**       | Banken, Buchhaltung, ERP    | Social Media, IoT, E-Commerce (groß)   |
+| **Beispiel DBs**  | PostgreSQL, MySQL, Oracle   | MongoDB, Cassandra, DynamoDB           |
+
+---
+
+### **Zusammenfassung**
+
+* **ACID**: starke Transaktionen, sofortige Konsistenz → gut für Systeme mit strikter Datenintegrität.
+* **BASE**: weiche Konsistenz, hohe Verfügbarkeit, horizontale Skalierung → gut für große, verteilte Systeme.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Transactions](https://www.postgresql.org/docs/current/tutorial-transactions.html)
+* [MongoDB – Consistency and Availability](https://www.mongodb.com/docs/manual/core/replica-set-consistency/)
+* [MDN – ACID vs. BASE](https://developer.mozilla.org/en-US/docs/Glossary/ACID)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+169. ### <a name="169"></a> Was ist ein Deadlock und wie vermeidet man ihn?
+
+**Deadlock in Datenbanken**
+
+---
+
+### **Definition**
+
+Ein **Deadlock** tritt auf, wenn **zwei oder mehr Transaktionen** sich gegenseitig blockieren:
+
+* Transaktion A hält Sperre 1 und wartet auf Sperre 2.
+* Transaktion B hält Sperre 2 und wartet auf Sperre 1.
+  ➡️ Beide warten endlos → Stillstand.
+
+---
+
+### **Beispiel (PostgreSQL)**
+
+```sql
+-- Session 1
+BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+-- wartet später auf id = 2
+
+-- Session 2
+BEGIN;
+UPDATE accounts SET balance = balance - 50 WHERE id = 2;
+-- wartet später auf id = 1
+
+-- Wenn beide Sessions jetzt auf die jeweils andere Zeile zugreifen:
+-- Deadlock!
+```
+
+PostgreSQL erkennt Deadlocks automatisch → eine Transaktion wird abgebrochen mit
+`ERROR: deadlock detected`.
+
+---
+
+### **Ursachen**
+
+* Unterschiedliche Reihenfolge von Sperren (Lock Ordering).
+* Lange Transaktionen mit vielen Locks.
+* Kombination von Lese- und Schreibsperren.
+
+---
+
+### **Vermeidung von Deadlocks**
+
+1. **Konsistente Sperr-Reihenfolge**
+
+   * Immer in derselben Reihenfolge auf Tabellen/Zeilen zugreifen.
+
+```sql
+-- Immer erst Konto mit kleinerer ID updaten, dann größere
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+```
+
+---
+
+2. **Transaktionen kurz halten**
+
+   * Möglichst wenige Operationen pro Transaktion.
+   * Keine unnötigen Benutzerinteraktionen während einer offenen Transaktion.
+
+---
+
+3. **Geeignete Isolation Levels wählen**
+
+   * Weniger restriktive Levels (`READ COMMITTED`) können Deadlocks reduzieren.
+
+---
+
+4. **Timeouts setzen**
+
+   * In PostgreSQL:
+
+   ```sql
+   SET lock_timeout = '5s';
+   ```
+
+   ➝ Verhindert unendliches Warten.
+
+---
+
+5. **Retry-Logik im Code**
+
+   * Falls DB eine Transaktion wegen Deadlock abbricht → erneut versuchen.
+
+```js
+// Beispiel mit node-postgres
+async function safeTransaction(client, queries) {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await client.query("BEGIN");
+      await queries();
+      await client.query("COMMIT");
+      return;
+    } catch (err) {
+      await client.query("ROLLBACK");
+      if (err.code === "40P01") { // Deadlock detected
+        console.log(`Retry wegen Deadlock, Versuch ${attempt}`);
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+```
+
+---
+
+### **Zusammenfassung**
+
+* **Deadlock** = zwei Transaktionen blockieren sich gegenseitig.
+* PostgreSQL bricht automatisch eine Transaktion ab.
+* **Vermeidung**: konsistente Sperr-Reihenfolge, kurze Transaktionen, Timeouts, Retry-Logik.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Explicit Locking](https://www.postgresql.org/docs/current/explicit-locking.html)
+* [PostgreSQL Docs – Deadlocks](https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-DEADLOCKS)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+170. ### <a name="170"></a> Was ist Sharding und Partitionierung in Datenbanken?
+
+**Sharding und Partitionierung in Datenbanken**
+
+---
+
+### **Partitionierung**
+
+* **Definition**: Aufteilung **einer Tabelle** innerhalb **einer einzigen Datenbank** in mehrere Teile (Partitionen).
+* Partitionen basieren auf **Spaltenwerten** (z. B. Datum, Bereich, Hash).
+* Ziel: **Performance** und **Verwaltbarkeit** verbessern.
+
+**Beispiel PostgreSQL (Range Partitionierung):**
+
+```sql
+CREATE TABLE orders (
+  id SERIAL,
+  order_date DATE NOT NULL,
+  amount NUMERIC
+) PARTITION BY RANGE (order_date);
+
+CREATE TABLE orders_2023 PARTITION OF orders
+  FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+CREATE TABLE orders_2024 PARTITION OF orders
+  FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+```
+
+➡️ Abfragen auf `orders` werden automatisch auf die passende Partition weitergeleitet.
+
+---
+
+### **Sharding**
+
+* **Definition**: Aufteilung von Daten **über mehrere physische Server oder Datenbanken**.
+* Jeder „Shard“ enthält einen Teil der Daten, z. B. nach **Benutzer-ID oder Region**.
+* Ziel: **horizontale Skalierung** (mehr Server statt stärkerer Server).
+
+**Beispiel MongoDB Sharding (vereinfachte Logik):**
+
+* Benutzer mit IDs 1–1.000.000 → Shard A
+* Benutzer mit IDs 1.000.001–2.000.000 → Shard B
+
+---
+
+### **Vergleich**
+
+| Merkmal           | Partitionierung                    | Sharding                                        |
+| ----------------- | ---------------------------------- | ----------------------------------------------- |
+| **Ebene**         | Innerhalb einer Tabelle / einer DB | Zwischen mehreren DB-Instanzen/Servern          |
+| **Ziel**          | Performance, Wartbarkeit           | Skalierbarkeit über mehrere Maschinen           |
+| **Transaktionen** | Bleiben lokal in derselben DB      | Können komplexer sein (verteilte Transaktionen) |
+| **Beispiel DBs**  | PostgreSQL Partitionierung         | MongoDB, Cassandra, CockroachDB                 |
+
+---
+
+### **Zusammenfassung**
+
+* **Partitionierung** = Tabelle in Teile zerlegen → innerhalb einer DB.
+* **Sharding** = Daten auf mehrere DB-Server verteilen → horizontale Skalierung.
+* Beide Konzepte helfen bei **großen Datenmengen**, unterscheiden sich aber in **Scope und Ziel**.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Partitioning](https://www.postgresql.org/docs/current/ddl-partitioning.html)
+* [MongoDB Docs – Sharding](https://www.mongodb.com/docs/manual/sharding/)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+171. ### <a name="171"></a> Unterschied zwischen vertikaler und horizontaler Skalierung?
+
+**Unterschied zwischen vertikaler und horizontaler Skalierung**
+
+---
+
+### **Vertikale Skalierung (Scaling Up)**
+
+* Mehr **Ressourcen** zu einem bestehenden Server hinzufügen:
+
+  * mehr CPU-Kerne
+  * mehr RAM
+  * schnellere Festplatten
+* Einfach umzusetzen, keine Änderungen in der Software nötig.
+* **Grenzen**: Hardware hat Obergrenzen, oft teuer.
+* **Beispiel**: PostgreSQL auf einem Server von 8 GB → 64 GB RAM aufrüsten.
+
+---
+
+### **Horizontale Skalierung (Scaling Out)**
+
+* Mehrere **Server/Instanzen** hinzufügen und die Last verteilen.
+* Erfordert Anpassungen in **Architektur** (Load Balancer, Replikation, Sharding).
+* Potenziell unbegrenzt skalierbar.
+* Komplexer (Datenkonsistenz, Netzwerk-Latenzen, Synchronisierung).
+* **Beispiel**: PostgreSQL-Replikation → mehrere Read-Replicas oder MongoDB-Sharding.
+
+---
+
+### **Vergleich**
+
+| Merkmal         | Vertikal (Up)               | Horizontal (Out)                            |
+| --------------- | --------------------------- | ------------------------------------------- |
+| **Ansatz**      | Mehr Leistung pro Server    | Mehr Server hinzufügen                      |
+| **Grenzen**     | Hardware-Limit erreicht     | Nahezu unbegrenzt (Cloud, Cluster)          |
+| **Kosten**      | Teure High-End-Maschinen    | Billigere Standard-Server                   |
+| **Komplexität** | Einfach                     | Hoch (Replikation, Sharding, Load Balancer) |
+| **Einsatz**     | Kleine bis mittlere Systeme | Große Systeme, Web-Apps, Big Data           |
+
+---
+
+### **Zusammenfassung**
+
+* **Vertikal** = stärkerer Server, schnell & einfach, aber limitiert.
+* **Horizontal** = mehr Server, skalierbar, aber komplexer.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Scalability](https://www.postgresql.org/docs/current/runtime-config-resource.html)
+* [MongoDB Docs – Horizontal Scaling (Sharding)](https://www.mongodb.com/docs/manual/sharding/)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+172. ### <a name="172"></a> Wie funktioniert Replikation in SQL-DBs?
+
+**Replikation in SQL-Datenbanken**
+
+---
+
+### **Definition**
+
+Replikation = **Kopieren und Verteilen von Daten** von einer Datenbank (**Primary/Master**) auf eine oder mehrere andere (**Replica/Standby**).
+➡️ Ziel: **Ausfallsicherheit**, **Lastverteilung**, **hohe Verfügbarkeit**.
+
+---
+
+### **Arten der Replikation**
+
+1. **Master-Slave (Primary-Replica)**
+
+* Alle **Schreiboperationen** laufen über den Master.
+* Replicas sind **read-only** → entlasten Master bei Leseanfragen.
+* Beispiel: PostgreSQL Streaming Replication.
+
+```txt
+Client (Writes) → Master → Replica1 (Reads)
+                           → Replica2 (Reads)
+```
+
+---
+
+2. **Master-Master (Multi-Primary)**
+
+* Mehrere Knoten können **lesen und schreiben**.
+* Erfordert Konfliktlösung bei gleichzeitigen Writes.
+* Beispiel: MySQL Group Replication, Galera Cluster.
+
+---
+
+3. **Synchronous vs. Asynchronous**
+
+* **Synchronous**: Master wartet, bis Replica bestätigt → höhere Konsistenz, aber langsamer.
+* **Asynchronous**: Master schreibt sofort, Replica synchronisiert später → schneller, aber eventuell verzögerte Daten.
+
+---
+
+### **Beispiel PostgreSQL – Streaming Replication**
+
+* Primary schreibt Änderungen in **Write-Ahead Log (WAL)**.
+* Replica liest WAL-Einträge und spielt sie nach.
+
+```conf
+# postgresql.conf (Primary)
+wal_level = replica
+max_wal_senders = 10
+```
+
+```conf
+# recovery.conf (Replica)
+primary_conninfo = 'host=primary_user port=5432 user=replicator password=secret'
+```
+
+---
+
+### **Vorteile**
+
+* **Load Balancing**: Master für Writes, Replicas für Reads.
+* **High Availability**: Fallback auf Replica bei Ausfall.
+* **Disaster Recovery**: Daten auch an anderem Standort vorhanden.
+
+### **Nachteile**
+
+* Mehr **Komplexität** (Failover, Konflikte).
+* Asynchrone Replikation → Risiko veralteter Daten.
+
+---
+
+### **Zusammenfassung**
+
+* Replikation = Daten werden vom Master auf Replikas kopiert.
+* Formen: **Master-Slave**, **Master-Master**, synchron/asynchron.
+* Nutzen: **Performance, Ausfallsicherheit, Verfügbarkeit**.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – High Availability & Replication](https://www.postgresql.org/docs/current/different-replication-solutions.html)
+* [MySQL Docs – Replication](https://dev.mysql.com/doc/refman/8.0/en/replication.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+173. ### <a name="173"></a> Wie schützt man DB-Verbindungen in einer Express-App?
+
+**DB-Verbindungen in einer Express-App schützen**
+
+---
+
+### 1) Geheimnisse sicher handhaben
+
+* **.env / Umgebungsvariablen** statt Hardcoding.
+* Keine Secrets loggen oder ins Repo pushen; Secret-Manager nutzen (Cloud/K8s).
+
+```js
+// app.js
+import "dotenv/config"; // npm i dotenv
+const { DB_URL } = process.env;
+```
+
+---
+
+### 2) TLS/SSL aktivieren
+
+* Transport verschlüsseln (Client ↔ DB).
+* Zertifikate validieren (CA, rejectUnauthorized).
+
+```js
+// node-postgres (pg) mit TLS
+import pkg from "pg";
+const { Pool } = pkg;
+
+export const pool = new Pool({
+  connectionString: process.env.DB_URL, // z.B. postgres://user:pass@host:5432/db
+  ssl: { require: true, rejectUnauthorized: true }, // CA bei Bedarf: ca: fs.readFileSync("ca.pem")
+});
+```
+
+*PostgreSQL-Server: `ssl = on`, passende Zertifikate bereitstellen.*
+
+---
+
+### 3) Least Privilege & getrennte Nutzer
+
+* **Nur benötigte Rechte** (SELECT/INSERT statt SUPERUSER).
+* Getrennte Konten für App/Administration; Rotation der Passwörter.
+
+---
+
+### 4) Connection Pool richtig konfigurieren
+
+* Limits, Timeouts, Leaks vermeiden; bei Shutdown sauber schließen.
+
+```js
+// Pool-Optionen + Shutdown
+const pool = new Pool({ max: 10, idleTimeoutMillis: 10_000, connectionTimeoutMillis: 5_000 });
+
+process.on("SIGTERM", async () => {
+  await pool.end(); // Verbindungen sauber schließen
+  process.exit(0);
+});
+```
+
+---
+
+### 5) Prepared Statements / ORM-Query-Parameter
+
+* **SQL-Injection verhindern**: nie String-Konkatenation.
+
+```js
+// Sicherer parameterisierter Query
+const { rows } = await pool.query(
+  "SELECT * FROM users WHERE email = $1",
+  [req.body.email]
+);
+```
+
+*(Sequelize/Prisma setzen Parameter automatisch; rohen SQL nur mit Bind-Parametern verwenden.)*
+
+---
+
+### 6) Fehlerbehandlung & Logging
+
+* DB-Fehler **nicht** 1:1 an Client; generische Messages, Details nur intern loggen.
+* Zentraler Error-Handler, strukturierte Logs (z. B. pino/winston).
+
+```js
+// Express Error-Handler
+app.use((err, _req, res, _next) => {
+  console.error(err);               // intern detailliert
+  res.status(500).json({ error: "Internal Server Error" }); // extern generisch
+});
+```
+
+---
+
+### 7) Netzwerk-Härtung
+
+* DB **nicht öffentlich exponieren**; nur private Netzwerke/VPC/Sicherheitsgruppen.
+* IP-Allowlist/Firewall, ggf. Proxy/Bastion.
+* Rate-Limiting auf API-Ebene, damit Pool/DB nicht überlastet wird.
+
+---
+
+### 8) Timeouts, Retries, Circuit Breaker
+
+* Kurzlebige Transaktionen; **statement\_timeout**/`lock_timeout` serverseitig.
+* Im Client: Retries mit Backoff **nur** für idempotente Reads.
+
+---
+
+### 9) Monitoring & Auditing
+
+* Metriken (Pool-Auslastung, Latenzen), Slow-Query-Log, Audit-Log aktivieren.
+* Alarme bei Fehlercodes (z. B. `57P01`, `40P01`).
+
+---
+
+### 10) Migrations & Schema-Validierung
+
+* Reproduzierbare Migrationspipelines; kein „hot editing“ in Produktion.
+* Constraints (FK, CHECK, UNIQUE) als **Sicherheitsnetz** im Schema.
+
+---
+
+### **Zusammenfassung**
+
+* Secrets in Umgebungsvariablen, **TLS**, **Least-Privilege-User**, **parametrisierte Queries**, gehärtetes Netzwerk, saubere **Pool- und Fehlerkonfiguration**, Timeouts/Monitoring.
+* Ziel: Vertraulichkeit (TLS), Integrität (Constraints/Parametrisierung), Verfügbarkeit (Pool/Timeouts/Rate-Limit).
+
+📖 Quellen:
+
+* [Express.js – Fehlerbehandlung](https://expressjs.com/de/guide/error-handling.html)
+* [node-postgres (pg) – Connection & SSL](https://node-postgres.com/features/connecting)
+* [PostgreSQL – Secure TCP/SSL](https://www.postgresql.org/docs/current/ssl-tcp.html)
+* [Sequelize – Sicherheit & SQL-Injection](https://sequelize.org/docs/v7/other-topics/security/)
+* [OWASP – SQL Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html)
 
 
   **[⬆ Наверх](#top)**
 
-163. ### <a name="163"></a> 
+174. ### <a name="174"></a> Was sind ORM-Tools (z. B. Sequelize, Prisma, TypeORM)?
 
+**ORM-Tools (Object-Relational Mapping)**
+
+---
+
+### **Definition**
+
+* **ORM** = Object-Relational Mapping.
+* Brücke zwischen **Objektorientiertem Code (z. B. JavaScript-Klassen)** und **relationalen Datenbanken (SQL)**.
+* Ziel: Entwickler arbeiten mit **Objekten** statt mit rohem SQL.
+* ORM übernimmt:
+
+  * SQL-Generierung (INSERT, SELECT, JOIN …)
+  * Migrationen
+  * Beziehungen (1:1, 1\:n, n\:m)
+  * Sicherheit (Prepared Statements gegen SQL-Injection)
+
+---
+
+### **Beispiele: Node.js ORM-Tools**
+
+#### **1) Sequelize**
+
+* Beliebt im Express-Umfeld.
+* Unterstützt PostgreSQL, MySQL, SQLite, MSSQL.
+* Definiert Models und Beziehungen.
+* Migrationen integriert.
+
+```js
+// models/User.js
+import { DataTypes } from "sequelize";
+import { sequelize } from "../db.js";
+
+export const User = sequelize.define("User", {
+  name: DataTypes.STRING,
+  email: { type: DataTypes.STRING, unique: true }
+});
+
+// Nutzung
+const user = await User.create({ name: "Sergii", email: "test@mail.com" });
+```
+
+---
+
+#### **2) Prisma**
+
+* Modernes ORM mit eigenem **Schema-DSL**.
+* Generiert **TypeScript-Typen** automatisch → stark typisiert.
+* Query-Engine in Rust → sehr performant.
+
+```prisma
+// schema.prisma
+model User {
+  id    Int     @id @default(autoincrement())
+  name  String
+  email String  @unique
+}
+```
+
+```ts
+// Nutzung
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+
+const user = await prisma.user.create({
+  data: { name: "Sergii", email: "test@mail.com" }
+});
+```
+
+---
+
+#### **3) TypeORM**
+
+* Starke Integration mit TypeScript (Dekoratoren, Entities).
+* Nutzt **Klassendeklarationen** direkt als Tabellen.
+* Unterstützt Active Record & Data Mapper Pattern.
+
+```ts
+// User.ts
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+
+@Entity()
+export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  name: string;
+
+  @Column({ unique: true })
+  email: string;
+}
+```
+
+```ts
+// Nutzung
+import { AppDataSource } from "./data-source";
+import { User } from "./entity/User";
+
+const user = new User();
+user.name = "Sergii";
+user.email = "test@mail.com";
+await AppDataSource.manager.save(user);
+```
+
+---
+
+### **Vor- und Nachteile von ORMs**
+
+**Vorteile**
+
+* Schnelle Entwicklung, weniger SQL notwendig.
+* Abstraktion über verschiedene DBs.
+* Automatische Migrationen & Typensicherheit (z. B. Prisma).
+* Sicherheit durch Prepared Statements.
+
+**Nachteile**
+
+* Performance: Generierter SQL oft weniger optimiert als handgeschriebener.
+* Komplexe Queries schwerer abzubilden.
+* ORM-Learning-Curve.
+
+---
+
+### **Zusammenfassung**
+
+* **ORM**-Tools = Mapping zwischen Objekten und relationalen Tabellen.
+* Beispiele: **Sequelize** (klassisch, weit verbreitet), **Prisma** (modern, typensicher), **TypeORM** (starke TypeScript-Integration).
+* Vorteile: Schnelleres Arbeiten, weniger SQL.
+* Nachteile: Performance, eingeschränkte Flexibilität bei komplexen Queries.
+
+📖 Quellen:
+
+* [Sequelize Docs](https://sequelize.org/)
+* [Prisma Docs](https://www.prisma.io/docs)
+* [TypeORM Docs](https://typeorm.io/)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+175. ### <a name="175"></a> Vorteile und Nachteile von ORM vs. Plain SQL?
+
+**Vorteile und Nachteile von ORM vs. Plain SQL**
+
+---
+
+### **ORM (z. B. Sequelize, Prisma, TypeORM)**
+
+✅ **Vorteile**
+
+* **Produktivität**: weniger Boilerplate, schnelleres Arbeiten mit Models statt SQL.
+* **Abstraktion**: einheitliche API für verschiedene Datenbanken.
+* **Sicherheit**: Prepared Statements gegen SQL-Injection standardmäßig.
+* **Wartbarkeit**: Migrations-Tools, klar strukturierte Models, Beziehungen.
+* **Typisierung** (z. B. Prisma, TypeORM): weniger Fehler durch Autocomplete/Types.
+
+❌ **Nachteile**
+
+* **Performance**: generiertes SQL oft nicht optimal.
+* **Komplexität**: bei komplexen Queries oder Performance-Tuning schwieriger.
+* **Learning Curve**: jedes ORM hat eigene Syntax & Konzepte.
+* **Abhängigkeit**: man ist vom ORM-Ökosystem abhängig (Updates, Bugs).
+
+---
+
+### **Plain SQL (direkt mit pg, mysql2 etc.)**
+
+✅ **Vorteile**
+
+* **Volle Kontrolle**: direkt SQL schreiben, genau was DB versteht.
+* **Performance**: hochoptimierte Queries möglich (Joins, Index-Hints).
+* **Transparenz**: keine „Blackbox“, man sieht sofort, was passiert.
+* **Flexibilität**: geeignet für Spezialfeatures (z. B. PostgreSQL JSONB, Window Functions).
+
+❌ **Nachteile**
+
+* **Mehr Boilerplate**: wiederholte SQL-Strings, weniger DRY.
+* **Fehleranfälliger**: Gefahr für SQL-Injection, wenn Parameter nicht sauber gebunden werden.
+* **Weniger portabel**: SQL-Dialekte (Postgres vs. MySQL) unterscheiden sich.
+* **Migrationsaufwand**: manuelle Pflege von Schemaänderungen.
+
+---
+
+### **Vergleich**
+
+| Kriterium            | ORM                                 | Plain SQL                         |
+| -------------------- | ----------------------------------- | --------------------------------- |
+| **Entwicklung**      | Schnell, abstrahiert                | Mehr Aufwand, aber flexibel       |
+| **Performance**      | Kann suboptimal sein                | Maximale Kontrolle, optimierbar   |
+| **Sicherheit**       | Eingebaute SQL-Injection-Prävention | Entwickler muss aufpassen         |
+| **Komplexe Queries** | Schwer abzubilden                   | Direkt und präzise möglich        |
+| **Wartbarkeit**      | Automatische Migrationen, Models    | Manuelle Migrationen, SQL-Skripte |
+
+---
+
+### **Zusammenfassung**
+
+* **ORM**: gut für schnelle Entwicklung, Standard-CRUD, Teams, wo Wartbarkeit zählt.
+* **Plain SQL**: gut für Performance-kritische Systeme und komplexe Queries.
+* Praxis: oft **Hybrid-Ansatz** → ORM für Standard, Raw SQL für Performance-Spezialfälle.
+
+📖 Quellen:
+
+* [Sequelize Docs – Raw Queries](https://sequelize.org/docs/v7/core-concepts/raw-queries/)
+* [Prisma Docs – Raw Database Access](https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access)
+* [PostgreSQL Docs – Advanced Queries](https://www.postgresql.org/docs/current/queries.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+176. ### <a name="176"></a> Wie implementiert man Soft Delete in einer Datenbank?
+
+**Soft Delete in Datenbanken – Patterns & Umsetzung (PostgreSQL, Sequelize, Prisma)**
+
+---
+
+### 1) SQL-Pattern (PostgreSQL)
+
+**Schema:** `deleted_at TIMESTAMPTZ NULL` (NULL = aktiv, sonst gelöscht)
+
+```sql
+-- Spalte für Soft Delete
+ALTER TABLE users ADD COLUMN deleted_at TIMESTAMPTZ;
+
+-- Soft Delete (statt DELETE)
+UPDATE users SET deleted_at = NOW() WHERE id = 1;
+
+-- Standard-Selektionsregel
+SELECT * FROM users WHERE deleted_at IS NULL;
+
+-- Partial Unique Index (nur für aktive Zeilen)
+CREATE UNIQUE INDEX uniq_users_email_active
+  ON users (email)
+  WHERE deleted_at IS NULL;
+
+-- Optional: View nur mit aktiven Datensätzen
+CREATE VIEW users_active AS
+SELECT * FROM users WHERE deleted_at IS NULL;
+```
+
+**Hinweise:**
+
+* Partial Index hält Eindeutigkeit trotz Soft Delete aufrecht. ([PostgreSQL][1])
+* Views kapseln die Filterlogik. ([PostgreSQL][2])
+
+---
+
+### 2) Sequelize (paranoid = eingebautes Soft Delete)
+
+```js
+// db.js
+import { Sequelize, DataTypes } from "@sequelize/core";
+export const sequelize = new Sequelize(process.env.DB_URL, { logging: false });
+
+// models/User.js
+export const User = sequelize.define(
+  "User",
+  {
+    name: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, unique: true },
+    deletedAt: { type: DataTypes.DATE }, // Spalte für Soft Delete
+  },
+  { paranoid: true, deletedAt: "deletedAt" } // aktiviert Soft Delete
+);
+
+// Nutzung
+const u = await User.create({ name: "Sergii", email: "a@b.com" });
+await u.destroy();        // setzt deletedAt (Soft Delete)
+await u.restore();        // wiederherstellen
+const rows = await User.findAll();               // zeigt nur aktive
+const all  = await User.findAll({ paranoid: false }); // inkl. gelöschte
+```
+
+Sequelize verwaltet `deletedAt`, filtert standardmäßig gelöschte Zeilen heraus und bietet `restore()`. ([sequelize.org][3])
+
+---
+
+### 3) Prisma (Middleware / Client-Erweiterung)
+
+**Schema:**
+
+```prisma
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  deletedAt DateTime? // NULL = aktiv
+}
+```
+
+**Soft Delete via Middleware (\$use / \$extends):**
+
+```js
+// prisma.ts
+import { PrismaClient } from "@prisma/client";
+export const prisma = new PrismaClient();
+
+// Soft-Delete: wandelt delete in update { deletedAt: now() } um
+prisma.$use(async (params, next) => {
+  if (params.action === "delete") {
+    params.action = "update";
+    params.args["data"] = { deletedAt: new Date() };
+  }
+  if (params.action === "deleteMany") {
+    params.action = "updateMany";
+    params.args["data"] = { deletedAt: new Date() };
+  }
+  return next(params);
+});
+```
+
+**Nur aktive standardmäßig lesen (ein Ansatz):**
+
+```js
+// Beispiel-Wrapper
+const activeUsers = await prisma.user.findMany({
+  where: { deletedAt: null },
+});
+```
+
+Prisma empfiehlt Soft Delete per Middleware; offizielle Beispielseite zeigt das Grundmuster. Für modernere Projekte kann man dasselbe Prinzip mit **Client Extensions (\$extends)** abbilden. ([Prisma][4])
+
+---
+
+### 4) Kaskadierendes Soft Delete
+
+* **FK mit ON DELETE CASCADE** wirkt nur bei *Hard Deletes*.
+* Für Soft Delete: Applikationslogik (mehrere Updates) oder DB-Trigger, die Kindtabellen ebenfalls `deleted_at` setzen.
+* In Sequelize existieren Optionen/Utilities für Kaskaden, bei Soft Deletes jedoch oft durch App-Logik/Hook zu realisieren. ([sequelize.org][5])
+
+---
+
+### 5) Typische Stolpersteine & Best Practices
+
+* **Eindeutigkeit & Indizes:** Partial-Unique-Index mit `WHERE deleted_at IS NULL`. ([PostgreSQL][1])
+* **Standardfilter zentralisieren:** View/ORM-Default Scope, damit gelöschte Datensätze nicht versehentlich auftauchen. ([PostgreSQL][2])
+* **Wiederherstellen (Restore):** Pfade zum Rückgängigmachen bereitstellen (z. B. `restore()` in Sequelize). ([sequelize.org][6])
+* **Auditing:** `deleted_by`, `deleted_reason` Felder erwägen.
+* **Hard Delete Pfad:** admin-only, z. B. Sequelize `destroy({ force: true })` oder echtes `DELETE`.
+
+---
+
+### **Zusammenfassung**
+
+* **Soft Delete** markiert Datensätze (z. B. `deleted_at`) statt sie zu löschen.
+* PostgreSQL: `deleted_at` + **Partial-Unique-Index** + optional **View**.
+* **Sequelize**: `paranoid` + `deletedAt` + `restore()` out-of-the-box.
+* **Prisma**: über **Middleware/Extensions** Delete → Update umbiegen und standardmäßig `deletedAt: null` filtern.
+
+📖 Quellen:
+
+* **PostgreSQL**: Partial Indexes, CREATE VIEW. ([PostgreSQL][1])
+* **Sequelize**: Paranoid/`deletedAt`, Restore. ([sequelize.org][3])
+* **Prisma**: Soft-Delete-Middleware (offizielle Doku), Client-Erweiterungen. ([Prisma][4])
+
+---
+
+[1]: https://www.postgresql.org/docs/current/sql-createindex.html?utm_source=chatgpt.com "Documentation: 17: CREATE INDEX"
+[2]: https://www.postgresql.org/docs/current/sql-createview.html?utm_source=chatgpt.com "Documentation: 17: CREATE VIEW"
+[3]: https://sequelize.org/docs/v6/core-concepts/paranoid/?utm_source=chatgpt.com "Paranoid"
+[4]: https://www.prisma.io/docs/concepts/components/prisma-client/middleware/soft-delete-middleware?utm_source=chatgpt.com "Middleware sample: soft delete - Prisma Documentation"
+[5]: https://sequelize.org/api/v7/enums/_sequelize_core.index.manualondelete?utm_source=chatgpt.com "ManualOnDelete | Documentation"
+[6]: https://sequelize.org/docs/v7/models/paranoid/?utm_source=chatgpt.com "Paranoid Models"
 
 
   **[⬆ Наверх](#top)**
 
-164. ### <a name="164"></a> 
+177. ### <a name="177"></a> Unterschied zwischen NoSQL-Typen: Key-Value, Document, Graph, Column?
 
+**Unterschied zwischen NoSQL-Datenbank-Typen: Key-Value, Document, Graph, Column**
 
+---
+
+### **1) Key-Value Stores**
+
+* **Datenmodell:** Einfachste Form → Schlüssel (`key`) → Wert (`value`).
+* **Vorteile:** extrem schnell, einfach, skalierbar.
+* **Einsatz:** Caching, Sitzungsverwaltung, Konfiguration.
+* **Beispiele:** Redis, Riak, DynamoDB (teilweise).
+
+```txt
+key: "session:123"
+value: { "userId": 42, "expires": "2025-09-06T12:00:00" }
+```
+
+---
+
+### **2) Document Stores**
+
+* **Datenmodell:** JSON-/BSON-ähnliche Dokumente (verschachtelte Strukturen).
+* **Schema-frei** oder flexibel.
+* **Vorteile:** flexibel, API-nah (JSON für REST/GraphQL), gute Query-Möglichkeiten.
+* **Einsatz:** Content-Management, User-Profile, IoT, dynamische Daten.
+* **Beispiele:** MongoDB, CouchDB, Firebase Firestore.
+
+```json
+{
+  "_id": 1,
+  "name": "Sergii",
+  "email": "sergii@mail.com",
+  "hobbies": ["Coding", "Fitness"]
+}
+```
+
+---
+
+### **3) Graph-Datenbanken**
+
+* **Datenmodell:** Knoten (Entities) + Kanten (Beziehungen).
+* **Optimiert für:** Netzwerke, Relationen, Traversierungen.
+* **Vorteile:** sehr effizient für Beziehungsabfragen („wer kennt wen?“).
+* **Einsatz:** Social Media, Empfehlungen, Betrugserkennung.
+* **Beispiele:** Neo4j, ArangoDB, Amazon Neptune.
+
+```txt
+(Node) User {id:1, name:"Sergii"} 
+   ──[friend_of]──> (Node) User {id:2, name:"Anna"}
+```
+
+---
+
+### **4) Column Stores (Wide-Column)**
+
+* **Datenmodell:** Tabellenähnlich, aber Spaltenfamilien statt Zeilenorientierung.
+* **Flexibler als SQL-Tabellen:** jede Zeile kann andere Spalten haben.
+* **Vorteile:** sehr gut für Big Data, Analytics, Schreib-/Lese-Performance in großen Clustern.
+* **Einsatz:** Data Warehousing, Echtzeit-Analytics, Logging.
+* **Beispiele:** Apache Cassandra, HBase, ScyllaDB.
+
+```txt
+RowKey: user123
+| name   | email            | last_login   |
+|--------|------------------|--------------|
+| Sergii | s@mail.com       | 2025-09-06   |
+```
+
+---
+
+### **Vergleich**
+
+| Typ           | Datenmodell     | Vorteile                | Typische Nutzung             | Beispiele        |
+| ------------- | --------------- | ----------------------- | ---------------------------- | ---------------- |
+| **Key-Value** | Key → Value     | extrem schnell, einfach | Cache, Sessions, Token-Store | Redis, DynamoDB  |
+| **Document**  | JSON-Dokumente  | flexibel, schemafrei    | CMS, Profile, IoT            | MongoDB, CouchDB |
+| **Graph**     | Knoten + Kanten | stark bei Beziehungen   | Social Media, Empfehlungen   | Neo4j, Neptune   |
+| **Column**    | Spaltenfamilien | skalierbar für Big Data | Analytics, Logging, IoT      | Cassandra, HBase |
+
+---
+
+### **Zusammenfassung**
+
+* **Key-Value**: schnell, einfach → Caching.
+* **Document**: flexibel, JSON-nah → Web/IoT.
+* **Graph**: optimiert für Relationen → Social Media, Empfehlung.
+* **Column**: Big Data, Analytics → Data Warehousing, Logging.
+
+📖 Quellen:
+
+* [MDN – NoSQL Überblick](https://developer.mozilla.org/en-US/docs/Glossary/NoSQL)
+* [MongoDB Docs – NoSQL Types](https://www.mongodb.com/nosql-explained)
+* [Neo4j Docs – Graph DB Basics](https://neo4j.com/developer/graph-database/)
+* [Cassandra Docs – Data Model](https://cassandra.apache.org/doc/latest/)
+
+---
 
   **[⬆ Наверх](#top)**
 
-165. ### <a name="165"></a> 
+178. ### <a name="178"></a> Wie funktioniert Indexierung in MongoDB?
 
+**Indexierung in MongoDB**
 
+---
+
+### **Definition**
+
+* Ein **Index** in MongoDB ist eine Datenstruktur (standardmäßig **B-Tree**), die den schnellen Zugriff auf Dokumente ermöglicht.
+* Ohne Index muss MongoDB einen **Collection Scan** machen (jede Zeile prüfen).
+* Mit Index → gezielte Suche, schneller, weniger RAM/CPU-Last.
+
+---
+
+### **Standardindex**
+
+* Jede Collection erhält automatisch einen **Index auf `_id`**.
+
+```js
+db.users.getIndexes();
+// Ausgabe: [{ key: { _id: 1 }, name: "_id_" }]
+```
+
+---
+
+### **Indextypen in MongoDB**
+
+1. **Single Field Index**
+
+```js
+db.users.createIndex({ email: 1 }); // 1 = ASC, -1 = DESC
+db.users.find({ email: "test@mail.com" }); // nutzt Index
+```
+
+2. **Compound Index (mehrere Felder)**
+
+```js
+db.orders.createIndex({ userId: 1, createdAt: -1 });
+db.orders.find({ userId: 42 }).sort({ createdAt: -1 });
+```
+
+3. **Unique Index**
+
+```js
+db.users.createIndex({ email: 1 }, { unique: true });
+```
+
+4. **Sparse Index**
+
+* Enthält nur Dokumente, die das Feld besitzen.
+
+```js
+db.users.createIndex({ phone: 1 }, { sparse: true });
+```
+
+5. **Partial Index**
+
+* Index nur für bestimmte Dokumente.
+
+```js
+db.users.createIndex(
+  { email: 1 },
+  { partialFilterExpression: { active: true } }
+);
+```
+
+6. **Text Index (Volltextsuche)**
+
+```js
+db.articles.createIndex({ content: "text" });
+db.articles.find({ $text: { $search: "mongodb index" } });
+```
+
+7. **Geospatial Index**
+
+```js
+db.places.createIndex({ location: "2dsphere" });
+db.places.find({
+  location: {
+    $near: { $geometry: { type: "Point", coordinates: [13.4, 52.5] }, $maxDistance: 5000 }
+  }
+});
+```
+
+---
+
+### **Index-Analyse**
+
+* Mit `.explain()` prüfen, ob Query Index nutzt:
+
+```js
+db.users.find({ email: "test@mail.com" }).explain("executionStats");
+```
+
+---
+
+### **Vor- und Nachteile**
+
+✅ Vorteile:
+
+* Schnellere Abfragen, weniger Collection Scans
+* Unterstützt Sortierung, Unique Constraints, Volltext, Geo
+
+❌ Nachteile:
+
+* **Speicherbedarf**: Index braucht zusätzlichen Platz
+* **Langsamere Writes**: INSERT/UPDATE/DELETE müssen Index aktualisieren
+* **Zu viele Indizes** = Performanceverlust
+
+---
+
+### **Zusammenfassung**
+
+* MongoDB-Indizes = **B-Tree-Strukturen** für schnellen Zugriff.
+* Typen: Single, Compound, Unique, Sparse, Partial, Text, Geospatial.
+* Analyse mit `.explain()`.
+* Trade-off: schnelleres Lesen ↔ langsameres Schreiben + mehr Speicher.
+
+📖 Quellen:
+
+* [MongoDB Docs – Indexes](https://www.mongodb.com/docs/manual/indexes/)
+* [MongoDB Docs – Index Types](https://www.mongodb.com/docs/manual/indexes/#index-types)
+
+---
 
   **[⬆ Наверх](#top)**
 
-166. ### <a name="166"></a> 
+179. ### <a name="179"></a> Was ist Aggregation Pipeline in MongoDB?
 
+**Aggregation Pipeline in MongoDB**
 
+---
+
+### **Definition**
+
+* Die **Aggregation Pipeline** ist ein Framework in MongoDB, mit dem man **mehrstufige Datenverarbeitung** auf Collections durchführen kann.
+* Funktionsweise ähnlich wie eine **Pipeline in UNIX** oder **SQL-Abfragen mit GROUP BY, HAVING, JOINs**.
+* Jeder Schritt (`Stage`) verarbeitet Dokumente und reicht das Ergebnis an die nächste Stage weiter.
+
+---
+
+### **Häufige Stages**
+
+1. **\$match** → Filtert Dokumente (wie `WHERE` in SQL).
+
+```js
+db.orders.aggregate([
+  { $match: { status: "completed" } }
+]);
+```
+
+2. **\$group** → Gruppiert Dokumente, führt Aggregationen aus (SUM, AVG, COUNT).
+
+```js
+db.orders.aggregate([
+  { $group: { _id: "$customerId", total: { $sum: "$amount" } } }
+]);
+```
+
+3. **\$project** → Wählt Felder aus oder berechnet neue.
+
+```js
+db.orders.aggregate([
+  { $project: { _id: 0, customerId: 1, amountWithTax: { $multiply: ["$amount", 1.19] } } }
+]);
+```
+
+4. **\$sort** → Sortierung.
+
+```js
+db.orders.aggregate([
+  { $sort: { total: -1 } }
+]);
+```
+
+5. **\$lookup** → Join mit anderer Collection.
+
+```js
+db.orders.aggregate([
+  { 
+    $lookup: {
+      from: "customers",
+      localField: "customerId",
+      foreignField: "_id",
+      as: "customer"
+    }
+  }
+]);
+```
+
+6. **\$unwind** → Array in mehrere Dokumente auflösen.
+
+```js
+db.users.aggregate([
+  { $unwind: "$hobbies" }
+]);
+```
+
+---
+
+### **Komplexes Beispiel**
+
+👉 Alle Kunden mit Gesamtsumme ihrer Bestellungen, nur > 1000€, sortiert nach Betrag:
+
+```js
+db.orders.aggregate([
+  { $match: { status: "completed" } },
+  { $group: { _id: "$customerId", totalSpent: { $sum: "$amount" } } },
+  { $match: { totalSpent: { $gt: 1000 } } },
+  { $sort: { totalSpent: -1 } },
+  { $lookup: {
+      from: "customers",
+      localField: "_id",
+      foreignField: "_id",
+      as: "customer"
+    }
+  },
+  { $project: { customer: 1, totalSpent: 1 } }
+]);
+```
+
+---
+
+### **Vergleich mit SQL**
+
+* **SQL**:
+
+```sql
+SELECT c.name, SUM(o.amount) AS totalSpent
+FROM orders o
+JOIN customers c ON o.customerId = c.id
+WHERE o.status = 'completed'
+GROUP BY c.name
+HAVING SUM(o.amount) > 1000
+ORDER BY totalSpent DESC;
+```
+
+---
+
+### **Zusammenfassung**
+
+* Aggregation Pipeline = **mehrstufige Datenverarbeitung** in MongoDB.
+* Stages: `$match`, `$group`, `$project`, `$sort`, `$lookup`, `$unwind`.
+* Vergleichbar mit **SQL-Analysen (GROUP BY, JOIN, HAVING)**.
+* Sehr leistungsfähig für Reporting, Analytics und komplexe Transformationen.
+
+📖 Quellen:
+
+* [MongoDB Docs – Aggregation](https://www.mongodb.com/docs/manual/aggregation/)
+* [MongoDB Docs – Aggregation Pipeline Stages](https://www.mongodb.com/docs/manual/meta/aggregation-quick-reference/)
+
+---
 
   **[⬆ Наверх](#top)**
 
-167. ### <a name="167"></a> 
+180. ### <a name="180"></a> Unterschied zwischen Embedded Documents und Referenzen in MongoDB?
 
+**Unterschied zwischen Embedded Documents und Referenzen in MongoDB**
 
+---
 
-  **[⬆ Наверх](#top)**
+### **1) Embedded Documents (eingebettete Dokumente)**
 
-168. ### <a name="168"></a> 
+* Daten werden direkt im Hauptdokument gespeichert (**Denormalisierung**).
+* Vorteil: **schneller Zugriff**, keine zusätzliche Query oder Join nötig.
+* Nachteil: Duplizierte Daten → **Inkonsistenzen** möglich, wenn mehrfach gespeichert.
 
+**Beispiel: User mit eingebetteten Adressen**
 
+```json
+{
+  "_id": 1,
+  "name": "Sergii",
+  "addresses": [
+    { "street": "Hauptstr. 1", "city": "Leipzig" },
+    { "street": "Nebenweg 5", "city": "Berlin" }
+  ]
+}
+```
 
-  **[⬆ Наверх](#top)**
+➡️ Vorteil: schneller Zugriff auf User + Adressen in **einem Dokument**.
 
-169. ### <a name="169"></a> 
+---
 
+### **2) Referenzen (Normalized / Linking)**
 
+* Dokumente sind getrennt, Beziehung über **IDs**.
+* Vorteil: **weniger Duplikate**, konsistente Daten, gut bei **großen oder häufig veränderten Sub-Daten**.
+* Nachteil: Man braucht oft **mehrere Queries** oder `$lookup` (Join in Aggregation).
 
-  **[⬆ Наверх](#top)**
+**Beispiel: User und Adressen separat**
 
-170. ### <a name="170"></a> 
+```json
+// users
+{ "_id": 1, "name": "Sergii" }
 
+// addresses
+{ "_id": 100, "userId": 1, "street": "Hauptstr. 1", "city": "Leipzig" }
+{ "_id": 101, "userId": 1, "street": "Nebenweg 5", "city": "Berlin" }
+```
 
+Mit Aggregation `$lookup`:
 
-  **[⬆ Наверх](#top)**
+```js
+db.users.aggregate([
+  {
+    $lookup: {
+      from: "addresses",
+      localField: "_id",
+      foreignField: "userId",
+      as: "addresses"
+    }
+  }
+]);
+```
 
-171. ### <a name="171"></a> 
+---
 
+### **Vergleich**
 
+| Merkmal             | Embedded Documents                  | Referenzen                                |
+| ------------------- | ----------------------------------- | ----------------------------------------- |
+| **Performance**     | Schnell (1 Query)                   | Langsamer (mehrere Queries/Lookup)        |
+| **Datenkonsistenz** | Risiko durch Duplikate              | Bessere Konsistenz                        |
+| **Datenmenge**      | Gut für kleine, überschaubare Daten | Gut für große oder veränderliche Daten    |
+| **Abfragen**        | Einfach                             | Flexibler, aber komplexer                 |
+| **Use Cases**       | Profile mit Settings, Bestell-Items | User ↔ Orders, viele-zu-viele-Beziehungen |
 
-  **[⬆ Наверх](#top)**
+---
 
-172. ### <a name="172"></a> 
+### **Zusammenfassung**
 
+* **Embedded** = alles in einem Dokument → schnell, aber riskant bei großen oder duplizierten Daten.
+* **Referenzen** = separate Dokumente mit IDs → konsistenter, aber Queries komplexer.
+* Praxis: oft **Hybrid-Ansatz** → häufig gebrauchte Daten einbetten, seltene/veränderliche referenzieren.
 
+📖 Quellen:
 
-  **[⬆ Наверх](#top)**
+* [MongoDB Docs – Data Modeling](https://www.mongodb.com/docs/manual/core/data-model-design/)
+* [MongoDB Docs – Data Model Examples](https://www.mongodb.com/docs/manual/data-modeling/)
 
-173. ### <a name="173"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-174. ### <a name="174"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-175. ### <a name="175"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-176. ### <a name="176"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-177. ### <a name="177"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-178. ### <a name="178"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-179. ### <a name="179"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-180. ### <a name="180"></a> 
-
-
+---
 
   **[⬆ Наверх](#top)**  
 
