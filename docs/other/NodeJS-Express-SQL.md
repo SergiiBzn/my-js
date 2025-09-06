@@ -20019,360 +20019,6734 @@ db.users.aggregate([
 
   **[⬆ Наверх](#top)**  
 
-181. ### <a name="181"></a> 
+181. ### <a name="181"></a> Wie deployt man eine Node/Express-App auf AWS/Heroku/Vercel?
 
+**Deployment einer Node/Express-App: AWS, Heroku, Vercel (kurz & praxisnah)**
+
+---
+
+### **AWS (Elastic Beanstalk oder EC2)**
+
+**Option A: Elastic Beanstalk (managed PaaS)**
+
+1. App vorbereiten (`"start": "node server.js"` in `package.json`, Port aus `process.env.PORT` nutzen).
+2. EB CLI installieren, Umgebung erstellen & deployen:
+
+```bash
+npm i -g ebcli
+eb init               # Region/Plattform: Node.js wählen
+eb create             # Umgebung anlegen
+eb deploy             # deployen
+```
+
+3. Logs/Umgebung per `eb logs`, `eb setenv` verwalten.
+   Doku: **Deploy Node/Express on Elastic Beanstalk**. ([docs.aws.amazon.com][1])
+
+**Option B: EC2 (voller Root-Zugriff)**
+
+1. EC2-Instance erstellen & per SSH verbinden.
+2. Node.js installieren, App clonen, Prozessmanager (z. B. PM2) + Reverse Proxy (nginx) einrichten.
+3. Systemdienste/Firewall/SSL (Let’s Encrypt) konfigurieren.
+   Tut.: **Node.js auf EC2 einrichten**. ([docs.aws.amazon.com][2])
+
+**Minimaler ESM-Server**
+
+```js
+// server.js
+import express from "express";
+const app = express();
+app.get("/", (_req, res) => res.send("OK"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Listening on", PORT));
+```
+
+---
+
+### **Heroku**
+
+1. `Procfile` anlegen und Port binden:
+
+```
+web: npm start
+```
+
+2. Git-Repo verbinden & deployen:
+
+```bash
+heroku create
+git push heroku main
+heroku logs --tail
+```
+
+Wichtig: Heroku startet den `web`-Prozess, der **auf `process.env.PORT`** hören muss. Doku: *Deploying Node.js apps*, *Procfile*, *Getting Started*. ([devcenter.heroku.com][3])
+
+---
+
+### **Vercel**
+
+**Zwei gängige Wege:**
+
+1. **Express direkt deployen** (zero-config): Eine der Standard-Dateien exportiert die App **als Default** oder startet einen Listener.
+
+```js
+// index.js
+import express from "express";
+const app = express();
+app.get("/", (_req, res) => res.send("Hi from Vercel + Express"));
+export default app;                 // Vercel erkennt und betreibt als Function
+// Alternative: app.listen(process.env.PORT || 3000)
+```
+
+Deploy via Git oder CLI:
+
+```bash
+npm i -g vercel
+vercel dev     # lokal
+vercel deploy  # oder: vc deploy
+```
+
+Docs: *Express on Vercel*, *Using Express with Vercel*, *Vercel Functions*. ([Vercel][4])
+
+---
+
+### **Environment-Variablen (alle Plattformen)**
+
+* AWS EB: `eb setenv KEY=value`
+* Heroku: `heroku config:set KEY=value`
+* Vercel: Dashboard/`vercel env`
+  (immer **keine Secrets** im Code; TLS/SSL aktivieren)
+
+---
+
+### **DB-Verbindung**
+
+* Managed DB verwenden (AWS RDS / Heroku Postgres / Vercel + externe DB).
+* Connection-String über Umgebungsvariablen (Pooling, SSL).
+  (Details je nach Treiber/ORM)
+
+---
+
+### **Zusammenfassung**
+
+* **AWS**: *Elastic Beanstalk* (managed, skalierend) oder *EC2* (volle Kontrolle).
+* **Heroku**: `Procfile`, auf **`PORT`** hören, `git push heroku main`.
+* **Vercel**: Express **exportieren** oder listen; deploy via Git/CLI.
+* **Immer**: ENV-Variablen, Logs, Health-Checks, SSL, DB extern/managed.
+
+Quellen: AWS Elastic Beanstalk (Node/Express), EC2-Setup; Heroku Node Deployment & Procfile; Vercel Express & Functions. ([docs.aws.amazon.com][1], [devcenter.heroku.com][3], [Vercel][4])
+
+[1]: https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_nodejs_express.html?utm_source=chatgpt.com "Deploying a Node.js Express application to Elastic Beanstalk"
+[2]: https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-up-node-on-ec2-instance.html?utm_source=chatgpt.com "Setting up Node.js on an Amazon EC2 instance"
+[3]: https://devcenter.heroku.com/articles/deploying-nodejs?utm_source=chatgpt.com "Deploying Node.js Apps on Heroku"
+[4]: https://vercel.com/docs/frameworks/backend/express?utm_source=chatgpt.com "Express on Vercel"
 
 
   **[⬆ Наверх](#top)**
 
-182. ### <a name="182"></a> 
+182. ### <a name="182"></a> Was ist der Unterschied zwischen Development- und Production-Umgebung?
 
+**Unterschied zwischen Development- und Production-Umgebung**
+
+---
+
+### **Development (Entwicklungsumgebung)**
+
+* Ziel: **Entwicklung & Testen**.
+* Eigenschaften:
+
+  * **Verbose Logging** (detaillierte Fehlermeldungen, Stacktraces).
+  * Hot Reloading / Auto-Refresh (z. B. `nodemon`).
+  * Debugging-Tools aktiv.
+  * Weniger Sicherheitsmaßnahmen (z. B. schwächere CORS-Settings, Self-Signed SSL).
+  * Datenbanken oft mit **Seed-Daten** oder lokalen Instanzen.
+  * Performance nicht kritisch, Fokus auf Feedback.
+
+**Node.js Beispiel:**
+
+```bash
+NODE_ENV=development
+```
+
+```js
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev")); // detailliertes Logging
+}
+```
+
+---
+
+### **Production (Produktivumgebung)**
+
+* Ziel: **stabile, sichere, performante Ausführung für echte Benutzer**.
+* Eigenschaften:
+
+  * **Optimiertes Logging** (nur Errors/Warnings, keine sensiblen Daten).
+  * Keine Debug-Tools oder Hot Reload.
+  * **Sicherheits-Features aktiviert** (CORS, Rate Limiting, Helmet).
+  * DB = echte Produktionsdaten, oft in Cloud (RDS, Atlas).
+  * **Skalierung** (Load Balancer, Caching, Monitoring).
+  * Fehlerseiten generisch („500 Internal Server Error“), keine Stacktraces für User.
+
+**Node.js Beispiel:**
+
+```bash
+NODE_ENV=production
+```
+
+```js
+if (process.env.NODE_ENV === "production") {
+  app.use(helmet());         // Security-Header
+  app.set("trust proxy", 1); // wenn hinter Proxy/Load Balancer
+}
+```
+
+---
+
+### **Vergleich**
+
+| Merkmal           | Development                  | Production                           |
+| ----------------- | ---------------------------- | ------------------------------------ |
+| **Logging**       | ausführlich (Stacktraces)    | minimal, sicherheitsbewusst          |
+| **Tools**         | Debugger, Hot Reload         | deaktiviert                          |
+| **Sicherheit**    | weniger strikt               | sehr strikt (CORS, SSL, Rate-Limits) |
+| **Performance**   | zweitrangig                  | hoch optimiert                       |
+| **Datenbank**     | lokale Test-DB, Seed-Daten   | echte Produktiv-DB                   |
+| **Fehlerausgabe** | detailliert (für Entwickler) | generisch (für User)                 |
+
+---
+
+### **Zusammenfassung**
+
+* **Development** = flexibel, detailreich, für Entwicklerkomfort.
+* **Production** = sicher, stabil, performant, für Endnutzer.
+* Steuerung oft über **`NODE_ENV`** oder Config-Files.
+
+📖 Quellen:
+
+* [Node.js Docs – process.env.NODE\_ENV](https://nodejs.org/docs/latest/api/process.html#processenv)
+* [Express Docs – Best Practices: Production](https://expressjs.com/en/advanced/best-practice-performance.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+183. ### <a name="183"></a> Wie nutzt man .env-Dateien für Konfigurationen?
+
+**.env-Dateien für Konfigurationen in Node/Express**
+
+---
+
+### **1) Zweck**
+
+* `.env` Dateien speichern **Konfigurationswerte** (DB-URL, API-Keys, Ports) außerhalb des Codes.
+* Prinzip: **„Configuration over Code“** → keine Secrets ins Repo pushen.
+* Typisch im **12-Factor App Design**.
+
+---
+
+### **2) Installation**
+
+```bash
+npm install dotenv
+```
+
+---
+
+### **3) Beispiel .env Datei**
+
+```env
+# .env
+NODE_ENV=development
+PORT=3000
+DB_URL=postgres://user:pass@localhost:5432/mydb
+JWT_SECRET=supersecret
+```
+
+⚠️ `.env` gehört in **.gitignore**, damit keine Secrets ins Git-Repo gelangen.
+
+---
+
+### **4) Nutzung in Node/Express**
+
+```js
+// index.js
+import "dotenv/config"; // lädt automatisch .env in process.env
+import express from "express";
+
+const app = express();
+
+const PORT = process.env.PORT || 4000;
+const DB_URL = process.env.DB_URL;
+
+app.get("/", (_req, res) => {
+  res.send(`Server läuft auf Port ${PORT}, DB: ${DB_URL}`);
+});
+
+app.listen(PORT, () => console.log(`🚀 Listening on ${PORT}`));
+```
+
+---
+
+### **5) Best Practices**
+
+* **Sensible Daten nie hardcoden** (API-Keys, DB-Passwörter).
+* Unterschiedliche `.env` Dateien pro Umgebung:
+
+  * `.env.development`
+  * `.env.test`
+  * `.env.production`
+* Für Production: **Secrets via ENV Variablen** setzen (Heroku, Vercel, AWS EB → Dashboard/CLI).
+* Typen beachten: alle Werte sind **Strings** → ggf. casten.
+
+```js
+const DEBUG = process.env.DEBUG === "true"; // String → Boolean
+const PORT = Number(process.env.PORT) || 3000;
+```
+
+---
+
+### **Zusammenfassung**
+
+* `.env` speichert **Konfigurationswerte/Secrets** getrennt vom Code.
+* Zugriff über `process.env.VARIABLE`.
+* Mit **dotenv** laden, im Repo ignorieren, in Prod über echte ENV Variablen setzen.
+
+📖 Quellen:
+
+* [dotenv Doku](https://github.com/motdotla/dotenv)
+* [12-Factor App – Config](https://12factor.net/config)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+184. ### <a name="184"></a> Wie optimiert man Node.js Apps für Production?
+
+**Optimierung von Node.js/Express für Production (kurz & praxisnah)**
+
+---
+
+### 1) Produktionsmodus & Build
+
+* `NODE_ENV=production` setzen (deaktiviert Dev-Features, optimiert Abhängigkeiten).
+
+```js
+// index.js
+if (process.env.NODE_ENV === "production") {
+  // prod-spezifische Einstellungen
+}
+```
+
+Quelle: Node.js Prozess/ENV. ([nodejs.org][1])
+
+---
+
+### 2) HTTP-Ebene optimieren
+
+* **Kompression** aktivieren, **keine Sync-Funktionen** verwenden, **korrekt loggen**.
+
+```js
+// app.js
+import express from "express";
+import compression from "compression";
+const app = express();
+
+app.use(compression());               // gzip/br
+// keine fs.*Sync in hot paths
+```
+
+Leitfaden: Express Production – Performance. ([expressjs.com][2])
+
+* **Keep-Alive** für ausgehende HTTP-Requests (Downstreams/APIs) nutzen.
+
+```js
+import http from "node:http";
+const agent = new http.Agent({ keepAlive: true });
+http.request({ host: "api", agent }, (res) => { /* ... */ });
+```
+
+Hinweis zu Agent/Keep-Alive. ([nodejs.org][3])
+
+* Für **HTTPS** sind Keep-Alive und Timeout per Default gesetzt. ([nodejs.org][4])
+
+---
+
+### 3) Sicherheit aktivieren
+
+* **TLS**, **Helmet**, sauberes **Input-Handling**, sichere Cookies, Rate-Limiting.
+
+```js
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+app.use(helmet());
+app.use(rateLimit({ windowMs: 60_000, max: 100 }));
+```
+
+Express Security Best Practices. ([expressjs.com][5])
+Node.js Security Guidelines (Übersicht). ([nodejs.org][6])
+
+---
+
+### 4) Skalierung: Mehr Kerne & Arbeitsteilung
+
+* **I/O-lastig**: **Cluster** nutzt mehrere Prozesse auf demselben Port.
+
+```js
+// cluster.js
+import cluster from "node:cluster";
+import os from "node:os";
+import http from "node:http";
+
+if (cluster.isPrimary) {
+  os.cpus().forEach(() => cluster.fork());
+} else {
+  http.createServer((_q, r) => r.end("ok")).listen(process.env.PORT || 3000);
+}
+```
+
+Cluster-Doku. ([nodejs.org][7])
+
+* **CPU-lastig**: **worker\_threads** für parallele Berechnungen. ([nodejs.org][8])
+
+* **Vor App**: Reverse Proxy/Load Balancer einsetzen (Nginx/ALB). Empfehlung in Express Best Practices. ([expressjs.com][2])
+
+---
+
+### 5) Caching & Antworten
+
+* **HTTP-Caching**/ETags, **Response-Caching** für häufige, teure Endpunkte.
+* **Ergebnisse zwischenspeichern** (z. B. In-Memory/Redis), wie in Express-Leitfaden angeraten. ([expressjs.com][2])
+
+---
+
+### 6) Fehlertoleranz & Prozesse
+
+* **Auto-Restart** (Systemd/Container/Orchestrator), **Healthchecks**, **graceful shutdown**.
+* In Express Fehler zentral abfangen (keine Stacktraces an Nutzer).
+
+```js
+app.use((err, _req, res, _next) => {
+  // intern detailliert loggen
+  res.status(500).json({ error: "Internal Server Error" });
+});
+```
+
+Express Production – Fehlerbehandlung/Restart. ([expressjs.com][2])
+
+---
+
+### 7) Observability & Messen statt Raten
+
+* **Performance messen** mit `perf_hooks` (Latenzen, Bottlenecks).
+
+```js
+import { performance, PerformanceObserver } from "node:perf_hooks";
+const obs = new PerformanceObserver((list) => console.log(list.getEntries()));
+obs.observe({ entryTypes: ["measure"] });
+
+performance.mark("A");
+await someAsyncWork();
+performance.mark("B");
+performance.measure("work", "A", "B");
+```
+
+`perf_hooks` Doku. ([nodejs.org][9])
+
+* **Logging** schlank halten (keine sensiblen Daten), Produktions-Streams beachten. ([nodejs.org][1])
+
+---
+
+### 8) Plattform-Spezifisches
+
+* **Setze Prod-ENV** (AWS EB/Heroku/Vercel), **Auto-Restart/Scaling** und **Load Balancer**. Express empfiehlt Cluster/Load Balancer im Prod-Betrieb. ([expressjs.com][2])
+* Für externe APIs (AWS SDK) **Verbindungen wiederverwenden** (Keep-Alive/Env-Flag). ([docs.aws.amazon.com][10])
+
+---
+
+### **Zusammenfassung**
+
+* Produktionsmodus aktivieren, Kompression/Keep-Alive nutzen, Sync-Calls vermeiden.
+* Sicherheit: Helmet, TLS, Rate-Limit, saubere Fehlerausgaben.
+* Skalieren mit **Cluster** (I/O) bzw. **worker\_threads** (CPU), davor LB/Proxy.
+* Caching einsetzen, messen mit **perf\_hooks**, schlankes Logging.
+
+**Weiterlesen:**
+
+* Express: Production Performance & Security. ([expressjs.com][2])
+* Node.js: Cluster, Worker Threads, perf\_hooks, HTTP/HTTPS Agent, Security. ([nodejs.org][7])
+
+[1]: https://nodejs.org/api/process.html?utm_source=chatgpt.com "Process | Node.js v24.7.0 Documentation"
+[2]: https://expressjs.com/en/advanced/best-practice-performance.html?utm_source=chatgpt.com "Performance Best Practices Using Express in Production"
+[3]: https://nodejs.org/api/http.html?utm_source=chatgpt.com "HTTP | Node.js v24.7.0 Documentation"
+[4]: https://nodejs.org/api/https.html?utm_source=chatgpt.com "HTTPS | Node.js v24.7.0 Documentation"
+[5]: https://expressjs.com/en/advanced/best-practice-security.html?utm_source=chatgpt.com "Security Best Practices for Express in Production"
+[6]: https://nodejs.org/en/learn/getting-started/security-best-practices?utm_source=chatgpt.com "Node.js Security Best Practices"
+[7]: https://nodejs.org/api/cluster.html?utm_source=chatgpt.com "Cluster | Node.js v24.7.0 Documentation"
+[8]: https://nodejs.org/api/worker_threads.html?utm_source=chatgpt.com "Worker threads | Node.js v24.7.0 Documentation"
+[9]: https://nodejs.org/api/perf_hooks.html?utm_source=chatgpt.com "Performance measurement APIs | Node.js v24.7.0 ..."
+[10]: https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/node-reusing-connections.html?utm_source=chatgpt.com "Reusing Connections with Keep-Alive in Node.js"
 
 
   **[⬆ Наверх](#top)**
 
-183. ### <a name="183"></a> 
+185. ### <a name="185"></a> Unterschied zwischen PM2 und Nodemon?
 
+**Unterschied zwischen PM2 und Nodemon**
+
+---
+
+### **Nodemon**
+
+* **Zweck:** Entwicklungs-Tool.
+* Beobachtet Dateien und startet die Node-App automatisch neu, wenn sich Code ändert.
+* Keine Produktionsfeatures (kein Clustering, kein Load Balancer).
+* Typisch: genutzt nur in **Development**.
+
+```bash
+# Installation
+npm install --save-dev nodemon
+
+# Start in Dev
+npx nodemon server.js
+```
+
+➡️ Vorteil: Entwicklerkomfort (Hot Reload).
+➡️ Nachteil: Nicht für Production geeignet.
+
+---
+
+### **PM2**
+
+* **Zweck:** Produktions-Prozessmanager.
+* Features:
+
+  * Start/Stop/Restart/Reload von Prozessen.
+  * **Clustering** (Multi-Core-Nutzung).
+  * **Monitoring** (Logs, CPU/RAM, Fehler).
+  * **Auto-Restart** bei Absturz.
+  * Deployment-Scripts (`pm2 deploy`).
+* Typisch: genutzt in **Production**, aber auch für Dev möglich.
+
+```bash
+# Installation
+npm install -g pm2
+
+# Start in Production
+pm2 start server.js -i max   # Cluster-Modus (alle Kerne)
+
+# Monitoring
+pm2 monit
+pm2 logs
+```
+
+➡️ Vorteil: Stabilität, Skalierung, Monitoring.
+➡️ Nachteil: mehr Konfiguration, Overhead für kleine Projekte.
+
+---
+
+### **Vergleich**
+
+| Merkmal        | Nodemon (Dev)            | PM2 (Prod)                       |
+| -------------- | ------------------------ | -------------------------------- |
+| **Zweck**      | Entwicklung (Hot Reload) | Produktion (Prozessmanager)      |
+| **Neustarts**  | bei Codeänderung         | bei Absturz, manuell oder Deploy |
+| **Clustering** | ❌ nein                   | ✅ ja (Multi-Core-Nutzung)        |
+| **Monitoring** | ❌ nein                   | ✅ Logs, CPU/RAM, Dashboard       |
+| **Einsatz**    | Dev                      | Prod (oder auch Dev)             |
+
+---
+
+### **Zusammenfassung**
+
+* **Nodemon**: Entwicklungshelfer für automatisches Neustarten.
+* **PM2**: Produktions-Prozessmanager mit Clustering, Monitoring und Auto-Restart.
+* Praxis: **Nodemon in Dev**, **PM2 in Prod**.
+
+📖 Quellen:
+
+* [Nodemon Docs](https://nodemon.io/)
+* [PM2 Docs](https://pm2.keymetrics.io/docs/usage/quick-start/)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+186. ### <a name="186"></a> Wie funktioniert Logging in Express/Node.js?
+
+**Logging in Express/Node.js**
+
+---
+
+### **1) Grundprinzip**
+
+* Logging = systematisches **Erfassen von Ereignissen** (z. B. Requests, Errors, Warnungen).
+* Ziel: **Debugging, Monitoring, Auditing**.
+* In Node.js: meist Kombination aus **Konsole**, **Middleware** (Express) und **externen Libraries**.
+
+---
+
+### **2) Einfaches Logging (console)**
+
+```js
+console.log("Info");
+console.warn("Warnung");
+console.error("Fehler", err);
+```
+
+➡️ Gut für **Development**, aber nicht strukturiert genug für **Production**.
+
+---
+
+### **3) HTTP-Request-Logging mit Middleware**
+
+* Gängiges Tool: **morgan** (für Express).
+
+```js
+import express from "express";
+import morgan from "morgan";
+
+const app = express();
+app.use(morgan("combined")); // Logformat (Apache-Style)
+
+app.get("/", (_req, res) => res.send("OK"));
+app.listen(3000);
+```
+
+➡️ Logs enthalten: Methode, Pfad, Statuscode, Response-Zeit.
+
+---
+
+### **4) Strukturierte Logs (JSON)**
+
+* Für Production wichtig → maschinenlesbar, kompatibel mit Tools (ELK, Datadog, Loki).
+* Libraries: **winston**, **pino**.
+
+**Beispiel mit Winston**
+
+```js
+import winston from "winston";
+
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.json(),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: "errors.log", level: "error" })
+  ],
+});
+
+logger.info("Server gestartet");
+logger.error("DB-Verbindung fehlgeschlagen");
+```
+
+**Beispiel mit Pino (schneller)**
+
+```js
+import pino from "pino";
+const logger = pino({ level: "info" });
+
+logger.info({ port: 3000 }, "Server gestartet");
+logger.error({ err }, "DB-Fehler");
+```
+
+---
+
+### **5) Error-Logging in Express**
+
+Custom Middleware fängt Fehler ab und loggt zentral:
+
+```js
+app.use((err, req, res, next) => {
+  console.error("Error:", err.message); // besser: logger.error()
+  res.status(500).json({ error: "Internal Server Error" });
+});
+```
+
+---
+
+### **6) Best Practices**
+
+* **Dev vs. Prod unterscheiden** (verbose vs. JSON-Logs).
+* **Keine sensiblen Daten** loggen (Passwörter, Tokens).
+* **Log Levels** nutzen (`debug`, `info`, `warn`, `error`).
+* **Rotation & Aufbewahrung** (z. B. mit `winston-daily-rotate-file`).
+* **Zentrales Logging** für verteilte Systeme (ELK-Stack, CloudWatch, Loki, Datadog).
+
+---
+
+### **Zusammenfassung**
+
+* Node/Express Logging = Konsole (Dev) + Middleware (HTTP-Logs) + strukturierte Logger (Prod).
+* Tools: **morgan** (Requests), **winston/pino** (strukturierte Logs).
+* Best Practices: unterschiedliche Level, zentrale Fehler-Handler, keine sensiblen Daten.
+
+📖 Quellen:
+
+* [Express Docs – Error Handling](https://expressjs.com/en/guide/error-handling.html)
+* [Morgan Middleware](https://github.com/expressjs/morgan)
+* [Winston Logger](https://github.com/winstonjs/winston)
+* [Pino Logger](https://getpino.io/)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+187. ### <a name="187"></a> Welche Tools für Monitoring von Node.js Apps (z. B. NewRelic, PM2, Grafana)?
+
+**Monitoring-Tools für Node.js Apps**
+
+---
+
+### **1) PM2 (eingebautes Monitoring + Prozessmanager)**
+
+* **Primär:** Prozess- und Ressourcen-Überwachung.
+* Features:
+
+  * Auto-Restart bei Crash.
+  * CPU- und RAM-Monitoring (`pm2 monit`).
+  * Logs sammeln (`pm2 logs`).
+  * Cluster-Support.
+* Gut für **kleine bis mittlere Deployments**.
+
+```bash
+pm2 start server.js -i max
+pm2 monit     # Ressourcen-Monitoring
+pm2 logs      # Logs ansehen
+```
+
+📖 [PM2 Docs](https://pm2.keymetrics.io/docs/usage/monitoring/)
+
+---
+
+### **2) New Relic (APM – Application Performance Monitoring)**
+
+* **Kommerzielles APM-Tool**, tiefe Integration.
+* Features:
+
+  * Transaktions- und Request-Tracing.
+  * Fehler- und Performance-Analyse.
+  * Metrics & Dashboards out-of-the-box.
+* Gut für **Enterprise-Apps**, SaaS, Microservices.
+
+📖 [New Relic for Node.js](https://docs.newrelic.com/docs/apm/agents/nodejs-agent/getting-started/introduction-new-relic-nodejs/)
+
+---
+
+### **3) Grafana + Prometheus**
+
+* **Open Source Stack** für Metrics/Visualisierung.
+* Prometheus sammelt Metriken → Grafana visualisiert sie.
+* Mit `prom-client` für Node.js eigene Metriken exportieren.
+
+```js
+import express from "express";
+import client from "prom-client";
+
+const app = express();
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics();
+
+app.get("/metrics", async (_req, res) => {
+  res.set("Content-Type", client.register.contentType);
+  res.end(await client.register.metrics());
+});
+
+app.listen(3000);
+```
+
+➡️ Grafana zeigt z. B. Requests/s, Latenzen, Error-Raten.
+
+📖 [prom-client Docs](https://github.com/siimon/prom-client)
+
+---
+
+### **4) Elastic Stack (ELK: Elasticsearch, Logstash, Kibana)**
+
+* Fokus: **Logs & Search**.
+* Node.js schreibt strukturierte Logs (z. B. mit **pino/winston**) → Elasticsearch → Kibana Dashboard.
+* Gut für **zentrales Logging & Analyse**.
+
+📖 [Elastic Stack Docs](https://www.elastic.co/what-is/elk-stack)
+
+---
+
+### **5) OpenTelemetry (Standard für Observability)**
+
+* Open Source Standard für **Tracing, Metrics, Logging**.
+* Mit Export nach Prometheus, Jaeger, Grafana, Datadog usw.
+* Vorteil: Vendor-neutral.
+
+📖 [OpenTelemetry for Node.js](https://opentelemetry.io/docs/instrumentation/js/)
+
+---
+
+### **Vergleich (Kurz)**
+
+| Tool/Stack              | Fokus                      | Einsatzgebiete                       |
+| ----------------------- | -------------------------- | ------------------------------------ |
+| **PM2**                 | Prozesse, Logs, CPU        | Kleine Apps, DevOps light            |
+| **New Relic**           | APM (Performance, Tracing) | Enterprise, SaaS                     |
+| **Grafana+Prometheus**  | Metrics & Dashboards       | Cloud, Microservices                 |
+| **ELK (Elastic Stack)** | Logging & Suche            | Zentrales Log-Management             |
+| **OpenTelemetry**       | Tracing, Vendor-neutral    | Multi-Cloud, Observability-Standards |
+
+---
+
+### **Zusammenfassung**
+
+* **PM2**: schnell eingerichtet, Prozess- und Log-Monitoring.
+* **New Relic**: tiefes Application Monitoring (Transaktionen, Errors).
+* **Grafana/Prometheus**: Open Source Metrics + Dashboards.
+* **ELK**: Log-Sammlung und Analyse.
+* **OpenTelemetry**: Standard für Tracing & Metriken, flexibel in Export.
+
+---
+
+  **[⬆ Наверх](#top)**
+
+188. ### <a name="188"></a> Was ist CI/CD und wie implementiert man es mit Node.js?
+
+**CI/CD mit Node.js – kurz erklärt & umgesetzt**
+
+---
+
+### **Begriffe**
+
+* **CI (Continuous Integration):** Bei jedem Push/PR automatisch **builden, testen, linten**.
+* **CD (Continuous Delivery/Deployment):** Nach erfolgreichem CI **paketieren & ausrollen** (manuell oder automatisch). ([Jenkins][1])
+
+---
+
+### **Projekt vorbereiten (Scripts)**
+
+```js
+// package.json (Auszug)
+{
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node --test",
+    "build": "tsc -p tsconfig.json || echo 'skip'",
+    "start": "node dist/server.js"
+  }
+}
+```
+
+---
+
+### **GitHub Actions – CI (Node 20, Cache, Tests)**
+
+```yaml
+# .github/workflows/ci.yml
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+```
+
+* `setup-node@v4` mit **Dependency-Cache**; **`npm ci`** für reproduzierbare, schnelle Builds. ([GitHub Docs][2], [GitHub][3], [docs.npmjs.com][4])
+
+---
+
+### **GitHub Actions – CD (Beispiel Docker Push)**
+
+```yaml
+# .github/workflows/cd.yml
+name: cd
+on:
+  push:
+    branches: [main]
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci && npm run build
+      # hier: Login & Push zu eurer Registry (Beispiel, je nach Registry-Action)
+      # - uses: docker/login-action@v3
+      # - uses: docker/build-push-action@v6
+```
+
+* Anschließend Deployment (z. B. zu AWS, Render, Fly.io) per Job/Action oder externem CD-System. ([GitHub Docs][2])
+
+---
+
+### **GitLab CI – Minimalpipeline**
+
+```yaml
+# .gitlab-ci.yml
+image: node:20
+cache: { paths: [node_modules/] }
+stages: [test, build]
+install:
+  stage: test
+  script:
+    - npm ci
+    - npm test
+build:
+  stage: build
+  script:
+    - npm run build
+```
+
+* GitLab Quickstart/Beispiele siehe Doku. ([GitLab Документация][5])
+
+---
+
+### **Jenkins – Idee (Declarative Pipeline)**
+
+```groovy
+// Jenkinsfile (Kurzskizze)
+pipeline {
+  agent any
+  stages {
+    stage('Install & Test') { steps { sh 'npm ci && npm test' } }
+    stage('Build')         { steps { sh 'npm run build' } }
+    stage('Deploy')        { when { branch 'main' } steps { sh './deploy.sh' } }
+  }
+}
+```
+
+* Siehe Jenkins Pipeline-Doku/Tutorial. ([Jenkins][1])
+
+---
+
+### **Best Practices**
+
+* **`npm ci` statt `npm install`** in CI, mit `package-lock.json` (schneller & deterministisch). ([docs.npmjs.com][4])
+* **Caching** von Dependencies (Actions `cache: npm`) und **Artefakten**. ([GitHub Docs][2])
+* **Branch-/Tag-Regeln**: PR → nur CI; `main`/Release-Tag → CD.
+* **Secrets** als **ENV/Secrets-Store**, nicht im Repo.
+* **Quality Gates**: Lint, Tests, Coverage, SCA vor Deploy.
+* **Blue/Green/Canary** für risikoreduzierte Releases (plattformabhängig).
+
+---
+
+### **Zusammenfassung**
+
+* **CI**: Automatisches **Build/Test/Lint** bei jedem Commit.
+* **CD**: Automatisches oder manuelles **Deploy** nach erfolgreichem CI.
+* Umsetzung in Node.js: **`npm ci` + Caching**, Workflows in **GitHub Actions / GitLab CI / Jenkins**, Secrets sicher verwalten, Deploy nach Branch/Tag.
+
+**Quellen**
+
+* GitHub Actions: **Node-Workflows & setup-node** (Cache) ([GitHub Docs][2], [GitHub][3])
+* npm: **`npm ci`** Doku ([docs.npmjs.com][4])
+* GitLab CI: Quick Start & Examples ([GitLab Документация][5])
+* Jenkins: Pipeline Basics & Tutorial ([Jenkins][6])
+
+Wenn du willst, passe ich dir eine konkrete **GitHub-Actions-Pipeline** für dein Projekt (ESM, Tests, Docker, Deploy) an.
+
+[1]: https://www.jenkins.io/doc/pipeline/tour/hello-world/?utm_source=chatgpt.com "Creating your first Pipeline"
+[2]: https://docs.github.com/en/actions/use-cases-and-examples/building-and-testing/building-and-testing-nodejs?utm_source=chatgpt.com "Building and testing Node.js - GitHub Actions"
+[3]: https://github.com/actions/setup-node?utm_source=chatgpt.com "actions/setup-node"
+[4]: https://docs.npmjs.com/cli/v8/commands/npm-ci/?utm_source=chatgpt.com "npm-ci"
+[5]: https://docs.gitlab.com/ci/quick_start/?utm_source=chatgpt.com "Tutorial: Create and run your first GitLab CI/CD pipeline"
+[6]: https://www.jenkins.io/doc/book/pipeline/?utm_source=chatgpt.com "Pipeline"
 
 
   **[⬆ Наверх](#top)**
 
-184. ### <a name="184"></a> 
+189. ### <a name="189"></a> Wie baut man ein Docker-Image für eine Node/Express-App?
 
+**Docker-Image für eine Node/Express-App bauen (Best Practices, kompakt)**
+
+---
+
+### 1) Projekt vorbereiten
+
+* App muss auf `process.env.PORT` hören.
+* `NODE_ENV=production` im Image setzen.
+* **`.dockerignore`**: `node_modules`, `npm-debug.log`, `.git`, `dist` (falls neu gebaut wird), etc.  ([Docker Documentation][1])
+
+```js
+# .dockerignore
+node_modules
+npm-debug.log
+.git
+Dockerfile*
+.dockerignore
+```
+
+---
+
+### 2) Multi-Stage Dockerfile (klein, schnell, sicher)
+
+* Offizielles **Node-Image** (Alpine) nutzen.
+* Abhängigkeits-Cache via getrenntem COPY von `package*.json`.
+* Produktion: `npm ci --omit=dev`.
+* Non-root‐User `node` verwenden.  ([Docker Hub][2], [Docker Documentation][3])
+
+```js
+# Dockerfile
+# ---- Base (Abhängigkeiten) ----
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+# ---- Build (falls TypeScript/Build) ----
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+# Beispiel: TS-Build, sonst Zeile weglassen
+# RUN npm run build
+
+# ---- Runtime (schlank) ----
+FROM node:20-alpine AS runtime
+ENV NODE_ENV=production
+WORKDIR /app
+
+# optional: system user (Node-Image hat bereits 'node')
+USER node
+
+# nur nötige Files kopieren
+COPY --chown=node:node package*.json ./
+RUN npm ci --omit=dev
+
+# App-Code (bei TS: nur dist/)
+COPY --chown=node:node . .
+
+# Port & Healthcheck
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" || exit 1
+
+# Start
+CMD ["node", "server.js"]
+```
+
+---
+
+### 3) Express (ESM) minimal
+
+```js
+// server.js
+import express from "express";
+const app = express();
+
+app.get("/", (_req, res) => res.send("OK"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Listening on", PORT));
+```
+
+---
+
+### 4) Build & Run
+
+```js
+# Build
+docker build -t my-express:prod .
+
+# Run (Port weiterreichen)
+docker run -e PORT=3000 -p 3000:3000 my-express:prod
+```
+
+---
+
+### 5) Hinweise
+
+* **Multi-Stage** reduziert Image-Größe deutlich; `.dockerignore` beschleunigt Builds.
+* **`npm ci`** für reproduzierbare, schnelle Installationen; in Runtime-Stage `--omit=dev`.
+* **Offizielle Images** werden gepflegt und sind empfohlen (Sicherheit/Updates).  ([Docker Documentation][1], [Docker Hub][2])
+
+---
+
+### **Zusammenfassung**
+
+* Nutze **Multi-Stage**, **.dockerignore**, **npm ci**, **NODE\_ENV=production**, **non-root** und **Healthcheck**.
+* Baue klein & deterministisch, starte über `node server.js`, exponiere `PORT`.
+
+**Weiterlesen:**
+
+* Docker: **Building best practices**; **Containerize Node.js**; **Dockerfile Konzepte**; **Node Official Image**. ([Docker Documentation][1], [Docker Hub][2])
+
+[1]: https://docs.docker.com/build/building/best-practices/?utm_source=chatgpt.com "Building best practices"
+[2]: https://hub.docker.com/_/node?utm_source=chatgpt.com "node - Official Image"
+[3]: https://docs.docker.com/docker-hub/image-library/trusted-content/?utm_source=chatgpt.com "Trusted content | Docker Docs"
 
 
   **[⬆ Наверх](#top)**
 
-185. ### <a name="185"></a> 
+190. ### <a name="190"></a> Unterschied zwischen Skalierung mit Clustering und Load Balancing?
 
+**Unterschied zwischen Clustering und Load Balancing (Node.js & allgemeine Systeme)**
 
+---
 
-  **[⬆ Наверх](#top)**
+### **Clustering (innerhalb eines Servers)**
 
-186. ### <a name="186"></a> 
+* Nutzt **mehrere Prozesse** auf **einer Maschine**.
+* In Node.js: **Cluster-Modul** startet Worker-Prozesse (jeder eigener Event Loop).
+* Master verteilt eingehende Requests auf Worker (meist Round-Robin).
+* Vorteil: bessere **CPU-Auslastung** auf Multi-Core-Servern.
+* Grenze: Skalierung bleibt auf **einem Server** beschränkt.
 
+**Beispiel Node.js Cluster:**
 
+```js
+import cluster from "node:cluster";
+import os from "node:os";
+import express from "express";
 
-  **[⬆ Наверх](#top)**
+if (cluster.isPrimary) {
+  os.cpus().forEach(() => cluster.fork()); // 1 Worker pro CPU
+} else {
+  const app = express();
+  app.get("/", (_req, res) => res.send(`PID: ${process.pid}`));
+  app.listen(3000);
+}
+```
 
-187. ### <a name="187"></a> 
+---
 
+### **Load Balancing (über mehrere Server/Instanzen)**
 
+* Verteilt Requests auf **mehrere Maschinen oder Container**.
+* Umsetzung:
 
-  **[⬆ Наверх](#top)**
+  * **Hardware/Cloud Load Balancer** (AWS ELB, Nginx, HAProxy, Traefik).
+  * Worker-Prozesse können auf unterschiedlichen Hosts laufen.
+* Vorteile:
 
-188. ### <a name="188"></a> 
+  * **Horizontale Skalierung** (theoretisch unbegrenzt).
+  * **Hochverfügbarkeit** (Ausfall einer Instanz → andere übernehmen).
 
+**Beispiel Nginx als Load Balancer:**
 
+```nginx
+upstream myapp {
+  server 192.168.1.10:3000;
+  server 192.168.1.11:3000;
+}
+server {
+  listen 80;
+  location / {
+    proxy_pass http://myapp;
+  }
+}
+```
 
-  **[⬆ Наверх](#top)**
+---
 
-189. ### <a name="189"></a> 
+### **Vergleich**
 
+| Merkmal             | Clustering                   | Load Balancing                       |
+| ------------------- | ---------------------------- | ------------------------------------ |
+| **Ebene**           | Innerhalb eines Servers      | Zwischen mehreren Servern/Containern |
+| **Skalierung**      | Vertikal (Multi-Core nutzen) | Horizontal (mehr Maschinen)          |
+| **Implementierung** | Node.js Cluster, PM2         | Nginx, HAProxy, AWS ELB, K8s         |
+| **Grenzen**         | begrenzt auf 1 Host          | skalierbar über viele Hosts          |
+| **Zweck**           | CPU-Kerne besser ausnutzen   | Verfügbarkeit + Traffic-Verteilung   |
 
+---
 
-  **[⬆ Наверх](#top)**
+### **Zusammenfassung**
 
-190. ### <a name="190"></a> 
+* **Clustering** = mehrere Node-Prozesse **auf einer Maschine**, nutzt Multi-Core.
+* **Load Balancing** = verteilt Traffic **über mehrere Maschinen/Instanzen**.
+* Praxis: oft **Kombination** → Cluster pro Server + Load Balancer davor.
 
+📖 Quellen:
 
+* [Node.js Docs – Cluster](https://nodejs.org/docs/latest/api/cluster.html)
+* [NGINX Docs – Load Balancing](https://nginx.org/en/docs/http/load_balancing.html)
+
+---
 
   **[⬆ Наверх](#top)**  
 
-191. ### <a name="191"></a> 
+191. ### <a name="191"></a> Welche Testing-Frameworks nutzt man mit Node.js/Express (Mocha, Jest, Supertest)?
 
+**Testing-Frameworks für Node.js/Express (Mocha, Jest, Supertest und mehr)**
+
+---
+
+### **1) Mocha**
+
+* **Test Runner** (führt Tests aus, async-Support, Hooks).
+* Flexibel, braucht Assertion-Library (z. B. **Chai**) & Mocking-Tools extra.
+* Stärken: hohe Anpassbarkeit, breite Community.
+
+```js
+// test/user.test.js
+import { strict as assert } from "assert";
+
+describe("User Service", () => {
+  it("should return user", () => {
+    const user = { name: "Sergii" };
+    assert.equal(user.name, "Sergii");
+  });
+});
+```
+
+📖 [Mocha Docs](https://mochajs.org/)
+
+---
+
+### **2) Jest**
+
+* All-in-One: Test Runner + Assertion + Mocking.
+* Sehr beliebt (Facebook/Meta, React-Ökosystem).
+* Features: Snapshot-Tests, Mocks, Code Coverage out-of-the-box.
+* Einfach für **Unit- und Integrationstests**.
+
+```js
+// user.test.js
+test("returns user", () => {
+  const user = { name: "Sergii" };
+  expect(user.name).toBe("Sergii");
+});
+```
+
+📖 [Jest Docs](https://jestjs.io/)
+
+---
+
+### **3) Supertest (Integration/E2E für Express)**
+
+* Nutzt man **zusätzlich zu Mocha/Jest**, um HTTP-Endpunkte zu testen.
+* Simuliert Requests gegen Express ohne echten Server.
+
+```js
+// app.test.js
+import request from "supertest";
+import app from "../app.js"; // Express App
+
+describe("GET /", () => {
+  it("responds with OK", async () => {
+    const res = await request(app).get("/");
+    expect(res.status).toBe(200);
+    expect(res.text).toBe("OK");
+  });
+});
+```
+
+📖 [Supertest Docs](https://github.com/ladjs/supertest)
+
+---
+
+### **Weitere Tools**
+
+* **Chai**: Assertions für Mocha.
+* **Sinon**: Mocks, Spies, Stubs.
+* **AVA**: Minimalistischer Test Runner, parallelisierte Tests.
+* **node\:test**: Eingebaut ab Node.js 18, leichtgewichtig.
+
+---
+
+### **Typische Kombinationen**
+
+* **Jest + Supertest** → Express API testen (Standard bei vielen Projekten).
+* **Mocha + Chai + Supertest** → flexible klassische Variante.
+* **Node\:test + Supertest** → modern, ohne externe Runner.
+
+---
+
+### **Zusammenfassung**
+
+* **Mocha** = flexibler Runner, braucht Chai/Sinon.
+* **Jest** = All-in-One (empfohlen für viele Node/React-Apps).
+* **Supertest** = für Integrationstests mit Express (ergänzt Jest/Mocha).
+* Praxis: **Jest + Supertest** ist meist die erste Wahl für Express-Apps.
+
+📖 Quellen:
+
+* [Mocha](https://mochajs.org/)
+* [Jest](https://jestjs.io/)
+* [Supertest](https://github.com/ladjs/supertest)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+192. ### <a name="192"></a> Unterschied zwischen Unit-Test, Integrationstest und End-to-End-Test?
+
+**Unterschied zwischen Unit-Test, Integrationstest und End-to-End-Test (E2E)**
+
+---
+
+### **1) Unit-Test**
+
+* Testet **eine einzelne Funktion/Komponente** isoliert.
+* Keine Abhängigkeiten zu DB, Netzwerk oder externen Modulen (Mocks/Stubs statt echter Services).
+* Ziel: sicherstellen, dass **kleinste Bausteine** korrekt funktionieren.
+
+**Beispiel:**
+
+```js
+// sum.js
+export const sum = (a, b) => a + b;
+
+// sum.test.js (Jest)
+import { sum } from "./sum.js";
+test("adds numbers", () => {
+  expect(sum(2, 3)).toBe(5);
+});
+```
+
+---
+
+### **2) Integrationstest**
+
+* Testet **Zusammenspiel mehrerer Module/Komponenten**.
+* Nutzt häufig echte DB (Test-DB), API-Endpoints oder Services.
+* Ziel: prüfen, ob Komponenten **korrekt interagieren**.
+
+**Beispiel (Express + Supertest):**
+
+```js
+import request from "supertest";
+import app from "../app.js";
+
+describe("Integration: GET /users", () => {
+  it("returns users from DB", async () => {
+    const res = await request(app).get("/users");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(expect.arrayContaining([]));
+  });
+});
+```
+
+---
+
+### **3) End-to-End-Test (E2E)**
+
+* Simuliert **realen Nutzerfluss** über das gesamte System.
+* Läuft gegen echte API + echte DB + ggf. Frontend (Browser).
+* Tools: **Cypress, Playwright, Selenium**.
+* Ziel: sicherstellen, dass die App **als Ganzes** funktioniert.
+
+**Beispiel (Cypress – User Login Flow):**
+
+```js
+// cypress/e2e/login.cy.js
+describe("Login Flow", () => {
+  it("logs in user", () => {
+    cy.visit("/login");
+    cy.get("input[name=email]").type("test@mail.com");
+    cy.get("input[name=password]").type("123456");
+    cy.get("button[type=submit]").click();
+    cy.contains("Willkommen, Test");
+  });
+});
+```
+
+---
+
+### **Vergleich**
+
+| Testtyp         | Ebene           | Abhängigkeiten    | Ziel                             |
+| --------------- | --------------- | ----------------- | -------------------------------- |
+| **Unit-Test**   | Funktion/Modul  | keine (Mock)      | einzelne Bausteine korrekt       |
+| **Integration** | Module + DB/API | echte Komponenten | Zusammenspiel funktioniert       |
+| **E2E**         | Gesamtsystem    | alle (real)       | Endnutzer-Erlebnis sicherstellen |
+
+---
+
+### **Zusammenfassung**
+
+* **Unit** → isoliert, schnell, viele kleine Tests.
+* **Integration** → echte Komponenten interagieren.
+* **E2E** → kompletter Nutzer-Flow.
+* Praxis: **Test-Pyramide** → viele Unit-Tests, weniger Integrationstests, wenige E2E-Tests.
+
+📖 Quellen:
+
+* [MDN – Testing](https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Testing)
+* [Cypress Docs](https://docs.cypress.io/guides/overview/why-cypress)
+* [Jest Docs](https://jestjs.io/docs/getting-started)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+193. ### <a name="193"></a> Wie testet man REST APIs mit Supertest?
+
+**REST-APIs mit Supertest testen (Express + ESM)**
+
+---
+
+### 1) App exportieren (ohne `.listen()`)
+
+```js
+// app.js
+import express from "express";
+const app = express();
+
+app.use(express.json());
+
+app.get("/health", (_req, res) => res.type("text").send("OK"));
+
+app.get("/users", (_req, res) => {
+  res.json([{ id: 1, name: "Sergii" }]);
+});
+
+app.post("/users", (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: "name required" });
+  res.status(201).json({ id: 2, name });
+});
+
+export default app; // wichtig: App exportieren, NICHT hier listen
+```
+
+---
+
+### 2) Basis-Test (Jest + Supertest)
+
+```js
+// __tests__/users.test.js
+import request from "supertest";
+import app from "../app.js";
+
+describe("Users API", () => {
+  test("GET /health -> 200 text/plain", async () => {
+    await request(app)
+      .get("/health")
+      .expect("Content-Type", /text/)
+      .expect(200, "OK");
+  });
+
+  test("GET /users -> 200 JSON array", async () => {
+    const res = await request(app).get("/users").expect(200);
+    expect(res.headers["content-type"]).toMatch(/json/);
+    expect(res.body).toEqual(expect.arrayContaining([expect.objectContaining({ id: 1 })]));
+  });
+
+  test("POST /users valid -> 201 JSON", async () => {
+    const res = await request(app)
+      .post("/users")
+      .send({ name: "Anna" })              // Body
+      .set("Accept", "application/json")   // Header
+      .expect("Content-Type", /json/)
+      .expect(201);
+
+    expect(res.body).toMatchObject({ id: expect.any(Number), name: "Anna" });
+  });
+
+  test("POST /users invalid -> 400", async () => {
+    await request(app).post("/users").send({}).expect(400);
+  });
+});
+```
+
+---
+
+### 3) Query, Header, Auth, Cookies
+
+```js
+// Query-Parameter & Header
+await request(app)
+  .get("/users")
+  .query({ limit: 10 })          // ?limit=10
+  .set("X-Trace-Id", "abc-123")
+  .expect(200);
+
+// Bearer-Token
+await request(app)
+  .get("/protected")
+  .set("Authorization", "Bearer TESTTOKEN")
+  .expect(401); // z. B. wenn invalid
+```
+
+**Session/Cookies über Agent:**
+
+```js
+import request from "supertest";
+const agent = request.agent(app);
+
+await agent.post("/login").send({ email: "a@b.com", password: "x" }).expect(200);
+await agent.get("/me").expect(200); // Cookie wird automatisch mitgesendet
+```
+
+---
+
+### 4) Fehlerfälle & Edge Cases
+
+* **Validierung**: fehlende Felder → `400`
+* **Nicht gefunden**: `404`
+* **Konflikt** (z. B. Unique): `409`
+* **Serverfehler**: `500` (zentraler Error-Handler testbar)
+
+```js
+await request(app).get("/unknown").expect(404);
+```
+
+---
+
+### 5) Test-DB oder Mocks
+
+* Für Integrationstests: **Test-Datenbank** (z. B. PostgreSQL in Docker) + Migrations/Seeds.
+* Für Unit-Tests der Services: **DB-Aufrufe mocken** (z. B. mit Jest Mocks).
+
+---
+
+### 6) Setup (Jest)
+
+```json
+// package.json (Auszug)
+{
+  "type": "module",
+  "scripts": {
+    "test": "jest --runInBand"
+  }
+}
+```
+
+> Tipp: Server nur in `server.js` starten und **nicht** in `app.js`. Supertest greift direkt auf die App zu – schneller & stabiler.
+
+---
+
+### **Zusammenfassung**
+
+* **App exportieren**, nicht im Test hören lassen.
+* Mit **Supertest** Requests simulieren: `.get/.post`, `.send()`, `.set()`, `.query()`, `.expect()`.
+* **Agent** für Cookies/Sessions.
+* **Edge Cases** (400/404/500) und **Header/Content-Type** mittesten.
+* Für echte Integrationen: **Test-DB** nutzen, sonst **mocken**.
+
+📖 Quellen:
+
+* [Supertest – Doku/README](https://github.com/ladjs/supertest)
+* [Express – Error Handling](https://expressjs.com/de/guide/error-handling.html)
+* [Jest – Getting Started](https://jestjs.io/docs/getting-started)
 
 
   **[⬆ Наверх](#top)**
 
-192. ### <a name="192"></a> 
+194. ### <a name="194"></a> Was sind Mocks und Stubs im Testing?
 
+**Mocks und Stubs** sind Test-Doubles, also Platzhalterobjekte, die man im Software-Testing einsetzt, um Abhängigkeiten zu simulieren. Sie helfen, isolierte Tests zu schreiben.
+
+---
+
+### **Stubs**
+
+* Stellen eine **vordefinierte Antwort** auf bestimmte Aufrufe bereit.
+* Sie haben kein komplexes Verhalten, sondern liefern statische Werte zurück.
+* Einsatz: Wenn eine Funktion einen Rückgabewert benötigt, aber die echte Implementierung nicht aufgerufen werden soll (z. B. Datenbankzugriff).
+
+```js
+// Beispiel mit Stub
+function getUserFromDB(id) {
+  return { id, name: "Max Mustermann" }; // Stub: feste Antwort
+}
+
+export function getUserName(id) {
+  const user = getUserFromDB(id);
+  return user.name;
+}
+```
+
+---
+
+### **Mocks**
+
+* Gehen einen Schritt weiter: Sie **überprüfen auch, ob bestimmte Methoden aufgerufen wurden** (z. B. wie oft, mit welchen Parametern).
+* Werden oft mit Testframeworks wie **Jest** oder **Sinon** erstellt.
+
+```js
+import { jest } from "@jest/globals";
+
+// Beispiel mit Mock
+test("sendEmail wird mit richtiger Adresse aufgerufen", () => {
+  const sendEmail = jest.fn(); // Mock-Funktion
+  const emailService = { sendEmail };
+
+  emailService.sendEmail("test@example.com");
+
+  expect(sendEmail).toHaveBeenCalledWith("test@example.com");
+  expect(sendEmail).toHaveBeenCalledTimes(1);
+});
+```
+
+---
+
+### **Unterschied**
+
+* **Stub** = ersetzt Logik durch feste Werte.
+* **Mock** = wie Stub, aber zusätzlich mit Erwartungskontrolle (welche Methoden wurden aufgerufen, mit welchen Argumenten).
+
+---
+
+### **Zusammenfassung**
+
+* **Stub**: liefert vorbereitete Werte zurück, ohne Logik.
+* **Mock**: kontrolliert zusätzlich Aufrufe und Parameter.
+* Beide dienen dazu, Tests zu isolieren und externe Abhängigkeiten zu vermeiden.
+
+🔗 Quellen:
+
+* [MDN – Testing-Guide](https://developer.mozilla.org/ru/docs/Learn/Tools_and_testing/Testing)
+* [Jest Dokumentation](https://jestjs.io/docs/mock-functions)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+195. ### <a name="195"></a> Wie testet man asynchronen Code in Jest?
+
+### Grundprinzipien (Jest)
+
+Asynchronen Code testest du in Jest auf vier gängige Arten:
+
+1. **Promise zurückgeben**
+2. **`async/await` verwenden**
+3. **`.resolves` / `.rejects` Matchers**
+4. **Callback-APIs mit `done`** (nur wenn du eine echte Callback-API testen musst)
+   Zusätzlich: **Fake Timers** für zeitabhängigen Code.
+
+---
+
+### 1) Promise zurückgeben
+
+```js
+// __tests__/user.test.js
+import { test, expect } from '@jest/globals';
+import { fetchUser } from '../user.js'; // gibt ein Promise zurück
+
+test('liefert Nutzer', () => {
+  // WICHTIG: return, damit Jest auf das Promise wartet
+  return fetchUser(1).then(user => {
+    expect(user.name).toBe('Max');
+  });
+});
+```
+
+*Referenz:* Jest „Testing Asynchronous Code“. ([jestjs.io][1])
+
+---
+
+### 2) Mit `async/await`
+
+```js
+import { test, expect } from '@jest/globals';
+import { fetchUser } from '../user.js';
+
+test('liefert Nutzer (async/await)', async () => {
+  const user = await fetchUser(1);
+  expect(user.name).toBe('Max');
+});
+```
+
+*Hintergrund zu Promises & `async/await`:* MDN. ([MDN Web Docs][2])
+
+---
+
+### 3) Fehlerfälle mit `.rejects`
+
+```js
+import { test, expect } from '@jest/globals';
+import { fetchUser } from '../user.js';
+
+test('wirft bei 404', async () => {
+  await expect(fetchUser(-1)).rejects.toThrow(/not found/);
+});
+```
+
+*Referenz:* Jest `.resolves`/`.rejects`. ([jestjs.io][1])
+
+---
+
+### 4) Legacy-Callbacks mit `done`
+
+```js
+import { test, expect } from '@jest/globals';
+import { readFileCb } from '../fs-legacy.js'; // (path, cb)
+
+test('liest Datei (Callback)', done => {
+  readFileCb('/tmp/a.txt', (err, data) => {
+    try {
+      expect(err).toBeNull();
+      expect(data).toContain('hello');
+      done(); // signalisiert Testende
+    } catch (e) {
+      done(e); // Fehler an Jest weiterreichen
+    }
+  });
+});
+```
+
+**Hinweis:** `done` **nicht** mit `async` mischen. Entweder Promise/`async` **oder** `done`. ([Stack Overflow][3])
+
+---
+
+### 5) Zeitabhängigen Code testen (Fake Timers)
+
+```js
+// __tests__/timer.test.js
+import { test, expect, jest, beforeEach, afterEach } from '@jest/globals';
+
+function delay(ms) {
+  return new Promise(res => setTimeout(res, ms));
+}
+
+beforeEach(() => {
+  jest.useFakeTimers(); // Timer faken
+});
+
+afterEach(() => {
+  jest.useRealTimers(); // zurücksetzen
+});
+
+test('wartet 1s und ruft Callback', async () => {
+  const cb = jest.fn();
+
+  // Effekt, der nach 1s feuert
+  const work = (async () => {
+    await delay(1000);
+    cb();
+  })();
+
+  // Zeit „vorspulen“ – async-Variante spült auch Microtasks/Promises
+  await jest.advanceTimersByTimeAsync(1000);
+
+  await work; // optional: sicherstellen, dass Task abgeschlossen ist
+  expect(cb).toHaveBeenCalledTimes(1);
+});
+```
+
+*Referenz:* Jest Timer Mocks & `jest`-API (Fake Timers, `advanceTimersByTime*`, `runAllTimers*`). ([jestjs.io][4])
+
+**Warum Fake Timers?** Du bekommst deterministische Tests ohne echtes Warten; hilfreich bei `setTimeout`/`setInterval`. Sie interagieren mit dem **Node.js Timers**-Modul bzw. Event Loop. ([nodejs.org][5])
+
+---
+
+### Praktische Tipps
+
+* **Kein Mix aus `done` und `async`** in einem Test. ([Stack Overflow][3])
+* Bei erwarteten Fehlern ggf. `expect.assertions(n)` nutzen, um sicherzustellen, dass Assertions wirklich ausgeführt wurden. ([jestjs.io][1])
+* Für komplexe Promise-Ketten mit Timern die **async**-Timer-APIs verwenden (`advanceTimersByTimeAsync`, `runAllTimersAsync`). ([Stack Overflow][6], [GitHub][7])
+
+---
+
+### Zusammenfassung
+
+* **Promises zurückgeben** oder **`async/await`** verwenden; für Fehler **`.rejects`**.
+* **`done`** nur für echte Callback-APIs.
+* **Fake Timers** geben Kontrolle über zeitabhängigen Code; nutze die **async**-Varianten für Promises.
+
+**Quellen**
+
+* Jest: *Testing Asynchronous Code*, *Timer Mocks*, *The Jest Object*. ([jestjs.io][1])
+* MDN: *Promises*, *`async`/`await`*. ([MDN Web Docs][8])
+* Node.js: *Timers API*. ([nodejs.org][5])
+
+Möchtest du ein kurzes Beispiel mit **Express + Supertest** (z. B. async Route Handler + Fake Timers)?
+
+[1]: https://jestjs.io/docs/asynchronous?utm_source=chatgpt.com "Testing Asynchronous Code"
+[2]: https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Async_JS/Promises?utm_source=chatgpt.com "How to use promises - Learn web development | MDN"
+[3]: https://stackoverflow.com/questions/58713379/is-done-required-in-async-jest-tests?utm_source=chatgpt.com "Is done required in async Jest tests?"
+[4]: https://jestjs.io/docs/timer-mocks?utm_source=chatgpt.com "Timer Mocks"
+[5]: https://nodejs.org/api/timers.html?utm_source=chatgpt.com "Timers | Node.js v24.7.0 Documentation"
+[6]: https://stackoverflow.com/questions/44741102/how-to-make-jest-wait-for-all-asynchronous-code-to-finish-execution-before-expec?utm_source=chatgpt.com "How to make Jest wait for all asynchronous code to finish ..."
+[7]: https://github.com/jestjs/jest/issues/15260?utm_source=chatgpt.com "advanceTimersByTime() and task queue flushing - notes · ..."
+[8]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises?utm_source=chatgpt.com "Using promises - JavaScript | MDN - Mozilla"
 
 
   **[⬆ Наверх](#top)**
 
-193. ### <a name="193"></a> 
+196. ### <a name="196"></a> Unterschied zwischen beforeAll, beforeEach, afterAll, afterEach?
 
+### Unterschied zwischen `beforeAll`, `beforeEach`, `afterAll`, `afterEach` in Jest
 
+Diese Hooks steuern, **wann Setup- und Teardown-Code** im Testlauf ausgeführt wird.
+
+---
+
+### **beforeAll**
+
+* Wird **einmal vor allen Tests** in einer Test-Suite (`describe`-Block oder global) ausgeführt.
+* Typisch für: Initialisierung, die für alle Tests gleich ist (z. B. Datenbankverbindung aufbauen).
+
+```js
+import { beforeAll, test, expect } from '@jest/globals';
+
+let db;
+
+beforeAll(async () => {
+  db = await connectDB(); // einmal vor allen Tests
+});
+
+test('Nutzer 1', async () => {
+  const user = await db.getUser(1);
+  expect(user).toBeDefined();
+});
+```
+
+---
+
+### **beforeEach**
+
+* Wird **vor jedem Test** ausgeführt.
+* Typisch für: Zurücksetzen von Zuständen, Anlegen von Testdaten, Mock-Reset.
+
+```js
+import { beforeEach, test, expect } from '@jest/globals';
+
+let arr;
+
+beforeEach(() => {
+  arr = []; // jedes Mal neu
+});
+
+test('Array ist leer', () => {
+  expect(arr).toHaveLength(0);
+});
+
+test('Element hinzufügen', () => {
+  arr.push(1);
+  expect(arr).toContain(1);
+});
+```
+
+---
+
+### **afterEach**
+
+* Wird **nach jedem Test** ausgeführt.
+* Typisch für: Aufräumen nach jedem Test (z. B. Dateien löschen, DB-Einträge entfernen, Mocks zurücksetzen).
+
+```js
+import { afterEach, test } from '@jest/globals';
+
+afterEach(() => {
+  jest.clearAllMocks(); // alle Mocks resetten
+});
+
+test('Mock 1', () => {
+  const fn = jest.fn();
+  fn();
+  expect(fn).toHaveBeenCalledTimes(1);
+});
+```
+
+---
+
+### **afterAll**
+
+* Wird **einmal nach allen Tests** in der Suite ausgeführt.
+* Typisch für: Ressourcen freigeben (z. B. DB-Verbindung schließen, Server stoppen).
+
+```js
+import { afterAll } from '@jest/globals';
+
+let server;
+
+beforeAll(() => {
+  server = startServer();
+});
+
+afterAll(() => {
+  server.close(); // nach allen Tests
+});
+```
+
+---
+
+### **Zusammenfassung**
+
+* **beforeAll / afterAll** → genau einmal pro Test-Suite.
+* **beforeEach / afterEach** → vor bzw. nach jedem einzelnen Test.
+* Nutzen: Setup, Teardown, saubere Testumgebung.
+
+🔗 Quellen:
+
+* [Jest – Setup and Teardown](https://jestjs.io/docs/setup-teardown)
+* [MDN – Unit testing overview](https://developer.mozilla.org/ru/docs/Learn/Tools_and_testing/Testing/Unit_testing)
+
+---
 
   **[⬆ Наверх](#top)**
 
-194. ### <a name="194"></a> 
+197. ### <a name="197"></a> Was bedeutet Test Coverage?
 
+### **Test Coverage**
 
+**Definition**
+Test Coverage beschreibt den Anteil des Programmcodes, der durch automatisierte Tests ausgeführt wird. Sie ist eine **Metrik zur Messung der Testqualität** und zeigt, wie viel Prozent des Codes während der Testläufe abgedeckt werden.
+
+---
+
+### **Arten der Coverage**
+
+1. **Statement Coverage**
+
+   * Misst, wie viele Anweisungen (Statements) im Code mindestens einmal ausgeführt wurden.
+   * Beispiel: `if (x > 0) console.log("Positiv");` → Nur ausgeführt, wenn `x > 0` getestet wird.
+
+2. **Branch Coverage**
+
+   * Misst, ob alle möglichen Pfade/Verzweigungen (`if`, `else`, `switch`) getestet wurden.
+
+3. **Function Coverage**
+
+   * Misst, ob jede definierte Funktion mindestens einmal aufgerufen wurde.
+
+4. **Line Coverage**
+
+   * Misst, wie viele Zeilen Code tatsächlich ausgeführt wurden.
+
+---
+
+### **Beispiel**
+
+```js
+// user.js
+export function checkAge(age) {
+  if (age >= 18) {
+    return "adult";
+  } else {
+    return "minor";
+  }
+}
+```
+
+* Test 1: `checkAge(20)` → deckt `if`-Pfad ab.
+* Test 2: `checkAge(15)` → deckt `else`-Pfad ab.
+
+**Nur wenn beide Tests existieren, ist Branch Coverage = 100%.**
+
+---
+
+### **In Jest Coverage messen**
+
+```bash
+npx jest --coverage
+```
+
+Ergebnis: HTML-Report mit Angaben zu Statements, Branches, Functions, Lines.
+
+---
+
+### **Wichtige Hinweise**
+
+* **Hohe Coverage ≠ gute Tests.**
+  100% Coverage bedeutet nur, dass jeder Code ausgeführt wurde – nicht, dass die Logik korrekt geprüft wurde.
+* Coverage ist ein **Indikator**, kein Selbstzweck.
+
+---
+
+### **Zusammenfassung**
+
+* Test Coverage misst, wie viel Code durch Tests abgedeckt wird.
+* Typen: **Statements, Branches, Functions, Lines**.
+* Tools wie Jest generieren Coverage-Reports.
+* **100% Coverage garantiert nicht korrekte Logik**, nur Ausführung.
+
+🔗 Quellen:
+
+* [Jest – Code Coverage](https://jestjs.io/docs/cli#--coverage)
+* [MDN – Code Testing Overview](https://developer.mozilla.org/ru/docs/Learn/Tools_and_testing/Testing/Your_first_tests)
+
+---
 
   **[⬆ Наверх](#top)**
 
-195. ### <a name="195"></a> 
+198. ### <a name="198"></a> Was sind Best Practices für Test-Driven Development (TDD)?
 
+### **Best Practices für Test-Driven Development (TDD)**
 
+TDD basiert auf dem **Red-Green-Refactor-Zyklus**:
+
+1. **Red** → Schreibe einen fehlschlagenden Test.
+2. **Green** → Implementiere minimalen Code, damit der Test besteht.
+3. **Refactor** → Verbessere den Code, ohne Tests zu brechen.
+
+---
+
+### **Best Practices**
+
+1. **Kleine Schritte**
+
+   * Schreibe **kleine, fokussierte Tests** für eine Funktion oder Methode.
+   * Vermeide große Test-Suites ohne Zwischenfeedback.
+
+2. **Eine Erwartung pro Test**
+
+   * Jeder Test sollte **genau ein Verhalten** prüfen, nicht mehrere gleichzeitig.
+
+3. **Tests vor Code**
+
+   * Immer zuerst den Test schreiben, dann den Code.
+   * So wird sichergestellt, dass der Code **testbar** ist.
+
+4. **Klarer Fokus auf Anforderungen**
+
+   * Tests orientieren sich an **fachlichen Anforderungen**.
+   * Beispiel: „Ein Nutzer unter 18 darf sich nicht registrieren“.
+
+5. **Schnelle Tests**
+
+   * Tests sollten **schnell** laufen, damit sie häufig ausgeführt werden können.
+   * Externe Systeme (DB, API) am besten mocken.
+
+6. **Gute Lesbarkeit**
+
+   * Testcode sollte wie **Dokumentation** wirken.
+   * Namen wie `shouldReturnErrorIfUserIsTooYoung()` statt `test1()`.
+
+7. **Refactor nicht vergessen**
+
+   * Nach Green-Phase den Code aufräumen: Duplikate entfernen, saubere Architektur einhalten.
+
+8. **Testabdeckung sinnvoll nutzen**
+
+   * Coverage nutzen, um Lücken zu finden, aber nicht als Selbstzweck.
+
+9. **Integration und Unit-Tests kombinieren**
+
+   * Unit-Tests für Logik, Integrationstests für Zusammenspiel der Module.
+
+10. **CI/CD-Pipeline**
+
+    * Tests in die Pipeline integrieren, um automatisch Qualität zu sichern.
+
+---
+
+### **Beispiel (Node.js mit Jest)**
+
+```js
+// Schritt 1: Test schreiben (Red)
+import { test, expect } from '@jest/globals';
+import { isAdult } from '../user.js';
+
+test('gibt true zurück, wenn Alter >= 18', () => {
+  expect(isAdult(20)).toBe(true);
+});
+
+// Schritt 2: Minimaler Code (Green)
+export function isAdult(age) {
+  return age >= 18;
+}
+
+// Schritt 3: Refactor
+// (z. B. Alter validieren, sprechendere Namen, etc.)
+```
+
+---
+
+### **Zusammenfassung**
+
+* TDD folgt dem **Red-Green-Refactor-Zyklus**.
+* Schreibe **kleine, klare, schnelle Tests**.
+* Fokus auf Anforderungen, nicht auf Implementierung.
+* Tests als **lebende Dokumentation**.
+* Unit- und Integrationstests kombinieren, CI/CD nutzen.
+
+🔗 Quellen:
+
+* [MDN – Testen in JavaScript](https://developer.mozilla.org/ru/docs/Learn/Tools_and_testing/Testing)
+* [Jest Dokumentation](https://jestjs.io/docs/getting-started)
+
+---
 
   **[⬆ Наверх](#top)**
 
-196. ### <a name="196"></a> 
+199. ### <a name="199"></a> Unterschied zwischen TDD und BDD (Behavior Driven Development)?
 
+### **Unterschied zwischen TDD und BDD**
 
+---
+
+### **TDD (Test-Driven Development)**
+
+* Fokus: **Codequalität und technische Implementierung**.
+* Zyklus: **Red → Green → Refactor**.
+* Tests werden auf **Funktionsebene** geschrieben (Unit-Tests).
+* Beispiel: Testet, ob eine Funktion `isAdult(20)` `true` zurückgibt.
+
+```js
+// TDD-Beispiel mit Jest
+import { test, expect } from '@jest/globals';
+import { isAdult } from '../user.js';
+
+test('returns true if age >= 18', () => {
+  expect(isAdult(20)).toBe(true);
+});
+```
+
+---
+
+### **BDD (Behavior-Driven Development)**
+
+* Fokus: **Verhalten der Software aus Anwendersicht**.
+* Nutzt eine **domänenspezifische Sprache** (z. B. Gherkin mit „Given-When-Then“).
+* Tests beschreiben **Use-Cases und Business-Logik**.
+* Ziel: bessere Zusammenarbeit zwischen Entwicklern, Testern und Fachseite.
+
+```gherkin
+# BDD-Beispiel mit Gherkin
+Feature: Altersprüfung
+  Scenario: Nutzer ist volljährig
+    Given ein Nutzer mit Alter 20
+    When ich die Altersprüfung durchführe
+    Then sollte das Ergebnis "adult" sein
+```
+
+Umsetzung mit **Cucumber.js**:
+
+```js
+// step_definitions/steps.js
+import { Given, When, Then } from '@cucumber/cucumber';
+import { expect } from 'chai';
+import { isAdult } from '../../user.js';
+
+let result;
+
+Given('ein Nutzer mit Alter {int}', function (age) {
+  this.age = age;
+});
+
+When('ich die Altersprüfung durchführe', function () {
+  result = isAdult(this.age);
+});
+
+Then('sollte das Ergebnis {string} sein', function (expected) {
+  expect(result ? "adult" : "minor").to.equal(expected);
+});
+```
+
+---
+
+### **Direkter Vergleich**
+
+| Aspekt     | **TDD**                              | **BDD**                                    |
+| ---------- | ------------------------------------ | ------------------------------------------ |
+| Fokus      | Code, technische Implementierung     | Verhalten, fachliche Anforderungen         |
+| Sprache    | Technisch (z. B. Jest, Mocha, JUnit) | Natürlich/geschäftsnah (z. B. Gherkin)     |
+| Beteiligte | Entwickler                           | Entwickler, Tester, Business-Analysten     |
+| Testtyp    | Unit-Tests                           | Akzeptanztests, Integrationstests          |
+| Ziel       | Fehlerfreier, sauberer Code          | Gemeinsames Verständnis, richtige Features |
+
+---
+
+### **Zusammenfassung**
+
+* **TDD**: Entwickler-zentriert, testet **wie** etwas implementiert wird.
+* **BDD**: Anwender-zentriert, testet **was** das System aus Sicht des Users tun soll.
+* Beide können kombiniert werden: TDD für **Technik**, BDD für **Verhalten/Use-Cases**.
+
+🔗 Quellen:
+
+* [MDN – Testing Overview](https://developer.mozilla.org/ru/docs/Learn/Tools_and_testing/Testing)
+* [Cucumber.js Dokumentation](https://cucumber.io/docs/installation/javascript/)
+* [Jest Dokumentation](https://jestjs.io/docs/getting-started)
+
+---
 
   **[⬆ Наверх](#top)**
 
-197. ### <a name="197"></a> 
+200. ### <a name="200"></a> Welche Rolle spielt Continuous Testing in CI/CD?
 
+### **Continuous Testing in CI/CD**
 
+**Definition**
+Continuous Testing bedeutet, dass automatisierte Tests **kontinuierlich in der gesamten CI/CD-Pipeline** ausgeführt werden – von Commit bis Deployment. Ziel: **frühes Erkennen von Fehlern** und **schnelles Feedback**.
 
-  **[⬆ Наверх](#top)**
+---
 
-198. ### <a name="198"></a> 
+### **Rolle in CI/CD**
 
+1. **Frühes Feedback**
 
+   * Jeder Code-Commit löst Tests aus (Unit, Integration, End-to-End).
+   * Fehler werden sofort sichtbar → weniger Kosten für späte Bugfixes.
 
-  **[⬆ Наверх](#top)**
+2. **Qualitätssicherung**
 
-199. ### <a name="199"></a> 
+   * Tests sind ein „Quality Gate“: Nur wenn Tests bestehen, wird Code weiter in die nächste Pipeline-Stufe (Build, Deploy) übernommen.
 
+3. **Automatisierung**
 
+   * Tests laufen automatisch in CI/CD-Tools wie GitHub Actions, GitLab CI, Jenkins.
+   * Entwickler müssen nicht manuell prüfen.
 
-  **[⬆ Наверх](#top)**
+4. **Risikominimierung**
 
-200. ### <a name="200"></a> 
+   * Regressionen und Sicherheitslücken werden früh erkannt.
+   * Stabile Releases durch konsequentes Testen.
 
+---
+
+### **Beispiel GitHub Actions (Node.js mit Jest)**
+
+```yaml
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm test -- --coverage
+```
+
+👉 Bei jedem Commit/Pull Request werden Tests automatisch ausgeführt.
+
+---
+
+### **Zusammenfassung**
+
+* Continuous Testing ist ein zentraler Teil von **CI/CD**, sorgt für **automatisiertes, schnelles Feedback** und verhindert, dass fehlerhafter Code deployed wird.
+* Tests dienen als **Quality Gate** in der Pipeline.
+* Praktisch umgesetzt mit CI/CD-Tools (GitHub Actions, GitLab CI, Jenkins).
+
+🔗 Quellen:
+
+* [MDN – Testing Overview](https://developer.mozilla.org/ru/docs/Learn/Tools_and_testing/Testing)
+* [Jest Dokumentation](https://jestjs.io/docs/cli)
+* [GitHub Actions – Testing Workflows](https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+201. ### <a name="201"></a> Was ist SQL Injection und wie verhindert man sie?
+
+### **SQL Injection**
+
+**Definition**
+SQL Injection ist eine Sicherheitslücke, bei der **unsichere Benutzereingaben direkt in SQL-Statements eingefügt werden**. Ein Angreifer kann dadurch eigene SQL-Befehle einschleusen, um Daten auszulesen, zu manipulieren oder zu löschen.
+
+---
+
+### **Beispiel (unsicherer Code)**
+
+```js
+// ❌ Gefahr: direkte String-Konkatenation
+import express from "express";
+import pg from "pg";
+
+const app = express();
+const pool = new pg.Pool();
+
+app.get("/user", async (req, res) => {
+  const name = req.query.name; 
+  const result = await pool.query(
+    `SELECT * FROM users WHERE name = '${name}'`
+  );
+  res.json(result.rows);
+});
+```
+
+👉 Eingabe: `?name=' OR '1'='1` führt dazu, dass alle Nutzer zurückgegeben werden.
+
+---
+
+### **Verhinderung von SQL Injection**
+
+1. **Prepared Statements / Parameterized Queries**
+
+   * Eingaben werden als Parameter übergeben, nicht in den SQL-String eingebettet.
+
+   ```js
+   // ✅ Sicher: Parametrisierte Query
+   const result = await pool.query(
+     "SELECT * FROM users WHERE name = $1",
+     [req.query.name]
+   );
+   ```
+
+2. **ORMs wie Sequelize oder Prisma**
+
+   * Abstraktionsebene über SQL, automatische Nutzung von Prepared Statements.
+
+   ```js
+   // Sequelize-Beispiel
+   const user = await User.findOne({
+     where: { name: req.query.name }
+   });
+   ```
+
+3. **Input Validierung & Escaping**
+
+   * Validierung von Eingaben (z. B. nur erlaubte Zeichen).
+   * Aber: kein Ersatz für Prepared Statements.
+
+4. **Least Privilege Prinzip**
+
+   * Datenbanknutzer nur mit minimalen Rechten (kein DROP/DELETE ALL).
+
+5. **Security Tools**
+
+   * Code-Scanner (z. B. ESLint-Security-Plugins, Snyk).
+   * WAF (Web Application Firewall).
+
+---
+
+### **Zusammenfassung**
+
+* **SQL Injection** = Manipulation von SQL über unsichere Eingaben.
+* Verhindern durch: **Prepared Statements**, **ORMs**, **Validierung**, **Least Privilege**.
+* Nie Benutzereingaben direkt in SQL-Strings einsetzen.
+
+🔗 Quellen:
+
+* [PostgreSQL – SQL Injection Prevention](https://www.postgresql.org/docs/current/sql-security.html)
+* [MDN – SQL Injection](https://developer.mozilla.org/ru/docs/Glossary/SQL_Injection)
+* [Sequelize Sicherheit](https://sequelize.org/docs/v6/other-topics/security/)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+202. ### <a name="202"></a> Was ist NoSQL Injection?
+
+### **NoSQL Injection**
+
+**Definition**
+NoSQL Injection ist eine Angriffstechnik, bei der Angreifer **unsichere Benutzereingaben in NoSQL-Abfragen einschleusen**, um die Logik zu manipulieren oder unbefugten Zugriff zu erlangen.
+Sie ähnelt der klassischen **SQL Injection**, betrifft aber **NoSQL-Datenbanken** wie MongoDB, CouchDB oder Firebase.
+
+---
+
+### **Beispiel (unsicherer Code mit MongoDB)**
+
+```js
+// ❌ Unsicher: direkte Übergabe von User-Eingaben
+import express from "express";
+import { MongoClient } from "mongodb";
+
+const app = express();
+const client = new MongoClient("mongodb://localhost:27017");
+await client.connect();
+const db = client.db("testdb");
+const users = db.collection("users");
+
+app.get("/login", async (req, res) => {
+  const { user, pass } = req.query;
+  const result = await users.findOne({ username: user, password: pass });
+  res.json(result);
+});
+```
+
+👉 Angreifer könnte `?user[$ne]=null&pass[$ne]=null` eingeben → Query wird immer **true**, Login wird umgangen.
+
+---
+
+### **Typische Angriffsmethoden**
+
+* **Operator Injection**: Einschleusen von MongoDB-Operatoren (`$ne`, `$gt`, `$or`).
+* **JavaScript Injection** (bei älteren Versionen mit `$where`-Operator).
+* **JSON Manipulation**: Übermittlung von Objekten statt Strings.
+
+---
+
+### **Schutzmaßnahmen**
+
+1. **Input Validierung & Typprüfung**
+
+   * Nur erwartete Typen erlauben (z. B. String statt Objekt).
+   * Beispiel mit Joi/Validator:
+
+   ```js
+   import Joi from "joi";
+   const schema = Joi.object({
+     user: Joi.string().alphanum().required(),
+     pass: Joi.string().min(6).required(),
+   });
+   ```
+
+2. **Parameterisierung durch ORM/ODM**
+
+   * Nutzung von **Mongoose** oder ähnlichen Tools, die Eingaben escapen.
+
+   ```js
+   // ✅ Sicherer Login mit Mongoose
+   const user = await User.findOne({
+     username: req.query.user,
+     password: req.query.pass
+   }).lean();
+   ```
+
+3. **Keine direkte Übergabe komplexer Objekte**
+
+   * Nur primitive Werte akzeptieren, niemals ganze Objekte aus User-Input übernehmen.
+
+4. **Least Privilege Prinzip**
+
+   * Datenbank-User nur mit minimal nötigen Rechten.
+
+---
+
+### **Zusammenfassung**
+
+* **NoSQL Injection** = Manipulation von NoSQL-Abfragen durch unsichere Eingaben.
+* Besonders kritisch in **MongoDB** (Operatoren `$ne`, `$or`).
+* Schutz: **Input-Validierung, Typprüfung, sichere ODMs, Least Privilege**.
+
+🔗 Quellen:
+
+* [OWASP – NoSQL Injection](https://owasp.org/www-community/attacks/NoSQL_Injection)
+* [MongoDB Security Docs](https://www.mongodb.com/docs/manual/security/)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+203. ### <a name="203"></a> Unterschied zwischen XSS und CSRF?
+
+### **Unterschied zwischen XSS und CSRF**
+
+---
+
+### **XSS (Cross-Site Scripting)**
+
+* **Ziel:** Einschleusen von **schädlichem JavaScript** in eine Webseite.
+* **Angriff:** Angreifer bringt Opfer dazu, **fremden Code im Browser** auszuführen.
+* **Folgen:**
+
+  * Session Hijacking (Cookies klauen)
+  * Keylogging
+  * DOM-Manipulation
+  * Phishing
+
+**Beispiel (unsicherer Code):**
+
+```js
+// ❌ Unsicher: direkte Ausgabe von User-Input
+app.get("/profile", (req, res) => {
+  res.send(`<h1>${req.query.name}</h1>`); 
+});
+
+// Eingabe: ?name=<script>alert('XSS')</script>
+```
+
+---
+
+### **CSRF (Cross-Site Request Forgery)**
+
+* **Ziel:** Opfer dazu bringen, **ungewollte Aktionen** auf einer vertrauenswürdigen Seite auszuführen.
+* **Angriff:** Angreifer nutzt **Session/Authentifizierung des Opfers**.
+* **Folgen:**
+
+  * Überweisungen im Banking-System
+  * Passwortänderungen
+  * Account-Manipulation
+
+**Beispiel (unsicherer Code):**
+
+```html
+<!-- Opfer ist eingeloggt bei bank.com -->
+<!-- Angreifer-Seite enthält: -->
+<img src="https://bank.com/transfer?amount=1000&to=attacker" />
+```
+
+👉 Browser sendet automatisch Cookies → Überweisung wird ausgeführt.
+
+---
+
+### **Direkter Vergleich**
+
+| Aspekt       | **XSS**                                     | **CSRF**                                            |
+| ------------ | ------------------------------------------- | --------------------------------------------------- |
+| Fokus        | Einschleusen von **Code** ins Opfer-Browser | Missbrauch von **Authentifizierung** des Opfers     |
+| Angriffsziel | Client (Browser, User)                      | Server (durch legitime Session des Users)           |
+| Folgen       | Script-Ausführung, Datendiebstahl, Phishing | Aktionen im Namen des Users                         |
+| Abwehr       | Input-Sanitizing, Output-Encoding, CSP      | CSRF-Tokens, SameSite-Cookies, Double Submit Cookie |
+
+---
+
+### **Zusammenfassung**
+
+* **XSS**: Angriff auf den **Browser**, Ziel ist die **Ausführung von Schadcode**.
+* **CSRF**: Angriff auf den **Server**, Ziel ist die **Ausführung unerwünschter Aktionen** mit gültiger Session.
+* Schutz: **XSS → Input-Sanitizing & CSP**, **CSRF → Tokens & sichere Cookies**.
+
+🔗 Quellen:
+
+* [MDN – Cross-site scripting (XSS)](https://developer.mozilla.org/ru/docs/Glossary/Cross-site_scripting)
+* [OWASP – CSRF](https://owasp.org/www-community/attacks/csrf)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+204. ### <a name="204"></a> Wie schützt man REST-APIs mit JWT?
+
+### **REST-API-Schutz mit JWT (JSON Web Token)**
+
+**JWT** ist ein kompakter Token-Standard, der Authentifizierungs- und Autorisierungsinformationen enthält. Er wird zwischen **Client** und **Server** im **HTTP-Header** übertragen.
+
+---
+
+### **Ablauf**
+
+1. **Login**
+
+   * User sendet Credentials (z. B. E-Mail/Passwort) an `/login`.
+   * Server prüft Daten und erstellt ein JWT (signiert mit Secret oder Private Key).
+   * Token wird an den Client zurückgegeben.
+
+2. **Gesicherte Requests**
+
+   * Client schickt JWT im `Authorization`-Header:
+
+     ```
+     Authorization: Bearer <token>
+     ```
+   * Server validiert Token (Signatur + Ablaufzeit).
+   * Zugriff auf geschützte Ressourcen wird gewährt.
+
+3. **Token Ablauf**
+
+   * Tokens haben `exp` (Expiry Claim).
+   * Nach Ablauf → Client muss neuen Token anfordern (oft über Refresh Token).
+
+---
+
+### **Beispiel (Express.js + jsonwebtoken)**
+
+```js
+// auth.js
+import jwt from "jsonwebtoken";
+
+const SECRET = "mein_geheimes_token"; // in .env speichern!
+
+// Token generieren (Login)
+export function generateToken(user) {
+  return jwt.sign({ id: user.id, role: user.role }, SECRET, {
+    expiresIn: "1h",
+  });
+}
+
+// Middleware zum Schutz von Routen
+export function authMiddleware(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) return res.status(401).json({ error: "No token" });
+
+  const token = authHeader.split(" ")[1];
+  try {
+    const payload = jwt.verify(token, SECRET);
+    req.user = payload; // User-Infos aus Token
+    next();
+  } catch (err) {
+    return res.status(403).json({ error: "Invalid token" });
+  }
+}
+```
+
+```js
+// server.js
+import express from "express";
+import { generateToken, authMiddleware } from "./auth.js";
+
+const app = express();
+app.use(express.json());
+
+// Login-Route
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  if (username === "admin" && password === "1234") {
+    const token = generateToken({ id: 1, role: "admin" });
+    return res.json({ token });
+  }
+  res.status(401).json({ error: "Unauthorized" });
+});
+
+// Geschützte Route
+app.get("/profile", authMiddleware, (req, res) => {
+  res.json({ message: `Hallo User ${req.user.id}`, role: req.user.role });
+});
+
+app.listen(3000, () => console.log("Server läuft auf Port 3000"));
+```
+
+---
+
+### **Best Practices**
+
+* **Secrets in `.env`** speichern, nicht im Code.
+* **Short-lived Tokens** verwenden (`expiresIn`), Refresh Tokens nutzen.
+* **HTTPS** erzwingen, um Token-Leaks zu verhindern.
+* **Rollen/Claims** ins JWT einfügen (RBAC).
+* **Blacklist/Invalidate Tokens** bei Logout oder Sicherheitsvorfällen.
+
+---
+
+### **Zusammenfassung**
+
+* JWT schützt REST-APIs durch **stateless Authentifizierung**.
+* Ablauf: **Login → Token → geschützte Routen mit Middleware**.
+* Best Practices: **kurze Lebensdauer, Refresh Tokens, HTTPS, Secret sicher speichern**.
+
+🔗 Quellen:
+
+* [JWT.io – Einführung](https://jwt.io/introduction)
+* [Express.js Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* [Node.js jsonwebtoken Package](https://github.com/auth0/node-jsonwebtoken)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+205. ### <a name="205"></a> Unterschied zwischen JWT und OAuth2?
+
+### **Unterschied zwischen JWT und OAuth2**
+
+---
+
+### **JWT (JSON Web Token)**
+
+* **Was es ist:**
+  Ein **Token-Format** (RFC 7519) für den sicheren Transport von Claims (z. B. User-ID, Rollen).
+* **Eigenschaften:**
+
+  * Kompakt, Base64-encoded
+  * Signiert (HMAC oder RSA/ECDSA) → Manipulation erkennbar
+  * Enthält Claims: `iss`, `sub`, `exp`, eigene Daten
+* **Nutzung:**
+
+  * Häufig für **Authentifizierung** in REST-APIs (stateless login).
+  * Token wird direkt im `Authorization: Bearer <token>` Header übertragen.
+
+**Beispiel JWT Payload:**
+
+```json
+{
+  "sub": "12345",
+  "role": "admin",
+  "exp": 1694018400
+}
+```
+
+---
+
+### **OAuth2**
+
+* **Was es ist:**
+  Ein **Autorisierungs-Framework** (RFC 6749), das beschreibt, **wie ein Client Zugriff auf Ressourcen eines Users** bei einem Ressource-Server erhält.
+* **Eigenschaften:**
+
+  * Rollen: **Resource Owner**, **Client**, **Authorization Server**, **Resource Server**
+  * Flows: Authorization Code, Implicit, Client Credentials, Device Code
+  * Liefert **Access Tokens** (oft in JWT-Format, aber nicht zwingend)
+* **Nutzung:**
+
+  * Delegierte Autorisierung (z. B. „Login mit Google“)
+  * Ermöglicht Drittanbietern Zugriff auf User-Daten ohne Passwortweitergabe
+
+**Beispiel Flow (Authorization Code):**
+
+1. User loggt sich bei Google ein.
+2. App erhält **Authorization Code**.
+3. App tauscht Code beim Auth-Server gegen **Access Token**.
+4. App nutzt Token, um Ressourcen beim Resource Server abzufragen.
+
+---
+
+### **Direkter Vergleich**
+
+| Aspekt         | **JWT**                                   | **OAuth2**                                       |
+| -------------- | ----------------------------------------- | ------------------------------------------------ |
+| Typ            | Token-Format                              | Autorisierungs-Framework                         |
+| Zweck          | Authentifizierung / Informationstransport | Zugriffskontrolle & Delegation von Rechten       |
+| Standardisiert | RFC 7519                                  | RFC 6749                                         |
+| Enthält        | Claims (User-ID, Rollen, Metadaten)       | Access Tokens (oft JWT), Refresh Tokens          |
+| Verwendung     | API-Login, stateless Sessions             | „Login mit…“, API-Zugriff im Namen eines Nutzers |
+| Abhängigkeit   | Kann allein genutzt werden                | Kann JWT nutzen, muss aber nicht                 |
+
+---
+
+### **Zusammenfassung**
+
+* **JWT** = Token-Format zur Übertragung von Claims (oft für Authentifizierung).
+* **OAuth2** = Framework für **Autorisierung** und Delegation (liefert Tokens, meist JWT).
+* Verhältnis: **OAuth2 kann JWT verwenden, muss aber nicht**.
+
+🔗 Quellen:
+
+* [JWT.io – Einführung](https://jwt.io/introduction)
+* [OAuth2 Spezifikation (RFC 6749)](https://datatracker.ietf.org/doc/html/rfc6749)
+* [MDN – OAuth](https://developer.mozilla.org/en-US/docs/Glossary/OAuth)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+206. ### <a name="206"></a> Unterschied zwischen Session-basiertem und Token-basiertem Auth?
+
+### **Unterschied zwischen Session-basierter und Token-basierter Authentifizierung**
+
+---
+
+### **Session-basierte Authentifizierung**
+
+* **Funktionsweise**
+
+  * Nach Login speichert der Server eine **Session** (z. B. in Memory oder DB).
+  * Client erhält eine **Session-ID** (Cookie).
+  * Bei jedem Request sendet der Client Cookie → Server prüft Session.
+* **Eigenschaften**
+
+  * Server ist „stateful“ (muss Sessions speichern).
+  * Gut geeignet für klassische Web-Apps (mit Cookies, Server-Render).
+  * Skalierung schwieriger (Sessions müssen zwischen Servern geteilt werden).
+
+**Beispiel-Flow**
+
+1. User loggt sich ein.
+2. Server erstellt Session: `{id: 123, user: "Max"}`.
+3. Client speichert Cookie: `sessionId=123`.
+4. Jeder Request → Server prüft Session in DB.
+
+---
+
+### **Token-basierte Authentifizierung (z. B. mit JWT)**
+
+* **Funktionsweise**
+
+  * Nach Login erstellt Server ein **Token** (z. B. JWT, signiert).
+  * Client speichert Token (im LocalStorage oder als Cookie).
+  * Bei jedem Request sendet der Client das Token im Header (`Authorization: Bearer ...`).
+  * Server validiert Token (Signatur + Ablaufzeit), ohne in DB nachzuschauen.
+* **Eigenschaften**
+
+  * Server ist „stateless“ (kein Session-Storage nötig).
+  * Ideal für **APIs, Microservices, Mobile Apps**.
+  * Leicht horizontal skalierbar.
+  * Risiko: Bei Token-Leak ist Zugriff möglich, bis Token abläuft.
+
+**Beispiel-Flow**
+
+1. User loggt sich ein.
+2. Server gibt JWT zurück: `{sub: "123", role: "admin", exp: ...}`.
+3. Client speichert JWT.
+4. Jeder Request → JWT im Header, Server prüft Signatur.
+
+---
+
+### **Direkter Vergleich**
+
+| Aspekt        | **Session-basiert**                 | **Token-basiert (JWT)**                  |
+| ------------- | ----------------------------------- | ---------------------------------------- |
+| Zustand       | Stateful (Session-Store)            | Stateless (keine Speicherung nötig)      |
+| Speicherung   | Session-ID im Cookie                | Token im Header oder Cookie              |
+| Skalierung    | Schwieriger (Session-Sharing nötig) | Einfach (jeder Server kann Token prüfen) |
+| Sicherheit    | Sicherer bei kurzen Sessions        | Token-Leak kritisch bis Expiry           |
+| Einsatzgebiet | Klassische Web-Apps                 | REST-APIs, SPAs, Mobile Apps             |
+
+---
+
+### **Zusammenfassung**
+
+* **Session-basiert**: Server speichert Status, Client sendet Session-ID → gut für Web-Apps, weniger skalierbar.
+* **Token-basiert**: Server bleibt stateless, Client sendet Token (z. B. JWT) → gut für APIs/Microservices, skalierbarer.
+
+🔗 Quellen:
+
+* [MDN – HTTP Cookies](https://developer.mozilla.org/ru/docs/Web/HTTP/Cookies)
+* [JWT.io Einführung](https://jwt.io/introduction)
+* [Express.js Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+207. ### <a name="207"></a> Wie konfiguriert man sichere CORS-Regeln?
+
+### **Sichere CORS-Konfiguration (Cross-Origin Resource Sharing)**
+
+---
+
+#### Grundprinzipien
+
+* **Whitelist statt Wildcard:** Nur explizite Origins erlauben (keine `*`, außer bei **ohne** Credentials).
+* **Nur nötige Methoden/Headers freigeben:** Minimalprinzip.
+* **Credentials nur wenn nötig:** `Access-Control-Allow-Credentials: true` **nie** mit `Access-Control-Allow-Origin: *` kombinieren.
+* **Preflight kontrollieren:** Nur benötigte Werte erlauben, sinnvolles `Access-Control-Max-Age` setzen.
+* **TLS/HTTPS erzwingen:** Besonders bei Cookies/Authorization-Headern.
+* **CSRF bedenken:** CORS ≠ CSRF-Schutz; ggf. CSRF-Tokens/SameSite-Cookies nutzen.
+
+---
+
+### **Express mit `cors` (empfohlen)**
+
+```js
+// server.mjs
+import express from "express";
+import cors from "cors";
+
+const app = express();
+
+// 1) Whitelist definieren
+const WHITELIST = [
+  "https://app.example.com",
+  "https://admin.example.com"
+];
+
+// 2) Dynamische Origin-Validierung
+const corsOptions = {
+  origin(origin, cb) {
+    // z. B. für Tools/Healthchecks ohne Origin:
+    if (!origin) return cb(null, false);           // keine CORS-Header setzen
+    if (WHITELIST.includes(origin)) return cb(null, true);
+    return cb(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],       // minimal halten
+  allowedHeaders: ["Content-Type", "Authorization"],
+  exposedHeaders: ["X-Request-Id"],                // nur wenn wirklich nötig
+  credentials: true,                                // nur wenn Cookies/HTTP Auth nötig
+  maxAge: 600,                                      // Preflight-Ergebnis 10 Min. cachen
+  optionsSuccessStatus: 204                         // saubere Preflight-Antwort
+};
+
+app.use(cors(corsOptions));
+// Optional: Preflight explizit bedienen
+app.options("*", cors(corsOptions));
+
+app.get("/api/data", (req, res) => {
+  res.json({ ok: true });
+});
+
+app.listen(3000);
+```
+
+**Hinweise:**
+
+* **Credentials + Whitelist:** Bei `credentials: true` **muss** `Access-Control-Allow-Origin` eine **konkrete** Origin sein (kein `*`).
+* **Nur nötige Methoden/Headers freigeben.**
+* **Staging/Prod trennen:** Whitelist aus ENV laden; in Dev evtl. `http://localhost:5173` o. ä. ergänzen.
+
+---
+
+### **Alternative: Öffentliche, rein lesende API (ohne Credentials)**
+
+```js
+import cors from "cors";
+app.use(cors({
+  origin: "*",                  // nur sicher, wenn keinerlei Cookies/Secrets
+  methods: ["GET"],             // read-only
+  allowedHeaders: ["Content-Type"],
+  credentials: false
+}));
+```
+
+> Für **öffentliche** Daten ohne Auth geeignet; andernfalls **nicht** verwenden.
+
+---
+
+### **Manuell (nur bei Spezialfällen)**
+
+```js
+// Minimaler, strikter Header-Set
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const WHITELIST = new Set(["https://app.example.com"]);
+  if (WHITELIST.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");                // wichtig für Caches
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Max-Age", "600");
+  }
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+```
+
+---
+
+### **Cookies & CSRF**
+
+* Bei Cookie-Auth: `SameSite=None; Secure` setzen, nur über HTTPS senden.
+* CSRF separat absichern (z. B. CSRF-Tokens, Double-Submit-Cookie).
+  CORS allein verhindert **keine** CSRF-Angriffe.
+
+---
+
+### **Zusammenfassung**
+
+* **Whitelist** konkrete Origins, **keine** Wildcards mit Credentials.
+* **Minimalprinzip** für Methoden/Headers/Exposed Headers.
+* **Preflight** sauber beantworten und mit `maxAge` cachen.
+* **HTTPS** erzwingen; **CSRF** separat adressieren.
+* In Express `cors`-Middleware mit **dynamischer Origin-Funktion** verwenden.
+
+**Quellen / Weiterführend**
+
+* [MDN – CORS Überblick](https://developer.mozilla.org/ru/docs/Web/HTTP/CORS)
+* [MDN – `Access-Control-*` Header](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)
+* [Express.js – CORS Middleware](https://expressjs.com/de/resources/middleware/cors.html)
+* [MDN – SameSite-Cookies](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Set-Cookie/SameSite)
 
 
   **[⬆ Наверх](#top)**      
 
-201. ### <a name="201"></a> 
+208. ### <a name="208"></a> Was ist HTTPS und wie implementiert man es in Node.js?
 
+### **Was ist HTTPS?**
+
+* **HTTPS** = HTTP über **TLS/SSL**. Es verschlüsselt Transportdaten, stellt **Integrität** sicher und ermöglicht **Authentizität** über Zertifikate (CA-signiert).
+* Schützt u. a. Login-Daten, Cookies, Tokens und API-Payloads vor Mitlesen/Manipulation.
+
+---
+
+### **Voraussetzungen**
+
+* **Zertifikat + privater Schlüssel** (typisch von einer CA wie Let’s Encrypt).
+* Optional **Intermediate/Chain** (CA-Bundle).
+* **TLS-fähiger Server** (direkt in Node.js oder via Reverse Proxy wie Nginx/Traefik).
+
+---
+
+### **Implementierung in Node.js (nativ, mit Express)**
+
+```js
+// server.mjs
+import fs from "node:fs";
+import https from "node:https";
+import http from "node:http";
+import express from "express";
+
+const app = express();
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
+// 1) HTTPS-Server mit Zertifikat starten
+const options = {
+  key: fs.readFileSync("/etc/letsencrypt/live/example.com/privkey.pem"),
+  cert: fs.readFileSync("/etc/letsencrypt/live/example.com/fullchain.pem"),
+  // optional: ca: fs.readFileSync("chain.pem"),
+  // starke Ciphers/TLS-Versionen werden systemweit konfiguriert
+};
+
+https.createServer(options, app).listen(443, () => {
+  console.log("HTTPS läuft auf :443");
+});
+
+// 2) HTTP -> HTTPS Redirect (sauberer Migrationspfad)
+http.createServer((req, res) => {
+  const host = req.headers.host?.replace(/:\d+$/, "");
+  res.writeHead(301, { Location: `https://${host}${req.url}` });
+  res.end();
+}).listen(80);
+```
+
+**Hinweise**
+
+* Zertifikats-Pfad für Let’s Encrypt je nach Setup (z. B. `/etc/letsencrypt/...`).
+* In Containern/Clouds oft **TLS-Termination** am Ingress/Proxy; Node lauscht dann nur auf **HTTP** (z. B. Port 3000).
+
+---
+
+### **Sicherheits-Ergänzungen (empfohlen)**
+
+```js
+// security.mjs
+import express from "express";
+import helmet from "helmet";
+
+const app = express();
+
+// HSTS: nach erfolgreichem HTTPS-Betrieb aktivieren (z. B. 6 Monate)
+app.use(helmet.hsts({ maxAge: 15552000, includeSubDomains: true, preload: false }));
+
+// Weitere sinnvolle Header
+app.use(helmet.frameguard({ action: "deny" }));
+app.use(helmet.xssFilter());          // legacy: heute Teil von helmet() baseline
+app.use(helmet.noSniff());
+
+export default app;
+```
+
+* **HSTS** zwingt künftige Zugriffe auf HTTPS; erst aktivieren, wenn HTTPS stabil läuft (sonst Lock-in).
+* Bei Betrieb **hinter Proxy**: `app.set('trust proxy', 1)` setzen, damit `req.secure` korrekt ist und Cookie-Flags (Secure) funktionieren.
+
+---
+
+### **HTTP/2 (optional)**
+
+```js
+// http2.mjs
+import fs from "node:fs";
+import http2 from "node:http2";
+import express from "express";
+
+const app = express();
+app.get("/", (_req, res) => res.send("Hello HTTP/2"));
+
+const server = http2.createSecureServer({
+  key: fs.readFileSync("/path/privkey.pem"),
+  cert: fs.readFileSync("/path/fullchain.pem"),
+  allowHTTP1: true, // Fallback auf HTTP/1.1
+}, app);
+
+server.listen(443);
+```
+
+* **Vorteile**: Multiplexing, Header-Kompression.
+* In vielen Deployments übernimmt HTTP/2 bereits der **Reverse Proxy**.
+
+---
+
+### **Zertifikate beziehen (Praxis)**
+
+* **Let’s Encrypt** via **Certbot** auf dem Host/Proxy (empfohlen): Proxy terminiert TLS und leitet an Node weiter.
+* **Lokale Entwicklung**: self-signed Zertifikat (nur zu Testzwecken).
+
+---
+
+### **Best Practices**
+
+* **TLS nur über HTTPS**; in Prod **immer** HTTPS erzwingen (Redirect + HSTS).
+* **Secrets** (Keys, Pfade) aus **ENV**/Secret-Store, nicht hardcoden.
+* **Kein Mixed Content** (alle Ressourcen über HTTPS laden).
+* **Reverse Proxy bevorzugen** (einfachere Zertifikatsrotation, HTTP/2/3, OCSP Stapling).
+* **Security-Header** mit `helmet` setzen; Cookies `Secure` und ggf. `SameSite=None`.
+
+---
+
+### **Zusammenfassung**
+
+* **HTTPS = HTTP über TLS**: Vertraulichkeit, Integrität, Authentizität.
+* In Node.js: `https.createServer({ key, cert }, app)`; HTTP→HTTPS Redirect; Security-Header + HSTS.
+* Produktion: oft **TLS-Termination am Proxy**, Node bleibt schlank.
+
+**Quellen / Weiterführend**
+
+* MDN: [Einführung zu HTTPS](https://developer.mozilla.org/ru/docs/Web/HTTP/Overview#https) • [HSTS](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Strict-Transport-Security)
+* Node.js Docs: [`https` Modul](https://nodejs.org/docs/latest/api/https.html) • [`http2` Modul](https://nodejs.org/docs/latest/api/http2.html)
+* Express: [Sicherheits-Best-Practices](https://expressjs.com/de/advanced/best-practice-security.html) • [Behind Proxies](https://expressjs.com/en/guide/behind-proxies.html)
+* Let’s Encrypt: [Certbot – Getting Started](https://certbot.eff.org/)
 
 
   **[⬆ Наверх](#top)**      
 
-202. ### <a name="202"></a> 
+209. ### <a name="209"></a> Welche Sicherheits-Header kann man mit Helmet setzen?
 
+### **Sicherheits-Header mit Helmet in Express**
+
+**Helmet** ist ein Express-Middleware-Paket, das gängige HTTP-Sicherheits-Header setzt. Standardmäßig aktiviert `helmet()` mehrere Header, weitere können gezielt konfiguriert werden.
+
+---
+
+### **Wichtige Header**
+
+1. **Content-Security-Policy (CSP)**
+
+   * Kontrolliert, von wo Skripte, Styles, Bilder etc. geladen werden dürfen.
+   * Schutz vor **XSS** und Daten-Injection.
+
+   ```js
+   import helmet from "helmet";
+   app.use(helmet.contentSecurityPolicy({
+     directives: {
+       defaultSrc: ["'self'"],
+       scriptSrc: ["'self'", "cdn.example.com"],
+       objectSrc: ["'none'"],
+     },
+   }));
+   ```
+
+2. **Strict-Transport-Security (HSTS)**
+
+   * Erzwingt HTTPS für künftige Requests.
+   * Schutz vor **SSL Stripping**.
+
+   ```js
+   app.use(helmet.hsts({
+     maxAge: 60 * 60 * 24 * 180, // 180 Tage
+     includeSubDomains: true,
+     preload: true,
+   }));
+   ```
+
+3. **X-Frame-Options** (heute über `frameguard`)
+
+   * Verhindert, dass Seiten in `<iframe>` eingebettet werden.
+   * Schutz vor **Clickjacking**.
+
+   ```js
+   app.use(helmet.frameguard({ action: "deny" }));
+   ```
+
+4. **X-Content-Type-Options**
+
+   * Verhindert, dass Browser MIME-Typen „erraten“.
+   * Schutz vor **MIME Sniffing**.
+
+   ```js
+   app.use(helmet.noSniff());
+   ```
+
+5. **X-XSS-Protection** *(älter, heute oft deprecated)*
+
+   * Aktiviert XSS-Filter in alten Browsern.
+   * Heutzutage ersetzt durch CSP.
+
+   ```js
+   app.use(helmet.xssFilter());
+   ```
+
+6. **Referrer-Policy**
+
+   * Kontrolliert, wie viel Referrer-Info gesendet wird.
+   * Schutz der **Privatsphäre**.
+
+   ```js
+   app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
+   ```
+
+7. **Permissions-Policy (früher Feature-Policy)**
+
+   * Legt fest, welche Browser-Features (z. B. Geolocation, Kamera) erlaubt sind.
+
+   ```js
+   app.use(helmet.permittedCrossDomainPolicies());
+   ```
+
+8. **Cross-Origin-Resource-Policy (CORP)**
+
+   * Schutz vor ungewolltem Datenzugriff über andere Origins.
+
+   ```js
+   app.use(helmet.crossOriginResourcePolicy({ policy: "same-origin" }));
+   ```
+
+9. **Cross-Origin-Opener-Policy (COOP)**
+
+   * Isolation des Browsing-Kontexts.
+   * Schutz vor **Side-Channel-Angriffen** (Spectre).
+
+   ```js
+   app.use(helmet.crossOriginOpenerPolicy({ policy: "same-origin" }));
+   ```
+
+10. **Cross-Origin-Embedder-Policy (COEP)**
+
+    * Stellt sicher, dass eingebettete Ressourcen CORS-kompatibel sind.
+    * Wichtig für SharedArrayBuffer.
+
+    ```js
+    app.use(helmet.crossOriginEmbedderPolicy({ policy: "require-corp" }));
+    ```
+
+---
+
+### **Minimalbeispiel**
+
+```js
+import express from "express";
+import helmet from "helmet";
+
+const app = express();
+
+// Basis-Sicherheitsheader aktivieren
+app.use(helmet());
+
+// Zusätzliche CSP
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    imgSrc: ["'self'", "data:"],
+    scriptSrc: ["'self'", "cdn.example.com"],
+  },
+}));
+
+app.listen(3000, () => console.log("Server läuft auf Port 3000"));
+```
+
+---
+
+### **Zusammenfassung**
+
+* **Helmet** setzt Header für **CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, COOP, COEP, CORP**.
+* Ziel: Schutz vor **XSS, Clickjacking, Datenlecks, Side-Channel-Angriffen**.
+* **CSP + HSTS** gehören zu den wichtigsten und sollten gezielt konfiguriert werden.
+
+🔗 Quellen
+
+* [Helmet.js Offizielle Dokumentation](https://helmetjs.github.io/)
+* [MDN – Sicherheits-Header Übersicht](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers)
+* [Express.js Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+210. ### <a name="210"></a> Wie schützt man API-Keys in einer Node.js App?
+
+### **API-Keys in Node.js sicher handhaben**
+
+---
+
+#### 1) **Nicht ins Repo commiten**
+
+* `.env` in `.gitignore`
+* Pre-commit-Checks (z. B. `git-secrets`, `pre-commit`) nutzen.
+* **Lecks** sofort rotieren.
+
+```bash
+# .gitignore
+.env
+.env.*
+```
+
+---
+
+#### 2) **Environment Variables statt Hardcoding**
+
+* Keys **nur** aus `process.env` lesen; in Prod per CI/Container-Secret setzen.
+* `.env` nur lokal; in CI/CD über Secret Store.
+
+```js
+// config.mjs
+import 'dotenv/config'; // nur lokal/Dev
+const { THIRD_PARTY_API_KEY } = process.env;
+if (!THIRD_PARTY_API_KEY) throw new Error('THIRD_PARTY_API_KEY fehlt');
+export default { THIRD_PARTY_API_KEY };
+```
+
+---
+
+#### 3) **Server-seitiges Proxy-Muster (nie im Frontend exponieren)**
+
+* Frontends bekommen **niemals** den Key; Backend ruft Drittanbieter-API auf.
+
+```js
+// routes/proxy.mjs
+import express from "express";
+import axios from "axios";
+import cfg from "../config.mjs";
+
+const router = express.Router();
+
+router.get("/weather", async (req, res) => {
+  const { city } = req.query;
+  const r = await axios.get("https://api.example.com/weather", {
+    params: { q: city },
+    headers: { "X-API-Key": cfg.THIRD_PARTY_API_KEY }, // Key nur serverseitig
+    timeout: 5000,
+  });
+  res.json(r.data);
+});
+
+export default router;
+```
+
+---
+
+#### 4) **Secret-Manager verwenden (Prod)**
+
+* Cloud-Optionen: **AWS Secrets Manager**, **GCP Secret Manager**, **Azure Key Vault**, **HashiCorp Vault**.
+* Vorteile: Rotation, Audit, Zugriffskontrolle (IAM), verschlüsselte Speicherung.
+
+---
+
+#### 5) **Least Privilege & Rotation**
+
+* Scope/Quotas so klein wie möglich (IP- oder Referrer-Bindung).
+* **Kurzlebige Keys/Tokens** bevorzugen; regelmäßige Rotation automatisieren.
+
+---
+
+#### 6) **Transport & Speicherung**
+
+* **Immer HTTPS** zu Dritt-APIs.
+* Keine Logs mit Secrets; **Log-Redaction** aktivieren.
+* In Containern: Secrets **nicht** ins Image backen; über **Docker/K8s Secrets** injizieren.
+
+---
+
+#### 7) **Validierung & Fail-Closed**
+
+* Beim Start **Env-Validierung** (z. B. Zod/Joi); bei Fehlen **Crashen** statt unsicher weiterlaufen.
+
+```js
+// env-validate.mjs
+import { z } from "zod";
+const Env = z.object({ THIRD_PARTY_API_KEY: z.string().min(20) });
+Env.parse(process.env);
+```
+
+---
+
+#### 8) **Client-Schutz (wenn unvermeidlich)**
+
+* Wenn ein Anbieter nur clientseitig ist (ungünstig): **eigenes Rate-Limit**, Anomaly Detection, Domain/Referer-Locks, aber: **Risiko bleibt hoch** → besser Proxy.
+
+---
+
+### **Zusammenfassung**
+
+* **Nie hardcoden, nie ins Frontend**: Keys aus `process.env`, per **Secret-Manager** bereitstellen.
+* **Proxy-Pattern**, **Least Privilege**, **Rotation**, **HTTPS**, **keine Logs mit Secrets**.
+* **Container/CI**: Secrets zur Laufzeit injizieren, nicht ins Image/Repo.
+
+**Quellen / Weiterführend**
+
+* Node.js: [`process.env`](https://nodejs.org/docs/latest/api/process.html#processenv)
+* Express: [Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* MDN: [HTTPS & Security Overview](https://developer.mozilla.org/ru/docs/Web/HTTP/Overview)
+* OWASP: [Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html)
 
 
   **[⬆ Наверх](#top)**      
 
-203. ### <a name="203"></a> 
+211. ### <a name="211"></a> Was ist der Unterschied zwischen Authentifizierung und Autorisierung?
 
+### **Unterschied zwischen Authentifizierung und Autorisierung**
+
+---
+
+### **Authentifizierung (Authentication)**
+
+* **Frage:** *Wer bist du?*
+* **Ziel:** Identität des Benutzers feststellen.
+* **Mittel:**
+
+  * Benutzername + Passwort
+  * Token (JWT, OAuth2 Access Token)
+  * Zertifikate
+  * Biometrie (Fingerabdruck, FaceID)
+
+**Beispiel (Login-Flow)**
+
+```js
+// Prüfen, ob User existiert und Passwort korrekt ist
+if (username === "max" && password === "secret123") {
+  // Authentifizierung erfolgreich
+}
+```
+
+---
+
+### **Autorisierung (Authorization)**
+
+* **Frage:** *Was darfst du tun?*
+* **Ziel:** Zugriff auf Ressourcen und Aktionen kontrollieren.
+* **Mittel:**
+
+  * Rollen (RBAC – Role Based Access Control)
+  * Rechte auf Ressourcen (z. B. nur Admin darf löschen)
+  * Claims im JWT (`role: "admin"`)
+
+**Beispiel (Routen-Absicherung in Express)**
+
+```js
+// Middleware für Autorisierung
+function requireAdmin(req, res, next) {
+  if (req.user?.role !== "admin") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+  next();
+}
+
+app.delete("/user/:id", requireAdmin, (req, res) => {
+  res.json({ message: "User gelöscht" });
+});
+```
+
+---
+
+### **Direkter Vergleich**
+
+| Aspekt    | **Authentifizierung**               | **Autorisierung**               |
+| --------- | ----------------------------------- | ------------------------------- |
+| Frage     | Wer bist du?                        | Was darfst du tun?              |
+| Zeitpunkt | Immer zuerst (Login, Token-Prüfung) | Danach (Ressourcenzugriff)      |
+| Mittel    | Passwörter, Tokens, Zertifikate     | Rollen, Rechte, Policies        |
+| Ergebnis  | Identität bestätigt                 | Zugriff gewährt oder verweigert |
+
+---
+
+### **Zusammenfassung**
+
+* **Authentifizierung** = Identität prüfen (*Login*).
+* **Autorisierung** = Berechtigungen prüfen (*Rechte*).
+* Reihenfolge: Erst **Authentifizierung**, dann **Autorisierung**.
+
+🔗 Quellen:
+
+* [MDN – Authentication](https://developer.mozilla.org/en-US/docs/Glossary/Authentication)
+* [MDN – Authorization](https://developer.mozilla.org/en-US/docs/Glossary/Authorization)
+* [OWASP – Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+212. ### <a name="212"></a> Welche Möglichkeiten gibt es, Authentifizierung in Express zu implementieren?
+
+### **Optionen für Authentifizierung in Express**
+
+---
+
+#### 1) **Session-/Cookie-basiert (stateful)**
+
+* Geeignet für klassische Web-Apps.
+* Speicherung der Session serverseitig (Store/DB); Browser sendet Cookie.
+* Schutz: `Secure`, `HttpOnly`, `SameSite`, CSRF-Token.
+
+```js
+// app.mjs
+import express from "express";
+import session from "express-session";
+import passport from "passport";
+import Local from "passport-local";
+import bcrypt from "bcrypt";
+
+const users = [{ id: 1, email: "a@b.c", passHash: await bcrypt.hash("secret", 12) }];
+
+passport.use(new Local.Strategy(
+  { usernameField: "email", passwordField: "password" },
+  async (email, password, done) => {
+    const u = users.find(x => x.email === email);
+    if (!u || !(await bcrypt.compare(password, u.passHash))) return done(null, false);
+    return done(null, { id: u.id, email: u.email });
+  }
+));
+passport.serializeUser((u, done) => done(null, u.id));
+passport.deserializeUser((id, done) => done(null, users.find(x => x.id === id)));
+
+const app = express();
+app.use(express.json());
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false, saveUninitialized: false,
+  cookie: { httpOnly: true, secure: true, sameSite: "lax" }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.post("/login", passport.authenticate("local"), (req, res) => res.json({ ok: true }));
+app.get("/me", (req, res) => req.isAuthenticated() ? res.json(req.user) : res.sendStatus(401));
+
+app.listen(3000);
+```
+
+---
+
+#### 2) **Token-basiert/JWT (stateless)**
+
+* Ideal für SPAs/Mobile/REST-APIs.
+* Client sendet `Authorization: Bearer <jwt>`; Server prüft Signatur & `exp`.
+
+```js
+// auth.mjs
+import jwt from "jsonwebtoken";
+const SECRET = process.env.JWT_SECRET;
+
+export const signToken = (user) => jwt.sign({ sub: user.id, role: user.role }, SECRET, { expiresIn: "1h" });
+
+export const requireAuth = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  try { req.user = jwt.verify(token, SECRET); next(); }
+  catch { return res.sendStatus(401); }
+};
+
+// usage:
+// app.post("/login", (req,res)=> res.json({ token: signToken({ id:1, role:"user" }) }));
+// app.get("/profile", requireAuth, (req,res)=> res.json({ id: req.user.sub }));
+```
+
+---
+
+#### 3) **OAuth2/OpenID Connect (Delegation, „Login mit …“)**
+
+* Nutzung externer Identity Provider (Google, GitHub, Auth0, Keycloak).
+* Meist via Passport-Strategien; Ergebnis oft **Session** oder **JWT**.
+
+```js
+// oauth.mjs (Skizze)
+import passport from "passport";
+import { Strategy as GitHubStrategy } from "passport-github2";
+
+passport.use(new GitHubStrategy({
+  clientID: process.env.GH_ID, clientSecret: process.env.GH_SECRET,
+  callbackURL: "https://app.example.com/auth/github/callback"
+}, (_at, _rt, profile, done) => done(null, { id: profile.id, name: profile.username })));
+```
+
+---
+
+#### 4) **API-Key / HMAC (Service-zu-Service)**
+
+* Einfach für interne Services; Schlüssel gehört **nur** ins Backend/Secret-Store.
+
+```js
+// apiKey.mjs
+export const requireApiKey = (req, res, next) =>
+  req.get("X-API-Key") === process.env.INTERNAL_API_KEY ? next() : res.sendStatus(401);
+```
+
+---
+
+#### 5) **Mutual TLS (mTLS)**
+
+* Beidseitige Zertifikatsprüfung; stark für interne, sensitive Services (Ingress/Proxy).
+
+---
+
+#### 6) **Passkeys/WebAuthn (phishing-resistent)**
+
+* Passwortlos (FIDO2); Integration z. B. via WebAuthn-Libraries; häufig mit Sessions kombiniert.
+
+---
+
+### **Best Practices (kurz)**
+
+* **Passwörter hashen** (Argon2/Bcrypt), niemals im Klartext speichern.
+* **HTTPS erzwingen**, Cookies `Secure`/`HttpOnly`/`SameSite`.
+* **Rate Limiting**, Brute-Force-Schutz, MFA/2FA wo möglich.
+* Bei **Cookies**: CSRF-Schutz (Tokens), bei **JWT**: kurze TTL + Refresh-Flow, Token-Invalidierung bei Logout/Leak.
+* Secrets aus **ENV/Secret-Manager**, nicht hardcoden.
+
+---
+
+### **Zusammenfassung**
+
+* Hauptpfade: **Session/Cookie** (stateful) vs. **JWT** (stateless); **OAuth2/OIDC** für Delegation; **API-Key/mTLS** für Services.
+* Auswahl nach Use-Case (Browser-App vs. API/Mobile, Skalierung, Sicherheitsniveau).
+* Immer: sichere Speicherung, HTTPS, Least Privilege, zusätzliche Schutzmechanismen (CSRF/Rate Limit/MFA).
+
+**Quellen**
+
+* [Express – Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* [Express – Middleware/Session](https://expressjs.com/en/resources/middleware/session.html)
+* [Node.js Dokumentation – `crypto`](https://nodejs.org/docs/latest/api/crypto.html)
+* [MDN – Authentication](https://developer.mozilla.org/en-US/docs/Glossary/Authentication)
+* [Passport.js Dokumentation](http://www.passportjs.org/)
+* [jsonwebtoken (GitHub)](https://github.com/auth0/node-jsonwebtoken)
 
 
   **[⬆ Наверх](#top)**      
 
-204. ### <a name="204"></a> 
+213. ### <a name="213"></a> Unterschied zwischen Session-basiertem und Token-basiertem Login?
 
+### **Unterschied zwischen Session-basiertem und Token-basiertem Login**
+
+---
+
+### **Session-basiert (stateful)**
+
+* **Ablauf:**
+
+  1. User loggt sich ein → Server erstellt **Session** (im Speicher oder DB).
+  2. Client erhält **Session-ID** als Cookie.
+  3. Bei jedem Request sendet Client Cookie → Server prüft Session.
+* **Eigenschaften:**
+
+  * Server muss **Session-Store** verwalten → **stateful**.
+  * Gut für klassische Web-Apps.
+  * Skalierung schwieriger (Sessions zwischen Servern teilen).
+
+```js
+// Express Beispiel
+import session from "express-session";
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true, secure: true }
+}));
+```
+
+---
+
+### **Token-basiert (stateless, z. B. JWT)**
+
+* **Ablauf:**
+
+  1. User loggt sich ein → Server erstellt **JWT** (signiert).
+  2. Client speichert Token (LocalStorage oder Cookie).
+  3. Bei jedem Request sendet Client `Authorization: Bearer <jwt>`.
+  4. Server prüft Signatur + Ablaufzeit → kein Session-Store nötig.
+* **Eigenschaften:**
+
+  * Server ist **stateless** → leicht skalierbar.
+  * Ideal für **APIs, SPAs, Mobile Apps**.
+  * Risiko: Token-Leak gewährt Zugriff bis Ablauf.
+
+```js
+// Express JWT Middleware
+import jwt from "jsonwebtoken";
+
+const requireAuth = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    res.sendStatus(401);
+  }
+};
+```
+
+---
+
+### **Direkter Vergleich**
+
+| Aspekt         | **Session-basiert**                        | **Token-basiert (JWT)**                  |
+| -------------- | ------------------------------------------ | ---------------------------------------- |
+| Speicherung    | Session-ID im Cookie                       | JWT im Header (oder Cookie)              |
+| Server-Zustand | Stateful (Session-Store nötig)             | Stateless (nur Token-Validierung)        |
+| Skalierbarkeit | Schwieriger (z. B. Redis-Store nötig)      | Einfach (jeder Server kann Token prüfen) |
+| Sicherheit     | Session Hijacking möglich; Schutz mit CSRF | Token-Leak kritisch bis `exp`            |
+| Einsatzgebiet  | Klassische Web-Apps                        | REST-APIs, SPAs, Mobile Apps             |
+
+---
+
+### **Zusammenfassung**
+
+* **Session-Login**: Server speichert Sitzungen, gut für klassische Web-Apps, schwerer skalierbar.
+* **Token-Login**: Server bleibt stateless, gut für APIs/Microservices, einfacher zu skalieren, erfordert gutes Token-Management.
+
+🔗 Quellen
+
+* [MDN – HTTP Cookies](https://developer.mozilla.org/ru/docs/Web/HTTP/Cookies)
+* [JWT.io Einführung](https://jwt.io/introduction)
+* [Express – Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+214. ### <a name="214"></a> Wie funktioniert express-session und wann sollte man es nutzen?
+
+### **Funktionsweise von `express-session`**
+
+* `express-session` ist eine Middleware, die **Session-Management** in Express ermöglicht.
+* Ablauf:
+
+  1. Beim ersten Request legt der Server eine **Session-ID** an und speichert Session-Daten (standardmäßig im Speicher, besser Redis/Mongo/SQL).
+  2. Diese Session-ID wird als **Cookie (`connect.sid`)** an den Client gesendet.
+  3. Bei jedem weiteren Request sendet der Client das Cookie mit.
+  4. Der Server findet anhand der ID die Session-Daten und weiß, welcher User dazugehört.
+
+**Beispiel:**
+
+```js
+import express from "express";
+import session from "express-session";
+
+const app = express();
+
+app.use(session({
+  secret: process.env.SESSION_SECRET, // geheim halten
+  resave: false, // keine unnötigen DB-Saves
+  saveUninitialized: false, // nur bei echten Sessions speichern
+  cookie: {
+    httpOnly: true,   // schützt vor XSS
+    secure: true,     // nur über HTTPS senden
+    sameSite: "lax"   // CSRF-Schutz
+  }
+}));
+
+app.get("/set", (req, res) => {
+  req.session.user = { id: 1, name: "Max" }; // Daten in Session speichern
+  res.send("Session gesetzt");
+});
+
+app.get("/get", (req, res) => {
+  res.json(req.session.user || "Keine Session");
+});
+
+app.listen(3000);
+```
+
+---
+
+### **Wann sollte man `express-session` nutzen?**
+
+✅ **Geeignet für:**
+
+* Klassische **Server-gerenderte Web-Apps** mit Formular-Login.
+* Szenarien, in denen **Cookies** ohnehin genutzt werden.
+* Kleinere bis mittlere Anwendungen ohne hohen Skalierungsbedarf.
+* Wenn Sessions mit **Redis/Mongo** zentral gespeichert werden (skalierbar).
+
+❌ **Weniger geeignet für:**
+
+* **REST-APIs / SPAs / Mobile Apps** → dort sind stateless Tokens (z. B. JWT) üblicher.
+* Anwendungen, die **horizontale Skalierung** ohne Shared Session Store brauchen.
+
+---
+
+### **Zusammenfassung**
+
+* `express-session` speichert Sitzungsdaten serverseitig und identifiziert Clients über ein Cookie mit Session-ID.
+* Nutzen: Einfach, sicher (mit HTTPS + sicheren Cookies), besonders für klassische Web-Apps.
+* Für APIs und Microservices ist meist **JWT (stateless)** die bessere Wahl.
+
+🔗 Quellen
+
+* [Express – Session Middleware](https://expressjs.com/en/resources/middleware/session.html)
+* [MDN – HTTP Cookies](https://developer.mozilla.org/ru/docs/Web/HTTP/Cookies)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+215. ### <a name="215"></a> Was ist der Unterschied zwischen Cookies und Tokens?
+
+### **Unterschied zwischen Cookies und Tokens**
+
+---
+
+### **Cookies**
+
+* **Definition:** Kleine Datenpakete, die der Server im Browser speichert und bei jedem Request automatisch mitsendet.
+* **Eigenschaften:**
+
+  * Werden per `Set-Cookie`-Header gesetzt.
+  * Automatisch vom Browser an die gleiche Domain gesendet.
+  * Können `HttpOnly`, `Secure`, `SameSite` Flags enthalten → Schutz vor XSS/CSRF.
+  * Typisch für **Session-basierte Authentifizierung** (Cookie enthält Session-ID).
+
+**Beispiel:**
+
+```http
+Set-Cookie: sessionId=abc123; HttpOnly; Secure; SameSite=Lax
+```
+
+👉 Browser hängt das Cookie automatisch an jeden Request zu `example.com` an.
+
+---
+
+### **Tokens (z. B. JWT)**
+
+* **Definition:** Digitale Datenblöcke (meist JSON-basiert, signiert), die Informationen (Claims) enthalten.
+* **Eigenschaften:**
+
+  * Werden vom Client explizit gespeichert (z. B. LocalStorage, SessionStorage oder auch in Cookies).
+  * Müssen manuell im Request mitgeschickt werden (z. B. Header `Authorization: Bearer <token>`).
+  * Typisch für **stateless Authentifizierung** in REST-APIs und Microservices.
+
+**Beispiel:**
+
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+---
+
+### **Direkter Vergleich**
+
+| Aspekt             | **Cookies**                              | **Tokens**                                |
+| ------------------ | ---------------------------------------- | ----------------------------------------- |
+| Speicherung        | Browser verwaltet automatisch            | Client entscheidet (LocalStorage, Header) |
+| Übertragung        | Automatisch bei Requests zur Domain      | Manuell im Header/Body/Query              |
+| Nutzung            | Session-ID, kleine Daten                 | JWTs mit Claims (User-ID, Rolle, Ablauf)  |
+| Stateful/Stateless | Meist **stateful** (Session auf Server)  | **stateless** (Server prüft Signatur)     |
+| Schutzmechanismen  | Flags (`HttpOnly`, `Secure`, `SameSite`) | Kurze TTL, Refresh Tokens, Signatur       |
+| Einsatz            | Klassische Web-Apps                      | REST-APIs, SPAs, Mobile Apps              |
+
+---
+
+### **Zusammenfassung**
+
+* **Cookies**: Browser-gesteuert, gut für Session-Management in klassischen Web-Apps.
+* **Tokens**: Flexibel, stateless, besser für APIs und Microservices.
+* Kombination möglich: Token kann **in einem Cookie** gespeichert werden (mit `HttpOnly` + `Secure`).
+
+🔗 Quellen
+
+* [MDN – Cookies](https://developer.mozilla.org/ru/docs/Web/HTTP/Cookies)
+* [JWT.io Einführung](https://jwt.io/introduction)
+* [Express Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+216. ### <a name="216"></a> Was ist JWT (JSON Web Token) und wie funktioniert es?
+
+### **JWT (JSON Web Token)**
+
+---
+
+### **Definition**
+
+* **JWT** ist ein kompakter, URL-sicherer Token-Standard (RFC 7519).
+* Dient zur **sicheren Übertragung von Claims** (z. B. User-ID, Rollen, Ablaufzeit).
+* Typisch für **Authentifizierung und Autorisierung** in Web-Apps und APIs.
+
+---
+
+### **Aufbau**
+
+Ein JWT besteht aus **drei Base64URL-kodierten Teilen**, durch `.` getrennt:
+
+```
+header.payload.signature
+```
+
+1. **Header** – enthält Metadaten (z. B. Algorithmus, Typ).
+
+   ```json
+   { "alg": "HS256", "typ": "JWT" }
+   ```
+
+2. **Payload** – enthält Claims (Infos über User/Rollen).
+
+   ```json
+   { "sub": "123456", "name": "Max", "role": "admin", "exp": 1694018400 }
+   ```
+
+3. **Signature** – Signatur über Header+Payload mit Secret/Private Key.
+
+   ```js
+   HMACSHA256(base64Url(header) + "." + base64Url(payload), secret)
+   ```
+
+---
+
+### **Funktionsweise (Flow)**
+
+1. **Login:** User meldet sich mit Credentials an.
+2. **Token-Erstellung:** Server erstellt JWT, signiert ihn und gibt ihn zurück.
+3. **Client-Speicherung:** Client speichert Token (z. B. LocalStorage, Cookie).
+4. **Request:** Client sendet Token bei jedem Request im Header:
+
+   ```
+   Authorization: Bearer <jwt>
+   ```
+5. **Verifizierung:** Server prüft Signatur + Ablaufzeit (`exp`).
+6. **Zugriff:** Falls gültig → Zugriff gewährt, sonst **401 Unauthorized**.
+
+---
+
+### **Beispiel in Node.js (Express + jsonwebtoken)**
+
+```js
+// auth.mjs
+import jwt from "jsonwebtoken";
+
+const SECRET = process.env.JWT_SECRET;
+
+// Token erzeugen
+export function createToken(user) {
+  return jwt.sign({ sub: user.id, role: user.role }, SECRET, { expiresIn: "1h" });
+}
+
+// Middleware zur Verifikation
+export function authMiddleware(req, res, next) {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.sendStatus(401);
+
+  try {
+    req.user = jwt.verify(token, SECRET);
+    next();
+  } catch {
+    res.sendStatus(403);
+  }
+}
+```
+
+---
+
+### **Best Practices**
+
+* **Kurze Lebensdauer** (`exp`) + Refresh Tokens.
+* **HTTPS erzwingen** → Schutz vor Token-Leaks.
+* **Secret/Private Key** sicher speichern (ENV, Secret Manager).
+* **Rollen/Claims** nutzen (RBAC, ABAC).
+* **Blacklist/Token-Invalidierung** bei Logout oder Sicherheitsvorfällen.
+
+---
+
+### **Zusammenfassung**
+
+* **JWT = JSON-basiertes Token** mit Header, Payload, Signatur.
+* Wird für **stateless Authentifizierung und Autorisierung** in APIs genutzt.
+* Server prüft nur **Signatur & Ablauf**, kein Session-Store nötig.
+
+🔗 Quellen
+
+* [JWT.io – Einführung](https://jwt.io/introduction)
+* [RFC 7519 – JSON Web Token](https://datatracker.ietf.org/doc/html/rfc7519)
+* [Express Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+217. ### <a name="217"></a> Welche Vorteile und Nachteile hat JWT gegenüber Sessions?
+
+### **JWT vs. Sessions – Vorteile & Nachteile**
+
+---
+
+### ✅ **Vorteile von JWT gegenüber Sessions**
+
+1. **Stateless**
+
+   * Server muss keine Sessions speichern → weniger Memory/DB-Last.
+   * Ideal für **Microservices** und horizontale Skalierung (Load Balancing).
+
+2. **Einfacher Cross-Domain-Einsatz**
+
+   * Token kann in Header (`Authorization: Bearer ...`) gesendet werden → unabhängig von Cookies.
+   * Praktisch für **Mobile Apps, SPAs, APIs**.
+
+3. **Selbstenthaltend**
+
+   * Token enthält Claims (z. B. `userId`, `role`) → Server braucht oft keine DB-Query für Basisinfos.
+
+4. **Standardisiert & kompatibel**
+
+   * JWT ist weit verbreitet (OAuth2, OpenID Connect).
+   * Viele Bibliotheken verfügbar.
+
+---
+
+### ❌ **Nachteile von JWT gegenüber Sessions**
+
+1. **Token-Invalidierung schwierig**
+
+   * Ein ausgestelltes JWT bleibt gültig bis `exp`.
+   * Kein zentraler „Kill-Switch“ (außer Blacklist/Revocation-Store).
+
+2. **Größe & Overhead**
+
+   * JWT ist größer als eine Session-ID, da Payload + Signatur enthalten sind.
+   * Muss bei jedem Request mitgeschickt werden.
+
+3. **Sicherheitsrisiko bei Leaks**
+
+   * Wird ein Token gestohlen → nutzbar bis Ablaufzeit.
+   * Erfordert **HTTPS, kurze TTL, Refresh-Tokens**.
+
+4. **Komplexität**
+
+   * Mehr Moving Parts: Signierung, Ablaufzeiten, Refresh-Mechanismen.
+   * Bei falscher Konfiguration (z. B. kein `exp`) sehr riskant.
+
+---
+
+### **Direkter Vergleich**
+
+| Aspekt         | **Sessions (Cookie-basiert)**       | **JWT (Token-basiert)**              |
+| -------------- | ----------------------------------- | ------------------------------------ |
+| Speicherung    | Session-ID serverseitig (DB/Memory) | Token im Client (Header, Storage)    |
+| Server-Zustand | **Stateful**                        | **Stateless**                        |
+| Skalierung     | Shared Store nötig (Redis, DB)      | Einfach, jeder Server prüft Signatur |
+| Invalidierung  | Sofort möglich (Session löschen)    | Schwer (Blacklist/kurze TTL nötig)   |
+| Größe          | Klein (nur ID)                      | Größer (Payload + Signatur)          |
+| Sicherheit     | Schutz durch Cookies + CSRF-Token   | Schutz durch Signatur + HTTPS nötig  |
+| Einsatz        | Klassische Web-Apps                 | APIs, SPAs, Mobile, Microservices    |
+
+---
+
+### **Zusammenfassung**
+
+* **JWT**: Ideal für **stateless, verteilte Systeme** (APIs, Mobile, Microservices). Problematisch bei **Logout/Token-Invalidierung**.
+* **Sessions**: Einfach und sicher invalidierbar, aber **stateful** → schwieriger bei Skalierung.
+
+🔗 Quellen
+
+* [JWT.io – Introduction](https://jwt.io/introduction)
+* [Express – Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* [MDN – Cookies](https://developer.mozilla.org/ru/docs/Web/HTTP/Cookies)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+218. ### <a name="218"></a> Wie speichert man ein JWT sicher im Browser (LocalStorage vs. HttpOnly-Cookie)?
+
+### **JWT sicher im Browser speichern: LocalStorage vs. HttpOnly-Cookie**
+
+---
+
+### **Kurzüberblick**
+
+* **LocalStorage**
+
+  * ✅ Wird **nicht automatisch** gesendet → **weniger CSRF-Risiko**
+  * ❌ **Bei XSS leicht auslesbar** → Token-Diebstahl möglich
+* **HttpOnly-Cookie**
+
+  * ✅ **Nicht per JS auslesbar** → besser gegen **XSS-Exfiltration**
+  * ❌ Wird **automatisch** gesendet → **CSRF-Schutz** zwingend (SameSite/CSRF-Token)
+
+---
+
+### **Empfohlene Praxis (modernes Setup)**
+
+* **Access-Token**: **kurzlebig** (z. B. 5–10 min), **in-memory** im SPA halten und per `Authorization: Bearer` senden.
+* **Refresh-Token**: **HttpOnly + Secure + SameSite**-Cookie (Server-Rotation).
+* Zusätzlich: **CSP**, Eingabevalidierung, Framework-Sanitizing → XSS-Risiko minimieren.
+
+---
+
+### **Vergleich im Detail**
+
+| Kriterium         | **LocalStorage**                               | **HttpOnly-Cookie**                                                        |
+| ----------------- | ---------------------------------------------- | -------------------------------------------------------------------------- |
+| Zugriff durch JS  | Ja → **XSS-Gefahr**                            | Nein → **Schutz vor Token-Exfiltration**                                   |
+| CSRF-Risiko       | Gering (Header manuell gesetzt)                | Hoch ohne Maßnahmen (Cookie auto-send) → **SameSite**/**CSRF-Token** nötig |
+| Handhabung in SPA | Einfach (Lesen/Schreiben)                      | Etwas komplexer (Server setzt/verifiziert; Pfad/Domain/SameSite beachten)  |
+| Übertragung       | Per Header (`Authorization`)                   | Automatisch per Cookie (bei passender Domain/SameSite)                     |
+| Persistenz        | Überlebt Reload (gut, aber auch bei Diebstahl) | Steuerbar über Cookie-Flags/TTL                                            |
+
+---
+
+### **Beispiel: Access in Memory + Refresh im HttpOnly-Cookie (Express)**
+
+```js
+// auth.routes.mjs
+import express from "express";
+import jwt from "jsonwebtoken";
+
+const router = express.Router();
+const { JWT_SECRET, REFRESH_SECRET } = process.env;
+
+// Login: gibt Access-Token (Body) + Refresh-Token (HttpOnly-Cookie) zurück
+router.post("/login", (req, res) => {
+  const user = { id: 1, role: "user" }; // Beispiel
+  const access = jwt.sign({ sub: user.id, role: user.role }, JWT_SECRET, { expiresIn: "10m" });
+  const refresh = jwt.sign({ sub: user.id }, REFRESH_SECRET, { expiresIn: "7d" });
+
+  res.cookie("rt", refresh, {
+    httpOnly: true,
+    secure: true,            // nur über HTTPS
+    sameSite: "Lax",         // "None" falls Cross-Site nötig (dann zwingend Secure)
+    path: "/auth/refresh",
+    maxAge: 7 * 24 * 3600 * 1000
+  });
+  return res.json({ access }); // Access-Token im Body an SPA; SPA speichert in-memory
+});
+
+// Refresh-Endpoint: liest HttpOnly-Cookie, gibt neuen Access-Token aus
+router.post("/refresh", (req, res) => {
+  const token = req.cookies?.rt;
+  if (!token) return res.sendStatus(401);
+  try {
+    const { sub } = jwt.verify(token, REFRESH_SECRET);
+    const access = jwt.sign({ sub, role: "user" }, JWT_SECRET, { expiresIn: "10m" });
+    return res.json({ access });
+  } catch {
+    return res.sendStatus(403);
+  }
+});
+
+export default router;
+```
+
+Frontend sendet geschützte Requests mit **in-memory** Access-Token:
+
+```js
+// frontend (z. B. React): Request mit Bearer-Header
+const res = await fetch("/api/profile", {
+  headers: { Authorization: `Bearer ${accessToken}` }
+});
+```
+
+---
+
+### **CSRF-Schutz bei Cookies**
+
+Wenn du **HttpOnly-Cookies** mit Sessions/Refresh nutzt:
+
+* **SameSite=Lax/Strict** wo möglich, **SameSite=None; Secure** nur wenn Cross-Site nötig.
+* **CSRF-Token** (Synchronizer/Double-Submit) für state-verändernde Requests:
+
+```js
+// Beispielprüfung eines CSRF-Headers
+app.use((req, res, next) => {
+  if (req.method !== "GET" && req.path.startsWith("/api")) {
+    const token = req.get("X-CSRF-Token");
+    if (token !== req.session?.csrfToken) return res.sendStatus(403);
+  }
+  next();
+});
+```
+
+---
+
+### **Wenn trotzdem LocalStorage genutzt wird**
+
+* **Strikte CSP** (`script-src 'self'` + keine gefährlichen Inline-Skripte)
+* **Framework-Sanitizing** (keine untrusted HTML-Injection)
+* **Kurze TTL**, **Rotation**, **Logout** → Token sofort verwerfen
+* **Kein** Eintrag in Logs/Analytics
+
+---
+
+### **Zusammenfassung**
+
+* **Sicherster gängiger Kompromiss**: **Access-Token in-memory**, **Refresh-Token im HttpOnly-Cookie** (+ SameSite/HTTPS/CSRF-Token).
+* **LocalStorage** ist bequem, aber **XSS-anfällig**; **HttpOnly-Cookies** schützen vor Exfiltration, benötigen jedoch **CSRF-Schutz**.
+* Immer: **HTTPS**, **kurze TTL**, **Rotation**, **CSP** und robuste **Input-Validierung**.
+
+**Quellen / Weiterführend**
+
+* MDN: [Cookies & `Set-Cookie`](https://developer.mozilla.org/ru/docs/Web/HTTP/Cookies) • [SameSite](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Set-Cookie/SameSite) • [Web Storage API](https://developer.mozilla.org/ru/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API) • [CSRF](https://developer.mozilla.org/ru/docs/Glossary/CSRF)
+* Express: [Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* Node.js: [`http`/Cookies allgemein](https://nodejs.org/docs/latest/api/http.html)
+* JWT: [JWT.io Introduction](https://jwt.io/introduction)
 
 
   **[⬆ Наверх](#top)**      
 
-205. ### <a name="205"></a> 
+219. ### <a name="219"></a> Wie verhindert man JWT-Manipulation?
 
+### **JWT-Manipulation verhindern – Best Practices**
+
+---
+
+### **Hauptangriffsflächen**
+
+* **Signaturalgorithmus/„alg“-Verwirrung** (z. B. `none` oder HS256↔RS256-Tricks).
+* **Gefälschte Header/Claims** (z. B. manipuliertes `kid`, falsches `iss`/`aud`).
+* **Gestohlene/erratene Secrets**, schwache Schlüssel, fehlende Rotation.
+* **Fehlende Prüfung von Ablauf/Zeiten** (`exp`, `nbf`, `iat`).
+
+---
+
+### **Schutzmaßnahmen (Checkliste)**
+
+1. **Signatur prüfen & Algorithmus whitelisten**
+
+   * Nur erlaubte Algos (z. B. `RS256` oder `HS256`) erlauben; **`none` strikt verbieten**.
+2. **Starke Keys & Secret-Management**
+
+   * Lange, zufällige Secrets (bei HS256) oder **asymmetrische Keys (RS256)**.
+   * Secrets/Keys aus **ENV/Secret-Manager**, nie im Code/Repo.
+3. **Claims validieren**
+
+   * **`exp`** (Ablauf), **`nbf`**, **`iat`** (mit kleiner Clock-Skew), **`iss`** (Issuer), **`aud`** (Audience), ggf. **`jti`** (Nonce/Replay-Schutz).
+4. **Key-Rotation & Revocation**
+
+   * **Kid** nur gegen **bekannte Key-IDs** (Pinning) akzeptieren; bei RS256 **JWKS** nutzen.
+   * Token-Invalidierung (Denylist) für kompromittierte/abgemeldete Tokens.
+5. **Kein Vertrauen in Header**
+
+   * Header-Infos (z. B. `alg`, `kid`, `typ`) **niemals blind** übernehmen; Server-Policy gilt.
+6. **Kurze TTL + Refresh-Flow**
+
+   * Kurze `exp`-Zeiten für Access-Tokens; Refresh-Tokens separat absichern (HttpOnly-Cookie).
+7. **Transport-Sicherheit**
+
+   * **Nur HTTPS**; keine Tokens in URLs/Logs.
+8. **Audience-Trennung**
+
+   * Unterschiedliche `aud` pro Service/Client, verhindert Token-Reuse zwischen Systemen.
+
+---
+
+### **Beispiel: Sichere Verifikation (HS256)**
+
+```js
+// verify.mjs
+import jwt from "jsonwebtoken";
+
+const SECRET = process.env.JWT_SECRET;
+
+// Erlaubte Algos explizit whitelisten; Claims prüfen
+export function verifyAccessToken(token) {
+  return jwt.verify(token, SECRET, {
+    algorithms: ["HS256"],      // keine "none" oder falsche Algos
+    issuer: "https://auth.example.com",
+    audience: "example.api",
+    clockTolerance: 5           // Sekunden Toleranz für Uhrabweichung
+  });
+}
+```
+
+---
+
+### **Beispiel: RS256 mit JWKS (Key-Rotation + kid-Pinning)**
+
+```js
+// jwks-verify.mjs
+import jwt from "jsonwebtoken";
+import jwksClient from "jwks-rsa";
+
+const client = jwksClient({
+  jwksUri: "https://auth.example.com/.well-known/jwks.json",
+  cache: true,
+  cacheMaxEntries: 5,
+  cacheMaxAge: 10 * 60 * 1000
+});
+
+// Key anhand des 'kid' sicher auflösen (nur aus bekannter JWKS-Quelle!)
+function getKey(header, cb) {
+  if (!header.kid) return cb(new Error("Missing kid"));
+  client.getSigningKey(header.kid, (err, key) => {
+    if (err) return cb(err);
+    cb(null, key.getPublicKey());
+  });
+}
+
+export function verifyAccessTokenRS256(token) {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, getKey, {
+      algorithms: ["RS256"],
+      issuer: "https://auth.example.com",
+      audience: "example.api",
+      clockTolerance: 5
+    }, (err, payload) => err ? reject(err) : resolve(payload));
+  });
+}
+```
+
+---
+
+### **Express-Middleware (robuste Fehlerbehandlung)**
+
+```js
+// auth.middleware.mjs
+import { verifyAccessTokenRS256 } from "./jwks-verify.mjs";
+
+export async function requireAuth(req, res, next) {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "No token" });
+
+    // Verifikation inkl. Algo/iss/aud/exp/nbf
+    req.user = await verifyAccessTokenRS256(token);
+    return next();
+  } catch (e) {
+    return res.status(403).json({ error: "Invalid token" });
+  }
+}
+```
+
+---
+
+### **Zusammenfassung**
+
+* **Algorithmen whitelisten**, **Signatur/Claims strikt prüfen**, **Secrets/Keys sicher managen**.
+* **RS256 + JWKS** vereinfacht Rotation und verhindert Algorithmen-Verwirrung.
+* **Kurze TTL, HTTPS, keine Tokens in URL/Logs**, optional **Denylist** für Revocation.
+
+**Quellen / Weiterführend**
+
+* JWT: [RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519) • [JWT.io Introduction](https://jwt.io/introduction)
+* OWASP: [JWT Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html)
+* Express: [Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* Node.js: [`crypto` Grundlagen](https://nodejs.org/docs/latest/api/crypto.html)
 
 
   **[⬆ Наверх](#top)**      
 
-206. ### <a name="206"></a> 
+220. ### <a name="220"></a> Was sind die Bestandteile eines JWT (Header, Payload, Signature)?
 
+### **Bestandteile eines JWT (JSON Web Token)**
+
+Ein JWT besteht aus **drei Base64URL-kodierten Teilen**, die durch Punkte (`.`) getrennt sind:
+
+```
+header.payload.signature
+```
+
+---
+
+### **1) Header**
+
+* Enthält **Metadaten** über das Token.
+* Typischerweise:
+
+  * `alg`: verwendeter Algorithmus (z. B. HS256, RS256)
+  * `typ`: Typ des Tokens (meist `"JWT"`)
+
+**Beispiel:**
+
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+Nach Base64URL-Kodierung:
+
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+```
+
+---
+
+### **2) Payload**
+
+* Enthält die **Claims** (Informationen).
+* Drei Arten von Claims:
+
+  * **Registered Claims** (standardisierte): `sub` (Subject/User-ID), `iss` (Issuer), `aud` (Audience), `exp` (Expiry), `iat` (Issued At)
+  * **Public Claims**: frei definierbar, sollten kollisionsfrei sein
+  * **Private Claims**: nur zwischen Kommunikationspartnern vereinbart
+
+**Beispiel:**
+
+```json
+{
+  "sub": "1234567890",
+  "name": "Max Mustermann",
+  "role": "admin",
+  "iat": 1516239022,
+  "exp": 1516242622
+}
+```
+
+Nach Base64URL-Kodierung:
+
+```
+eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik1heCBNdXN0ZXJtYW5uIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNTE2MjM5MDIyfQ
+```
+
+---
+
+### **3) Signature**
+
+* Sichert die **Integrität und Authentizität** des Tokens.
+* Berechnung:
+
+  ```
+  HMACSHA256(
+    base64UrlEncode(header) + "." + base64UrlEncode(payload),
+    secret
+  )
+  ```
+* Bei asymmetrischen Verfahren (`RS256`/`ES256`) wird die Signatur mit dem **Private Key** erstellt und mit dem **Public Key** geprüft.
+
+**Beispiel (HS256, geheim = „mysecret“):**
+
+```
+SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+
+---
+
+### **Komplettes JWT (Header.Payload.Signature)**
+
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik1heCBNdXN0ZXJtYW5uIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNTE2MjM5MDIyfQ.
+SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+
+---
+
+### **Zusammenfassung**
+
+* **Header**: Metadaten (Algorithmus, Typ).
+* **Payload**: Claims (User-Daten, Rollen, Zeitangaben).
+* **Signature**: Prüft Integrität und Authentizität.
+* Nur Header + Payload sind kodiert, aber **nicht verschlüsselt** → sensible Daten nie im Klartext speichern.
+
+🔗 Quellen
+
+* [RFC 7519 – JSON Web Token](https://datatracker.ietf.org/doc/html/rfc7519)
+* [JWT.io – Debugger](https://jwt.io/)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+221. ### <a name="221"></a> Wie setzt man Token-Expiration (Refresh Token vs. Access Token)?
+
+### **Token-Expiration: Access Token vs. Refresh Token**
+
+---
+
+### **Access Token**
+
+* **Zweck:** Direkt für API-Zugriffe verwenden.
+* **Lebensdauer:** **sehr kurz** (z. B. 5–15 Minuten).
+* **Warum kurz:**
+
+  * Minimiert Risiko bei Token-Leak.
+  * Kein Blacklist-Handling nötig, da ablaufende Tokens automatisch unbrauchbar werden.
+
+**Beispiel (JWT-Erstellung mit Ablauf):**
+
+```js
+import jwt from "jsonwebtoken";
+
+const accessToken = jwt.sign(
+  { sub: user.id, role: user.role },
+  process.env.JWT_SECRET,
+  { expiresIn: "15m" }
+);
+```
+
+---
+
+### **Refresh Token**
+
+* **Zweck:** Dient dazu, **neue Access Tokens** zu bekommen.
+* **Lebensdauer:** **länger** (z. B. Tage bis Wochen, oft 7–30 Tage).
+* **Aufbewahrung:** Sicher speichern → **HttpOnly, Secure, SameSite-Cookie** oder Server-seitiger Token-Store.
+* **Sicherheitsmaßnahmen:**
+
+  * Refresh Token Rotation: bei jedem Refresh ein neues ausstellen, altes invalidieren.
+  * Blacklist/Denylist für kompromittierte Tokens.
+
+**Beispiel (Refresh-Endpoint in Express):**
+
+```js
+import jwt from "jsonwebtoken";
+import express from "express";
+const router = express.Router();
+
+router.post("/refresh", (req, res) => {
+  const refreshToken = req.cookies?.refreshToken;
+  if (!refreshToken) return res.sendStatus(401);
+
+  try {
+    const payload = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
+    const newAccess = jwt.sign(
+      { sub: payload.sub, role: payload.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+    return res.json({ accessToken: newAccess });
+  } catch {
+    return res.sendStatus(403);
+  }
+});
+```
+
+---
+
+### **Best Practices**
+
+* **Access Token kurzlebig** → reduziert Schaden bei Diebstahl.
+* **Refresh Token langlebig, aber sicher speichern** (HttpOnly-Cookie).
+* **Rotation & Blacklist** nutzen, um kompromittierte Tokens zu sperren.
+* **Immer HTTPS** nutzen, Tokens nie in URLs oder Logs speichern.
+
+---
+
+### **Zusammenfassung**
+
+* **Access Token:** Kurzlebig (Minuten), für direkte API-Zugriffe.
+* **Refresh Token:** Länger lebig (Tage/Wochen), für Erneuerung von Access Tokens.
+* Kombination = **sicheres, skalierbares Auth-System** für REST-APIs.
+
+🔗 Quellen
+
+* [JWT.io – Introduction](https://jwt.io/introduction)
+* [OWASP – Token Best Practices](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html)
+* [Express Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+222. ### <a name="222"></a> Wie implementiert man Refresh Tokens in einer Express-App?
+
+### **Refresh Tokens in einer Express-App – Umsetzung (mit Rotation & Revoke)**
+
+---
+
+#### **Ziele**
+
+* **Kurzlebiges Access-Token** (z. B. 10 min) für API-Zugriffe.
+* **Langlebiges Refresh-Token** (z. B. 7–30 Tage) nur zum Erneuern.
+* **HttpOnly-Cookie** für Refresh-Token, **Rotation** bei jedem Refresh, **Revoke** (Blacklist/Store).
+
+---
+
+## 1) **Token-Utilities (ESM)**
+
+```js
+// src/tokens.mjs
+import crypto from "node:crypto";
+import jwt from "jsonwebtoken";
+
+const {
+  JWT_SECRET,            // z. B. 256-bit random
+  REFRESH_SECRET         // separater Secret/Key
+} = process.env;
+
+export const createAccessToken = (sub, role) =>
+  jwt.sign({ sub, role }, JWT_SECRET, { expiresIn: "10m", issuer: "https://auth.example.com", audience: "example.api" });
+
+export const createRefreshToken = (sub, jti) =>
+  jwt.sign({ sub, jti }, REFRESH_SECRET, { expiresIn: "7d", issuer: "https://auth.example.com", audience: "example.api" });
+
+export const verifyAccess = (token) =>
+  jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"], issuer: "https://auth.example.com", audience: "example.api" });
+
+export const verifyRefresh = (token) =>
+  jwt.verify(token, REFRESH_SECRET, { algorithms: ["HS256"], issuer: "https://auth.example.com", audience: "example.api" });
+
+// stabile, irreversible Speicherung des Refresh-Tokens (Hash)
+export const sha256 = (s) => crypto.createHash("sha256").update(s).digest("hex");
+
+// zufällige jti (Token-ID) generieren
+export const newJti = () => crypto.randomUUID();
+```
+
+---
+
+## 2) **Refresh-Store (z. B. Redis)**
+
+> In Produktion **Redis** o. ä. verwenden; hier ein In-Memory-Fallback.
+
+```js
+// src/refreshStore.mjs
+// Struktur: key = sha256(refreshToken), value = { sub, jti, expMs }
+const store = new Map();
+
+export async function saveRefresh(hash, { sub, jti, expMs }) {
+  store.set(hash, { sub, jti, expMs });
+}
+export async function findRefresh(hash) {
+  const v = store.get(hash);
+  if (!v) return null;
+  if (Date.now() > v.expMs) { store.delete(hash); return null; }
+  return v;
+}
+export async function revokeRefresh(hash) { store.delete(hash); }
+export async function rotateRefresh(oldHash, newHash, payload) {
+  store.delete(oldHash);
+  store.set(newHash, payload);
+}
+```
+
+---
+
+## 3) **Auth-Middleware (Access-Token prüfen)**
+
+```js
+// src/requireAuth.mjs
+import { verifyAccess } from "./tokens.mjs";
+
+export function requireAuth(req, res, next) {
+  const raw = req.headers.authorization;
+  const token = raw?.startsWith("Bearer ") ? raw.slice(7) : null;
+  if (!token) return res.status(401).json({ error: "No access token" });
+  try {
+    req.user = verifyAccess(token); // { sub, role, iat, exp, ... }
+    next();
+  } catch {
+    res.status(403).json({ error: "Invalid/expired access token" });
+  }
+}
+```
+
+---
+
+## 4) **Routes: Login, Refresh (Rotation), Logout**
+
+```js
+// src/auth.routes.mjs
+import express from "express";
+import jwt from "jsonwebtoken";
+import { createAccessToken, createRefreshToken, verifyRefresh, newJti, sha256 } from "./tokens.mjs";
+import { saveRefresh, findRefresh, revokeRefresh, rotateRefresh } from "./refreshStore.mjs";
+
+export const authRouter = express.Router();
+
+// Demo: "User prüfen" (ersetze durch echte DB/Passwortprüfung)
+async function authenticate(email, password) {
+  if (email === "user@example.com" && password === "secret123") return { id: "u1", role: "user" };
+  return null;
+}
+
+function setRefreshCookie(res, token, maxAgeMs) {
+  res.cookie("rt", token, {
+    httpOnly: true,
+    secure: true,          // Produktion: nur HTTPS
+    sameSite: "Lax",       // "None" wenn Cross-Site SPA → dann secure: true zwingend
+    path: "/auth/refresh", // Cookie nur an Refresh-Route senden
+    maxAge: maxAgeMs
+  });
+}
+
+// 1) Login: Access + Refresh ausstellen
+authRouter.post("/login", async (req, res) => {
+  const { email, password } = req.body ?? {};
+  const user = await authenticate(email, password);
+  if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+  const jti = newJti();
+  const access = createAccessToken(user.id, user.role);
+  const refresh = createRefreshToken(user.id, jti);
+
+  // Refresh-Token sicher (gehasht) speichern
+  const decoded = jwt.decode(refresh);                // nur um exp zu lesen
+  const expMs = decoded.exp * 1000;
+  await saveRefresh(sha256(refresh), { sub: user.id, jti, expMs });
+
+  setRefreshCookie(res, refresh, expMs - Date.now());
+  res.json({ access }); // Access-Token geht an Client (idealerweise in-memory halten)
+});
+
+// 2) Refresh: prüfen, rotieren, neues Access + neues Refresh
+authRouter.post("/refresh", async (req, res) => {
+  const cookie = req.cookies?.rt;
+  if (!cookie) return res.status(401).json({ error: "No refresh cookie" });
+
+  try {
+    const payload = verifyRefresh(cookie); // { sub, jti, iat, exp }
+    const stored = await findRefresh(sha256(cookie));
+    if (!stored || stored.sub !== payload.sub || stored.jti !== payload.jti) {
+      return res.status(403).json({ error: "Refresh invalid" });
+    }
+
+    // Rotation: altes invalidieren, neues ausstellen
+    const newJ = newJti();
+    const newAccess = createAccessToken(payload.sub, /* role optional */ "user");
+    const newRefresh = createRefreshToken(payload.sub, newJ);
+    const newDecoded = jwt.decode(newRefresh);
+    const newExpMs = newDecoded.exp * 1000;
+
+    await rotateRefresh(sha256(cookie), sha256(newRefresh), { sub: payload.sub, jti: newJ, expMs: newExpMs });
+
+    setRefreshCookie(res, newRefresh, newExpMs - Date.now());
+    return res.json({ access: newAccess });
+  } catch {
+    return res.status(403).json({ error: "Refresh invalid/expired" });
+  }
+});
+
+// 3) Logout: Refresh widerrufen + Cookie löschen
+authRouter.post("/logout", async (req, res) => {
+  const cookie = req.cookies?.rt;
+  if (cookie) await revokeRefresh(sha256(cookie));
+  res.clearCookie("rt", { path: "/auth/refresh" });
+  res.sendStatus(204);
+});
+```
+
+---
+
+## 5) **Server-Setup (CORS, Cookies, Security)**
+
+```js
+// src/server.mjs
+import "dotenv/config";
+import express from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import helmet from "helmet";
+import { authRouter } from "./auth.routes.mjs";
+import { requireAuth } from "./requireAuth.mjs";
+
+const app = express();
+app.use(helmet());               // Security-Header
+app.use(express.json());
+app.use(cookieParser());
+
+// CORS: nur erlaubte Origins, Credentials falls Cookie genutzt
+app.use(cors({
+  origin: ["https://app.example.com", "http://localhost:5173"],
+  credentials: true
+}));
+
+app.use("/auth", authRouter);
+
+// geschützte Beispielroute
+app.get("/api/me", requireAuth, (req, res) => {
+  res.json({ sub: req.user.sub });
+});
+
+app.listen(3000, () => console.log("API on :3000"));
+```
+
+---
+
+## **Wichtige Hinweise**
+
+* **Rotation**: Bei jedem `/refresh` neues Refresh-Token + altes sofort widerrufen (Schutz gegen Replay).
+* **Speicherung**: Refresh-Token **gehasht** im Store ablegen; bei Leak einer DB sind Tokens nicht direkt nutzbar.
+* **TTL**: Access kurz (5–15 min), Refresh länger (7–30 Tage).
+* **HTTPS Pflicht**, Cookies: `HttpOnly`, `Secure`, `SameSite`.
+* **CORS + Cookies**: Bei Cross-Site **`SameSite=None; Secure`** und `credentials: true` + Whitelist-Origin.
+* **Revocation**: Bei Logout/Leak Refresh widerrufen (Store-Eintrag löschen).
+* **Algorithmen whitelisten** und Claims prüfen (`iss`, `aud`, `exp`, `nbf`).
+
+---
+
+### **Zusammenfassung**
+
+* **Login**: Access (kurz) + Refresh (lang) ausstellen; Refresh im **HttpOnly-Cookie**.
+* **Refresh-Flow**: Refresh verifizieren → **rotieren** → neues Access & Refresh → altes widerrufen.
+* **Sicherheit**: **HTTPS**, Cookie-Flags, **gehashter Refresh-Store**, Claim-Validierung, CORS-Whitelist.
+
+**Quellen / Weiterführend**
+
+* Node.js: [`http`/Sicherheit](https://nodejs.org/docs/latest/api/http.html) • [`crypto`](https://nodejs.org/docs/latest/api/crypto.html)
+* Express: [Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html) • [CORS Middleware](https://expressjs.com/de/resources/middleware/cors.html)
+* MDN: [HTTP Cookies & SameSite](https://developer.mozilla.org/ru/docs/Web/HTTP/Cookies)
+* JWT: [RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519) • [JWT.io Introduction](https://jwt.io/introduction)
+* OWASP: [JWT Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java.html)
 
 
   **[⬆ Наверх](#top)**      
 
-207. ### <a name="207"></a> 
+223. ### <a name="223"></a> Was ist OAuth2 und wie unterscheidet es sich von JWT?
 
+### **OAuth2 vs. JWT**
+
+---
+
+### **OAuth2 (Open Authorization 2.0)**
+
+* **Definition:** Framework (RFC 6749) für **delegierte Autorisierung**.
+* **Zweck:** Ein Client (z. B. eine App) darf im Namen eines Users auf Ressourcen bei einem Resource-Server zugreifen.
+* **Komponenten:**
+
+  * **Resource Owner** (der User)
+  * **Client** (z. B. App)
+  * **Authorization Server** (stellt Tokens aus)
+  * **Resource Server** (stellt geschützte Daten bereit)
+* **Flows:** Authorization Code, Client Credentials, Device Code, Implicit (deprecated).
+* **Ergebnis:** Ausgabe eines **Access Tokens** (manchmal auch Refresh Tokens).
+* **Token-Format:** Kann **JWT sein, muss aber nicht** (kann auch ein undurchsichtiger String sein).
+
+**Beispiel: "Login mit Google"** → App bekommt ein Access Token von Google, um im Namen des Users auf Gmail oder Google Drive zuzugreifen.
+
+---
+
+### **JWT (JSON Web Token)**
+
+* **Definition:** Standard (RFC 7519) für ein **Token-Format**.
+* **Zweck:** Claims (z. B. User-ID, Rollen, Ablaufzeit) kompakt und sicher übertragen.
+* **Aufbau:** `header.payload.signature`
+* **Nutzung:**
+
+  * Authentifizierung/Autorisierung in APIs
+  * Als Access Token in OAuth2 oder alleinstehend
+* **Eigenschaften:**
+
+  * Selbstenthaltend (enthält Claims direkt)
+  * Signiert (Integritätssicherung)
+  * Gültig bis Ablaufzeit (`exp`)
+
+---
+
+### **Direkter Vergleich**
+
+| Aspekt       | **OAuth2**                                               | **JWT**                                     |
+| ------------ | -------------------------------------------------------- | ------------------------------------------- |
+| Typ          | Framework für **Autorisierung**                          | Token-Format (Standard)                     |
+| Zweck        | Zugriffskontrolle für Drittanbieter im Namen eines Users | Transport von Claims (User-Daten, Rollen)   |
+| Enthält      | Regeln, Rollen, Flows, Scopes                            | Header, Payload, Signatur                   |
+| Ergebnis     | Access Token (kann JWT sein oder nicht)                  | Ein spezielles Format für Tokens            |
+| Nutzung      | „Login mit …“, API-Zugriff, Delegation                   | API-Login, stateless Auth, OAuth2-Tokens    |
+| Abhängigkeit | Nutzt ggf. JWT als Access/ID-Token                       | Kann unabhängig von OAuth2 verwendet werden |
+
+---
+
+### **Zusammenfassung**
+
+* **OAuth2** = **Autorisierungs-Framework**: beschreibt, *wie* ein Client Zugriff erhält.
+* **JWT** = **Token-Format**: beschreibt, *wie* ein Token aufgebaut ist.
+* Verhältnis: OAuth2 **kann JWT als Token-Format verwenden**, aber nicht zwingend.
+
+🔗 Quellen
+
+* [RFC 6749 – OAuth 2.0](https://datatracker.ietf.org/doc/html/rfc6749)
+* [RFC 7519 – JSON Web Token (JWT)](https://datatracker.ietf.org/doc/html/rfc7519)
+* [MDN – OAuth](https://developer.mozilla.org/en-US/docs/Glossary/OAuth)
+* [JWT.io – Introduction](https://jwt.io/introduction)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+224. ### <a name="224"></a> Unterschied zwischen OAuth2 und OpenID Connect?
+
+### **Unterschied zwischen OAuth2 und OpenID Connect (OIDC)**
+
+---
+
+### **OAuth2 (RFC 6749)**
+
+* **Definition:** Autorisierungs-Framework.
+* **Zweck:** Ein Client (z. B. App) erhält **Zugriff auf Ressourcen** im Namen des Users.
+* **Fokus:** **Autorisierung** (Was darf der Client tun?).
+* **Ergebnis:** Access Token (Format kann JWT sein, muss aber nicht).
+* **Beispiel:** Eine App erhält Zugriff auf die Google Drive Dateien eines Users.
+
+---
+
+### **OpenID Connect (OIDC, auf OAuth2 aufgebaut)**
+
+* **Definition:** Identity Layer **on top of OAuth2** (Spezifikation von OpenID Foundation).
+* **Zweck:** Liefert **Authentifizierung** – also: *Wer ist der User?*
+* **Fokus:** **Identität + Login**.
+* **Erweiterungen gegenüber OAuth2:**
+
+  * **ID Token** (immer JWT-Format), enthält User-Identität (`sub`, `email`, `name` etc.).
+  * **UserInfo Endpoint**: API, um zusätzliche Profildaten abzufragen.
+  * **Standardisierte Scopes:** `openid`, `profile`, `email`.
+* **Beispiel:** „Login mit Google“ (OIDC): App bekommt ID Token → bestätigt die Identität des Users.
+
+---
+
+### **Direkter Vergleich**
+
+| Aspekt          | **OAuth2**                   | **OpenID Connect (OIDC)**                     |
+| --------------- | ---------------------------- | --------------------------------------------- |
+| Typ             | Autorisierungs-Framework     | Identitätsschicht über OAuth2                 |
+| Fokus           | Zugriff auf Ressourcen       | Authentifizierung (User-Identität)            |
+| Token           | Access Token (kann JWT sein) | ID Token (immer JWT) + Access Token           |
+| Standard-Scopes | Keine festgelegt             | `openid`, `profile`, `email`, …               |
+| User-Info       | Nicht spezifiziert           | Standardisierter **UserInfo Endpoint**        |
+| Ergebnis        | „Was darf die App tun?“      | „Wer ist der User?“ + Zugriff (falls gewollt) |
+
+---
+
+### **Zusammenfassung**
+
+* **OAuth2**: Autorisierung – Zugriff auf Ressourcen im Namen des Users.
+* **OIDC**: Erweiterung von OAuth2 für **Authentifizierung und Identität**.
+* Verhältnis: OIDC **nutzt OAuth2**, liefert aber zusätzlich **ID Tokens und UserInfo**.
+
+🔗 Quellen
+
+* [OAuth 2.0 (RFC 6749)](https://datatracker.ietf.org/doc/html/rfc6749)
+* [OpenID Connect Core Spec](https://openid.net/specs/openid-connect-core-1_0.html)
+* [MDN – OAuth](https://developer.mozilla.org/en-US/docs/Glossary/OAuth)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+225. ### <a name="225"></a> Wie integriert man Social Logins (Google, Facebook, GitHub) in Express?
+
+### **Social Logins (Google, GitHub, Facebook) in Express**
+
+---
+
+## **Ansatz**
+
+* Verwende **OAuth 2.0 / OpenID Connect** mit **Passport**-Strategien.
+* Ablauf: **/auth/provider → Consent → /auth/provider/callback → Session oder JWT ausstellen**.
+
+---
+
+## **Setup (gemeinsam)**
+
+```bash
+npm i express passport express-session jsonwebtoken
+npm i passport-google-oauth20 passport-github2 passport-facebook
+```
+
+```js
+// src/app.mjs
+import express from "express";
+import session from "express-session";
+import passport from "passport";
+
+const app = express();
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false, saveUninitialized: false,
+  cookie: { httpOnly: true, secure: true, sameSite: "lax" }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Minimal: User ins/aus der Session
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((obj, done) => done(null, obj));
+
+app.get("/me", (req, res) => req.user ? res.json(req.user) : res.sendStatus(401));
+export default app;
+```
+
+---
+
+## **Google Login (OIDC, „passport-google-oauth20“)**
+
+```js
+// src/auth.google.mjs
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import jwt from "jsonwebtoken";
+
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: "https://your.app/auth/google/callback" // in Google Console whitelisten
+}, async (_at, _rt, profile, done) => {
+  // Hier: User in DB finden/erstellen
+  const user = { id: profile.id, name: profile.displayName, provider: "google" };
+  return done(null, user);
+}));
+
+export function googleRoutes(app) {
+  app.get("/auth/google",
+    passport.authenticate("google", { scope: ["openid", "profile", "email"], prompt: "select_account" })
+  );
+
+  app.get("/auth/google/callback",
+    passport.authenticate("google", { failureRedirect: "/login" }),
+    (req, res) => {
+      // Optional: Statt Session ein JWT ausstellen
+      const token = jwt.sign({ sub: req.user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+      res.cookie("access", token, { httpOnly: true, secure: true, sameSite: "Lax" });
+      res.redirect("/"); // oder SPA-Callback
+    }
+  );
+}
+```
+
+---
+
+## **GitHub Login („passport-github2“)**
+
+```js
+// src/auth.github.mjs
+import passport from "passport";
+import { Strategy as GitHubStrategy } from "passport-github2";
+
+passport.use(new GitHubStrategy({
+  clientID: process.env.GH_CLIENT_ID,
+  clientSecret: process.env.GH_CLIENT_SECRET,
+  callbackURL: "https://your.app/auth/github/callback"
+}, async (_at, _rt, profile, done) => {
+  const user = { id: profile.id, name: profile.username, provider: "github" };
+  return done(null, user);
+}));
+
+export function githubRoutes(app) {
+  app.get("/auth/github",
+    passport.authenticate("github", { scope: ["user:email"] })
+  );
+  app.get("/auth/github/callback",
+    passport.authenticate("github", { failureRedirect: "/login" }),
+    (_req, res) => res.redirect("/")
+  );
+}
+```
+
+---
+
+## **Facebook Login („passport-facebook“)**
+
+```js
+// src/auth.facebook.mjs
+import passport from "passport";
+import { Strategy as FacebookStrategy } from "passport-facebook";
+
+passport.use(new FacebookStrategy({
+  clientID: process.env.FB_APP_ID,
+  clientSecret: process.env.FB_APP_SECRET,
+  callbackURL: "https://your.app/auth/facebook/callback",
+  profileFields: ["id", "displayName", "emails"]
+}, async (_at, _rt, profile, done) => {
+  const user = { id: profile.id, name: profile.displayName, provider: "facebook" };
+  return done(null, user);
+}));
+
+export function facebookRoutes(app) {
+  app.get("/auth/facebook", passport.authenticate("facebook", { scope: ["email"] }));
+  app.get("/auth/facebook/callback",
+    passport.authenticate("facebook", { failureRedirect: "/login" }),
+    (_req, res) => res.redirect("/")
+  );
+}
+```
+
+---
+
+## **Server start + Routen zusammenführen**
+
+```js
+// src/server.mjs
+import app from "./app.mjs";
+import { googleRoutes } from "./auth.google.mjs";
+import { githubRoutes } from "./auth.github.mjs";
+import { facebookRoutes } from "./auth.facebook.mjs";
+
+googleRoutes(app);
+githubRoutes(app);
+facebookRoutes(app);
+
+app.listen(3000, () => console.log("Auth-Server auf :3000"));
+```
+
+---
+
+## **Best Practices**
+
+* **HTTPS erzwingen**, Callback-URLs exakt in Provider-Konsolen konfigurieren.
+* **State/CSRF-Schutz**: Passport setzt per Default `state` in manchen Strategien — bei SPAs zusätzlich CSRF bedenken.
+* **Scopes minimal** halten (Least Privilege).
+* **Sessions vs. JWT**: Für SPAs oft **JWT** (kurze TTL) + **Refresh-Flow**; für SSR klassisch **Session**.
+* **CORS**: Bei Cross-Site-Szenarien korrekte `origin`-Whitelist + `credentials`.
+* **Datenschutz**: Nur benötigte Profildaten speichern; Benutzer zustimmen lassen.
+
+---
+
+### **Zusammenfassung**
+
+* Social Logins in Express via **Passport**-Strategien (Google OIDC, GitHub, Facebook).
+* **/auth/{provider} → Callback → Session oder JWT**.
+* Achte auf **HTTPS, korrekte Callback-URLs, Scopes, CSRF/state** und entscheide **Session vs. JWT** je nach Architektur.
+
+**Quellen / Weiterführend**
+
+* Express: [Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* Passport: [passportjs.org](http://www.passportjs.org/) • [Google OAuth 2.0](http://www.passportjs.org/packages/passport-google-oauth20/) • [GitHub](http://www.passportjs.org/packages/passport-github2/) • [Facebook](http://www.passportjs.org/packages/passport-facebook/)
+* MDN: [OAuth – Überblick](https://developer.mozilla.org/en-US/docs/Glossary/OAuth)
+* Node.js: [`crypto` / Sicherheit](https://nodejs.org/docs/latest/api/crypto.html)
 
 
   **[⬆ Наверх](#top)**      
 
-208. ### <a name="208"></a> 
+226. ### <a name="226"></a> Wie implementiert man eine Middleware zum Schutz von privaten Routen?
 
+### **Middleware zum Schutz privater Routen (Express)**
+
+---
+
+#### **JWT-basierter Schutz (stateless APIs)**
+
+```js
+// middleware/authJwt.mjs
+import jwt from "jsonwebtoken";
+
+const { JWT_SECRET } = process.env;
+
+// Authentifizierung: prüft Bearer-Token, setzt req.user
+export function requireAuth(req, res, next) {
+  const token = req.headers.authorization?.startsWith("Bearer ")
+    ? req.headers.authorization.slice(7)
+    : null;
+
+  if (!token) return res.status(401).json({ error: "No token" });
+
+  try {
+    // Algorithmus/Issuer/Audience in Prod whitelisten
+    req.user = jwt.verify(token, JWT_SECRET /*, { algorithms: ["HS256"], issuer: "...", audience: "..." } */);
+    next();
+  } catch {
+    return res.status(403).json({ error: "Invalid or expired token" });
+  }
+}
+
+// Autorisierung: nur bestimmte Rollen zulassen
+export const requireRole = (...roles) => (req, res, next) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated" });
+  return roles.includes(req.user.role)
+    ? next()
+    : res.status(403).json({ error: "Forbidden" });
+};
+```
+
+```js
+// routes.mjs
+import express from "express";
+import { requireAuth, requireRole } from "./middleware/authJwt.mjs";
+
+const router = express.Router();
+
+// privat (alle eingeloggten Nutzer)
+router.get("/me", requireAuth, (req, res) => res.json({ sub: req.user.sub, role: req.user.role }));
+
+// nur Admins
+router.delete("/users/:id", requireAuth, requireRole("admin"), (req, res) => {
+  // ... löschen
+  res.sendStatus(204);
+});
+
+export default router;
+```
+
+**Hinweise**
+
+* **401**: nicht authentifiziert; **403**: authentifiziert, aber **keine** Berechtigung.
+* Für Refresh-Flow: Access-Token kurzlebig halten; Refresh separat (z. B. Cookie).
+
+---
+
+#### **Session-/Cookie-basierter Schutz (stateful Web-Apps)**
+
+```js
+// middleware/authSession.mjs
+export function requireSession(req, res, next) {
+  // gesetzt durch express-session + ggf. passport
+  if (req.isAuthenticated?.() || req.session?.user) return next();
+  return res.status(401).json({ error: "Login required" });
+}
+
+export const requireSessionRole = (...roles) => (req, res, next) => {
+  const role = req.user?.role || req.session?.user?.role;
+  return role && roles.includes(role) ? next() : res.status(403).json({ error: "Forbidden" });
+};
+```
+
+---
+
+#### **Robuste Fehlerbehandlung und Reihenfolge**
+
+```js
+// app.mjs
+import express from "express";
+import routes from "./routes.mjs";
+
+const app = express();
+app.use(express.json());
+
+// öffentliche Routen zuerst …
+app.get("/public/health", (_req, res) => res.json({ ok: true }));
+
+// … dann geschützte Routen
+app.use("/api", routes);
+
+// zentrales Error-Handling (letzter Middleware-Layer)
+app.use((err, _req, res, _next) => {
+  console.error(err);
+  res.status(500).json({ error: "Internal Server Error" });
+});
+
+export default app;
+```
+
+---
+
+#### **Optionale Härtung**
+
+* **Rate Limiting** auf private Routen.
+* **CORS** restriktiv konfigurieren.
+* **Helmet** für Sicherheits-Header.
+* **Input-Validierung** vor der Business-Logik.
+
+---
+
+### **Zusammenfassung**
+
+* Middleware trennt **Authentifizierung** (Identität prüfen) von **Autorisierung** (Rechte prüfen).
+* Für **APIs**: JWT-Middleware (`Authorization: Bearer`) + rollenbasierte Checks.
+* Für **SSR/Web-Apps**: Session-Middleware (`express-session`/`passport`).
+* Richtige **Statuscodes** (401/403), Reihenfolge der Middlewares und zentrales Error-Handling beachten.
+
+**Quellen / Weiterführend**
+
+* **Express**: [Guide: Using middleware](https://expressjs.com/de/guide/using-middleware.html) • [Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* **Node.js**: [`http`/Fehlerbehandlung](https://nodejs.org/docs)
+* **MDN**: [HTTP Status 401/403](https://developer.mozilla.org/ru/docs/Web/HTTP/Status)
 
 
   **[⬆ Наверх](#top)**      
 
-209. ### <a name="209"></a> 
+227. ### <a name="227"></a> Wie prüft man Benutzerrollen (Role-Based Access Control, RBAC) in Express?
 
+### **RBAC in Express: Rollen prüfen**
+
+---
+
+#### **1) Rollen aus JWT prüfen (stateless APIs)**
+
+```js
+// middleware/rbac.mjs
+export const requireRole = (...roles) => (req, res, next) => {
+  // req.user wird vorher in requireAuth (JWT-Verify) gesetzt
+  const role = req.user?.role;
+  if (!role) return res.status(401).json({ error: "Not authenticated" });
+  return roles.includes(role)
+    ? next()
+    : res.status(403).json({ error: "Forbidden" });
+};
+
+// usage (Route):
+// router.delete("/users/:id", requireAuth, requireRole("admin"), ctrl.deleteUser);
+```
+
+---
+
+#### **2) Rollen aus Session/Cookie prüfen (stateful Web-Apps)**
+
+```js
+// middleware/rbacSession.mjs
+export const requireSessionRole = (...roles) => (req, res, next) => {
+  const role = req.user?.role || req.session?.user?.role;
+  if (!role) return res.status(401).json({ error: "Login required" });
+  return roles.includes(role) ? next() : res.status(403).json({ error: "Forbidden" });
+};
+```
+
+---
+
+#### **3) Feinere Kontrolle: Permissions/Scopes**
+
+```js
+// rbac/policy.mjs
+const policy = {
+  admin:   ["user:read", "user:write", "order:refund"],
+  manager: ["user:read", "order:refund"],
+  user:    ["user:read:self"]
+};
+
+export const requirePermission = (perm) => (req, res, next) => {
+  const role = req.user?.role;
+  if (!role) return res.status(401).json({ error: "Not authenticated" });
+  return policy[role]?.includes(perm)
+    ? next()
+    : res.status(403).json({ error: "Forbidden" });
+};
+
+// usage:
+// router.post("/orders/:id/refund", requireAuth, requirePermission("order:refund"), refundCtrl);
+```
+
+---
+
+#### **4) DB-basierte RBAC (z. B. Sequelize)**
+
+```js
+// Beispiel: User gehört zu vielen Roles (User <-> Role via UserRole)
+import { User, Role } from "../models/index.mjs";
+
+export async function loadUserWithRoles(req, _res, next) {
+  if (!req.user?.sub) return next();
+  const u = await User.findByPk(req.user.sub, {
+    include: [{ model: Role, attributes: ["name"] }],
+    attributes: ["id"]
+  });
+  req.user.roles = u?.Roles?.map(r => r.name) ?? [];
+  next();
+}
+
+export const requireAnyRole = (...roles) => (req, res, next) =>
+  roles.some(r => req.user?.roles?.includes(r))
+    ? next()
+    : res.status(403).json({ error: "Forbidden" });
+
+// usage:
+// app.use(loadUserWithRoles);
+// router.get("/admin", requireAuth, requireAnyRole("admin", "superuser"), handler);
+```
+
+---
+
+#### **5) Gute Praxis**
+
+* **Trenne AuthN und AuthZ**: Erst `requireAuth`, dann RBAC-Middleware.
+* **Konsistente Statuscodes**: **401** (nicht eingeloggt), **403** (keine Rechte).
+* **Least Privilege**: nur notwendige Rechte vergeben.
+* **Claims + DB kombinieren**: schnelle Checks aus JWT (Rolle), sensible Checks gegen DB.
+* **Cachings & Invalidierung**: Rollenänderungen berücksichtigen (z. B. `roleVersion`-Claim).
+* **Auditing**: Zugriffsentscheidungen loggen (ohne sensible Daten).
+
+---
+
+### **Zusammenfassung**
+
+* RBAC in Express per **Middleware**: Rollen/Permissions prüfen nach erfolgreicher Authentifizierung.
+* Varianten: **JWT-Claims** (schnell, stateless), **Session** (stateful), **DB-gestützt** (flexibel).
+* Beachte **Least Privilege** und korrekte **401/403**-Antworten.
+
+**Quellen / Weiterführend**
+
+* Express: [Using middleware](https://expressjs.com/de/guide/using-middleware.html) • [Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* MDN: [HTTP 401/403](https://developer.mozilla.org/ru/docs/Web/HTTP/Status)
+* Sequelize: [Associations](https://sequelize.org/docs/v6/advanced-association-concepts/advanced-many-to-many/)
 
 
   **[⬆ Наверх](#top)**      
 
-210. ### <a name="210"></a> 
+228. ### <a name="228"></a> Was ist Policy-Based Access Control (PBAC)?
 
+### **Policy-Based Access Control (PBAC)**
+
+---
+
+### **Definition**
+
+* **PBAC** (auch **ABAC – Attribute-Based Access Control**) ist ein **feingranulares Zugriffsmodell**, bei dem **Policies (Regeln)** definieren, ob ein User Zugriff auf eine Ressource erhält.
+* Entscheidungen basieren nicht nur auf Rollen (wie bei RBAC), sondern auf **Attributen**:
+
+  * User-Attribute (z. B. Rolle, Abteilung, Alter)
+  * Ressourcen-Attribute (z. B. Besitzer, Sensitivität, Status)
+  * Kontext-Attribute (z. B. Uhrzeit, Ort, IP-Adresse)
+
+---
+
+### **Vergleich mit RBAC**
+
+| Aspekt       | **RBAC (Role-Based)**                      | **PBAC / ABAC (Policy-Based)**                                   |
+| ------------ | ------------------------------------------ | ---------------------------------------------------------------- |
+| Modell       | User ↔ Rolle ↔ Rechte                      | User + Ressource + Kontext → Policy                              |
+| Flexibilität | Mittel – Rollen definieren statisch Rechte | Hoch – Regeln können beliebige Attribute einbeziehen             |
+| Beispiel     | „Admins dürfen löschen“                    | „User darf löschen, wenn er Besitzer ist UND es < 18:00 Uhr ist“ |
+
+---
+
+### **Beispiel-Policy (Ausdruck)**
+
+```json
+{
+  "effect": "allow",
+  "actions": ["delete:document"],
+  "conditions": {
+    "resource.ownerId": "${user.id}",
+    "time.hour": "<=18"
+  }
+}
+```
+
+---
+
+### **Express-Implementierung (PBAC Middleware, pseudo)**
+
+```js
+// policyEngine.mjs
+export function checkPolicy(user, resource, action) {
+  // Beispielregel: Owner darf löschen, aber nur tagsüber
+  const hour = new Date().getHours();
+  if (action === "delete:document") {
+    return resource.ownerId === user.id && hour < 18;
+  }
+  return false;
+}
+
+// Middleware
+export const requirePolicy = (action, resourceLoader) => async (req, res, next) => {
+  const resource = await resourceLoader(req); // z. B. DB-Dokument laden
+  if (!checkPolicy(req.user, resource, action)) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  req.resource = resource;
+  next();
+};
+
+// usage:
+router.delete("/docs/:id", requireAuth, requirePolicy("delete:document", async (req) => {
+  return await Document.findByPk(req.params.id);
+}), (req, res) => {
+  req.resource.destroy();
+  res.sendStatus(204);
+});
+```
+
+---
+
+### **Vorteile von PBAC**
+
+✅ Sehr flexibel, auch dynamische Bedingungen möglich
+✅ Gut für komplexe Organisationen mit vielen Kontextbedingungen
+✅ Policies sind deklarativ und können zentral verwaltet werden
+
+### **Nachteile von PBAC**
+
+❌ Komplexer als RBAC (Policy-Engine, Verwaltung)
+❌ Höherer Rechenaufwand (Attribute prüfen, DB-Abfragen)
+❌ Schwerer zu debuggen und auditieren als feste Rollen
+
+---
+
+### **Zusammenfassung**
+
+* **PBAC/ABAC** = Zugriffskontrolle über **dynamische Policies**, nicht nur feste Rollen.
+* Basiert auf **User-, Ressourcen- und Kontext-Attributen**.
+* Vorteil: **hohe Flexibilität**; Nachteil: **höhere Komplexität**.
+* In Express implementierbar über **Policy-Middleware + Resource-Loader**.
+
+**Quellen / Weiterführend**
+
+* [NIST Guide zu ABAC](https://csrc.nist.gov/publications/detail/sp/800-162/final)
+* [OWASP – Access Control](https://owasp.org/www-community/Access_Control)
+* [Express.js Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+229. ### <a name="229"></a> Wie schützt man REST-Endpunkte vor unautorisierten Zugriffen?
+
+### **REST-Endpunkte vor unautorisiertem Zugriff schützen**
+
+---
+
+#### **1) Authentifizierung (z. B. JWT)**
+
+```js
+// middleware/auth.mjs
+import jwt from "jsonwebtoken";
+const { JWT_SECRET } = process.env;
+
+export function requireAuth(req, res, next) {
+  const token = req.headers.authorization?.startsWith("Bearer ")
+    ? req.headers.authorization.slice(7)
+    : null;
+  if (!token) return res.status(401).json({ error: "No token" });
+  try {
+    req.user = jwt.verify(token, JWT_SECRET, {
+      algorithms: ["HS256"], issuer: "https://auth.example.com", audience: "example.api"
+    });
+    next();
+  } catch { return res.status(403).json({ error: "Invalid/expired token" }); }
+}
+```
+
+---
+
+#### **2) Autorisierung (RBAC/Scopes)**
+
+```js
+// middleware/rbac.mjs
+export const requireRole = (...roles) => (req, res, next) =>
+  req.user && roles.includes(req.user.role)
+    ? next()
+    : res.status(403).json({ error: "Forbidden" });
+
+// Nutzung
+// router.delete("/users/:id", requireAuth, requireRole("admin"), ctrl.deleteUser);
+```
+
+---
+
+#### **3) Prinzip „deny by default“ (Routing-Reihenfolge)**
+
+```js
+// app.mjs
+app.use("/public", publicRoutes);
+app.use("/api", requireAuth, apiRoutes); // alles private per Default
+```
+
+---
+
+#### **4) Transport- & Header-Sicherheit**
+
+* **HTTPS erzwingen** (+ HSTS via `helmet.hsts`), **keine Tokens in URLs**.
+* **Security-Header** mit `helmet()` setzen (CSP, X-Frame-Options, NoSniff, …).
+* **CORS** restriktiv: Whitelist-Origns, keine `*` mit Credentials.
+  Quellen: [MDN HTTPS](https://developer.mozilla.org/ru/docs/Web/HTTP/Overview#https), [Helmet/Express](https://expressjs.com/de/advanced/best-practice-security.html), [MDN CORS](https://developer.mozilla.org/ru/docs/Web/HTTP/CORS)
+
+---
+
+#### **5) Schutz gegen CSRF (bei Cookie-Auth)**
+
+* **SameSite**-Cookies (`Lax/Strict`) oder `SameSite=None; Secure` bei Cross-Site.
+* **CSRF-Token** für state-ändernde Requests (Synchronizer/Double-Submit).
+  Quelle: [MDN – CSRF](https://developer.mozilla.org/ru/docs/Glossary/CSRF)
+
+---
+
+#### **6) Rate Limiting & Brute-Force-Schutz**
+
+* Request- und Login-Endpunkte begrenzen; Backoff/Lockout bei vielen Fehlversuchen.
+  Quelle: [Express Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+
+---
+
+#### **7) Eingabevalidierung & Deserialisierung**
+
+* Schemas (z. B. Zod/Joi) vor der Business-Logik; **NoSQL/SQL-Injection** verhindern (parametrisierte Queries/ORM).
+  Quellen: [MDN – Form validation/Validation](https://developer.mozilla.org/ru/docs/Learn/Forms/Form_validation), [Sequelize Security](https://sequelize.org/)
+
+---
+
+#### **8) Minimale Rechte & Ressourcen-Isolation**
+
+* **RBAC/Scopes** pro Route/Service, **Least Privilege** in DB und externen APIs.
+* Sensible Endpunkte zusätzlich mit **IP-Allowlist**/**mTLS** (intern).
+
+---
+
+#### **9) Logging & Auditing**
+
+* Zugriffsentscheidungen (401/403), Auth-Fehler, ungewöhnliche Muster loggen (ohne Secrets).
+
+---
+
+#### **10) API-Keys für Service-zu-Service**
+
+```js
+// middleware/apiKey.mjs
+export const requireApiKey = (req, res, next) =>
+  req.get("X-API-Key") === process.env.INTERNAL_API_KEY ? next() : res.sendStatus(401);
+```
+
+---
+
+### **Zusammenfassung**
+
+* **AuthN**: z. B. JWT-Middleware; **AuthZ**: RBAC/Scopes → „deny by default“.
+* **Transport/Headers**: HTTPS, Helmet, restriktives CORS; bei Cookies **CSRF-Schutz**.
+* **Hardening**: Rate-Limiting, Validierung, Least-Privilege, Logging; intern ggf. **API-Key/mTLS**.
+
+**Quellen**
+
+* [MDN – HTTPS](https://developer.mozilla.org/ru/docs/Web/HTTP/Overview#https) • [CORS](https://developer.mozilla.org/ru/docs/Web/HTTP/CORS) • [CSRF](https://developer.mozilla.org/ru/docs/Glossary/CSRF)
+* [Express – Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* [Sequelize – Security Hinweise](https://sequelize.org/)
 
 
   **[⬆ Наверх](#top)**      
 
-211. ### <a name="211"></a> 
+230. ### <a name="230"></a> Wie kann man Public Routes von Private Routes in Express trennen?
 
+### **Trennung von Public und Private Routes in Express**
+
+---
+
+#### **1) Ordner- & Router-Struktur**
+
+* **Public Routes**: ohne Authentifizierung (z. B. `/login`, `/register`, `/health`).
+* **Private Routes**: nur mit Authentifizierung (JWT, Session, API-Key).
+
+```js
+// routes/public.mjs
+import { Router } from "express";
+const publicRouter = Router();
+
+publicRouter.get("/health", (_req, res) => res.json({ status: "ok" }));
+publicRouter.post("/login", authController.login);
+
+export default publicRouter;
+
+// routes/private.mjs
+import { Router } from "express";
+import { requireAuth } from "../middleware/auth.mjs";
+
+const privateRouter = Router();
+privateRouter.use(requireAuth); // Middleware für alle nachfolgenden Routen
+
+privateRouter.get("/profile", (req, res) => res.json({ user: req.user }));
+privateRouter.delete("/users/:id", requireAuth, requireRole("admin"), userCtrl.delete);
+
+export default privateRouter;
+```
+
+---
+
+#### **2) Mounting in `app.mjs`**
+
+```js
+import express from "express";
+import publicRouter from "./routes/public.mjs";
+import privateRouter from "./routes/private.mjs";
+
+const app = express();
+app.use(express.json());
+
+// Public: ohne Auth
+app.use("/public", publicRouter);
+
+// Private: nur mit Auth
+app.use("/api", privateRouter);
+
+export default app;
+```
+
+---
+
+#### **3) Middleware-Ansatz „Deny by default“**
+
+* Alles unter `/api` ist per Default privat → `requireAuth` als globaler Guard.
+* Nur explizit definierte Public-Routen sind frei erreichbar.
+
+```js
+app.use("/api", requireAuth, apiRouter);
+```
+
+---
+
+#### **4) Route-Metadaten (für große Apps)**
+
+* Im Router-Array definieren, ob eine Route **public** oder **private** ist.
+* Middleware prüft automatisch.
+
+```js
+const routes = [
+  { path: "/login", handler: loginCtrl, public: true },
+  { path: "/profile", handler: profileCtrl, public: false }
+];
+
+routes.forEach(r => {
+  if (r.public) app.get(r.path, r.handler);
+  else app.get(r.path, requireAuth, r.handler);
+});
+```
+
+---
+
+#### **5) Best Practices**
+
+* **Trennung in Module** (public vs. private Router).
+* **Globales requireAuth** für `/api`.
+* **Least Privilege**: Private Routes zusätzlich mit RBAC/Policies schützen.
+* **Public Routes restriktiv halten** (Login, Docs, Health, evtl. Registration).
+* **Immer HTTPS**, Security-Header (Helmet), Rate-Limiting auf sensiblen Routen.
+
+---
+
+### **Zusammenfassung**
+
+* Public und Private Routes in Express trennt man durch **eigene Router** + **Middleware (requireAuth)**.
+* Bestes Muster: `/public/*` frei, `/api/*` standardmäßig geschützt.
+* Für große Apps: Route-Metadaten oder Role/Policy-basierte Middleware einsetzen.
+
+🔗 Quellen
+
+* [Express – Router](https://expressjs.com/de/guide/routing.html)
+* [Express – Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+231. ### <a name="231"></a> Was ist CSRF und wie hängt es mit Session-Authentifizierung zusammen?
+
+### **CSRF (Cross-Site Request Forgery) & Sessions**
+
+---
+
+### **Was ist CSRF?**
+
+* **CSRF** = Angriff, bei dem ein Opfer ungewollte Requests an eine vertrauenswürdige Seite sendet, während es dort **authentifiziert** ist.
+* Der Browser hängt automatisch Cookies (inkl. **Session-Cookie**) an die Anfrage → der Server glaubt, die Aktion kommt vom User.
+* Beispiel:
+
+  ```html
+  <!-- Opfer ist eingeloggt bei bank.com -->
+  <img src="https://bank.com/transfer?to=attacker&amount=1000" />
+  ```
+
+  → Browser sendet Session-Cookie mit → Überweisung läuft.
+
+---
+
+### **Zusammenhang mit Session-Authentifizierung**
+
+* Bei **Session-basiertem Login** wird die Authentifizierung über ein **Session-Cookie** gespeichert.
+* Cookies werden **automatisch bei jeder Anfrage** mitgeschickt (same-origin Policy).
+* Dadurch kann ein Angreifer das Cookie „missbrauchen“, wenn er das Opfer dazu bringt, eine manipulierte Anfrage an die Seite auszuführen.
+* **JWT im Header (`Authorization: Bearer …`)** ist weniger anfällig für CSRF, da Tokens nicht automatisch gesendet werden → aber anfällig für XSS, wenn sie im LocalStorage stehen.
+
+---
+
+### **Schutzmaßnahmen bei Session-Auth**
+
+1. **CSRF-Tokens** (Synchronizer Token Pattern):
+
+   * Server gibt ein zufälliges Token pro Session aus → Client muss es in jedem POST/PUT/DELETE mitschicken.
+   * Angreifer kann Token nicht erraten.
+
+   ```html
+   <form method="POST" action="/transfer">
+     <input type="hidden" name="csrfToken" value="random12345" />
+   </form>
+   ```
+
+2. **SameSite-Cookies**
+
+   * `Set-Cookie: sessionId=abc; HttpOnly; Secure; SameSite=Lax`
+   * Verhindert, dass Cookies bei Cross-Site-Requests mitgeschickt werden.
+   * `Lax` blockiert POST-Formulare von fremden Domains.
+
+3. **Zusätzlich:**
+
+   * **HTTPS erzwingen** (Secure-Flag).
+   * **Double-Submit Cookie Pattern** (CSRF-Token in Cookie + Header).
+   * **Referer/Origin-Header prüfen** (ergänzend).
+
+---
+
+### **Zusammenfassung**
+
+* **CSRF** nutzt aus, dass Browser Cookies (z. B. **Session-Cookies**) automatisch mitsenden.
+* Besonders relevant bei **Session-basiertem Login**.
+* Schutz: **CSRF-Tokens, SameSite-Cookies, HTTPS**.
+* Bei **JWT im Header** weniger anfällig, dafür stärker auf **XSS-Schutz** achten.
+
+🔗 Quellen
+
+* [MDN – CSRF](https://developer.mozilla.org/ru/docs/Glossary/CSRF)
+* [OWASP – CSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
+* [Express Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+232. ### <a name="232"></a> Wie verhindert man Session Fixation?
+
+### **Session Fixation – Erklärung & Schutz**
+
+---
+
+### **Was ist Session Fixation?**
+
+* Angriff, bei dem ein Angreifer dem Opfer **eine bekannte Session-ID unterschiebt** (z. B. per Link oder Cookie).
+* Loggt sich das Opfer danach ein, wird die Session-ID **weiterverwendet** → Angreifer kennt gültige Session-ID und kann die Sitzung übernehmen.
+
+---
+
+### **Beispiel**
+
+1. Angreifer ruft `https://shop.com/login?sessionId=abc123` auf.
+2. Opfer klickt auf den Link → Browser übernimmt Session-ID.
+3. Opfer loggt sich ein → Session wird **nicht erneuert**, bleibt `abc123`.
+4. Angreifer kennt `abc123` → hat Zugriff auf Opfer-Session.
+
+---
+
+### **Schutzmaßnahmen**
+
+#### 1) **Session-ID nach Login erneuern (Session Regeneration)**
+
+* Wichtigster Schutz: **neue Session-ID nach erfolgreichem Login**.
+
+```js
+// Express + express-session
+app.post("/login", (req, res, next) => {
+  const { username, password } = req.body;
+  if (isValidUser(username, password)) {
+    // Session-ID erneuern, alte Daten löschen
+    req.session.regenerate((err) => {
+      if (err) return next(err);
+      req.session.user = { name: username };
+      res.json({ message: "Login erfolgreich" });
+    });
+  } else {
+    res.status(401).json({ error: "Invalid credentials" });
+  }
+});
+```
+
+---
+
+#### 2) **Sichere Cookies setzen**
+
+* **HttpOnly** → kein Zugriff per JavaScript (XSS-Schutz).
+* **Secure** → nur über HTTPS.
+* **SameSite=Lax/Strict** → erschwert CSRF.
+
+```js
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax"
+  }
+}));
+```
+
+---
+
+#### 3) **Session Timeout & Inaktivitäts-Timeout**
+
+* Automatisches Abmelden nach einer Zeit → verkleinert Angriffsfenster.
+
+---
+
+#### 4) **Keine Session-IDs in URL/Query-Params**
+
+* Immer Cookies für Session-ID nutzen, niemals `?sessionId=...`.
+
+---
+
+#### 5) **Zusätzliche Checks**
+
+* **IP- oder User-Agent-Bindung** (optional, aber Vorsicht bei NAT/Shared Devices).
+* **Logout → Session sofort invalidieren** (`req.session.destroy()`).
+
+---
+
+### **Zusammenfassung**
+
+* **Session Fixation** = Angriff, bei dem der Angreifer dem Opfer eine bekannte Session-ID unterschiebt.
+* **Hauptschutz:** Session-ID nach Login **regenerieren**.
+* Weitere Maßnahmen: sichere Cookies, HTTPS, Timeout, keine Session-IDs in URLs.
+
+🔗 Quellen
+
+* [OWASP – Session Fixation](https://owasp.org/www-community/attacks/Session_fixation)
+* [Express – Best Practices Security](https://expressjs.com/de/advanced/best-practice-security.html)
+* [MDN – HttpOnly/Secure Cookies](https://developer.mozilla.org/ru/docs/Web/HTTP/Cookies)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+233. ### <a name="233"></a> Welche Best Practices gibt es für Passwort-Hashing (bcrypt, argon2)?
+
+### **Passwort-Hashing Best Practices (bcrypt, argon2)**
+
+---
+
+#### **Grundsätze**
+
+* **Nie Klartext** oder einfache Hashes (MD5/SHA-1/SHA-256) für Passwörter nutzen.
+* **Passwort-Hashfunktionen** mit Arbeitsschwierigkeit verwenden: **Argon2id** (empfohlen), **bcrypt** (bewährt), alternativ **scrypt**.
+* **Einzigartiger Salt** pro Passwort (bei argon2/bcrypt integriert).
+* **Konstante Zeit vergleichen** (Timing-Angriffe vermeiden).
+* **Pepper** optional zusätzlich zum Hash (in ENV/Secret-Manager halten).
+* **Kosten regelmäßig erhöhen** (Hardware wird schneller → Rehash bei Login, wenn zu schwach).
+
+---
+
+#### **Empfohlene Parameter**
+
+* **Argon2id** (bevorzugt):
+
+  * `timeCost`: 2–5
+  * `memoryCost`: 64–256 MB (z. B. 2^16 = 65 536 KiB)
+  * `parallelism`: 1–4
+* **bcrypt**:
+
+  * `cost`/`saltRounds`: **12–14** (Produktion), mindestens 10 für Dev/Tests
+* **scrypt** (Node `crypto.scrypt`):
+
+  * sinnvolle N/r/p wählen; in Node-Defaults belassen oder OWASP-Empfehlungen folgen
+
+> Parameter hängen von **Latenz-Budget** und **Server-Ressourcen** ab; mit Benchmarks validieren.
+
+---
+
+#### **Node.js – Beispiele (ESM)**
+
+**Argon2id (empfohlen)**
+
+```js
+// hash-argon2.mjs
+import argon2 from "argon2"; // npm i argon2
+
+const opts = { type: argon2.argon2id, timeCost: 3, memoryCost: 1 << 16, parallelism: 1 };
+
+export async function hashPassword(plain) {
+  return argon2.hash(plain, opts);         // beinhaltet Salt & Parameter
+}
+
+export async function verifyPassword(hash, plain) {
+  return argon2.verify(hash, plain, opts); // constant-time Verify
+}
+```
+
+**bcrypt**
+
+```js
+// hash-bcrypt.mjs
+import bcrypt from "bcrypt"; // npm i bcrypt
+const ROUNDS = 12;
+
+export async function hashPassword(plain) {
+  return bcrypt.hash(plain, ROUNDS);       // Salt automatisch integriert
+}
+
+export async function verifyPassword(hash, plain) {
+  return bcrypt.compare(plain, hash);      // constant-time Compare
+}
+```
+
+**scrypt (Core-Alternative)**
+
+```js
+// hash-scrypt.mjs
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+
+export function hashPassword(plain) {
+  const salt = randomBytes(16);
+  const dk = scryptSync(plain, salt, 64);         // Key derivation
+  return `${salt.toString("hex")}:${dk.toString("hex")}`;
+}
+
+export function verifyPassword(stored, plain) {
+  const [saltHex, dkHex] = stored.split(":");
+  const hash = scryptSync(plain, Buffer.from(saltHex, "hex"), 64);
+  return timingSafeEqual(hash, Buffer.from(dkHex, "hex"));
+}
+```
+
+---
+
+#### **Integration (DB/Sequelize)**
+
+* Spalte z. B. `password_hash TEXT NOT NULL`.
+* **Nur Hash speichern** (nie Pepper/Salt separat nötig bei argon2/bcrypt).
+* Beim Login: verifizieren → falls zu niedriger Work-Factor → **Rehash** und speichern.
+
+```js
+// user.model.mjs (Sequelize Hook)
+import { Model, DataTypes } from "sequelize";
+import { hashPassword } from "../security/hash-argon2.mjs";
+
+export class User extends Model {}
+User.init({
+  email: { type: DataTypes.STRING, unique: true },
+  passwordHash: { type: DataTypes.TEXT, allowNull: false }
+}, { sequelize, modelName: "User" });
+
+User.beforeCreate(async (user) => {
+  user.passwordHash = await hashPassword(user.passwordHash); // pass plain in temp field o. Ä.
+});
+```
+
+---
+
+#### **Weitere Sicherheitsmaßnahmen**
+
+* **Pepper** (z. B. `HMAC(pepper, password)` vor dem Hash) im **Secret-Manager** halten.
+* **Rate Limiting** & **Account Lockout** bei Login-Versuchen.
+* **MFA/2FA** anbieten.
+* **Sichere Passwortrichtlinien** + z. B. HaveIBeenPwned-Check (client-seitig anonymisiert).
+* **Sichere Passwort-Reset-Tokens**: kryptografisch zufällig, kurzlebig, einmalig.
+* **Transport**: Immer **HTTPS**; keine Passwörter/Hashes in Logs.
+
+---
+
+### **Zusammenfassung**
+
+* Nutze **Argon2id** (oder **bcrypt**) mit **angemessenem Work-Factor**, Salt ist integriert.
+* **Rehash bei Login**, wenn Parameter zu schwach; **Pepper**, **Rate-Limit**, **HTTPS**, **MFA** ergänzen.
+* In Node: **argon2/bcrypt** Libraries oder **`crypto.scrypt`**; vergleiche **constant-time**.
+
+**Quellen / Weiterführend**
+
+* Node.js: [`crypto.scrypt`](https://nodejs.org/docs/latest/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback) • [`crypto.timingSafeEqual`](https://nodejs.org/docs/latest/api/crypto.html#cryptotimingsafeequala-b)
+* MDN: [Passwörter sicher speichern (Übersicht Hashing/KDF)](https://developer.mozilla.org/ru/docs/Glossary/Salt)
+* OWASP: [Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+* Sequelize: [Hooks](https://sequelize.org/docs/v6/other-topics/hooks/)
 
 
   **[⬆ Наверх](#top)**      
 
-212. ### <a name="212"></a> 
+234. ### <a name="234"></a> Warum sollte man niemals Passwörter im Klartext speichern?
 
+### **Warum niemals Passwörter im Klartext speichern?**
+
+---
+
+#### **1) Risiko bei Datenlecks**
+
+* Datenbanken können durch **Hacks, Fehlkonfiguration oder Insider** kompromittiert werden.
+* Wenn Passwörter im Klartext gespeichert sind → **Angreifer hat sofort Zugriff** auf alle Konten.
+* Nutzer recyceln oft Passwörter → auch **andere Dienste** (E-Mail, Banking) sind gefährdet.
+
+---
+
+#### **2) Verletzung von Datenschutz & Gesetzen**
+
+* DSGVO (EU) und OWASP-Best Practices verbieten **unsichere Speicherung**.
+* Ein Klartext-Leak führt zu **hohen Bußgeldern und Image-Schäden**.
+* Vertrauen der Nutzer geht verloren → Reputationsrisiko.
+
+---
+
+#### **3) Technische Standards**
+
+* **Best Practice**: Passwörter mit **KDF (Key Derivation Function)** wie **bcrypt, Argon2, scrypt** **gehasht und gesalzen** speichern.
+* Hashing ist **einseitig** → aus dem Hash kann das Passwort nicht einfach zurückgerechnet werden.
+* Salt verhindert Rainbow-Table-Angriffe; Work-Factor macht Brute-Force extrem teuer.
+
+---
+
+#### **4) Beispiel**
+
+**Falsch (Klartext in DB):**
+
+```sql
+id | email              | password
+1  | user@example.com   | geheim123
+```
+
+**Richtig (gehashte Werte):**
+
+```sql
+id | email              | password_hash
+1  | user@example.com   | $argon2id$v=19$m=65536,t=3,p=1$...
+```
+
+Beim Login:
+
+* User gibt Passwort ein.
+* Server hasht Eingabe mit denselben Parametern.
+* Vergleich: Hashes stimmen überein → Zugang.
+
+---
+
+### **Zusammenfassung**
+
+* **Klartext-Passwörter = sofortiger Komplettverlust** bei Datenlecks.
+* **Gesetzlich und sicherheitstechnisch unzulässig.**
+* Immer **gehashte & gesalzene Speicherung** mit sicheren Algorithmen (Argon2id/bcrypt).
+
+🔗 Quellen
+
+* [OWASP – Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+* [MDN – Salt & Hash](https://developer.mozilla.org/ru/docs/Glossary/Salt)
+* [NIST SP 800-63B – Digital Identity Guidelines](https://pages.nist.gov/800-63-3/sp800-63b.html)
+
+---
+
+  **[⬆ Наверх](#top)**      
+
+235. ### <a name="235"></a> Wie implementiert man Zwei-Faktor-Authentifizierung (2FA) in einer Node.js-App?
+
+### **2FA in einer Node.js/Express-App – Praxisleitfaden**
+
+---
+
+## **Varianten**
+
+* **TOTP (App-basiert, RFC 6238)**: Nutzer scannt QR-Code (Google Authenticator, Authy), gibt 6-stelligen Code ein.
+* **WebAuthn/Passkeys**: Phishing-resistent (Hardware-Key/Plattform-Authenticator).
+* **SMS/E-Mail-Codes**: Einfach, aber schwächer (Abfangen/Weiterleitung möglich).
+  Empfehlung: **TOTP oder WebAuthn**; SMS/E-Mail nur als Fallback.
+
+---
+
+## **TOTP-Implementierung (Express + `speakeasy` + `qrcode`)**
+
+### 1) Installation
+
+```bash
+npm i speakeasy qrcode express cookie-parser helmet
+```
+
+### 2) Enrollment (Secret erzeugen + QR)
+
+```js
+// routes/2fa.mjs
+import { Router } from "express";
+import speakeasy from "speakeasy";
+import qrcode from "qrcode";
+
+export const twoFaRouter = Router();
+
+// Nutzer muss bereits per Passwort authentifiziert sein
+twoFaRouter.post("/enable", async (req, res) => {
+  // Secret generieren (base32 speichern)
+  const secret = speakeasy.generateSecret({
+    name: `MyApp (${req.user.email})`,  // erscheint im Authenticator
+    length: 20
+  });
+
+  // QR-DataURL erzeugen
+  const otpauth = secret.otpauth_url;
+  const qrDataUrl = await qrcode.toDataURL(otpauth);
+
+  // Secret **verschlüsselt** in DB speichern (oder HSM/Secrets-Store)
+  await db.user.update({ where: { id: req.user.id }, data: {
+    totpSecretB32: secret.base32, // besser: verschlüsselt
+    is2faEnabled: false           // erst nach erfolgreicher Verifikation auf true
+  }});
+
+  res.json({ qrDataUrl, manualKey: secret.base32 });
+});
+```
+
+### 3) Verifikation beim Setup (Schritt zur Aktivierung)
+
+```js
+twoFaRouter.post("/verify-setup", async (req, res) => {
+  const { token } = req.body; // 6-stelliger Code
+  const user = await db.user.findByPk(req.user.id);
+
+  const ok = speakeasy.totp.verify({
+    secret: user.totpSecretB32,
+    encoding: "base32",
+    token,
+    window: 1 // geringe Toleranz gegen Zeitdrift
+  });
+
+  if (!ok) return res.status(400).json({ error: "Invalid TOTP" });
+
+  await db.user.update({ where: { id: user.id }, data: { is2faEnabled: true }});
+  res.sendStatus(204);
+});
+```
+
+### 4) Login-Flow (Passwort → TOTP)
+
+```js
+// 1) Passwort prüfen → temporär markieren, dass 2FA nötig ist
+app.post("/login", async (req, res) => {
+  const user = await verifyPasswordLogin(req.body);
+  if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+  if (user.is2faEnabled) {
+    // kurzlebiges „pre-auth“-Ticket (z. B. signierter JWT/Cookie mit 2–5 Min TTL)
+    res.cookie("preauth", issuePreAuth(user.id), { httpOnly: true, secure: true, sameSite: "Lax", maxAge: 5*60*1000 });
+    return res.status(206).json({ require2fa: true }); // Client zeigt 2FA-Form
+  }
+
+  return res.json({ access: issueAccessToken(user), refresh: issueRefreshToken(user) });
+});
+
+// 2) TOTP prüfen → finale Tokens ausstellen
+app.post("/login/2fa", async (req, res) => {
+  const userId = verifyPreAuth(req.cookies.preauth); // validiert & extrahiert userId
+  if (!userId) return res.status(401).json({ error: "Preauth expired" });
+
+  const user = await db.user.findByPk(userId);
+  const ok = speakeasy.totp.verify({
+    secret: user.totpSecretB32,
+    encoding: "base32",
+    token: req.body.token,
+    window: 1
+  });
+  if (!ok) return res.status(400).json({ error: "Invalid TOTP" });
+
+  // Preauth entfernen, finale Tokens ausstellen
+  res.clearCookie("preauth");
+  return res.json({ access: issueAccessToken(user), refresh: issueRefreshToken(user) });
+});
+```
+
+### 5) Middleware: Schutz nach Login
+
+```js
+// middleware/require2fa.mjs
+export function require2FA(req, res, next) {
+  if (req.user?.is2faEnabled && !req.user?.amr?.includes("otp")) {
+    return res.status(403).json({ error: "2FA required" });
+  }
+  next();
+}
+
+// Idee: Beim erfolgreichen 2FA-Login `amr: ["pwd","otp"]` im JWT setzen.
+```
+
+### 6) Backup-Codes (Recovery)
+
+```js
+// Einmalige Backup-Codes generieren & gehasht speichern
+import { randomBytes, createHash, timingSafeEqual } from "node:crypto";
+
+function genBackupCodes(n = 10) {
+  return Array.from({ length: n }, () =>
+    randomBytes(5).toString("hex")  // z. B. 10 Zeichen
+  );
+}
+
+function hash(code) { return createHash("sha256").update(code).digest("hex"); }
+```
+
+* Codes **nur einmal** anzeigen, **gehasht** speichern, bei Nutzung sofort invalidieren.
+
+---
+
+## **WebAuthn / Passkeys (stärker als TOTP)**
+
+* Implementierbar mit `@simplewebauthn/server` (Server) + `@simplewebauthn/browser` (Client).
+* Vorteile: **Phishing-resistent**, keine Codes, kein Secret auf dem Server (nur Public Keys).
+* Eignet sich als **zweiter Faktor** oder **passwortlos**.
+  👉 Siehe MDN-WebAuthn-Überblick in den Quellen.
+
+---
+
+## **Sicherheit & Betrieb**
+
+* **Secrets schützen**: TOTP-Secret verschlüsselt speichern; nie loggen.
+* **Zeit-Synchronisation**: Server-Uhr via NTP; kleine `window`-Toleranz.
+* **Rate Limiting**: 2FA-Endpunkte drosseln, Lockout/Backoff.
+* **Gerät merken** (optional): Signierter „trusted device“-Cookie mit begrenzter TTL.
+* **Backup & Recovery**: Backup-Codes anbieten, Support-Prozess definieren.
+* **HTTPS verpflichtend**, Cookies `HttpOnly`/`Secure`/`SameSite`.
+
+---
+
+### **Zusammenfassung**
+
+* **TOTP**: Schnell umgesetzt mit `speakeasy` + QR; Secret sicher speichern, `window` klein halten.
+* **Login-Flow**: Passwort → Preauth → TOTP → finale Tokens; **Rate-Limits & Backup-Codes**.
+* **WebAuthn/Passkeys**: noch sicherer; für MFA oder passwordless geeignet.
+
+**Quellen / Weiterführend**
+
+* MDN: [WebAuthn – Überblick](https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API) • [Cookies/SameSite](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Set-Cookie/SameSite)
+* Node.js: [`crypto`-Modul](https://nodejs.org/docs/latest/api/crypto.html)
+* Express: [Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* (Normativ) RFCs: **TOTP RFC 6238**, **HOTP RFC 4226** (Hintergrund zu Einmalpasswörtern)
 
 
   **[⬆ Наверх](#top)**      
 
-213. ### <a name="213"></a> 
+236. ### <a name="236"></a> Was ist der Unterschied zwischen Single Sign-On (SSO) und klassischem Login?
 
+### **Unterschied: Single Sign-On (SSO) vs. klassisches Login**
 
+---
 
-  **[⬆ Наверх](#top)**      
+### **Klassisches Login**
 
-214. ### <a name="214"></a> 
+* Jeder Dienst (App, Website) hat **eigene Benutzerverwaltung**.
+* User gibt **Benutzername + Passwort** direkt bei der App ein.
+* Authentifizierung läuft lokal, Tokens/Sessions werden nur für diese App erzeugt.
+* Nachteile:
 
+  * Viele verschiedene Logins nötig (Passwort-Wiederverwendung = Risiko).
+  * Keine zentrale Kontrolle für Admins.
+  * User Experience schlechter.
 
+---
 
-  **[⬆ Наверх](#top)**      
+### **Single Sign-On (SSO)**
 
-215. ### <a name="215"></a> 
+* User authentifiziert sich **einmal zentral** bei einem **Identity Provider (IdP)** (z. B. Keycloak, Auth0, Azure AD, Google).
+* Danach können mehrere Anwendungen (Service Provider, SP) auf diese Authentifizierung vertrauen.
+* Technische Grundlage: **Protokolle** wie OAuth2, OpenID Connect, SAML.
+* Vorteile:
 
+  * **Ein Login für viele Systeme** (einheitliches Token, z. B. ID-Token oder SAML-Assertion).
+  * Bessere **User Experience** (keine Mehrfach-Logins).
+  * Bessere **Sicherheit** (zentrale MFA/2FA, Policies, schnelle Account-Sperre).
+  * Weniger Passwortspeicherung in einzelnen Apps.
 
+---
 
-  **[⬆ Наверх](#top)**      
+### **Direkter Vergleich**
 
-216. ### <a name="216"></a> 
+| Aspekt            | **Klassisches Login**                   | **SSO**                                     |
+| ----------------- | --------------------------------------- | ------------------------------------------- |
+| Benutzerkonto     | Pro App/Dienst separat                  | Zentrales Konto beim IdP                    |
+| Authentifizierung | Lokal in der App                        | Zentral über IdP (OAuth2/OIDC/SAML)         |
+| Login-Anzahl      | Für jede App separat                    | Einmaliger Login → Zugang zu allen Apps     |
+| Sicherheit        | Jede App muss Passwort sicher speichern | Passwort nur beim IdP; zentrale MFA möglich |
+| User Experience   | Weniger komfortabel                     | Komfortabler (ein Login für viele Apps)     |
 
+---
 
+### **Zusammenfassung**
 
-  **[⬆ Наверх](#top)**      
+* **Klassisches Login**: Jede App prüft Credentials selbst; mehrfache Logins, höherer Verwaltungsaufwand.
+* **SSO**: Zentrale Authentifizierung über einen Identity Provider → **ein Login für viele Anwendungen**, sicherer und bequemer.
 
-217. ### <a name="217"></a> 
+🔗 Quellen
 
+* [MDN – Authentication](https://developer.mozilla.org/en-US/docs/Glossary/Authentication)
+* [OAuth 2.0 (RFC 6749)](https://datatracker.ietf.org/doc/html/rfc6749)
+* [OpenID Connect Core](https://openid.net/specs/openid-connect-core-1_0.html)
 
-
-  **[⬆ Наверх](#top)**      
-
-218. ### <a name="218"></a> 
-
-
-
-  **[⬆ Наверх](#top)**      
-
-219. ### <a name="219"></a> 
-
-
-
-  **[⬆ Наверх](#top)**      
-
-220. ### <a name="220"></a> 
-
-
-
-  **[⬆ Наверх](#top)**      
-
-221. ### <a name="221"></a> 
-
-
-
-  **[⬆ Наверх](#top)**      
-
-222. ### <a name="222"></a> 
-
-
-
-  **[⬆ Наверх](#top)**      
-
-223. ### <a name="223"></a> 
-
-
+---
 
   **[⬆ Наверх](#top)**      
 
-224. ### <a name="224"></a> 
+237. ### <a name="237"></a> Wie funktioniert Authentifizierung mit Passport.js?
 
+### **Authentifizierung mit Passport.js**
 
+---
+
+### **Grundidee**
+
+* **Passport.js** ist ein **Middleware-Framework** für **Express**, das viele Auth-Strategien bereitstellt (über 500, z. B. Local, JWT, OAuth2, Google, GitHub).
+* Trennt **Authentifizierung** (Identität prüfen) von **Autorisierung** (Rechte prüfen).
+* Arbeitet über **Strategien**: Jede Strategie implementiert, *wie* User überprüft werden (Passwort, Token, Provider).
+
+---
+
+### **Ablauf**
+
+1. **Strategie konfigurieren** (z. B. Local, JWT, Google).
+2. **Login-Route** → `passport.authenticate("strategie")`.
+3. Bei Erfolg: Passport setzt `req.user`.
+4. **Sessions optional**: User-ID wird in Session gespeichert (serialize/deserialize).
+5. Zugriff auf geschützte Routen → Middleware prüft `req.isAuthenticated()` oder Token.
+
+---
+
+### **Beispiel: Local Strategy (User/Passwort + Session)**
+
+```js
+// auth.mjs
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import bcrypt from "bcrypt";
+import { User } from "./models/user.mjs";
+
+// 1. Strategie definieren
+passport.use(new LocalStrategy(
+  { usernameField: "email", passwordField: "password" },
+  async (email, password, done) => {
+    try {
+      const user = await User.findOne({ where: { email } });
+      if (!user) return done(null, false, { message: "Unknown user" });
+
+      const match = await bcrypt.compare(password, user.passwordHash);
+      if (!match) return done(null, false, { message: "Wrong password" });
+
+      return done(null, user); // Erfolg → req.user = user
+    } catch (err) {
+      return done(err);
+    }
+  }
+));
+
+// 2. Session-Support
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser(async (id, done) => {
+  const user = await User.findByPk(id);
+  done(null, user);
+});
+```
+
+```js
+// app.mjs
+import express from "express";
+import session from "express-session";
+import passport from "passport";
+import "./auth.mjs";
+
+const app = express();
+app.use(express.json());
+app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false }));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Login-Route
+app.post("/login", passport.authenticate("local", {
+  successRedirect: "/profile",
+  failureRedirect: "/login"
+}));
+
+// Geschützte Route
+app.get("/profile", (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).json({ error: "Not logged in" });
+  res.json(req.user);
+});
+```
+
+---
+
+### **Beispiel: JWT Strategy (statt Session)**
+
+```js
+// jwt-auth.mjs
+import passport from "passport";
+import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
+
+passport.use(new JwtStrategy({
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: process.env.JWT_SECRET
+}, async (payload, done) => {
+  try {
+    // z. B. User in DB prüfen
+    return done(null, { id: payload.sub, role: payload.role });
+  } catch (err) {
+    return done(err, false);
+  }
+}));
+
+// usage in Route:
+app.get("/api/private",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => res.json({ user: req.user })
+);
+```
+
+---
+
+### **Best Practices**
+
+* **Sessions**: für klassische Web-Apps (Cookies).
+* **JWT**: für SPAs/Mobile/REST-APIs (stateless).
+* **OAuth2/OpenID Connect**: für Social Logins („Login mit Google/GitHub“).
+* Immer: **HTTPS, sichere Cookies, bcrypt/argon2 für Passwörter, Rate-Limiting**.
+
+---
+
+### **Zusammenfassung**
+
+* Passport.js = **flexibles Auth-Framework für Express** mit Strategien.
+* Ablauf: Strategie → `passport.authenticate` → `req.user`.
+* Nutzbar mit **Sessions (stateful)** oder **JWT/OAuth2 (stateless)**.
+
+🔗 Quellen
+
+* [Passport.js Dokumentation](http://www.passportjs.org/)
+* [Express – Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* [MDN – Authentication vs. Authorization](https://developer.mozilla.org/en-US/docs/Glossary/Authentication)
+
+---
 
   **[⬆ Наверх](#top)**      
 
-225. ### <a name="225"></a> 
+238. ### <a name="238"></a> Welche Vorteile bietet Passport.js in Express?
 
+### **Vorteile von Passport.js in Express**
 
+---
 
-  **[⬆ Наверх](#top)**      
+#### **1) Viele fertige Authentifizierungsstrategien**
 
-226. ### <a name="226"></a> 
+* Über **500 Strategien** verfügbar: Local (User/Passwort), JWT, OAuth2, OpenID Connect, Social Logins (Google, GitHub, Facebook, Twitter …).
+* Spart Zeit, da man keine eigenen Flows komplett neu implementieren muss.
 
+---
 
+#### **2) Einheitliche Middleware-Schnittstelle**
 
-  **[⬆ Наверх](#top)**      
+* Immer gleiches Muster:
 
-227. ### <a name="227"></a> 
+  ```js
+  passport.authenticate("strategie", options)
+  ```
+* Unabhängig davon, ob es sich um Session, JWT oder OAuth handelt.
 
+---
 
+#### **3) Flexibel (Session vs. JWT)**
 
-  **[⬆ Наверх](#top)**      
+* Kann mit **Sessions** (stateful, Cookies) oder **JWT/OAuth** (stateless) genutzt werden.
+* Anpassbar für REST-APIs, SPAs, Mobile-Apps und klassische Web-Apps.
 
-228. ### <a name="228"></a> 
+---
 
+#### **4) Saubere Trennung von Auth-Logik**
 
+* Authentifizierung wird aus den Routes herausgehalten.
+* Strategie = Login-Logik, Middleware = Schutz von Endpunkten.
+* Erhöht **Wartbarkeit** und **Klarheit im Code**.
 
-  **[⬆ Наверх](#top)**      
+---
 
-229. ### <a name="229"></a> 
+#### **5) Integration mit Express**
 
+* Nahtlos in Express-Middleware-Kette einsetzbar.
+* Unterstützt `req.isAuthenticated()`, `req.user`, Sessions → sehr einfaches Role/Permission-Handling.
 
+---
 
-  **[⬆ Наверх](#top)**      
+#### **6) Community & Ökosystem**
 
-230. ### <a name="230"></a>
+* Weit verbreitet, große Community, viele Tutorials.
+* Gut dokumentiert, viele Beispiele für typische Anwendungsfälle.
 
+---
 
-  **[⬆ Наверх](#top)**      
+### **Zusammenfassung**
 
-231. ### <a name="231"></a> 
+* Passport.js bietet **vorgefertigte Strategien**, eine **einheitliche Middleware-API**, ist **flexibel** (Sessions, JWT, OAuth2) und sorgt für **saubere Trennung der Authentifizierungslogik**.
+* Dadurch ist es in Express der **De-facto-Standard** für Authentifizierung.
 
+🔗 Quellen
 
+* [Passport.js Dokumentation](http://www.passportjs.org/)
+* [Express – Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
 
-  **[⬆ Наверх](#top)**      
-
-232. ### <a name="232"></a> 
-
-
-
-  **[⬆ Наверх](#top)**      
-
-233. ### <a name="233"></a> 
-
-
-
-  **[⬆ Наверх](#top)**      
-
-234. ### <a name="234"></a> 
-
-
-
-  **[⬆ Наверх](#top)**      
-
-235. ### <a name="235"></a> 
-
-
-
-  **[⬆ Наверх](#top)**      
-
-236. ### <a name="236"></a> 
-
-
+---
 
   **[⬆ Наверх](#top)**      
 
-237. ### <a name="237"></a> 
+239. ### <a name="239"></a> Unterschied zwischen lokaler Strategie und OAuth-Strategie in Passport.js?
 
+### **Unterschied: Lokale Strategie vs. OAuth-Strategie in Passport.js**
 
+---
+
+### **Lokale Strategie (`passport-local`)**
+
+* **Zweck:** Klassisches Login mit **Benutzername/E-Mail + Passwort**.
+* **Ablauf:**
+
+  1. User sendet Credentials an die App.
+  2. Passport prüft sie mit DB (z. B. bcrypt/argon2-Hash).
+  3. Bei Erfolg → `req.user` gesetzt.
+* **Vorteil:** Vollständige Kontrolle (eigene Userdatenbank).
+* **Nachteil:** App muss **Passwörter sicher speichern** und **Login-Schutzmechanismen** implementieren.
+
+**Beispiel:**
+
+```js
+import { Strategy as LocalStrategy } from "passport-local";
+import bcrypt from "bcrypt";
+
+passport.use(new LocalStrategy(
+  { usernameField: "email" },
+  async (email, password, done) => {
+    const user = await User.findOne({ where: { email } });
+    if (!user) return done(null, false);
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    return ok ? done(null, user) : done(null, false);
+  }
+));
+```
+
+---
+
+### **OAuth-Strategie (z. B. `passport-google-oauth20`, `passport-github2`)**
+
+* **Zweck:** Login über **externen Identity Provider (IdP)** wie Google, GitHub, Facebook.
+* **Ablauf:**
+
+  1. App leitet User zum IdP um.
+  2. User loggt sich dort ein (ggf. MFA).
+  3. IdP gibt Access Token/ID Token an die App zurück.
+  4. Passport nutzt das Token, um Profildaten zu holen → `req.user`.
+* **Vorteil:**
+
+  * Keine Passwortverwaltung in der App.
+  * Externe MFA/Policies nutzbar.
+* **Nachteil:**
+
+  * Abhängigkeit von externem Provider.
+  * Einrichtung erfordert API-Keys, Callback-URLs.
+
+**Beispiel:**
+
+```js
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_ID,
+  clientSecret: process.env.GOOGLE_SECRET,
+  callbackURL: "/auth/google/callback"
+}, (_at, _rt, profile, done) => {
+  const user = { id: profile.id, name: profile.displayName };
+  done(null, user);
+}));
+```
+
+---
+
+### **Vergleich**
+
+| Aspekt        | **Lokale Strategie**                     | **OAuth-Strategie**                           |
+| ------------- | ---------------------------------------- | --------------------------------------------- |
+| Login-Methode | Benutzername/E-Mail + Passwort           | Externer Provider (Google, GitHub, …)         |
+| Credentials   | In eigener DB gespeichert & gehasht      | Bleiben beim Provider (App bekommt nur Token) |
+| Sicherheit    | App muss Passwörter sicher managen       | Provider übernimmt Auth + MFA                 |
+| UX            | Klassisch, Nutzer braucht Account in App | Bequem, „Login mit …“                         |
+| Abhängigkeit  | Keine externe                            | Abhängig von IdP                              |
+
+---
+
+### **Zusammenfassung**
+
+* **Lokale Strategie**: App verwaltet Credentials selbst (klassisches Passwort-Login).
+* **OAuth-Strategie**: Login über externen IdP (Google, GitHub, etc.), App bekommt Tokens/Profildaten.
+* Entscheidung: **Kontrolle & Unabhängigkeit** (Local) vs. **Komfort & Sicherheit** (OAuth).
+
+🔗 Quellen
+
+* [Passport Local](http://www.passportjs.org/packages/passport-local/)
+* [Passport Google OAuth20](http://www.passportjs.org/packages/passport-google-oauth20/)
+* [MDN – OAuth](https://developer.mozilla.org/en-US/docs/Glossary/OAuth)
+
+---
 
   **[⬆ Наверх](#top)**      
 
-238. ### <a name="238"></a> 
+240. ### <a name="240"></a> Wie testet man Authentifizierungs- und Autorisierungslogik in einer Express-App?
 
+### **Strategie: AuthN/AuthZ testen in Express**
 
+* **Ebenen trennen:**
 
-  **[⬆ Наверх](#top)**      
+  1. **Unit-Tests** für Krypto/Token (Passwort-Hash, JWT-Verify).
+  2. **Middleware-Tests** (requireAuth/requireRole).
+  3. **Integrationstests** der Routen mit **Supertest** (positiv/negativ, Cookies/Headers).
+* **Fälle abdecken:** Happy-Path, fehlende/abgelaufene Tokens, falsche Rollen, Manipulation, Ratenbegrenzung (falls vorhanden).
+* **Test-Daten:** Seed/Fixtures; für DB: separate Test-DB (z. B. PostgreSQL im Docker) oder In-Memory-Ansatz, Transaktionen je Test zurückrollen.
 
-239. ### <a name="239"></a> 
+---
 
+### **1) Unit: Passwort-Hash & JWT**
 
+```js
+// __tests__/crypto.test.mjs
+import { test, expect } from "@jest/globals";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-  **[⬆ Наверх](#top)**      
+const SECRET = "test_secret";
 
-240. ### <a name="240"></a>
+test("bcrypt verifiziert korrekt", async () => {
+  const hash = await bcrypt.hash("s3cret", 12);
+  await expect(bcrypt.compare("s3cret", hash)).resolves.toBe(true);
+  await expect(bcrypt.compare("wrong", hash)).resolves.toBe(false);
+});
+
+test("JWT Sign/Verify + Ablauf", async () => {
+  const token = jwt.sign({ sub: "u1", role: "user" }, SECRET, { expiresIn: "1s" });
+  const payload = jwt.verify(token, SECRET);
+  expect(payload.sub).toBe("u1");
+
+  // Ablauf simulieren
+  await new Promise(r => setTimeout(r, 1100));
+  expect(() => jwt.verify(token, SECRET)).toThrow(/jwt expired/i);
+});
+```
+
+---
+
+### **2) Middleware: requireAuth (JWT)**
+
+```js
+// middleware/requireAuth.mjs
+import jwt from "jsonwebtoken";
+export const requireAuth = (req, res, next) => {
+  const raw = req.headers.authorization ?? "";
+  const token = raw.startsWith("Bearer ") ? raw.slice(7) : null;
+  if (!token) return res.status(401).json({ error: "No token" });
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ["HS256"], issuer: "https://auth.example.com", audience: "example.api"
+    });
+    next();
+  } catch { return res.status(403).json({ error: "Invalid/expired token" }); }
+};
+```
+
+```js
+// __tests__/requireAuth.test.mjs
+import { test, expect } from "@jest/globals";
+import express from "express";
+import request from "supertest";
+import jwt from "jsonwebtoken";
+import { requireAuth } from "../middleware/requireAuth.mjs";
+
+process.env.JWT_SECRET = "test_secret";
+
+function mkApp() {
+  const app = express();
+  app.get("/private", requireAuth, (req, res) => res.json({ sub: req.user.sub }));
+  return app;
+}
+
+test("401 ohne Token", async () => {
+  const app = mkApp();
+  const r = await request(app).get("/private");
+  expect(r.status).toBe(401);
+});
+
+test("403 bei ungültigem Token", async () => {
+  const app = mkApp();
+  const r = await request(app).get("/private").set("Authorization", "Bearer bad");
+  expect(r.status).toBe(403);
+});
+
+test("200 mit gültigem Token", async () => {
+  const app = mkApp();
+  const t = jwt.sign({ sub: "u1" }, process.env.JWT_SECRET, { issuer: "https://auth.example.com", audience: "example.api" });
+  const r = await request(app).get("/private").set("Authorization", `Bearer ${t}`);
+  expect(r.status).toBe(200);
+  expect(r.body.sub).toBe("u1");
+});
+```
+
+---
+
+### **3) RBAC: Rollen prüfen**
+
+```js
+// middleware/rbac.mjs
+export const requireRole = (...roles) => (req, res, next) =>
+  req.user && roles.includes(req.user.role)
+    ? next()
+    : res.status(403).json({ error: "Forbidden" });
+```
+
+```js
+// __tests__/rbac.test.mjs
+import { test, expect } from "@jest/globals";
+import express from "express";
+import request from "supertest";
+import { requireRole } from "../middleware/rbac.mjs";
+
+test("403 wenn Rolle fehlt", async () => {
+  const app = express();
+  app.use((req, _res, next) => { req.user = { role: "user" }; next(); });
+  app.delete("/admin", requireRole("admin"), (_req, res) => res.sendStatus(204));
+
+  const r = await request(app).delete("/admin");
+  expect(r.status).toBe(403);
+});
+```
+
+---
+
+### **4) Integration: Session-Auth (Cookies)**
+
+```js
+// __tests__/session-auth.test.mjs
+import { test, expect } from "@jest/globals";
+import express from "express";
+import session from "express-session";
+import request from "supertest";
+
+function mkApp() {
+  const app = express();
+  app.use(express.json());
+  app.use(session({ secret: "t", resave: false, saveUninitialized: false }));
+  app.post("/login", (req, res) => { req.session.user = { id: "u1", role: "user" }; res.sendStatus(204); });
+  const requireSession = (req, res, next) => req.session.user ? next() : res.sendStatus(401);
+  app.get("/me", requireSession, (req, res) => res.json(req.session.user));
+  return app;
+}
+
+test("persistente Session via supertest.agent()", async () => {
+  const app = mkApp();
+  const agent = request.agent(app);
+  await agent.post("/login").send({ email: "a@b.c", password: "x" }).expect(204);
+  const r = await agent.get("/me").expect(200);
+  expect(r.body.id).toBe("u1");
+});
+```
+
+---
+
+### **5) DB-gestützte Tests (Sequelize/Postgres)**
+
+* **Vor jedem Test:** Transaktion starten, Daten seeden.
+* **Nach jedem Test:** Rollback → saubere Isolation.
+
+```js
+// jest.setup.mjs
+import { sequelize } from "../src/db.mjs";
+beforeEach(async () => { global.__tx = await sequelize.transaction(); });
+afterEach(async () => { await global.__tx.rollback(); });
+
+// In Repositories/Controller: Transaktion aus Context/CLS übernehmen (oder explizit injizieren).
+```
+
+---
+
+### **6) Weitere Prüfungen**
+
+* **CORS/Preflight** nur für erlaubte Origins.
+* **Rate Limiting** auf `/auth/login` (z. B. 429 nach X Fehlversuchen).
+* **CSRF** bei Session-Cookies: Token-Check in Tests simulieren (Hidden-Field/Header).
+* **Security-Header** (Helmet) vorhanden? Minimaltest: `X-Content-Type-Options`, `X-Frame-Options`, `Content-Security-Policy` falls konfiguriert.
+
+---
+
+### **Tipps**
+
+* **Supertest** für End-to-End über Express ohne echten Port.
+* **Fake Timers** bei Ablauf/TTL-Logik (`jest.useFakeTimers()` → `advanceTimersByTimeAsync`).
+* **Fixtures/Factories** für Nutzer/Rollen, eindeutige Seeds.
+* **Mocking**: E-Mail/SMS/OAuth-Provider mit Mocks/Fakes testen, nicht real callen.
+
+---
+
+### **Zusammenfassung**
+
+* **Unit**: Krypto & JWT separat prüfen.
+* **Middleware**: `requireAuth`/`requireRole` direkt testen (401/403/200).
+* **Integration**: komplette Flows mit **Supertest** (JWT-Header oder **Sessions mit `agent`**).
+* **DB-Isolation**, **Ablauf/TTL** mit Fake Timern, externe Dienste mocken.
+
+**Quellen**
+
+* **Express**: [Using middleware](https://expressjs.com/de/guide/using-middleware.html) • [Security Best Practices](https://expressjs.com/de/advanced/best-practice-security.html)
+* **Node.js**: [`crypto`](https://nodejs.org/docs/latest/api/crypto.html)
+* **MDN**: [HTTP Status 401/403](https://developer.mozilla.org/ru/docs/Web/HTTP/Status)
+* **Jest**: [Asynchronous Testing](https://jestjs.io/docs/asynchronous) • [Timer Mocks](https://jestjs.io/docs/timer-mocks)
+* **Supertest**: [GitHub – supertest](https://github.com/ladjs/supertest)
+* **Sequelize**: [Transactions](https://sequelize.org/docs/v6/other-topics/transactions/)
 
 
   **[⬆ Наверх](#top)**      
