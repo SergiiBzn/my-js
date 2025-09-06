@@ -16205,129 +16205,1954 @@ app.listen(3000, () => console.log("Server läuft auf Port 3000"));
 
   **[⬆ Наверх](#top)**  
 
-141. ### <a name="141"></a> 
+141. ### <a name="141"></a> Unterschied zwischen Callbacks, Promises und async/await?
 
+**Callbacks**
+
+* Eine Funktion wird als Argument an eine andere Funktion übergeben.
+* Wird aufgerufen, wenn die asynchrone Operation fertig ist.
+* Nachteil: „Callback Hell“ (verschachtelte Strukturen, schwer lesbarer Code).
+
+```js
+// Beispiel mit Callback
+import fs from "fs";
+
+fs.readFile("datei.txt", "utf-8", (err, data) => {
+  if (err) {
+    console.error("Fehler:", err);
+    return;
+  }
+  console.log("Datei-Inhalt:", data);
+});
+```
+
+---
+
+**Promises**
+
+* Objekt, das einen zukünftigen Wert repräsentiert.
+* Hat Zustände: *pending → fulfilled / rejected*.
+* Kann mit `.then()` und `.catch()` behandelt werden.
+* Ermöglicht Kettenbildung und bessere Fehlerbehandlung.
+
+```js
+// Beispiel mit Promise
+import fs from "fs/promises";
+
+fs.readFile("datei.txt", "utf-8")
+  .then((data) => console.log("Datei-Inhalt:", data))
+  .catch((err) => console.error("Fehler:", err));
+```
+
+---
+
+**async/await**
+
+* Syntaktischer Zucker für Promises.
+* Ermöglicht asynchronen Code in synchronem Stil.
+* `await` pausiert die Ausführung, bis das Promise erfüllt oder abgelehnt ist.
+
+```js
+// Beispiel mit async/await
+import fs from "fs/promises";
+
+async function lesen() {
+  try {
+    const data = await fs.readFile("datei.txt", "utf-8");
+    console.log("Datei-Inhalt:", data);
+  } catch (err) {
+    console.error("Fehler:", err);
+  }
+}
+
+lesen();
+```
+
+---
+
+### **Zusammenfassung**
+
+* **Callbacks**: direktes Weitergeben von Funktionen → unübersichtlich bei vielen Verschachtelungen.
+* **Promises**: strukturierter, mit Ketten (`then/catch`).
+* **async/await**: moderner, einfacher zu lesen und zu warten.
+
+📖 Quellen:
+
+* [MDN: Callbacks](https://developer.mozilla.org/ru/docs/Glossary/Callback_function)
+* [MDN: Promises](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+* [MDN: async/await](https://developer.mozilla.org/ru/docs/Learn/JavaScript/Asynchronous/Promises)
 
 
   **[⬆ Наверх](#top)**
 
-142. ### <a name="142"></a> 
+142. ### <a name="142"></a> Typische Callback-Hell-Beispiele und wie man sie vermeidet?
 
+**Callback-Hell-Beispiel**
+Mehrere asynchrone Operationen nacheinander führen zu stark verschachtelten Strukturen:
+
+```js
+// Typische Callback-Hell-Struktur
+import fs from "fs";
+
+fs.readFile("datei1.txt", "utf-8", (err, data1) => {
+  if (err) return console.error(err);
+
+  fs.readFile("datei2.txt", "utf-8", (err, data2) => {
+    if (err) return console.error(err);
+
+    fs.readFile("datei3.txt", "utf-8", (err, data3) => {
+      if (err) return console.error(err);
+
+      console.log("Ergebnis:", data1, data2, data3);
+    });
+  });
+});
+```
+
+Probleme:
+
+* Schwer lesbarer und wartbarer Code
+* Fehlerbehandlung muss in jedem Schritt wiederholt werden
+* Logik ist schwer nachzuvollziehen
+
+---
+
+**Vermeidung mit Promises**
+
+```js
+// Promises statt verschachtelter Callbacks
+import fs from "fs/promises";
+
+fs.readFile("datei1.txt", "utf-8")
+  .then((data1) =>
+    fs.readFile("datei2.txt", "utf-8").then((data2) => [data1, data2])
+  )
+  .then(([data1, data2]) =>
+    fs.readFile("datei3.txt", "utf-8").then((data3) => [data1, data2, data3])
+  )
+  .then(([data1, data2, data3]) => {
+    console.log("Ergebnis:", data1, data2, data3);
+  })
+  .catch((err) => console.error("Fehler:", err));
+```
+
+---
+
+**Vermeidung mit async/await**
+
+```js
+// Klarer und besser lesbar mit async/await
+import fs from "fs/promises";
+
+async function main() {
+  try {
+    const data1 = await fs.readFile("datei1.txt", "utf-8");
+    const data2 = await fs.readFile("datei2.txt", "utf-8");
+    const data3 = await fs.readFile("datei3.txt", "utf-8");
+
+    console.log("Ergebnis:", data1, data2, data3);
+  } catch (err) {
+    console.error("Fehler:", err);
+  }
+}
+
+main();
+```
+
+---
+
+**Best Practices zur Vermeidung von Callback-Hell**
+
+* **Promises** oder **async/await** verwenden
+* **Promise.all()** nutzen, wenn Aufgaben parallel ausführbar sind
+
+```js
+// Parallel mit Promise.all()
+const [data1, data2, data3] = await Promise.all([
+  fs.readFile("datei1.txt", "utf-8"),
+  fs.readFile("datei2.txt", "utf-8"),
+  fs.readFile("datei3.txt", "utf-8"),
+]);
+console.log("Parallel Ergebnis:", data1, data2, data3);
+```
+
+---
+
+### **Zusammenfassung**
+
+* Callback-Hell entsteht durch **tiefe Verschachtelung** asynchroner Funktionen.
+* Lösung: **Promises** oder **async/await** einsetzen.
+* Mit `Promise.all()` können unabhängige Tasks parallel laufen.
+
+📖 Quellen:
+
+* [MDN – Callback-Funktion](https://developer.mozilla.org/ru/docs/Glossary/Callback_function)
+* [MDN – Promise](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+* [Node.js – fs/promises](https://nodejs.org/docs/latest/api/fs.html#fspromisesapi)
+
+---
 
 
   **[⬆ Наверх](#top)**
 
-143. ### <a name="143"></a> 
+143. ### <a name="143"></a> Wie funktioniert Promise.all()?
 
+**Funktionsweise von `Promise.all()`**
+
+* Nimmt ein **Array von Promises** entgegen.
+* Gibt ein **neues Promise** zurück.
+* Dieses Promise wird:
+
+  * **fulfilled**, wenn *alle* Promises erfüllt sind → liefert ein Array mit den Ergebnissen in derselben Reihenfolge wie die Eingabe.
+  * **rejected**, wenn *ein einziges* Promise fehlschlägt → sofort abgelehnt mit dem ersten Fehler.
+
+---
+
+**Beispiel mit mehreren Promises**
+
+```js
+function task(ms, name) {
+  return new Promise((resolve) =>
+    setTimeout(() => resolve(`${name} fertig`), ms)
+  );
+}
+
+async function runTasks() {
+  try {
+    const results = await Promise.all([
+      task(1000, "A"),
+      task(2000, "B"),
+      task(1500, "C"),
+    ]);
+
+    console.log(results); 
+    // Ausgabe nach ca. 2 Sek: ["A fertig", "B fertig", "C fertig"]
+  } catch (err) {
+    console.error("Fehler:", err);
+  }
+}
+
+runTasks();
+```
+
+---
+
+**Beispiel mit Fehler**
+
+```js
+function task(ms, name, fail = false) {
+  return new Promise((resolve, reject) =>
+    setTimeout(() => {
+      fail ? reject(new Error(`${name} fehlgeschlagen`)) : resolve(`${name} fertig`);
+    }, ms)
+  );
+}
+
+async function runTasks() {
+  try {
+    const results = await Promise.all([
+      task(1000, "A"),
+      task(2000, "B", true), // schlägt fehl
+      task(1500, "C"),
+    ]);
+
+    console.log(results);
+  } catch (err) {
+    console.error("Fehler gefangen:", err.message); 
+    // Ausgabe: "Fehler gefangen: B fehlgeschlagen"
+  }
+}
+
+runTasks();
+```
+
+---
+
+**Typische Anwendungsfälle**
+
+* Mehrere **unabhängige API-Requests** parallel ausführen.
+* Dateien gleichzeitig laden.
+* Datenbank-Queries parallel absetzen.
+
+---
+
+### **Zusammenfassung**
+
+* `Promise.all()` → führt Promises **parallel** aus.
+* Liefert Ergebnisse als Array in **gleicher Reihenfolge** zurück.
+* Wird **sofort rejected**, wenn eines der Promises fehlschlägt.
+
+📖 Quellen:
+
+* [MDN: Promise.all()](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Promise/all)
+* [Node.js Promise APIs](https://nodejs.org/docs/latest/api/esm.html#promises)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+144. ### <a name="144"></a> Unterschied zwischen Promise.allSettled() und Promise.race()?
+
+**`Promise.allSettled()`**
+
+* Wartet, bis **alle Promises abgeschlossen** sind (egal ob fulfilled oder rejected).
+* Gibt ein Array mit Objekten zurück, die den Status und das Ergebnis jedes Promises enthalten.
+* Kein Abbruch bei Fehlern → nützlich, wenn man *alle Ergebnisse* braucht.
+
+```js
+const promises = [
+  Promise.resolve("A fertig"),
+  Promise.reject("B Fehler"),
+  Promise.resolve("C fertig"),
+];
+
+const result = await Promise.allSettled(promises);
+
+console.log(result);
+/*
+[
+  { status: "fulfilled", value: "A fertig" },
+  { status: "rejected", reason: "B Fehler" },
+  { status: "fulfilled", value: "C fertig" }
+]
+*/
+```
+
+---
+
+**`Promise.race()`**
+
+* Liefert das Ergebnis des **ersten beendeten Promises** (egal ob fulfilled oder rejected).
+* Nützlich, wenn nur das **schnellste Ergebnis** zählt (z. B. Timeout-Strategien).
+
+```js
+function task(ms, name, fail = false) {
+  return new Promise((resolve, reject) =>
+    setTimeout(() => fail ? reject(`${name} Fehler`) : resolve(`${name} fertig`), ms)
+  );
+}
+
+try {
+  const result = await Promise.race([
+    task(2000, "A"),
+    task(1000, "B"),
+    task(1500, "C", true),
+  ]);
+
+  console.log(result); // Ausgabe nach 1 Sek: "B fertig"
+} catch (err) {
+  console.error("Fehler:", err);
+}
+```
+
+---
+
+### **Vergleich**
+
+| Methode                  | Verhalten                                                       |
+| ------------------------ | --------------------------------------------------------------- |
+| **Promise.allSettled()** | Wartet auf alle → liefert Array mit Status & Wert/Fehler        |
+| **Promise.race()**       | Liefert Ergebnis des ersten erfüllten/fehlgeschlagenen Promises |
+
+---
+
+### **Zusammenfassung**
+
+* **`Promise.allSettled()`**: immer vollständiger Überblick, keine Abbrüche.
+* **`Promise.race()`**: erstes Promise „gewinnt“, egal ob Erfolg oder Fehler.
+
+📖 Quellen:
+
+* [MDN: Promise.allSettled()](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled)
+* [MDN: Promise.race()](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Promise/race)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+145. ### <a name="145"></a> Wie funktioniert async/await intern?
+
+**Funktionsweise von `async/await` intern**
+
+1. **`async` Funktion**
+
+   * Deklariert man eine Funktion mit `async`, wird sie **immer ein Promise zurückgeben**, egal ob man explizit ein Promise zurückgibt oder nicht.
+   * Rückgabewert:
+
+     * `return <Wert>` → wird zu `Promise.resolve(<Wert>)`
+     * `throw <Fehler>` → wird zu `Promise.reject(<Fehler>)`
+
+```js
+async function test() {
+  return 42; 
+}
+console.log(test()); // Promise { 42 }
+```
+
+---
+
+2. **`await` Ausdruck**
+
+   * `await` pausiert die Ausführung innerhalb der `async` Funktion, bis das Promise erfüllt oder abgelehnt ist.
+   * Intern nutzt JavaScript den **Event Loop** und die **Microtask Queue** (Promises werden dort abgearbeitet).
+   * Der restliche Code wird nach Erfüllung in eine neue Microtask gelegt.
+
+```js
+async function demo() {
+  console.log("Start");
+  const result = await Promise.resolve("fertig");
+  console.log(result); // nach Microtask
+  console.log("Ende");
+}
+
+demo();
+console.log("außerhalb");
+
+// Ausgabe:
+// Start
+// außerhalb
+// fertig
+// Ende
+```
+
+---
+
+3. **Übersetzung in Promises**
+
+   * `async/await` ist syntaktischer Zucker für Promises + `.then()`.
+   * Beispiel mit `await`:
+
+```js
+// Mit async/await
+async function lesen() {
+  const data = await Promise.resolve("Daten");
+  return data;
+}
+
+// Entspricht in etwa
+function lesen() {
+  return Promise.resolve("Daten").then((data) => {
+    return data;
+  });
+}
+```
+
+---
+
+4. **Fehlerbehandlung**
+
+   * Mit `try/catch` abfangen → entspricht `.catch()` bei Promises.
+
+```js
+async function fehler() {
+  try {
+    const res = await Promise.reject("Problem");
+    console.log(res);
+  } catch (err) {
+    console.error("Gefangen:", err);
+  }
+}
+
+// Entspricht:
+Promise.reject("Problem").catch((err) => console.error("Gefangen:", err));
+```
+
+---
+
+### **Zusammenfassung**
+
+* `async` → Funktion gibt immer ein **Promise** zurück.
+* `await` → pausiert innerhalb der Funktion, setzt Rest in die **Microtask Queue**.
+* Intern wird `async/await` zu einer Kombination aus **Promises + then/catch** kompiliert.
+* Fehlerbehandlung über `try/catch`.
+
+📖 Quellen:
+
+* [MDN: async/await](https://developer.mozilla.org/ru/docs/Learn/JavaScript/Asynchronous/Promises#async_and_await)
+* [Node.js Doku – Async Functions](https://nodejs.org/docs/latest/api/async_context.html)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+146. ### <a name="146"></a> Warum ist Error-Handling bei async/await kritisch?
+
+**Warum Error-Handling bei `async/await` kritisch ist**
+
+1. **Alle `async` Funktionen geben ein Promise zurück**
+
+   * Wird ein Fehler geworfen (`throw`), entspricht das einem **`Promise.reject()`**.
+   * Ohne Fehlerbehandlung endet das Promise abgelehnt → „UnhandledPromiseRejection“.
+   * In Node.js führt das zu Warnungen, in neueren Versionen sogar zum Prozessabbruch.
+
+---
+
+2. **Fehler werden „unsichtbar“ ohne `try/catch`**
+
+   * Anders als bei synchronem Code stoppt ein Fehler nicht sofort das Programm.
+   * Der Fehler landet im Promise und muss explizit abgefangen werden.
+
+```js
+async function fehler() {
+  JSON.parse("ungültig"); // SyntaxError
+}
+
+fehler(); 
+// Ohne catch → UnhandledPromiseRejectionWarning in Node.js
+```
+
+---
+
+3. **Best Practices für Error-Handling**
+
+* **try/catch innerhalb async Funktionen**
+
+```js
+async function demo() {
+  try {
+    const res = await Promise.reject("Fehler!");
+    console.log(res);
+  } catch (err) {
+    console.error("Gefangen:", err);
+  }
+}
+demo();
+```
+
+* **`.catch()` beim Aufruf**
+
+```js
+async function api() {
+  throw new Error("API down");
+}
+
+api().catch((err) => console.error("Fehler behandelt:", err.message));
+```
+
+* **Globale Fehlerbehandlung in Node.js**
+
+```js
+process.on("unhandledRejection", (reason) => {
+  console.error("Unbehandeltes Promise:", reason);
+});
+```
+
+---
+
+4. **Warum kritisch?**
+
+* Ohne sauberes Error-Handling → schwer reproduzierbare Bugs.
+* Produktionssysteme können abstürzen oder in undefiniertem Zustand bleiben.
+* In Backend-Apps (z. B. Express) muss man Fehler **immer** abfangen und an die Middleware weiterleiten.
+
+---
+
+### **Zusammenfassung**
+
+* Fehler in `async/await` sind **Promises**, nicht normale Exceptions.
+* Ohne **explizites Handling** drohen *UnhandledPromiseRejections* → instabile Anwendungen.
+* Lösung: **try/catch**, `.catch()`, oder globale Fehler-Handler.
+
+📖 Quellen:
+
+* [MDN: Fehlerbehandlung bei async/await](https://developer.mozilla.org/ru/docs/Learn/JavaScript/Asynchronous/Promises#%D0%9E%D0%B1%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0_%D0%BE%D1%88%D0%B8%D0%B1%D0%BE%D0%BA)
+* [Node.js Errors & Rejections](https://nodejs.org/docs/latest/api/process.html#event-unhandledrejection)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+147. ### <a name="147"></a> Unterschied zwischen for...of und forEach in async Code?
+
+**Unterschied zwischen `for...of` und `forEach` in async Code**
+
+---
+
+### **`forEach`**
+
+* Erwartet eine Callback-Funktion.
+* Ignoriert `await` im Callback → der äußere Code wartet nicht.
+* Läuft sofort durch, ohne die asynchronen Operationen abzuwarten.
+
+```js
+// Fehlerhaftes Verhalten
+const arr = [1, 2, 3];
+
+arr.forEach(async (num) => {
+  await new Promise((res) => setTimeout(res, 1000));
+  console.log(num);
+});
+
+console.log("Ende");
+// Ausgabe:
+// Ende (sofort)
+// 1
+// 2
+// 3   (mit Verzögerung, aber parallel, nicht nacheinander)
+```
+
+---
+
+### **`for...of`**
+
+* Unterstützt `await` direkt.
+* Jeder Durchlauf wartet auf den Abschluss des vorherigen → sequentielle Ausführung.
+
+```js
+const arr = [1, 2, 3];
+
+for (const num of arr) {
+  await new Promise((res) => setTimeout(res, 1000));
+  console.log(num);
+}
+
+console.log("Ende");
+// Ausgabe:
+// 1 (nach 1 Sekunde)
+// 2 (nach 2 Sekunden)
+// 3 (nach 3 Sekunden)
+// Ende
+```
+
+---
+
+### **Parallel mit `Promise.all()`**
+
+* Falls Operationen unabhängig sind, ist parallele Ausführung effizienter.
+
+```js
+const arr = [1, 2, 3];
+
+await Promise.all(
+  arr.map(async (num) => {
+    await new Promise((res) => setTimeout(res, 1000));
+    console.log(num);
+  })
+);
+
+console.log("Ende");
+// Ausgabe nach ~1 Sek: 1, 2, 3 (Reihenfolge nicht garantiert)
+```
+
+---
+
+### **Vergleich**
+
+| Kriterium       | `forEach`                            | `for...of`                      |
+| --------------- | ------------------------------------ | ------------------------------- |
+| `await` Support | Ignoriert `await` im Callback        | Unterstützt `await` nativ       |
+| Ablauf          | Alles fast sofort → unkontrolliert   | Sequentiell, wartet pro Schritt |
+| Parallelität    | Pseudo-parallel (nicht kontrolliert) | Seriell, aber zuverlässig       |
+| Empfehlung      | Nicht für async geeignet             | Standard für async Iterationen  |
+
+---
+
+### **Zusammenfassung**
+
+* `forEach` ist **nicht async-freundlich** → `await` wirkt dort nicht.
+* `for...of` erlaubt **korrektes sequentielles Warten**.
+* Für parallele Tasks → **`Promise.all()`** mit `.map()`.
+
+📖 Quellen:
+
+* [MDN: for...of](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/for...of)
+* [MDN: Array.prototype.forEach()](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+148. ### <a name="148"></a> Was sind EventEmitter in Node.js?
+
+**EventEmitter in Node.js**
+
+1. **Definition**
+
+* `EventEmitter` ist ein zentrales Modul in Node.js (`events`-Modul).
+* Es implementiert das **Publisher/Subscriber-Muster**.
+* Ein Objekt kann Ereignisse („events“) **emittieren** und andere Teile des Codes können darauf mit **Listenern** reagieren.
+
+---
+
+2. **Grundprinzip**
+
+* `emitter.on(event, listener)` → registriert Listener.
+* `emitter.emit(event, args)` → löst Ereignis aus.
+* `emitter.removeListener` / `emitter.off` → entfernt Listener.
+* `emitter.once` → Listener wird nur einmal ausgeführt.
+
+---
+
+3. **Beispiel**
+
+```js
+import { EventEmitter } from "events";
+
+const emitter = new EventEmitter();
+
+// Listener registrieren
+emitter.on("greet", (name) => {
+  console.log(`Hallo, ${name}!`);
+});
+
+// Event auslösen
+emitter.emit("greet", "Sergii"); 
+// Ausgabe: "Hallo, Sergii!"
+```
+
+---
+
+4. **`once` Beispiel**
+
+```js
+emitter.once("init", () => {
+  console.log("Initialisierung nur einmal!");
+});
+
+emitter.emit("init");  // wird ausgeführt
+emitter.emit("init");  // wird ignoriert
+```
+
+---
+
+5. **Praktische Anwendungsfälle**
+
+* Kommunikation zwischen Modulen innerhalb einer Node.js-App.
+* Eigene Events in Streams, Datenbanken oder Sockets.
+* In Frameworks wie **Express** intern stark genutzt (z. B. `req`, `res` sind EventEmitter).
+
+```js
+// Beispiel mit HTTP-Server
+import http from "http";
+
+const server = http.createServer((req, res) => {
+  res.end("Hallo Welt");
+});
+
+// EventEmitter im Einsatz
+server.on("request", (req, res) => {
+  console.log(`Neue Anfrage: ${req.url}`);
+});
+
+server.listen(3000);
+```
+
+---
+
+### **Zusammenfassung**
+
+* `EventEmitter` ist das Node.js-Pattern für Events (Pub/Sub).
+* Methoden: `.on`, `.emit`, `.once`, `.off`.
+* Basis für Streams, HTTP-Server, Socket.io, interne Node.js-Mechanismen.
+
+📖 Quellen:
+
+* [Node.js Dokumentation – EventEmitter](https://nodejs.org/docs/latest/api/events.html)
+* [MDN: Observer Pattern (Grundidee)](https://developer.mozilla.org/ru/docs/Archive/Add-ons/Observer_Notifications)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+149. ### <a name="149"></a> Wie implementiert man Custom Events mit EventEmitter?
+
+**Custom Events mit `EventEmitter` implementieren**
+
+---
+
+### 1) Eigene Event-Quelle erstellen (Klasse erweitern)
+
+```js
+// events/UserService.js
+import { EventEmitter } from "events";
+
+export class UserService extends EventEmitter {
+  async createUser(payload) {
+    // … Domain-Logik, z. B. DB-Insert
+    const user = { id: 1, ...payload };
+    this.emit("user:created", user);      // Custom Event
+    return user;
+  }
+
+  async deleteUser(id) {
+    // … DB-Löschung
+    this.emit("user:deleted", { id });     // Custom Event
+  }
+}
+```
+
+**Verwendung & Listener registrieren**
+
+```js
+// app.js
+import { UserService } from "./events/UserService.js";
+
+const users = new UserService();
+
+// Listener (Subscriber)
+users.on("user:created", (user) => {
+  console.log("Neu erstellt:", user);
+});
+
+users.on("user:deleted", ({ id }) => {
+  console.log("Gelöscht:", id);
+});
+
+// einmaliger Listener
+users.once("user:created", () => {
+  console.log("Dieser Log kommt nur beim ersten Create.");
+});
+
+// Events auslösen
+await users.createUser({ name: "Sergii" });
+await users.deleteUser(1);
+```
+
+---
+
+### 2) In Express-Routen emittieren (Entkopplung von Nebenwirkungen)
+
+```js
+// routes/users.js
+import { Router } from "express";
+import { UserService } from "../events/UserService.js";
+
+const router = Router();
+const users = new UserService();
+
+router.post("/", async (req, res, next) => {
+  try {
+    const user = await users.createUser(req.body);
+    res.status(201).json(user);
+  } catch (e) {
+    // Fehler-Event optional
+    users.emit("user:error", e);
+    next(e);
+  }
+});
+
+export default router;
+```
+
+---
+
+### 3) Best Practices
+
+```js
+import { EventEmitter } from "events";
+
+class OrderService extends EventEmitter {
+  constructor() {
+    super();
+    // Optional: Warnungen bei zu vielen Listenern vermeiden/prüfen
+    this.setMaxListeners(20);
+  }
+
+  async place(order) {
+    try {
+      // … persistieren
+      this.emit("order:placed", order);
+    } catch (err) {
+      // ACHTUNG: 'error' ist speziell — ohne Listener wirft Node eine Exception
+      this.emit("error", err);
+    }
+  }
+}
+
+const orders = new OrderService();
+
+// 'error' immer behandeln!
+orders.on("error", (err) => {
+  console.error("Order-Fehler:", err);
+});
+
+// Abmelden von Listenern
+function onPlaced(o) { console.log("Placed:", o.id); }
+orders.on("order:placed", onPlaced);
+
+// später:
+orders.off("order:placed", onPlaced); // oder removeListener(...)
+```
+
+**Wichtige Punkte**
+
+* **Namenskonventionen**: Namensräume wie `"user:created"`, `"order:placed"`.
+* **`error`-Event**: Ohne registrierten `error`-Listener wirft Node eine Ausnahme. Immer behandeln.
+* **Lebenszyklus**: `on` (mehrfach), `once` (einmalig), `off/removeListener` (abbestellen), `removeAllListeners` (aufräumen).
+* **Reihenfolge**: Listener werden in **Registrier-Reihenfolge** synchron aufgerufen.
+* **Performance/Leaks**: `setMaxListeners(n)` sinnvoll setzen und ungenutzte Listener abmelden.
+
+---
+
+### 4) Typisierung (optional, TS-Idee in JS über JSDoc)
+
+```js
+// Durch JSDoc "Events" dokumentieren
+/**
+ * @typedef {"user:created"|"user:deleted"|"error"} UserEvents
+ */
+
+export class UserService extends EventEmitter {
+  /** @param {import("events").Listener} listener */
+  on(event, listener) { return super.on(event, listener); }
+}
+```
+
+---
+
+### **Zusammenfassung**
+
+* Eigene Events = `emit("<namespace:event>", payload)`; Listener mit `on/once` registrieren.
+* `error`-Event immer behandeln, sonst Ausnahme.
+* Listener-Lebenszyklus aktiv managen (`off`, `removeAllListeners`, `setMaxListeners`).
+* In Express sinnvoll für **Entkopplung** (Side-Effects wie Logging, E-Mail, Caching).
+
+📖 Quellen:
+
+* [Node.js Dokumentation – `events`](https://nodejs.org/docs/latest/api/events.html)
+* [Node.js – Fehlerereignis `error`](https://nodejs.org/docs/latest/api/events.html#event-error)
+* [MDN – Observer/Publish-Subscribe (allg. Konzept)](https://developer.mozilla.org/ru/docs/Archive/Add-ons/Observer_Notifications)
 
 
   **[⬆ Наверх](#top)**
 
-144. ### <a name="144"></a> 
+150. ### <a name="150"></a> Unterschied zwischen once und on bei Events?
 
+**Unterschied zwischen `.on()` und `.once()` bei Events in Node.js**
 
+---
 
-  **[⬆ Наверх](#top)**
+### `.on(event, listener)`
 
-145. ### <a name="145"></a> 
+* Registriert einen Listener für ein bestimmtes Event.
+* Der Listener wird **jedes Mal** ausgeführt, wenn das Event ausgelöst wird.
+* Typisch für Events, die wiederholt auftreten können (z. B. `"data"`, `"connection"`).
 
+```js
+import { EventEmitter } from "events";
 
+const emitter = new EventEmitter();
 
-  **[⬆ Наверх](#top)**
+emitter.on("ping", () => {
+  console.log("Ping empfangen");
+});
 
-146. ### <a name="146"></a> 
+emitter.emit("ping"); // → Ping empfangen
+emitter.emit("ping"); // → Ping empfangen (erneut)
+```
 
+---
 
+### `.once(event, listener)`
 
-  **[⬆ Наверх](#top)**
+* Registriert einen Listener, der **nur einmal** aufgerufen wird.
+* Danach wird der Listener automatisch entfernt.
+* Praktisch für Initialisierungen, einmalige Aktionen (z. B. `"ready"`, `"connected"`).
 
-147. ### <a name="147"></a> 
+```js
+emitter.once("init", () => {
+  console.log("Init nur einmal");
+});
 
+emitter.emit("init"); // → Init nur einmal
+emitter.emit("init"); // → kein Aufruf mehr
+```
 
+---
 
-  **[⬆ Наверх](#top)**
+### Vergleich in der Praxis
 
-148. ### <a name="148"></a> 
+| Methode | Aufrufhäufigkeit | Einsatzgebiet                                      |
+| ------- | ---------------- | -------------------------------------------------- |
+| `.on`   | unbegrenzt       | wiederholte Events (z. B. Daten-Streams, Requests) |
+| `.once` | nur einmal       | Initialisierung, Setup, einmalige Ereignisse       |
 
+---
 
+### **Zusammenfassung**
 
-  **[⬆ Наверх](#top)**
+* `.on()` → Listener reagiert bei **jedem Event**.
+* `.once()` → Listener reagiert **nur beim ersten Mal** und wird dann entfernt.
+* Best Practice: `.once()` für Initial-Events, `.on()` für wiederkehrende Events.
 
-149. ### <a name="149"></a> 
+📖 Quellen:
 
+* [Node.js Doku – EventEmitter.on()](https://nodejs.org/docs/latest/api/events.html#emitteroneventname-listener)
+* [Node.js Doku – EventEmitter.once()](https://nodejs.org/docs/latest/api/events.html#emitteronceeventname-listener)
 
-
-  **[⬆ Наверх](#top)**
-
-150. ### <a name="150"></a> 
-
-
+---
 
   **[⬆ Наверх](#top)**  
 
-151. ### <a name="151"></a> 
+151. ### <a name="151"></a> Unterschied zwischen SQL und NoSQL?
 
+**Unterschied zwischen SQL und NoSQL**
 
+---
+
+### **SQL (Relationale Datenbanken)**
+
+* Strukturierte Daten in **Tabellen** (Zeilen = Datensätze, Spalten = Attribute).
+* Statische **Schemas** → feste Struktur, Änderungen oft aufwendig.
+* **ACID**-Eigenschaften (Atomicity, Consistency, Isolation, Durability).
+* Nutzt **SQL-Sprache** für Abfragen.
+* Gut für: komplexe Relationen, strukturierte Daten, Transaktionen.
+
+**Beispiele:** PostgreSQL, MySQL, Oracle, MS SQL Server.
+
+```sql
+-- SQL Beispiel: Tabelle "users"
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100),
+  email VARCHAR(100) UNIQUE
+);
+
+-- Abfrage
+SELECT id, name FROM users WHERE email = 'test@mail.com';
+```
+
+---
+
+### **NoSQL (Nicht-relationale Datenbanken)**
+
+* Flexible **Schema-Struktur** (schemalos oder dynamisch).
+* Speichert Daten in unterschiedlichen Formaten:
+
+  * **Dokumente** (JSON-ähnlich, z. B. MongoDB)
+  * **Key-Value Stores** (z. B. Redis)
+  * **Wide-Column Stores** (z. B. Cassandra)
+  * **Graph-Datenbanken** (z. B. Neo4j)
+* **BASE**-Eigenschaften (Basically Available, Soft state, Eventually consistent).
+* Skalierung: horizontal einfacher durch Sharding.
+* Gut für: große, unstrukturierte Datenmengen, flexible Modelle, schnelle Entwicklung.
+
+**Beispiel MongoDB (Dokument-Speicher):**
+
+```js
+// Collection "users" (ähnlich JSON)
+{
+  "_id": 1,
+  "name": "Sergii",
+  "email": "test@mail.com",
+  "hobbies": ["Coding", "Fitness"]
+}
+```
+
+---
+
+### **Vergleich**
+
+| Kriterium          | SQL (Relational)                      | NoSQL (Nicht-relational)            |
+| ------------------ | ------------------------------------- | ----------------------------------- |
+| **Datenmodell**    | Tabellen, feste Spalten               | Dokumente, Key-Value, Graph, Column |
+| **Schema**         | Strikt, vorab definiert               | Flexibel, schemalos                 |
+| **Transaktionen**  | Stark (ACID)                          | Schwächer, oft eventual consistency |
+| **Skalierung**     | Vertikal (größere Hardware)           | Horizontal (mehr Server)            |
+| **Abfragesprache** | SQL                                   | Unterschiedlich (Mongo Query, API)  |
+| **Einsatzgebiete** | Finanzwesen, ERP, strukturierte Daten | Big Data, Realtime Apps, IoT        |
+
+---
+
+### **Zusammenfassung**
+
+* **SQL**: strukturiert, ACID, relational, streng im Schema → ideal für komplexe Relationen & Konsistenz.
+* **NoSQL**: flexibel, verteilt, BASE, skalierbar → ideal für unstrukturierte, große Datenmengen.
+
+📖 Quellen:
+
+* [PostgreSQL Dokumentation](https://www.postgresql.org/docs/)
+* [MongoDB Dokumentation](https://www.mongodb.com/docs/)
+* [MDN – NoSQL Einführung](https://developer.mozilla.org/en-US/docs/Glossary/NoSQL)
+
+---
 
   **[⬆ Наверх](#top)**
 
-152. ### <a name="152"></a> 
+152. ### <a name="152"></a> Wann verwendet man relationale DB vs. dokumentbasierte DB?
 
+**Wann relationale Datenbanken (SQL) vs. dokumentbasierte Datenbanken (NoSQL, z. B. MongoDB)?**
 
+---
+
+### **Relationale Datenbanken (SQL, z. B. PostgreSQL, MySQL)**
+
+**Verwenden, wenn …**
+
+* **Klare, stabile Strukturen** → Datenmodell ändert sich selten.
+* **Starke Konsistenz** benötigt wird (z. B. Banktransaktionen, Buchhaltung).
+* **Komplexe Relationen** bestehen (JOINs zwischen mehreren Tabellen).
+* **ACID-Eigenschaften** wichtig sind → garantierte Transaktionen.
+* **Analytische Abfragen** über viele Tabellen nötig sind.
+
+**Beispiele:**
+
+* Bankensysteme
+* ERP-Systeme
+* E-Commerce (Bestellungen, Rechnungen)
+* Buchhaltungssysteme
+
+---
+
+### **Dokumentbasierte Datenbanken (NoSQL, z. B. MongoDB, CouchDB)**
+
+**Verwenden, wenn …**
+
+* **Flexible Strukturen** benötigt werden (Datenmodell kann sich oft ändern).
+* **Schnelle Entwicklung** → kein aufwendiges Schema-Design.
+* **Horizontale Skalierung** wichtig ist (Sharding, Cloud-native Apps).
+* Daten eher **objektartig** (JSON/Document) sind, wie bei REST-/GraphQL-APIs.
+* Große Mengen **unstrukturierter oder semi-strukturierter Daten** gespeichert werden müssen.
+
+**Beispiele:**
+
+* Social Media (Posts, Kommentare, Likes)
+* IoT-Anwendungen (heterogene Sensordaten)
+* Echtzeit-Apps (Chats, Live-Tracking)
+* Content-Management-Systeme
+
+---
+
+### **Vergleich – Praxisentscheid**
+
+| Kriterium       | Relationale DB (SQL)                 | Dokumentbasierte DB (NoSQL)      |
+| --------------- | ------------------------------------ | -------------------------------- |
+| **Schema**      | Streng, stabil                       | Flexibel, variabel               |
+| **Konsistenz**  | Stark (ACID)                         | Eventual Consistency (BASE)      |
+| **Datenmengen** | Eher mittelgroß, normalisierte Daten | Sehr groß, unstrukturierte Daten |
+| **Relationen**  | Komplex (JOINs, Normalisierung)      | Einfach oder durch Referenzen    |
+| **Skalierung**  | Vertikal (größere Hardware)          | Horizontal (mehr Server)         |
+| **Beispiele**   | Banken, Rechnungen, ERP              | Social Media, IoT, Realtime-Apps |
+
+---
+
+### **Zusammenfassung**
+
+* **Relationale DB**: geeignet für strukturierte Daten mit festen Relationen, wo **Konsistenz und Integrität** höchste Priorität haben.
+* **Dokumentbasierte DB**: geeignet für dynamische, wachsende Datenmodelle mit **Flexibilität und Skalierbarkeit** als Priorität.
+
+📖 Quellen:
+
+* [PostgreSQL Docs](https://www.postgresql.org/docs/)
+* [MongoDB Docs](https://www.mongodb.com/docs/)
+* [MDN – NoSQL Überblick](https://developer.mozilla.org/en-US/docs/Glossary/NoSQL)
+
+---
 
   **[⬆ Наверх](#top)**
 
-153. ### <a name="153"></a> 
+153. ### <a name="153"></a> Unterschiede zwischen PostgreSQL, MySQL und SQLite?
 
+**Unterschiede zwischen PostgreSQL, MySQL und SQLite**
 
+---
+
+### **PostgreSQL**
+
+* **Art**: Objekt-relationales DBMS (ORDBMS).
+* **Stärken**:
+
+  * Sehr mächtig bei **komplexen Abfragen** (CTE, Window Functions).
+  * **ACID**-konform, stark bei **Transaktionen**.
+  * Unterstützung für **JSON, Arrays, benutzerdefinierte Typen, Stored Procedures**.
+  * Geeignet für **große, skalierbare Systeme**.
+* **Einsatzgebiete**: Unternehmens-Apps, Data Warehousing, APIs, Systeme mit komplexer Logik.
+
+```sql
+-- Beispiel PostgreSQL: JSON-Spalte abfragen
+SELECT data->>'email'
+FROM users
+WHERE data->>'role' = 'admin';
+```
+
+---
+
+### **MySQL**
+
+* **Art**: Relationales DBMS.
+* **Stärken**:
+
+  * Sehr verbreitet, besonders im **Web-Umfeld** (LAMP-Stack).
+  * **Schnell** bei Lese-Operationen.
+  * Breite Community und viele Tools (phpMyAdmin, Workbench).
+* **Schwächen**:
+
+  * Früher schwächer bei **ACID**- und Transaktions-Support (inzwischen mit InnoDB verbessert).
+  * Weniger mächtig bei komplexen Queries im Vergleich zu PostgreSQL.
+* **Einsatzgebiete**: Web-Anwendungen, CMS (WordPress, Drupal, Joomla), E-Commerce.
+
+```sql
+-- Beispiel MySQL: einfache Abfrage
+SELECT name, email 
+FROM users 
+WHERE active = 1 
+ORDER BY created_at DESC;
+```
+
+---
+
+### **SQLite**
+
+* **Art**: Leichtgewichtiges, dateibasiertes relationales DBMS.
+* **Stärken**:
+
+  * Keine separate Server-Installation → läuft direkt in einer Datei.
+  * Sehr **portabel**, minimaler Overhead.
+  * Ideal für **Embedded Systems, Prototyping, Mobile Apps** (z. B. iOS, Android).
+* **Schwächen**:
+
+  * Nicht für **hohe Parallelität oder riesige Datenmengen** gedacht.
+  * Begrenzte Features im Vergleich zu PostgreSQL/MySQL.
+* **Einsatzgebiete**: Mobile Apps, kleine Tools, lokale Anwendungen, Tests.
+
+```sql
+-- Beispiel SQLite: einfache Tabelle
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  email TEXT
+);
+```
+
+---
+
+### **Vergleichstabelle**
+
+| Merkmal         | PostgreSQL                         | MySQL                                   | SQLite                              |
+| --------------- | ---------------------------------- | --------------------------------------- | ----------------------------------- |
+| **Architektur** | Server-basiert                     | Server-basiert                          | Datei-basiert (kein Server)         |
+| **Leistung**    | Stark bei komplexen Abfragen       | Stark bei Lesezugriffen                 | Klein, effizient für Einzelzugriffe |
+| **Skalierung**  | Sehr gut (Clustering, Replikation) | Gut (Replikation, Sharding möglich)     | Schwach, kein Cluster               |
+| **ACID**        | Vollständig, robust                | Abhängig vom Engine (InnoDB vs. MyISAM) | Ja, aber eingeschränkt              |
+| **Einsatz**     | Enterprise, APIs, Big Data         | Web-Anwendungen, CMS, E-Commerce        | Mobile, Desktop, Prototypen         |
+
+---
+
+### **Zusammenfassung**
+
+* **PostgreSQL** → für **Enterprise, komplexe Queries, hohe Konsistenz**.
+* **MySQL** → für **Web-Apps, weit verbreitet, gute Performance bei Reads**.
+* **SQLite** → für **lokale Apps, Mobile, Prototyping**.
+
+📖 Quellen:
+
+* [PostgreSQL Docs](https://www.postgresql.org/docs/)
+* [MySQL Docs](https://dev.mysql.com/doc/)
+* [SQLite Docs](https://sqlite.org/docs.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
-154. ### <a name="154"></a> 
+154. ### <a name="154"></a> Unterschiede zwischen MongoDB und PostgreSQL?
 
+**Unterschiede zwischen MongoDB und PostgreSQL**
 
+---
+
+### **PostgreSQL** (Relational / SQL)
+
+* **Art**: Objekt-relationales DBMS (ORDBMS).
+* **Datenmodell**: Tabellen (Zeilen + Spalten), striktes Schema.
+* **Abfrage**: SQL (Structured Query Language).
+* **Konsistenz**: **ACID**-konform (starke Transaktionssicherheit).
+* **Skalierung**: primär vertikal (größere Hardware), aber auch Replikation/Cluster möglich.
+* **Stärken**:
+
+  * Komplexe Abfragen, Joins, Aggregationen.
+  * Datenintegrität und strikte Konsistenz.
+  * Unterstützung für JSON/Arrays zusätzlich zu relationalem Modell.
+
+**Beispiel:**
+
+```sql
+-- Tabelle in PostgreSQL
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100),
+  email VARCHAR(100) UNIQUE
+);
+
+-- SQL-Abfrage
+SELECT id, name FROM users WHERE email = 'test@mail.com';
+```
+
+---
+
+### **MongoDB** (Dokumentbasiert / NoSQL)
+
+* **Art**: Dokument-orientierte NoSQL-Datenbank.
+* **Datenmodell**: JSON-ähnliche Dokumente (BSON), flexibles Schema.
+* **Abfrage**: Mongo Query API (JS-ähnlich).
+* **Konsistenz**: **BASE**-Prinzip (eventual consistency möglich).
+* **Skalierung**: horizontal sehr stark (Sharding, verteilte Systeme).
+* **Stärken**:
+
+  * Flexible Datenstrukturen → Schema kann sich ändern.
+  * Sehr gut für Big Data, Realtime-Apps, IoT.
+  * Entwicklerfreundlich für API-nahe JSON-Formate.
+
+**Beispiel:**
+
+```js
+// Dokument in MongoDB
+{
+  "_id": 1,
+  "name": "Sergii",
+  "email": "test@mail.com",
+  "hobbies": ["Coding", "Fitness"]
+}
+
+// Abfrage in MongoDB
+db.users.find({ email: "test@mail.com" }, { name: 1 });
+```
+
+---
+
+### **Vergleich**
+
+| Kriterium          | PostgreSQL (SQL)                             | MongoDB (NoSQL)                          |
+| ------------------ | -------------------------------------------- | ---------------------------------------- |
+| **Datenmodell**    | Tabellen, festes Schema                      | Dokumente (BSON), flexibles Schema       |
+| **Abfragesprache** | SQL                                          | JSON-ähnliche Queries                    |
+| **Konsistenz**     | ACID (stark)                                 | BASE (eventual consistency)              |
+| **Skalierung**     | Vertikal, Replikation, Cluster               | Horizontal (Sharding nativ)              |
+| **Relationen**     | Stark (Joins, Constraints)                   | Schwach (Referenzen, keine echten Joins) |
+| **Einsatz**        | Banking, ERP, Analytics, strukturierte Daten | Social Media, IoT, Big Data, Realtime    |
+
+---
+
+### **Zusammenfassung**
+
+* **PostgreSQL** → relational, ACID, stark für **strukturierte Daten und komplexe Relationen**.
+* **MongoDB** → dokumentorientiert, flexibel, stark für **dynamische Datenmodelle und horizontale Skalierung**.
+
+📖 Quellen:
+
+* [PostgreSQL Docs](https://www.postgresql.org/docs/)
+* [MongoDB Docs](https://www.mongodb.com/docs/)
+* [MDN – NoSQL Überblick](https://developer.mozilla.org/en-US/docs/Glossary/NoSQL)
+
+---
 
   **[⬆ Наверх](#top)**
 
-155. ### <a name="155"></a> 
+155. ### <a name="155"></a> Wie baut man eine DB-Verbindung in Express auf?
 
+**DB-Verbindung in Express aufbauen (Beispiel: PostgreSQL mit Sequelize ORM)**
 
+---
+
+### 1) Installation
+
+```bash
+npm install sequelize pg pg-hstore
+```
+
+---
+
+### 2) Sequelize konfigurieren (`db.js`)
+
+```js
+// db.js
+import { Sequelize } from "sequelize";
+
+export const sequelize = new Sequelize("meinedb", "meinuser", "passwort", {
+  host: "localhost",
+  dialect: "postgres",
+  logging: false, // optional: SQL-Logs ausschalten
+});
+
+export async function connectDB() {
+  try {
+    await sequelize.authenticate();
+    console.log("✅ Verbindung erfolgreich aufgebaut");
+  } catch (err) {
+    console.error("❌ Verbindung fehlgeschlagen:", err);
+    process.exit(1);
+  }
+}
+```
+
+---
+
+### 3) Model definieren (`models/User.js`)
+
+```js
+// models/User.js
+import { DataTypes } from "sequelize";
+import { sequelize } from "../db.js";
+
+export const User = sequelize.define("User", {
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  email: {
+    type: DataTypes.STRING,
+    unique: true,
+  },
+});
+```
+
+---
+
+### 4) Express-App mit DB verbinden (`app.js`)
+
+```js
+// app.js
+import express from "express";
+import { connectDB, sequelize } from "./db.js";
+import { User } from "./models/User.js";
+
+const app = express();
+app.use(express.json());
+
+// Route mit DB-Zugriff
+app.post("/users", async (req, res, next) => {
+  try {
+    const user = await User.create(req.body);
+    res.status(201).json(user);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Start + DB Sync
+const PORT = 3000;
+app.listen(PORT, async () => {
+  await connectDB();
+  await sequelize.sync(); // erstellt Tabellen falls nicht vorhanden
+  console.log(`🚀 Server läuft auf Port ${PORT}`);
+});
+```
+
+---
+
+### **Best Practices**
+
+* **Environment-Variablen** für DB-Zugang (über `.env` + `dotenv` einlesen).
+* **Pooling** aktivieren (wird von Sequelize automatisch unterstützt).
+* Fehler mit Middleware (`next(err)`) behandeln.
+* In großen Projekten: DB-Setup, Modelle und Routen modular trennen.
+
+---
+
+### **Zusammenfassung**
+
+* DB-Verbindung in Express → über ORM wie **Sequelize** oder direkt mit **pg**.
+* Schritte: DB-Config → Models → Verbindung herstellen → Routen mit DB-Zugriff.
+* Best Practices: `.env` nutzen, Fehlerbehandlung, Sync/Migrations sauber managen.
+
+📖 Quellen:
+
+* [Sequelize Docs](https://sequelize.org/docs/v7/getting-started/)
+* [PostgreSQL Docs](https://www.postgresql.org/docs/)
+* [Express Docs](https://expressjs.com/de/)
+
+---
 
   **[⬆ Наверх](#top)**
 
-156. ### <a name="156"></a> 
+156. ### <a name="156"></a> Was sind Migrations in SQL-Datenbanken?
 
+**Migrations in SQL-Datenbanken**
 
+---
+
+### **Definition**
+
+* **Migrationen** sind versionierte **Änderungen am Datenbankschema** (z. B. Tabellen, Spalten, Indizes).
+* Sie ermöglichen, eine Datenbank **schrittweise und reproduzierbar** von einer Version zur nächsten zu entwickeln.
+* Werden oft in Dateien gespeichert (z. B. `202309061200-create-users.js`).
+
+---
+
+### **Warum wichtig?**
+
+* **Teamarbeit**: Alle Entwickler nutzen dieselben DB-Strukturen.
+* **Versionierung**: Historie der Änderungen ist nachvollziehbar.
+* **Reproduzierbarkeit**: DB-Struktur kann auf jeder Umgebung (Dev, Test, Prod) identisch aufgebaut werden.
+* **Rollback**: Fehlerhafte Migrationen können zurückgesetzt werden.
+
+---
+
+### **Beispiel (Sequelize Migration)**
+
+```js
+// migration: create-users.js
+export async function up(queryInterface, Sequelize) {
+  await queryInterface.createTable("Users", {
+    id: {
+      type: Sequelize.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    name: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    email: {
+      type: Sequelize.STRING,
+      unique: true,
+    },
+    createdAt: Sequelize.DATE,
+    updatedAt: Sequelize.DATE,
+  });
+}
+
+export async function down(queryInterface) {
+  await queryInterface.dropTable("Users");
+}
+```
+
+* **`up`**: beschreibt die Änderung (z. B. Tabelle erstellen).
+* **`down`**: beschreibt, wie man die Änderung rückgängig macht (Rollback).
+
+---
+
+### **Beispiel mit SQL direkt**
+
+```sql
+-- Migration: neue Spalte hinzufügen
+ALTER TABLE users ADD COLUMN birthday DATE;
+
+-- Rollback
+ALTER TABLE users DROP COLUMN birthday;
+```
+
+---
+
+### **Zusammenfassung**
+
+* Migrationen = **Schema-Änderungen** in versionierter Form.
+* Ermöglichen **konsistente und nachvollziehbare DB-Entwicklung**.
+* Enthalten immer mindestens zwei Teile: **up (apply)** und **down (rollback)**.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – ALTER TABLE](https://www.postgresql.org/docs/current/sql-altertable.html)
+* [Sequelize Docs – Migrations](https://sequelize.org/docs/v7/other-topics/migrations/)
+
+---
 
   **[⬆ Наверх](#top)**
 
-157. ### <a name="157"></a> 
+157. ### <a name="157"></a> Unterschied zwischen INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL JOIN?
 
+**Unterschied zwischen INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL JOIN**
 
+---
+
+### **1) INNER JOIN**
+
+* Gibt **nur Datensätze zurück, die in beiden Tabellen übereinstimmen**.
+* Alles, was keine Übereinstimmung hat, wird ausgeschlossen.
+
+```sql
+SELECT u.name, o.id
+FROM users u
+INNER JOIN orders o ON u.id = o.user_id;
+```
+
+➡️ Nur Benutzer mit Bestellungen werden angezeigt.
+
+---
+
+### **2) LEFT JOIN**
+
+* Gibt **alle Datensätze der linken Tabelle** zurück, auch wenn keine Übereinstimmung in der rechten Tabelle existiert.
+* Fehlende Werte in der rechten Tabelle werden als `NULL` dargestellt.
+
+```sql
+SELECT u.name, o.id
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id;
+```
+
+➡️ Alle Benutzer, auch ohne Bestellung (dann `order_id = NULL`).
+
+---
+
+### **3) RIGHT JOIN**
+
+* Gegenteil von LEFT JOIN.
+* Gibt **alle Datensätze der rechten Tabelle** zurück, auch wenn keine Übereinstimmung in der linken Tabelle existiert.
+
+```sql
+SELECT u.name, o.id
+FROM users u
+RIGHT JOIN orders o ON u.id = o.user_id;
+```
+
+➡️ Alle Bestellungen, auch wenn kein Benutzer dazu existiert (`user = NULL`).
+
+---
+
+### **4) FULL JOIN (FULL OUTER JOIN)**
+
+* Gibt **alle Datensätze beider Tabellen** zurück.
+* Wenn keine Übereinstimmung: auf der fehlenden Seite `NULL`.
+
+```sql
+SELECT u.name, o.id
+FROM users u
+FULL JOIN orders o ON u.id = o.user_id;
+```
+
+➡️ Alle Benutzer + alle Bestellungen, inkl. nicht zugeordneter Werte.
+
+---
+
+### **Grafische Übersicht**
+
+| JOIN-Typ  | Ergebnis (Mengenlehre)          |
+| --------- | ------------------------------- |
+| **INNER** | Schnittmenge                    |
+| **LEFT**  | Alles von links + Schnittmenge  |
+| **RIGHT** | Alles von rechts + Schnittmenge |
+| **FULL**  | Vereinigung beider Mengen       |
+
+---
+
+### **Zusammenfassung**
+
+* **INNER JOIN**: nur Übereinstimmungen.
+* **LEFT JOIN**: alle von links, rechts nur wenn Match.
+* **RIGHT JOIN**: alle von rechts, links nur wenn Match.
+* **FULL JOIN**: alles aus beiden Tabellen, egal ob Match.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Joins](https://www.postgresql.org/docs/current/tutorial-join.html)
+* [W3Schools SQL JOIN](https://www.w3schools.com/sql/sql_join.asp)
+
+---
 
   **[⬆ Наверх](#top)**
 
-158. ### <a name="158"></a> 
+158. ### <a name="158"></a> Was sind Normalformen in relationalen Datenbanken?
 
+**Normalformen in relationalen Datenbanken**
 
+Normalisierung = Prozess, Daten **so zu strukturieren**, dass **Redundanzen minimiert** und **Datenanomalien** (Insert-, Update-, Delete-Anomalien) vermieden werden.
+
+---
+
+### **1. Normalform (1NF)**
+
+* Jede Zelle enthält **nur atomare Werte** (keine Listen oder mehrfachen Werte).
+* Jede Zeile ist eindeutig identifizierbar (Primärschlüssel).
+
+❌ Schlecht:
+
+| Kunde | Telefonnummern |
+| ----- | -------------- |
+| Max   | 123, 456       |
+
+✅ 1NF:
+
+| Kunde | Telefonnummer |
+| ----- | ------------- |
+| Max   | 123           |
+| Max   | 456           |
+
+---
+
+### **2. Normalform (2NF)**
+
+* Erfüllt **1NF**.
+* **Keine partiellen Abhängigkeiten**: Nicht-Schlüsselattribute dürfen nicht nur von einem Teil eines zusammengesetzten Schlüssels abhängen.
+
+❌ Schlecht (zusammengesetzter Schlüssel `KursID + StudentID`):
+
+| KursID | StudentID | KursName | StudentName |
+| ------ | --------- | -------- | ----------- |
+
+➡️ `KursName` hängt nur von `KursID` ab → Verletzung 2NF.
+
+✅ Lösung: Tabelle `Kurse` und `Studenten` separat führen.
+
+---
+
+### **3. Normalform (3NF)**
+
+* Erfüllt **2NF**.
+* **Keine transitive Abhängigkeit**: Nicht-Schlüsselattribute dürfen nicht indirekt vom Primärschlüssel abhängen.
+
+❌ Schlecht:
+
+| StudentID | Name | Stadt | PLZ |
+| --------- | ---- | ----- | --- |
+
+➡️ `Stadt` hängt nicht direkt von `StudentID` ab, sondern von `PLZ`.
+
+✅ Lösung: `PLZ` in eigene Tabelle mit Zuordnung zu `Stadt` auslagern.
+
+---
+
+### **Boyce-Codd Normalform (BCNF)**
+
+* Strengere Form der 3NF.
+* Jede funktionale Abhängigkeit muss vom **Superkey** ausgehen.
+* Verhindert Spezialfälle, wo 3NF nicht ausreicht.
+
+---
+
+### **Zusammenfassung**
+
+* **1NF**: nur atomare Werte.
+* **2NF**: keine partiellen Abhängigkeiten.
+* **3NF**: keine transitiven Abhängigkeiten.
+* **BCNF**: jede Abhängigkeit nur von einem Superkey.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Database Design](https://www.postgresql.org/docs/current/ddl.html)
+* [MDN – Relationale Datenbanken](https://developer.mozilla.org/en-US/docs/Learn/Server-side/SQL/Database_design)
+
+---
 
   **[⬆ Наверх](#top)**
 
-159. ### <a name="159"></a> 
+159. ### <a name="159"></a> Unterschied zwischen 1NF, 2NF, 3NF?
 
+**Unterschied zwischen 1NF, 2NF und 3NF**
 
+---
+
+### **1. Normalform (1NF)**
+
+* Alle Werte sind **atomar** (keine Listen oder mehrfachen Werte in einer Zelle).
+* Jede Zeile ist eindeutig durch einen Primärschlüssel identifizierbar.
+
+❌ Schlecht:
+
+| Kunde | Telefonnummern |
+| ----- | -------------- |
+| Max   | 123, 456       |
+
+✅ 1NF:
+
+| Kunde | Telefonnummer |
+| ----- | ------------- |
+| Max   | 123           |
+| Max   | 456           |
+
+---
+
+### **2. Normalform (2NF)**
+
+* Erfüllt **1NF**.
+* **Keine partiellen Abhängigkeiten**: Attribute müssen vom gesamten Primärschlüssel abhängen, nicht nur von einem Teil (gilt nur bei zusammengesetzten Schlüsseln).
+
+❌ Schlecht (PK = KursID + StudentID):
+
+| KursID | StudentID | KursName | StudentName |
+| ------ | --------- | -------- | ----------- |
+| 1      | 11        | Mathe    | Max         |
+
+➡️ `KursName` hängt nur von `KursID` ab → Verstoß gegen 2NF.
+
+✅ Lösung: `Kurse` und `Studenten` in eigene Tabellen.
+
+---
+
+### **3. Normalform (3NF)**
+
+* Erfüllt **2NF**.
+* **Keine transitiven Abhängigkeiten**: Nicht-Schlüsselattribute dürfen nicht von anderen Nicht-Schlüsselattributen abhängen.
+
+❌ Schlecht:
+
+| StudentID | Name | PLZ | Stadt |
+| --------- | ---- | --- | ----- |
+
+➡️ `Stadt` hängt von `PLZ` ab, nicht direkt vom `StudentID`.
+
+✅ Lösung: eigene Tabelle `PLZ → Stadt`.
+
+---
+
+### **Kurz-Vergleich**
+
+| Normalform | Regel                                  | Beispiel-Problem                       |
+| ---------- | -------------------------------------- | -------------------------------------- |
+| **1NF**    | Nur atomare Werte, eindeutige Zeilen   | Mehrere Telefonnummern in einer Spalte |
+| **2NF**    | Keine partiellen Abhängigkeiten vom PK | KursName hängt nur von KursID ab       |
+| **3NF**    | Keine transitiven Abhängigkeiten       | Stadt hängt von PLZ statt PK ab        |
+
+---
+
+### **Zusammenfassung**
+
+* **1NF**: atomare Werte.
+* **2NF**: keine Abhängigkeit von Teil des Schlüssels.
+* **3NF**: keine Abhängigkeit von Nicht-Schlüssel-Attributen.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Database Design](https://www.postgresql.org/docs/current/ddl.html)
+* [MDN – Relationale Datenbanken](https://developer.mozilla.org/en-US/docs/Learn/Server-side/SQL/Database_design)
+
+---
 
   **[⬆ Наверх](#top)**
 
-160. ### <a name="160"></a> 
+160. ### <a name="160"></a> Wie funktioniert Indexierung in SQL-Datenbanken?
 
+**Indexierung in SQL-Datenbanken**
 
+---
+
+### **Definition**
+
+* Ein **Index** ist eine spezielle Datenstruktur, die den Zugriff auf Tabellenzeilen beschleunigt.
+* Funktioniert ähnlich wie ein Inhaltsverzeichnis im Buch → statt jede Zeile zu durchsuchen, wird ein „Zeiger“ genutzt.
+* Häufig implementiert als **B-Tree** (Balanced Tree), teilweise auch **Hash-Index**.
+
+---
+
+### **Funktionsweise**
+
+1. Ohne Index → Datenbank muss oft einen **Full Table Scan** machen.
+2. Mit Index → Datenbank kann gezielt an die richtigen Zeilen springen.
+3. Index speichert Schlüsselwerte + Zeiger auf Zeilen im Speicher.
+
+---
+
+### **Beispiel (PostgreSQL / SQL Standard)**
+
+```sql
+-- Index anlegen auf Spalte email
+CREATE INDEX idx_users_email ON users(email);
+
+-- Abfrage wird jetzt schneller:
+SELECT * FROM users WHERE email = 'test@mail.com';
+```
+
+* Ohne Index → gesamte Tabelle wird durchsucht.
+* Mit Index → Suche über B-Tree in O(log n).
+
+---
+
+### **Arten von Indizes**
+
+* **Primärschlüssel-Index**: automatisch bei PRIMARY KEY.
+* **Unique Index**: garantiert Eindeutigkeit.
+* **B-Tree Index**: Standard, effizient für Bereichsabfragen (`<`, `>`, `BETWEEN`).
+* **Hash Index**: effizient für exakte Vergleiche (`=`).
+* **GIN / GiST Index** (PostgreSQL): für Volltextsuche, JSON, Arrays.
+
+---
+
+### **Nachteile von Indizes**
+
+* Mehr Speicherbedarf.
+* Langsamere **INSERT/UPDATE/DELETE**, weil Indizes aktualisiert werden müssen.
+* Zu viele Indizes → Performanceverlust statt -gewinn.
+
+---
+
+### **Best Practices**
+
+* Indizes auf Spalten, die **häufig in WHERE, JOIN, ORDER BY** verwendet werden.
+* Nicht jede Spalte indexieren → Balance zwischen **Lesegeschwindigkeit und Schreibaufwand**.
+* **Composite Indexes** für mehrere Spalten (z. B. `(lastname, firstname)`).
+
+---
+
+### **Zusammenfassung**
+
+* Indizes = **Strukturen zur Beschleunigung von Abfragen**.
+* Bäume/Hashes statt Full Table Scan.
+* Trade-off: schnellere **Reads**, langsamere **Writes** + mehr Speicher.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Indexes](https://www.postgresql.org/docs/current/indexes.html)
+* [MySQL Docs – Indexes](https://dev.mysql.com/doc/refman/8.0/en/optimization-indexes.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
-161. ### <a name="161"></a> 
+161. ### <a name="161"></a> Was ist ein Primärschlüssel und ein Fremdschlüssel?
 
+**Primärschlüssel und Fremdschlüssel in relationalen Datenbanken**
 
+---
+
+### **Primärschlüssel (Primary Key)**
+
+* Eindeutiger Identifikator für jede Zeile in einer Tabelle.
+* Darf **nicht NULL** sein.
+* Es kann pro Tabelle nur **einen Primärschlüssel** geben.
+* Oft automatisch mit Index versehen → schnelle Suche.
+
+**Beispiel:**
+
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL
+);
+```
+
+➡️ `id` ist der Primärschlüssel, eindeutig für jeden Benutzer.
+
+---
+
+### **Fremdschlüssel (Foreign Key)**
+
+* Spalte, die auf den **Primärschlüssel einer anderen Tabelle** verweist.
+* Stellt eine **Beziehung** zwischen zwei Tabellen her.
+* Gewährleistet **Referenzielle Integrität** (keine „verwaisten“ Datensätze).
+
+**Beispiel:**
+
+```sql
+CREATE TABLE orders (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id), -- Fremdschlüssel
+  product VARCHAR(100) NOT NULL
+);
+```
+
+➡️ `user_id` verweist auf `users.id`.
+➡️ Jede Bestellung gehört zu einem existierenden Benutzer.
+
+---
+
+### **Zusammenarbeit**
+
+* **Primary Key** = eindeutige Identität in der „Master“-Tabelle.
+* **Foreign Key** = stellt Beziehung zur „Master“-Tabelle her.
+
+**JOIN Beispiel:**
+
+```sql
+SELECT u.name, o.product
+FROM users u
+INNER JOIN orders o ON u.id = o.user_id;
+```
+
+➡️ Zeigt Benutzer mit ihren Bestellungen.
+
+---
+
+### **Zusammenfassung**
+
+* **Primärschlüssel**: eindeutige Identifikation einer Zeile.
+* **Fremdschlüssel**: Verweis auf Primärschlüssel einer anderen Tabelle, sorgt für **Referenzielle Integrität**.
+
+📖 Quellen:
+
+* [PostgreSQL Docs – Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html)
+* [MySQL Docs – Foreign Keys](https://dev.mysql.com/doc/refman/8.0/en/create-table-foreign-keys.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
