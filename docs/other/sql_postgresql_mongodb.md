@@ -5360,182 +5360,2202 @@ Connection Pooling hält eine begrenzte Anzahl wiederverwendbarer Verbindungen u
 
   **[⬆ Наверх](#top)**
 
-61. ### <a name="61"></a> 
+61. ### <a name="61"></a> Was ist MongoDB und wofür wird es verwendet?
 
+**MongoDB** ist eine dokumentenorientierte NoSQL-Datenbank, die Daten im **BSON-Format** (binäre Erweiterung von JSON) speichert. Sie ist **schemafrei**, was bedeutet, dass Dokumente in einer Collection unterschiedliche Felder und Strukturen haben können.
 
+### Verwendung:
 
-  **[⬆ Наверх](#top)**
+* Speicherung von **halbstrukturierten oder unstrukturierten Daten** (z. B. JSON-Dokumente).
+* Einsatz in **skalierbaren Webanwendungen** mit hohen Schreib- und Lesezugriffen.
+* Ideal für **flexible Datenmodelle**, z. B. bei Prototyping oder agilen Projekten.
+* Häufig in Kombination mit **Node.js/Express** für REST- oder GraphQL-APIs.
 
-62. ### <a name="62"></a> 
+### Beispiel (Node.js mit Mongoose)
 
+```js
+// Importieren von Mongoose
+import mongoose from "mongoose";
 
+// Verbindung herstellen
+await mongoose.connect("mongodb://localhost:27017/meineDB");
 
-  **[⬆ Наверх](#top)**
+// Schema und Modell definieren
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  createdAt: { type: Date, default: Date.now }
+});
 
-63. ### <a name="63"></a> 
+const User = mongoose.model("User", userSchema);
 
+// Neues Dokument speichern
+const neuerUser = new User({ name: "Sergii", email: "sergii@example.com" });
+await neuerUser.save();
+```
 
+**Vorteile von MongoDB**:
 
-  **[⬆ Наверх](#top)**
+* Hohe **Skalierbarkeit** (Sharding, Replikation).
+* **Flexible Schemata** für sich schnell ändernde Datenmodelle.
+* **Gute Integration** mit modernen Backend-Frameworks.
 
-64. ### <a name="64"></a> 
+**Nachteile**:
 
+* Keine klassischen **Joins** wie in SQL (aber `$lookup` in Aggregation möglich).
+* **Konsistenz** kann schwächer sein (je nach Konfiguration, CAP-Theorem).
 
+**Offizielle Quelle:** [MongoDB Dokumentation](https://www.mongodb.com/)
 
-  **[⬆ Наверх](#top)**
+---
 
-65. ### <a name="65"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-66. ### <a name="66"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-67. ### <a name="67"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-68. ### <a name="68"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-69. ### <a name="69"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-70. ### <a name="70"></a> 
-
+**Zusammenfassung:**
+MongoDB ist eine skalierbare, dokumentenorientierte NoSQL-Datenbank, die JSON-ähnliche Daten speichert und besonders für flexible, schnell wachsende Anwendungen geeignet ist.
 
 
   **[⬆ Наверх](#top)**
 
-71. ### <a name="71"></a> 
+62. ### <a name="62"></a> Unterschied zwischen SQL und NoSQL?
 
+**SQL (Relationale Datenbanken, z. B. PostgreSQL, MySQL):**
+
+* Datenmodell: Tabellen mit Zeilen (Rows) und Spalten (Columns).
+* Strukturiertes Schema (Schema-first, Daten müssen Schema entsprechen).
+* Unterstützt **Joins** und komplexe Relationen (1:1, 1\:n, n\:m).
+* **ACID-Transaktionen**: starke Konsistenz, hohe Datenintegrität.
+* Gut geeignet für **strukturierte Daten** mit klaren Beziehungen.
+
+**NoSQL (z. B. MongoDB, Redis, Cassandra):**
+
+* Datenmodell: Dokumente (JSON/BSON), Key-Value, Graph, Wide-Column.
+* Schemaflexibel (Schema-less oder dynamisch).
+* Keine oder nur eingeschränkte Joins (stattdessen oft **Denormalisierung**).
+* **Eventual Consistency** (je nach Konfiguration, CAP-Theorem).
+* Gut für **skalierbare, verteilte Systeme** mit großen Datenmengen.
+
+### Beispiel: Speicherung eines Users
+
+**SQL (PostgreSQL):**
+
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100),
+  email VARCHAR(100) UNIQUE
+);
+
+INSERT INTO users (name, email)
+VALUES ('Sergii', 'sergii@example.com');
+```
+
+**NoSQL (MongoDB):**
+
+```js
+{
+  "name": "Sergii",
+  "email": "sergii@example.com",
+  "interests": ["Node.js", "React"]
+}
+```
+
+**Offizielle Quellen:**
+
+* [PostgreSQL Dokumentation](https://www.postgresql.org/docs/)
+* [MongoDB Dokumentation](https://www.mongodb.com/)
+
+---
+
+**Zusammenfassung:**
+SQL-Datenbanken sind relational, schemafixiert und stark konsistent.
+NoSQL-Datenbanken sind nicht-relational, schemaflexibel und bieten hohe Skalierbarkeit, oft mit schwächerer Konsistenz.
 
 
   **[⬆ Наверх](#top)**
 
-72. ### <a name="72"></a> 
+63. ### <a name="63"></a> Was ist der Unterschied zwischen Dokument, Collection und Datenbank?
 
+**Dokument (Document):**
+
+* Grundeinheit in MongoDB.
+* JSON/BSON-Struktur mit Schlüssel-Wert-Paaren.
+* Kann verschachtelte Objekte und Arrays enthalten.
+* Beispiel:
+
+```js
+{
+  "_id": ObjectId("64f3c1..."),
+  "name": "Sergii",
+  "email": "sergii@example.com",
+  "skills": ["Node.js", "React"]
+}
+```
+
+**Collection:**
+
+* Eine Gruppe von Dokumenten (ähnlich wie eine Tabelle in SQL).
+* Enthält mehrere Dokumente mit ähnlichen oder unterschiedlichen Strukturen.
+* Beispiel: `users`-Collection mit vielen User-Dokumenten.
+
+**Datenbank (Database):**
+
+* Höchste logische Ebene.
+* Enthält mehrere Collections.
+* Beispiel: `meineDB` → Collections: `users`, `posts`, `products`.
+
+### Hierarchie in MongoDB:
+
+* **Datenbank** → enthält **Collections**
+* **Collection** → enthält **Dokumente**
+
+**Offizielle Quelle:** [MongoDB Dokumentation](https://www.mongodb.com/docs/manual/core/databases-and-collections/)
+
+---
+
+**Zusammenfassung:**
+
+* **Dokument** = einzelne JSON-ähnliche Dateneinheit.
+* **Collection** = Sammlung von Dokumenten.
+* **Datenbank** = Container für mehrere Collections.
 
 
   **[⬆ Наверх](#top)**
 
-73. ### <a name="73"></a> 
+64. ### <a name="64"></a> Was ist BSON und wie unterscheidet es sich von JSON?
 
+**BSON (Binary JSON):**
+
+* Binäres Serialisierungsformat, von MongoDB entwickelt.
+* Erweiterung von JSON mit zusätzlichen Datentypen wie `Date`, `ObjectId`, `Binary`.
+* Optimiert für **schnelles Parsen** und **effiziente Speicherung**.
+
+**JSON (JavaScript Object Notation):**
+
+* Textbasiertes, menschenlesbares Format.
+* Unterstützt nur grundlegende Datentypen: String, Number, Boolean, Array, Object, null.
+* Ideal für **Datenaustausch** zwischen Systemen, aber weniger effizient für Speicherung und Verarbeitung.
+
+### Beispiel
+
+**JSON:**
+
+```json
+{
+  "name": "Sergii",
+  "age": 30,
+  "createdAt": "2025-09-06T19:00:00Z"
+}
+```
+
+**BSON (konzeptuell, nicht direkt lesbar):**
+
+```js
+{
+  "name": "Sergii",          // String
+  "age": 30,                 // 32-bit Integer
+  "createdAt": ISODate(...)  // eigener Datentyp für Datum
+}
+```
+
+**Wichtige Unterschiede:**
+
+* **BSON** enthält mehr Datentypen (z. B. `Date`, `ObjectId`).
+* **BSON** ist binär und effizienter für Abfragen/Speicherung.
+* **JSON** ist einfacher zu lesen und zu übertragen, aber langsamer in Verarbeitung.
+
+**Offizielle Quelle:** [MongoDB BSON Dokumentation](https://www.mongodb.com/docs/manual/reference/bson-types/)
+
+---
+
+**Zusammenfassung:**
+JSON ist ein textbasiertes, lesbares Austauschformat.
+BSON ist die binäre Erweiterung von JSON, optimiert für Speicherung und zusätzliche Datentypen in MongoDB.
 
 
   **[⬆ Наверх](#top)**
 
-74. ### <a name="74"></a> 
+65. ### <a name="65"></a> Was ist ein ObjectId und warum wird es genutzt?
 
+**ObjectId:**
+
+* Standardmäßiger **Primärschlüssel** in MongoDB für `_id`.
+* 12-Byte-Wert, der global eindeutig ist.
+* Automatisch von MongoDB generiert, wenn kein eigener `_id` angegeben wird.
+
+**Aufbau (12 Bytes):**
+
+1. 4 Bytes → **Timestamp** (Erstellungszeit des Dokuments, Sekundengenauigkeit).
+2. 5 Bytes → **Maschinen- und Prozess-ID** (zur eindeutigen Identifizierung).
+3. 3 Bytes → **inkrementeller Zähler** (stellt Eindeutigkeit sicher).
+
+### Beispiel
+
+```js
+{
+  "_id": ObjectId("64f3c1f5a3b9cde123456789"),
+  "name": "Sergii",
+  "email": "sergii@example.com"
+}
+```
+
+### Vorteile:
+
+* **Eindeutigkeit** ohne zentrale ID-Verwaltung.
+* **Zeitinformationen** sind direkt enthalten (z. B. Erstellung eines Dokuments nachvollziehbar).
+* **Kompakt** (12 Bytes statt langer Strings oder UUIDs).
+
+### Nutzung in Node.js/Mongoose:
+
+```js
+import mongoose from "mongoose";
+
+const userId = new mongoose.Types.ObjectId();
+console.log(userId.toString()); // z. B. '64f3c1f5a3b9cde123456789'
+```
+
+**Offizielle Quelle:** [MongoDB ObjectId Dokumentation](https://www.mongodb.com/docs/manual/reference/method/ObjectId/)
+
+---
+
+**Zusammenfassung:**
+Ein **ObjectId** ist der standardmäßige eindeutige Primärschlüssel in MongoDB, bestehend aus Timestamp, Maschinen-ID und Zähler. Er wird genutzt, um Dokumente eindeutig und effizient zu identifizieren.
 
 
   **[⬆ Наверх](#top)**
 
-75. ### <a name="75"></a> 
+66. ### <a name="66"></a> Wie fügt man Dokumente ein (insertOne, insertMany)?
 
+**Einfügen von Dokumenten in MongoDB** kann mit den Methoden `insertOne()` und `insertMany()` erfolgen.
+
+---
+
+### **insertOne()**
+
+* Fügt **ein einzelnes Dokument** in eine Collection ein.
+* Gibt ein Ergebnisobjekt mit der neuen `_id` zurück.
+
+**Beispiel (Node.js mit MongoDB Driver):**
+
+```js
+import { MongoClient } from "mongodb";
+
+const client = new MongoClient("mongodb://localhost:27017");
+await client.connect();
+
+const db = client.db("meineDB");
+const users = db.collection("users");
+
+const result = await users.insertOne({
+  name: "Sergii",
+  email: "sergii@example.com"
+});
+
+console.log("Eingefügte ID:", result.insertedId);
+```
+
+---
+
+### **insertMany()**
+
+* Fügt **mehrere Dokumente** auf einmal ein.
+* Gibt eine Liste der eingefügten IDs zurück.
+
+**Beispiel:**
+
+```js
+const resultMany = await users.insertMany([
+  { name: "Anna", email: "anna@example.com" },
+  { name: "Max", email: "max@example.com" }
+]);
+
+console.log("Eingefügte IDs:", resultMany.insertedIds);
+```
+
+---
+
+### Unterschiede:
+
+* `insertOne()` → ein Dokument.
+* `insertMany()` → mehrere Dokumente in einem Batch (performanter als mehrere `insertOne()`).
+
+**Offizielle Quelle:** [MongoDB insertOne](https://www.mongodb.com/docs/manual/reference/method/db.collection.insertOne/) | [insertMany](https://www.mongodb.com/docs/manual/reference/method/db.collection.insertMany/)
+
+---
+
+**Zusammenfassung:**
+
+* `insertOne()` fügt ein einzelnes Dokument ein.
+* `insertMany()` fügt mehrere Dokumente gleichzeitig ein und ist effizienter bei Masseneinfügungen.
 
 
   **[⬆ Наверх](#top)**
 
-76. ### <a name="76"></a> 
+67. ### <a name="67"></a> Wie liest man Daten (find, findOne)?
 
+**Lesen von Daten in MongoDB** erfolgt mit `findOne()` (ein Dokument) und `find()` (mehrere Dokumente).
+
+---
+
+### **findOne()**
+
+* Gibt **ein einzelnes Dokument** zurück, das der Abfrage entspricht.
+* Liefert `null`, wenn kein Dokument gefunden wird.
+
+**Beispiel (Node.js mit MongoDB Driver):**
+
+```js
+import { MongoClient } from "mongodb";
+
+const client = new MongoClient("mongodb://localhost:27017");
+await client.connect();
+
+const db = client.db("meineDB");
+const users = db.collection("users");
+
+// Ein Dokument finden
+const user = await users.findOne({ email: "sergii@example.com" });
+console.log(user);
+```
+
+---
+
+### **find()**
+
+* Gibt **einen Cursor** zurück (Iterator über mehrere Dokumente).
+* Kann mit `.toArray()` in ein Array umgewandelt werden.
+
+**Beispiel:**
+
+```js
+// Alle User mit Namen "Anna" finden
+const cursor = users.find({ name: "Anna" });
+
+// In ein Array umwandeln
+const result = await cursor.toArray();
+console.log(result);
+```
+
+---
+
+### Filter und Projektion
+
+* Abfragen mit Bedingungen (`{ field: value }`).
+* Projektion, um bestimmte Felder auszuwählen.
+
+**Beispiel mit Projektion:**
+
+```js
+const user = await users.findOne(
+  { name: "Sergii" },
+  { projection: { email: 1, _id: 0 } }
+);
+console.log(user); // Gibt nur Email zurück
+```
+
+---
+
+**Offizielle Quelle:**
+
+* [findOne](https://www.mongodb.com/docs/manual/reference/method/db.collection.findOne/)
+* [find](https://www.mongodb.com/docs/manual/reference/method/db.collection.find/)
+
+---
+
+**Zusammenfassung:**
+
+* `findOne()` → gibt ein einzelnes Dokument zurück.
+* `find()` → gibt einen Cursor für mehrere Dokumente zurück, der meist mit `.toArray()` genutzt wird.
 
 
   **[⬆ Наверх](#top)**
 
-77. ### <a name="77"></a> 
+68. ### <a name="68"></a> Unterschied zwischen find(), findOne() und findById() in Mongoose?
 
+**In Mongoose** gibt es drei gängige Methoden zum Abrufen von Dokumenten: `find()`, `findOne()` und `findById()`.
+
+---
+
+### **find()**
+
+* Liefert **ein Array von Dokumenten** (auch wenn nur ein Dokument passt).
+* Nutzt einen **Filter** (Query-Objekt).
+
+**Beispiel:**
+
+```js
+const users = await User.find({ name: "Sergii" });
+console.log(users); // Array mit allen passenden Usern
+```
+
+---
+
+### **findOne()**
+
+* Gibt **ein einzelnes Dokument** zurück (das erste, das zur Query passt).
+* Liefert `null`, wenn kein Dokument passt.
+
+**Beispiel:**
+
+```js
+const user = await User.findOne({ email: "sergii@example.com" });
+console.log(user); // Einzelnes Dokument oder null
+```
+
+---
+
+### **findById()**
+
+* Kurzform für `findOne({ _id: ... })`.
+* Erwartet direkt die **ObjectId** oder einen String, der als ObjectId geparst wird.
+* Praktisch für Primärschlüssel-Abfragen.
+
+**Beispiel:**
+
+```js
+const user = await User.findById("64f3c1f5a3b9cde123456789");
+console.log(user); // Dokument mit dieser _id oder null
+```
+
+---
+
+### Unterschiede im Überblick:
+
+* **find()** → Array aller passenden Dokumente.
+* **findOne()** → Erstes passende Dokument.
+* **findById()** → Dokument anhand der `_id`.
+
+**Offizielle Quelle:** [Mongoose Queries](https://mongoosejs.com/docs/queries.html)
+
+---
+
+**Zusammenfassung:**
+
+* `find()` = mehrere Dokumente (Array).
+* `findOne()` = erstes Dokument passend zur Query.
+* `findById()` = Abkürzung für Suche nach `_id`.
 
 
   **[⬆ Наверх](#top)**
 
-78. ### <a name="78"></a> 
+69. ### <a name="69"></a> Wie aktualisiert man Dokumente (updateOne, updateMany, findByIdAndUpdate)?
 
+**Dokumente in MongoDB/Mongoose aktualisieren** kann man mit verschiedenen Methoden:
+
+---
+
+### **updateOne()**
+
+* Aktualisiert **das erste Dokument**, das der Abfrage entspricht.
+* Nützlich mit Operatoren wie `$set`.
+
+```js
+await User.updateOne(
+  { email: "sergii@example.com" },
+  { $set: { name: "Sergii Updated" } }
+);
+```
+
+---
+
+### **updateMany()**
+
+* Aktualisiert **alle Dokumente**, die der Bedingung entsprechen.
+
+```js
+await User.updateMany(
+  { name: "Anna" },
+  { $set: { active: true } }
+);
+```
+
+---
+
+### **findByIdAndUpdate()** (Mongoose)
+
+* Sucht ein Dokument per `_id` und aktualisiert es.
+* Standardmäßig wird das **alte Dokument** zurückgegeben → mit `{ new: true }` bekommt man das **aktualisierte Dokument**.
+
+```js
+const updatedUser = await User.findByIdAndUpdate(
+  "64f3c1f5a3b9cde123456789",
+  { $set: { email: "new@example.com" } },
+  { new: true } // gibt aktualisiertes Dokument zurück
+);
+console.log(updatedUser);
+```
+
+---
+
+### Unterschiede:
+
+* **updateOne()** → nur das erste passende Dokument.
+* **updateMany()** → alle passenden Dokumente.
+* **findByIdAndUpdate()** → direkt über `_id`, gibt optional das aktualisierte Dokument zurück.
+
+**Offizielle Quellen:**
+
+* [updateOne](https://www.mongodb.com/docs/manual/reference/method/db.collection.updateOne/)
+* [updateMany](https://www.mongodb.com/docs/manual/reference/method/db.collection.updateMany/)
+* [Mongoose findByIdAndUpdate](https://mongoosejs.com/docs/api/model.html#Model.findByIdAndUpdate)
+
+---
+
+**Zusammenfassung:**
+
+* `updateOne()` = erstes passendes Dokument aktualisieren.
+* `updateMany()` = alle passenden Dokumente aktualisieren.
+* `findByIdAndUpdate()` = Dokument per `_id` aktualisieren, optional direkt zurückgeben.
 
 
   **[⬆ Наверх](#top)**
 
-79. ### <a name="79"></a> 
+70. ### <a name="70"></a> Wie löscht man Dokumente (deleteOne, deleteMany, findByIdAndDelete)?
 
+**Dokumente in MongoDB/Mongoose löschen** erfolgt über verschiedene Methoden:
+
+---
+
+### **deleteOne()**
+
+* Löscht **das erste Dokument**, das der Abfrage entspricht.
+* Gibt ein Ergebnisobjekt zurück mit `deletedCount`.
+
+```js
+await User.deleteOne({ email: "sergii@example.com" });
+// deletedCount = 1, wenn erfolgreich
+```
+
+---
+
+### **deleteMany()**
+
+* Löscht **alle Dokumente**, die der Bedingung entsprechen.
+
+```js
+await User.deleteMany({ active: false });
+// löscht alle inaktiven User
+```
+
+---
+
+### **findByIdAndDelete()** (Mongoose)
+
+* Löscht ein Dokument direkt über die `_id`.
+* Gibt das **gelöschte Dokument** zurück (oder `null`, wenn nicht gefunden).
+
+```js
+const deletedUser = await User.findByIdAndDelete("64f3c1f5a3b9cde123456789");
+console.log(deletedUser);
+```
+
+---
+
+### Unterschiede:
+
+* **deleteOne()** → nur ein Dokument löschen.
+* **deleteMany()** → mehrere Dokumente auf einmal löschen.
+* **findByIdAndDelete()** → Löschen per `_id`, gibt das gelöschte Dokument zurück.
+
+**Offizielle Quellen:**
+
+* [deleteOne](https://www.mongodb.com/docs/manual/reference/method/db.collection.deleteOne/)
+* [deleteMany](https://www.mongodb.com/docs/manual/reference/method/db.collection.deleteMany/)
+* [Mongoose findByIdAndDelete](https://mongoosejs.com/docs/api/model.html#Model.findByIdAndDelete)
+
+---
+
+**Zusammenfassung:**
+
+* `deleteOne()` = erstes passendes Dokument löschen.
+* `deleteMany()` = alle passenden Dokumente löschen.
+* `findByIdAndDelete()` = gezieltes Löschen über `_id` und Rückgabe des gelöschten Dokuments.
 
 
   **[⬆ Наверх](#top)**
 
-80. ### <a name="80"></a> 
+71. ### <a name="71"></a> Was ist Mongoose und warum wird es häufig in Node/Express-Projekten verwendet?
 
+**Mongoose** ist eine **Object Data Modeling (ODM) Bibliothek** für MongoDB und Node.js.
+Es dient als Abstraktionsschicht zwischen der MongoDB-Datenbank und der Anwendung.
+
+---
+
+### Vorteile und Gründe für den Einsatz in Node/Express-Projekten:
+
+1. **Schema-Definition**
+
+   * MongoDB ist schemaflexibel.
+   * Mit Mongoose können Entwickler **Schemas und Models** definieren, um Struktur und Validierung zu erzwingen.
+
+   ```js
+   import mongoose from "mongoose";
+
+   const userSchema = new mongoose.Schema({
+     name: { type: String, required: true },
+     email: { type: String, required: true, unique: true },
+     createdAt: { type: Date, default: Date.now }
+   });
+
+   const User = mongoose.model("User", userSchema);
+   ```
+
+2. **Datenvalidierung**
+
+   * Eingebaute Validierung (z. B. `required`, `unique`, `minLength`).
+   * Möglichkeit, eigene Validatoren hinzuzufügen.
+
+3. **Middleware (Hooks)**
+
+   * Ermöglicht Logik vor/nach bestimmten Aktionen (z. B. `pre('save')`, `post('find')`).
+
+   ```js
+   userSchema.pre("save", function(next) {
+     console.log("Vor dem Speichern:", this);
+     next();
+   });
+   ```
+
+4. **Einfache Abfragen & CRUD-Operationen**
+
+   * Methoden wie `find()`, `findById()`, `save()`, `updateOne()`.
+   * Chainable Query-API.
+
+5. **Beziehungen (Population)**
+
+   * Referenzen zwischen Dokumenten können aufgelöst werden (`populate`).
+
+   ```js
+   const posts = await Post.find().populate("author");
+   ```
+
+6. **Integration in Express**
+
+   * Einfach in REST- oder GraphQL-APIs nutzbar.
+   * Hilft, **saubere und konsistente Datenmodelle** in Express-Anwendungen zu pflegen.
+
+---
+
+**Offizielle Quelle:** [Mongoose Dokumentation](https://mongoosejs.com/)
+
+---
+
+**Zusammenfassung:**
+Mongoose ist ein ODM für MongoDB, das Schema-Definition, Validierung, Middleware und vereinfachte Abfragen ermöglicht. Es wird in Node/Express-Projekten eingesetzt, um Struktur, Konsistenz und Produktivität bei der Arbeit mit MongoDB zu gewährleisten.
+
+
+  **[⬆ Наверх](#top)**
+
+72. ### <a name="72"></a> Unterschied zwischen Schema und Model in Mongoose?
+
+**Schema:**
+
+* Definiert die **Struktur** eines Dokuments in einer Collection.
+* Beschreibt Felder, Datentypen, Validierungen und Standardwerte.
+* Enthält auch Middleware (Hooks) und Methoden.
+* Wird mit `new mongoose.Schema()` erstellt.
+
+```js
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, unique: true, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+```
+
+---
+
+**Model:**
+
+* Ist ein **Konstruktor**, der auf Basis eines Schemas erstellt wird.
+* Repräsentiert eine MongoDB-Collection und bietet Methoden für **CRUD-Operationen**.
+* Wird mit `mongoose.model()` erstellt.
+
+```js
+const User = mongoose.model("User", userSchema);
+
+// Neues Dokument anlegen
+const neuerUser = new User({ name: "Sergii", email: "sergii@example.com" });
+await neuerUser.save();
+
+// Daten lesen
+const users = await User.find();
+```
+
+---
+
+### Unterschiede:
+
+* **Schema** = Blaupause/Definition der Struktur.
+* **Model** = ausführbare Klasse, die auf Basis des Schemas mit der DB interagiert.
+
+**Offizielle Quelle:** [Mongoose Schemas](https://mongoosejs.com/docs/guide.html) | [Mongoose Models](https://mongoosejs.com/docs/models.html)
+
+---
+
+**Zusammenfassung:**
+
+* **Schema** = beschreibt die Form und Regeln eines Dokuments.
+* **Model** = arbeitet mit einer Collection, führt Abfragen und Änderungen durch.
+
+
+  **[⬆ Наверх](#top)**
+
+73. ### <a name="73"></a> Wie definiert man Validierungen in einem Schema?
+
+In **Mongoose** werden Validierungen direkt im **Schema** definiert. Dadurch lassen sich Regeln für Felder festlegen, die automatisch beim Speichern überprüft werden.
+
+---
+
+### **Standard-Validatoren**
+
+```js
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true, minlength: 3, maxlength: 50 },
+  email: { type: String, required: true, unique: true, match: /.+\@.+\..+/ },
+  age: { type: Number, min: 18, max: 65 },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model("User", userSchema);
+```
+
+* `required: true` → Pflichtfeld
+* `unique: true` → einzigartig in der Collection
+* `min`, `max` → Zahlenbereiche
+* `minlength`, `maxlength` → String-Längen
+* `match` → Regex-Muster
+
+---
+
+### **Benutzerdefinierte Validatoren**
+
+```js
+const productSchema = new mongoose.Schema({
+  price: {
+    type: Number,
+    validate: {
+      validator: function(value) {
+        return value > 0; // Preis muss positiv sein
+      },
+      message: props => `${props.value} ist kein gültiger Preis!`
+    }
+  }
+});
+```
+
+---
+
+### **Async-Validatoren**
+
+* Nützlich für Validierungen, die z. B. eine DB-Abfrage erfordern.
+
+```js
+const orderSchema = new mongoose.Schema({
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    validate: {
+      validator: async function(value) {
+        const count = await Product.countDocuments({ _id: value });
+        return count > 0; // Produkt muss existieren
+      },
+      message: "Produkt existiert nicht!"
+    }
+  }
+});
+```
+
+---
+
+**Offizielle Quelle:** [Mongoose Validierung](https://mongoosejs.com/docs/validation.html)
+
+---
+
+**Zusammenfassung:**
+
+* Validierungen werden im Schema definiert.
+* Standard-Validatoren: `required`, `min`, `max`, `unique`, `match`.
+* Eigene Validatoren: mit `validate`-Funktion (sync/async).
+* Alle Validierungen werden beim Speichern (`.save()`) ausgeführt.
+
+
+  **[⬆ Наверх](#top)**
+
+74. ### <a name="74"></a> Was sind Virtuals und Middleware (pre, post) in Mongoose?
+
+**Virtuals und Middleware (Hooks)** sind zwei mächtige Features von **Mongoose**, um Modelle zu erweitern.
+
+---
+
+### **Virtuals**
+
+* Virtuelle Felder existieren **nicht in der Datenbank**, sondern werden dynamisch berechnet.
+* Nützlich für abgeleitete Werte oder zusammengesetzte Felder.
+
+**Beispiel:**
+
+```js
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema({
+  firstName: String,
+  lastName: String
+});
+
+// Virtuelles Feld für den vollen Namen
+userSchema.virtual("fullName").get(function () {
+  return `${this.firstName} ${this.lastName}`;
+});
+
+const User = mongoose.model("User", userSchema);
+
+const user = new User({ firstName: "Sergii", lastName: "Ivanov" });
+console.log(user.fullName); // "Sergii Ivanov"
+```
+
+---
+
+### **Middleware (Hooks)**
+
+* Funktionen, die **vor (pre)** oder **nach (post)** bestimmten Aktionen ausgeführt werden.
+* Typische Einsatzgebiete: Passwort-Hashing, Logging, Validierungen, Side Effects.
+
+#### **pre-Hook (vor der Aktion)**
+
+```js
+userSchema.pre("save", function(next) {
+  console.log("Vor dem Speichern:", this.name);
+  next();
+});
+```
+
+#### **post-Hook (nach der Aktion)**
+
+```js
+userSchema.post("save", function(doc) {
+  console.log("Gespeichert:", doc._id);
+});
+```
+
+* Unterstützte Events: `save`, `validate`, `remove`, `find`, `updateOne`, `findOneAndUpdate`, etc.
+
+---
+
+### Unterschiede:
+
+* **Virtuals** → nur im Modell verfügbar, werden nicht in MongoDB gespeichert.
+* **Middleware (pre/post)** → führt Logik automatisch vor/nach Datenbankoperationen aus.
+
+**Offizielle Quellen:**
+
+* [Mongoose Virtuals](https://mongoosejs.com/docs/guide.html#virtuals)
+* [Mongoose Middleware](https://mongoosejs.com/docs/middleware.html)
+
+---
+
+**Zusammenfassung:**
+
+* **Virtuals** = dynamische, nicht gespeicherte Felder für Berechnungen oder Formatierungen.
+* **Middleware (pre/post)** = Hooks, die Logik vor oder nach DB-Operationen automatisch ausführen.
+
+
+  **[⬆ Наверх](#top)**
+
+75. ### <a name="75"></a> Wie funktioniert populate in Mongoose (Beziehungen zwischen Dokumenten)?
+
+**`populate`** in Mongoose wird verwendet, um **Beziehungen zwischen Dokumenten** (Referenzen) aufzulösen.
+Anstatt nur die `ObjectId` zu speichern, kann man mit `populate()` automatisch die verknüpften Dokumente laden.
+
+---
+
+### **Beispiel: User und Post**
+
+**User Schema:**
+
+```js
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: String
+});
+
+const User = mongoose.model("User", userSchema);
+```
+
+**Post Schema (mit Referenz):**
+
+```js
+const postSchema = new mongoose.Schema({
+  title: String,
+  content: String,
+  author: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+});
+
+const Post = mongoose.model("Post", postSchema);
+```
+
+---
+
+### **Verwendung von populate**
+
+```js
+// Post mit Referenz auf User erstellen
+const user = await User.create({ name: "Sergii", email: "sergii@example.com" });
+await Post.create({ title: "Mein erster Post", content: "Hallo MongoDB", author: user._id });
+
+// Post laden und User automatisch einfügen
+const post = await Post.findOne().populate("author");
+console.log(post);
+/*
+{
+  title: "Mein erster Post",
+  content: "Hallo MongoDB",
+  author: {
+    _id: "64f3c1f5a3b9cde123456789",
+    name: "Sergii",
+    email: "sergii@example.com"
+  }
+}
+*/
+```
+
+---
+
+### **Mehrfach-Populate**
+
+Man kann mehrere Referenzen gleichzeitig auflösen:
+
+```js
+await Post.find().populate("author").populate("comments");
+```
+
+---
+
+### **Selektives Populate (nur bestimmte Felder)**
+
+```js
+const post = await Post.findOne().populate("author", "name -_id");
+console.log(post.author); // Nur das Feld "name", ohne "_id"
+```
+
+---
+
+### Unterschiede zu SQL:
+
+* Kein klassischer **Join**, sondern Referenz + separate Abfrage im Hintergrund.
+* `populate` macht die Arbeit komfortabel, kann aber bei vielen Dokumenten **Performancekosten** verursachen.
+
+**Offizielle Quelle:** [Mongoose Populate](https://mongoosejs.com/docs/populate.html)
+
+---
+
+**Zusammenfassung:**
+
+* `populate()` löst Referenzen (`ref`) zwischen Dokumenten auf.
+* Macht aus einer `ObjectId` das vollständige verknüpfte Dokument.
+* Unterstützt Mehrfach- und selektives Populate.
+
+
+  **[⬆ Наверх](#top)**
+
+76. ### <a name="76"></a> Welche Vergleichsoperatoren gibt es ($gt, $lt, $in, $nin, $eq)?
+
+In **MongoDB** gibt es verschiedene **Vergleichsoperatoren**, die in Abfragen (`find`, `findOne`) verwendet werden.
+
+---
+
+### **Wichtige Vergleichsoperatoren**
+
+* **`$eq`** → gleich (`=`)
+
+```js
+await User.find({ age: { $eq: 25 } });
+```
+
+* **`$ne`** → ungleich (`!=`)
+
+```js
+await User.find({ age: { $ne: 30 } });
+```
+
+* **`$gt`** → größer als (`>`)
+
+```js
+await User.find({ age: { $gt: 18 } });
+```
+
+* **`$gte`** → größer gleich (`>=`)
+
+```js
+await User.find({ age: { $gte: 18 } });
+```
+
+* **`$lt`** → kleiner als (`<`)
+
+```js
+await User.find({ age: { $lt: 65 } });
+```
+
+* **`$lte`** → kleiner gleich (`<=`)
+
+```js
+await User.find({ age: { $lte: 65 } });
+```
+
+* **`$in`** → Wert ist in einer Liste enthalten
+
+```js
+await User.find({ name: { $in: ["Sergii", "Anna"] } });
+```
+
+* **`$nin`** → Wert ist **nicht** in einer Liste enthalten
+
+```js
+await User.find({ name: { $nin: ["Max", "Paul"] } });
+```
+
+---
+
+### **Kombination mit logischen Operatoren**
+
+Beispiel: alle User, die älter als 18 und jünger als 30 sind:
+
+```js
+await User.find({ age: { $gt: 18, $lt: 30 } });
+```
+
+---
+
+**Offizielle Quelle:** [MongoDB Vergleichsoperatoren](https://www.mongodb.com/docs/manual/reference/operator/query-comparison/)
+
+---
+
+**Zusammenfassung:**
+
+* `$eq`, `$ne` → Gleichheit/Ungleichheit
+* `$gt`, `$gte`, `$lt`, `$lte` → Zahlenvergleiche
+* `$in`, `$nin` → Zugehörigkeit/Nicht-Zugehörigkeit zu einer Liste
+* Mehrere Operatoren können in einer Bedingung kombiniert werden.
+
+
+  **[⬆ Наверх](#top)**
+
+77. ### <a name="77"></a> Wie sucht man mit $and, $or, $nor?
+
+In **MongoDB** ermöglichen die **logischen Operatoren** `$and`, `$or` und `$nor` komplexe Abfragen, indem mehrere Bedingungen kombiniert werden.
+
+---
+
+### **\$and**
+
+* Alle Bedingungen müssen erfüllt sein.
+* Ähnlich wie logisches **UND**.
+
+```js
+// User mit Alter > 18 UND name = "Sergii"
+await User.find({
+  $and: [{ age: { $gt: 18 } }, { name: "Sergii" }]
+});
+```
+
+👉 Kurzform (ohne `$and` explizit):
+
+```js
+await User.find({ age: { $gt: 18 }, name: "Sergii" });
+```
+
+---
+
+### **\$or**
+
+* Mindestens eine Bedingung muss erfüllt sein.
+* Ähnlich wie logisches **ODER**.
+
+```js
+// User mit name = "Anna" ODER Alter < 25
+await User.find({
+  $or: [{ name: "Anna" }, { age: { $lt: 25 } }]
+});
+```
+
+---
+
+### **\$nor**
+
+* Keiner der Ausdrücke darf zutreffen.
+* Ähnlich wie logisches **NICHT-ODER**.
+
+```js
+// User, die NICHT name = "Max" ODER Alter < 20 haben
+await User.find({
+  $nor: [{ name: "Max" }, { age: { $lt: 20 } }]
+});
+```
+
+---
+
+### **Beispiel mit Kombination**
+
+```js
+// User zwischen 18 und 30, ABER nicht "Paul"
+await User.find({
+  $and: [
+    { age: { $gte: 18, $lte: 30 } },
+    { $nor: [{ name: "Paul" }] }
+  ]
+});
+```
+
+---
+
+**Offizielle Quelle:** [MongoDB Logische Operatoren](https://www.mongodb.com/docs/manual/reference/operator/query-logical/)
+
+---
+
+**Zusammenfassung:**
+
+* `$and` → alle Bedingungen müssen zutreffen.
+* `$or` → mindestens eine Bedingung muss zutreffen.
+* `$nor` → keine der Bedingungen darf zutreffen.
+
+
+  **[⬆ Наверх](#top)**
+
+78. ### <a name="78"></a> Wie sucht man in Arrays ($elemMatch, $push, $pull)?
+
+In **MongoDB** gibt es spezielle Operatoren, um in **Arrays** zu suchen und Elemente zu ändern.
+
+---
+
+### **1. Suche in Arrays mit `$elemMatch`**
+
+* Prüft, ob mindestens ein Element im Array **alle Bedingungen gleichzeitig** erfüllt.
+
+```js
+// User mit mind. einem Skill = "Node.js" UND Level >= 3
+await User.find({
+  skills: { $elemMatch: { name: "Node.js", level: { $gte: 3 } } }
+});
+```
+
+---
+
+### **2. Elemente hinzufügen mit `$push`**
+
+* Fügt ein neues Element an ein Array an.
+
+```js
+// Neuen Skill zu User hinzufügen
+await User.updateOne(
+  { name: "Sergii" },
+  { $push: { skills: { name: "React", level: 2 } } }
+);
+```
+
+👉 Mit `$each` können mehrere Elemente gleichzeitig gepusht werden:
+
+```js
+{ $push: { skills: { $each: ["HTML", "CSS"] } } }
+```
+
+---
+
+### **3. Elemente entfernen mit `$pull`**
+
+* Entfernt alle Array-Elemente, die einer Bedingung entsprechen.
+
+```js
+// Entfernt alle Skills mit name = "React"
+await User.updateOne(
+  { name: "Sergii" },
+  { $pull: { skills: { name: "React" } } }
+);
+```
+
+---
+
+### **Zusätzliche Operatoren**
+
+* `$addToSet` → fügt nur hinzu, wenn das Element noch nicht existiert.
+
+```js
+{ $addToSet: { tags: "javascript" } }
+```
+
+* `$pop` → entfernt erstes (`-1`) oder letztes (`1`) Element aus dem Array.
+
+```js
+{ $pop: { tags: 1 } } // letztes Element entfernen
+```
+
+---
+
+**Offizielle Quellen:**
+
+* [\$elemMatch](https://www.mongodb.com/docs/manual/reference/operator/query/elemMatch/)
+* [\$push](https://www.mongodb.com/docs/manual/reference/operator/update/push/)
+* [\$pull](https://www.mongodb.com/docs/manual/reference/operator/update/pull/)
+
+---
+
+**Zusammenfassung:**
+
+* `$elemMatch` = Suche nach Elementen in Arrays mit mehreren Bedingungen.
+* `$push` = fügt neue Elemente ins Array ein.
+* `$pull` = entfernt passende Elemente aus einem Array.
+* Ergänzend: `$addToSet` (nur einmal einfügen), `$pop` (erstes/letztes Element löschen).
+
+
+  **[⬆ Наверх](#top)**
+
+79. ### <a name="79"></a> Unterschied zwischen sort, limit und skip?
+
+**In MongoDB/Mongoose** werden `sort()`, `limit()` und `skip()` verwendet, um Ergebnisse einer Abfrage zu steuern.
+
+---
+
+### **sort()**
+
+* Sortiert die Ergebnisse nach einem oder mehreren Feldern.
+* `1` = aufsteigend, `-1` = absteigend.
+
+```js
+// User nach Alter aufsteigend sortieren
+await User.find().sort({ age: 1 });
+
+// Nach Name absteigend und Alter aufsteigend
+await User.find().sort({ name: -1, age: 1 });
+```
+
+---
+
+### **limit()**
+
+* Begrenzt die Anzahl der zurückgegebenen Dokumente.
+* Häufig für Pagination oder Performance.
+
+```js
+// Nur 5 User zurückgeben
+await User.find().limit(5);
+```
+
+---
+
+### **skip()**
+
+* Überspringt eine bestimmte Anzahl an Dokumenten.
+* Wird oft zusammen mit `limit()` für Pagination genutzt.
+
+```js
+// Erste 10 Dokumente überspringen, dann 5 laden
+await User.find().skip(10).limit(5);
+```
+
+---
+
+### **Beispiel: Pagination**
+
+```js
+const page = 2;
+const pageSize = 5;
+
+const users = await User.find()
+  .sort({ name: 1 })
+  .skip((page - 1) * pageSize)
+  .limit(pageSize);
+
+console.log(users);
+```
+
+➡️ Holt Seite 2 mit je 5 Usern.
+
+---
+
+**Offizielle Quellen:**
+
+* [sort()](https://www.mongodb.com/docs/manual/reference/method/cursor.sort/)
+* [limit()](https://www.mongodb.com/docs/manual/reference/method/cursor.limit/)
+* [skip()](https://www.mongodb.com/docs/manual/reference/method/cursor.skip/)
+
+---
+
+**Zusammenfassung:**
+
+* `sort()` = Ergebnisse nach Feldwerten ordnen.
+* `limit()` = maximale Anzahl von Ergebnissen begrenzen.
+* `skip()` = bestimmte Anzahl von Ergebnissen überspringen (für Pagination).
+
+
+  **[⬆ Наверх](#top)**
+
+80. ### <a name="80"></a> Was ist der Unterschied zwischen countDocuments() und estimatedDocumentCount()?
+
+**Unterschied zwischen `countDocuments()` und `estimatedDocumentCount()` in Mongoose/MongoDB:**
+
+---
+
+### **countDocuments()**
+
+* Führt eine **genaue Zählung** basierend auf einem **Filter** durch.
+* Berücksichtigt Query-Bedingungen (`find()`-ähnlich).
+* Kann langsamer sein bei sehr großen Collections, da eine vollständige Abfrage nötig ist.
+
+```js
+// Alle User mit Alter > 18 zählen
+const count = await User.countDocuments({ age: { $gt: 18 } });
+console.log(count);
+```
+
+---
+
+### **estimatedDocumentCount()**
+
+* Gibt eine **geschätzte Anzahl** von Dokumenten in der gesamten Collection zurück.
+* Nutzt **Metadaten** aus den Collection-Statistiken (schnell, aber ungenau bei häufigen Änderungen).
+* **Keine Filter möglich** → zählt immer alle Dokumente.
+
+```js
+// Alle Dokumente in der Collection zählen (schnell, ungenau möglich)
+const count = await User.estimatedDocumentCount();
+console.log(count);
+```
+
+---
+
+### **Vergleich**
+
+| Methode                      | Genauigkeit   | Geschwindigkeit | Filter möglich |
+| ---------------------------- | ------------- | --------------- | -------------- |
+| **countDocuments()**         | hoch          | langsamer       | ✅ ja           |
+| **estimatedDocumentCount()** | evtl. ungenau | sehr schnell    | ❌ nein         |
+
+---
+
+**Offizielle Quellen:**
+
+* [countDocuments()](https://mongoosejs.com/docs/api/model.html#Model.countDocuments)
+* [estimatedDocumentCount()](https://mongoosejs.com/docs/api/model.html#Model.estimatedDocumentCount)
+* [MongoDB count-Dokumentation](https://www.mongodb.com/docs/manual/reference/method/db.collection.countDocuments/)
+
+---
+
+**Zusammenfassung:**
+
+* `countDocuments()` → präzise Zählung mit optionalem Filter.
+* `estimatedDocumentCount()` → schnelle, ungefähre Anzahl aller Dokumente, ohne Filter.
 
 
   **[⬆ Наверх](#top)**  
 
-81. ### <a name="81"></a> 
+81. ### <a name="81"></a> Was ist eine Aggregation Pipeline und wofür wird sie verwendet?
 
+**Aggregation Pipeline** in MongoDB ist ein Framework zur **Datenverarbeitung und -analyse**.
+Es ermöglicht, Dokumente durch eine **Pipeline von Stages** (Verarbeitungsstufen) zu leiten, um komplexe Transformationen, Gruppierungen und Berechnungen durchzuführen – ähnlich wie `GROUP BY`, `JOIN` oder `HAVING` in SQL.
+
+---
+
+### **Aufbau**
+
+* Eine Aggregation besteht aus **mehreren Stages** (`$match`, `$group`, `$sort`, `$project`, usw.).
+* Jedes Dokument durchläuft die Stages nacheinander.
+
+---
+
+### **Wichtige Stages**
+
+* `$match` → Filter (ähnlich wie `WHERE`).
+* `$group` → Gruppierung und Aggregatfunktionen (`$sum`, `$avg`, `$max`).
+* `$sort` → Ergebnisse sortieren.
+* `$project` → Felder auswählen/umbenennen/neue berechnete Felder hinzufügen.
+* `$limit` / `$skip` → Pagination.
+* `$lookup` → Verknüpfung mit einer anderen Collection (ähnlich SQL-Join).
+
+---
+
+### **Beispiel: User nach Alter gruppieren**
+
+```js
+const result = await User.aggregate([
+  { $match: { age: { $gte: 18 } } }, // nur Erwachsene
+  { $group: { _id: "$age", count: { $sum: 1 } } }, // nach Alter gruppieren
+  { $sort: { count: -1 } } // absteigend sortieren
+]);
+
+console.log(result);
+/*
+[
+  { _id: 25, count: 3 },
+  { _id: 30, count: 2 }
+]
+*/
+```
+
+---
+
+### **Vorteile**
+
+* Leistungsstark für **Reporting, Statistiken und Transformationen**.
+* Läuft direkt in der Datenbank (kein zusätzlicher Serveraufwand).
+* Unterstützt **Pipelines mit mehreren Stages** für komplexe Abfragen.
+
+---
+
+**Offizielle Quelle:** [MongoDB Aggregation Pipeline](https://www.mongodb.com/docs/manual/core/aggregation-pipeline/)
+
+---
+
+**Zusammenfassung:**
+Die Aggregation Pipeline ist ein mächtiges Tool in MongoDB, um Daten in mehreren Stufen zu filtern, zu transformieren und zu analysieren – vergleichbar mit SQL-Operationen wie `GROUP BY`, `JOIN` und Aggregatfunktionen.
 
 
   **[⬆ Наверх](#top)**
 
-82. ### <a name="82"></a> 
+82. ### <a name="82"></a> Welche Stages gibt es ($match, $group, $project, $sort, $limit)?
 
+In der **Aggregation Pipeline** von MongoDB gibt es viele **Stages** (Verarbeitungsstufen). Die wichtigsten sind:
+
+---
+
+### **1. `$match`**
+
+* Filtert Dokumente nach Bedingungen (wie `find()` oder `WHERE` in SQL).
+
+```js
+{ $match: { age: { $gte: 18 } } }
+```
+
+---
+
+### **2. `$group`**
+
+* Gruppiert Dokumente nach einem Feld und erlaubt Aggregatfunktionen (`$sum`, `$avg`, `$max`, `$min`, `$count`).
+
+```js
+{ 
+  $group: { 
+    _id: "$age", 
+    count: { $sum: 1 }, 
+    avgScore: { $avg: "$score" } 
+  } 
+}
+```
+
+---
+
+### **3. `$project`**
+
+* Wählt bestimmte Felder aus, blendet andere aus oder erstellt neue berechnete Felder.
+
+```js
+{ 
+  $project: { 
+    name: 1, 
+    email: 1, 
+    yearOfBirth: { $subtract: [2025, "$age"] } 
+  } 
+}
+```
+
+---
+
+### **4. `$sort`**
+
+* Sortiert Dokumente nach einem oder mehreren Feldern.
+* `1` = aufsteigend, `-1` = absteigend.
+
+```js
+{ $sort: { age: -1, name: 1 } }
+```
+
+---
+
+### **5. `$limit`**
+
+* Begrenzt die Anzahl der zurückgegebenen Dokumente.
+
+```js
+{ $limit: 5 }
+```
+
+---
+
+### **Beispiel-Pipeline**
+
+```js
+const result = await User.aggregate([
+  { $match: { age: { $gte: 18 } } },
+  { $group: { _id: "$city", total: { $sum: 1 } } },
+  { $project: { city: "$_id", total: 1, _id: 0 } },
+  { $sort: { total: -1 } },
+  { $limit: 3 }
+]);
+
+console.log(result);
+/*
+[
+  { city: "Berlin", total: 10 },
+  { city: "Leipzig", total: 7 },
+  { city: "Hamburg", total: 5 }
+]
+*/
+```
+
+---
+
+**Offizielle Quelle:** [MongoDB Aggregation Pipeline Stages](https://www.mongodb.com/docs/manual/reference/operator/aggregation-pipeline/)
+
+---
+
+**Zusammenfassung:**
+
+* `$match` = Filterung
+* `$group` = Gruppierung & Aggregatfunktionen
+* `$project` = Feldauswahl und Transformation
+* `$sort` = Sortierung
+* `$limit` = Begrenzung der Ergebnisanzahl
 
 
   **[⬆ Наверх](#top)**
 
-83. ### <a name="83"></a> 
+83. ### <a name="83"></a> Was sind Indexe und warum sind sie wichtig?
 
+**Indexe** in MongoDB (und allgemein in Datenbanken) sind spezielle **Datenstrukturen**, die den Zugriff auf Dokumente **schneller** machen, ähnlich wie ein Inhaltsverzeichnis in einem Buch.
+
+---
+
+### **Warum wichtig?**
+
+* **Performance**: Abfragen mit Filtern (`find`, `$match`) werden beschleunigt.
+* **Vermeidung von Collection Scans**: Ohne Index muss MongoDB jedes Dokument prüfen.
+* **Effizienz bei Sortierung**: `sort()` kann einen Index nutzen, statt alle Daten im Speicher zu sortieren.
+* **Unterstützung für Eindeutigkeit**: `unique`-Index stellt sicher, dass Werte nicht doppelt vorkommen (z. B. E-Mail-Adressen).
+
+---
+
+### **Arten von Indexen**
+
+* **Single Field Index** → auf einem Feld
+
+```js
+db.users.createIndex({ email: 1 }) // 1 = aufsteigend
+```
+
+* **Compound Index** → auf mehreren Feldern
+
+```js
+db.users.createIndex({ age: 1, name: -1 })
+```
+
+* **Unique Index** → verhindert Duplikate
+
+```js
+db.users.createIndex({ email: 1 }, { unique: true })
+```
+
+* **Text Index** → für Volltextsuche
+
+```js
+db.articles.createIndex({ content: "text" })
+```
+
+* **Geospatial Index** → für Geo-Abfragen
+
+```js
+db.places.createIndex({ location: "2dsphere" })
+```
+
+---
+
+### **Beispiel in Mongoose**
+
+```js
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema({
+  email: { type: String, unique: true }, // automatisch Index
+  age: Number
+});
+
+userSchema.index({ age: 1 }); // manueller Index
+
+const User = mongoose.model("User", userSchema);
+```
+
+---
+
+### **Nachteile von Indexen**
+
+* **Mehr Speicherplatzverbrauch**.
+* **Langsameres Schreiben** (Insert/Update/Delete), weil Indexe aktualisiert werden müssen.
+
+---
+
+**Offizielle Quelle:** [MongoDB Indexes](https://www.mongodb.com/docs/manual/indexes/)
+
+---
+
+**Zusammenfassung:**
+Indexe sind Datenstrukturen, die Datenbankabfragen beschleunigen, indem sie schnellen Zugriff auf Dokumente ermöglichen. Sie verbessern Lese-Performance und Sortierungen erheblich, verursachen aber zusätzlichen Speicher- und Schreibaufwand.
 
 
   **[⬆ Наверх](#top)**
 
-84. ### <a name="84"></a> 
+84. ### <a name="84"></a> Unterschied zwischen Single-Field Index und Compound Index?
 
+**Single-Field Index vs. Compound Index** in MongoDB:
+
+---
+
+### **Single-Field Index**
+
+* Index auf **einem Feld**.
+* Beschleunigt Abfragen, die nach genau diesem Feld filtern oder sortieren.
+
+```js
+// Index nur auf "age"
+db.users.createIndex({ age: 1 });
+```
+
+**Beispiel:**
+
+```js
+// nutzt den Index auf age
+db.users.find({ age: 30 });
+```
+
+---
+
+### **Compound Index**
+
+* Index auf **mehreren Feldern** (Reihenfolge ist entscheidend).
+* Kann Abfragen beschleunigen, die **alle** oder **nur die führenden Felder** nutzen.
+
+```js
+// Index auf Kombination von age und name
+db.users.createIndex({ age: 1, name: -1 });
+```
+
+**Beispiele:**
+
+* Nutzt den Index:
+
+```js
+db.users.find({ age: 30 });        // ✅ nutzt Index (erstes Feld)
+db.users.find({ age: 30, name: "Sergii" }); // ✅ nutzt beide
+```
+
+* Nutzt den Index **nicht**:
+
+```js
+db.users.find({ name: "Sergii" }); // ❌ kein Index, da "age" fehlt
+```
+
+---
+
+### **Vergleich**
+
+| Typ          | Felder         | Geeignet für                               |
+| ------------ | -------------- | ------------------------------------------ |
+| Single-Field | ein Feld       | einfache Abfragen oder Sortierungen        |
+| Compound     | mehrere Felder | komplexe Abfragen mit mehreren Bedingungen |
+
+---
+
+**Offizielle Quelle:** [MongoDB Index Types](https://www.mongodb.com/docs/manual/core/index-compound/)
+
+---
+
+**Zusammenfassung:**
+
+* **Single-Field Index** = Index auf einem Feld.
+* **Compound Index** = Index auf mehreren Feldern, wobei die Reihenfolge wichtig ist.
+* Compound-Index deckt sowohl Mehrfeld-Abfragen als auch Abfragen mit nur dem **führenden Feld** ab.
 
 
   **[⬆ Наверх](#top)**
 
-85. ### <a name="85"></a> 
+85. ### <a name="85"></a> Was ist ein Unique-Index?
 
+**Unique-Index** in MongoDB ist ein spezieller Index, der sicherstellt, dass die Werte eines Feldes in einer Collection **eindeutig** sind.
+
+---
+
+### **Eigenschaften**
+
+* Verhindert **Duplikate** in einem Feld oder einer Feldkombination.
+* Versucht man, ein Dokument mit einem bereits existierenden Wert einzufügen, schlägt der Insert/Update fehl.
+* Kann auch auf **Compound-Indexen** definiert werden (Eindeutigkeit über mehrere Felder).
+
+---
+
+### **Beispiel: Single-Field Unique Index**
+
+```js
+// E-Mail-Adressen müssen eindeutig sein
+db.users.createIndex({ email: 1 }, { unique: true });
+```
+
+```js
+// Einfügen funktioniert
+db.users.insertOne({ name: "Sergii", email: "sergii@example.com" });
+
+// Einfügen schlägt fehl (duplicate key error)
+db.users.insertOne({ name: "Anna", email: "sergii@example.com" });
+```
+
+---
+
+### **Beispiel: Compound Unique Index**
+
+```js
+// Kombination aus firstName + lastName muss einzigartig sein
+db.users.createIndex({ firstName: 1, lastName: 1 }, { unique: true });
+```
+
+* `("Sergii", "Ivanov")` und `("Sergii", "Petrov")` → ✅ erlaubt
+* `("Sergii", "Ivanov")` und `("Sergii", "Ivanov")` → ❌ nicht erlaubt
+
+---
+
+### **In Mongoose**
+
+```js
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema({
+  email: { type: String, unique: true, required: true }
+});
+
+const User = mongoose.model("User", userSchema);
+```
+
+---
+
+### **Hinweis**
+
+* `unique: true` in Mongoose ist **kein Validator**, sondern erzeugt einen **Unique-Index** in MongoDB.
+* Fehlermeldungen kommen direkt von MongoDB (`duplicate key error`).
+
+---
+
+**Offizielle Quelle:** [MongoDB Unique Index](https://www.mongodb.com/docs/manual/core/index-unique/)
+
+---
+
+**Zusammenfassung:**
+Ein **Unique-Index** erzwingt, dass die Werte eines Feldes oder einer Feldkombination in einer Collection eindeutig sind. Damit wird Datenkonsistenz gewährleistet (z. B. eindeutige E-Mail-Adressen).
 
 
   **[⬆ Наверх](#top)**
 
-86. ### <a name="86"></a> 
+86. ### <a name="86"></a> Was ist Sharding und Replikation in MongoDB?
 
+**Sharding** und **Replikation** sind zwei zentrale Konzepte in MongoDB zur Skalierung und Hochverfügbarkeit.
+
+---
+
+### **Replikation**
+
+* **Zweck:** Hohe Verfügbarkeit und Datensicherheit.
+* Daten werden auf **mehreren Servern (Replica Set)** gespeichert.
+* Enthält:
+
+  * **Primary** → nimmt Schreib-/Leseoperationen entgegen.
+  * **Secondary** → replizieren Daten vom Primary, können für Lesezugriffe verwendet werden.
+  * **Arbiter** (optional) → nimmt an Wahlen teil, speichert aber keine Daten.
+
+**Vorteile:**
+
+* **Failover**: Wenn Primary ausfällt, wird ein Secondary automatisch zum neuen Primary.
+* **Redundanz**: Schutz vor Datenverlust.
+* **Load Balancing**: Reads können auf Secondaries verteilt werden.
+
+**Beispiel-Architektur:**
+
+```
+Primary <--- repliziert --- Secondary1
+   |                         Secondary2
+   +---- Arbiter (nur Wahlstimme)
+```
+
+---
+
+### **Sharding**
+
+* **Zweck:** Horizontale Skalierung für sehr große Datenmengen.
+* Daten werden in **Chunks** auf mehrere **Shards** verteilt.
+* Ein **Shard** ist im Grunde eine Replica Set (für Sicherheit + Verfügbarkeit).
+* Verteilung erfolgt nach einem **Shard Key** (z. B. `userId`, `region`).
+
+**Komponenten:**
+
+* **Shard** → speichert einen Teil der Daten.
+* **Config Server** → verwaltet Metadaten und Shard-Informationen.
+* **Mongos Router** → leitet Anfragen an die richtigen Shards weiter.
+
+**Vorteile:**
+
+* **Horizontale Skalierung** → Daten und Last werden auf mehrere Server verteilt.
+* **Performance** → Abfragen werden effizienter, wenn sie auf den richtigen Shard geleitet werden.
+
+---
+
+### **Vergleich**
+
+| Konzept         | Ziel                                 | Funktion                           |
+| --------------- | ------------------------------------ | ---------------------------------- |
+| **Replikation** | Hochverfügbarkeit, Ausfallsicherheit | Kopiert Daten auf mehrere Server   |
+| **Sharding**    | Skalierung großer Datenmengen        | Teilt Daten auf mehrere Server auf |
+
+---
+
+**Offizielle Quellen:**
+
+* [MongoDB Replikation](https://www.mongodb.com/docs/manual/replication/)
+* [MongoDB Sharding](https://www.mongodb.com/docs/manual/sharding/)
+
+---
+
+**Zusammenfassung:**
+
+* **Replikation** = gleiche Daten auf mehreren Servern (Failover, Redundanz, Hochverfügbarkeit).
+* **Sharding** = Daten horizontal auf mehrere Server verteilt (Skalierung großer Datenmengen).
 
 
   **[⬆ Наверх](#top)**
 
-87. ### <a name="87"></a> 
+87. ### <a name="87"></a> Was ist ein Replica Set und warum ist es wichtig?
 
+**Replica Set** in MongoDB ist eine **Gruppe von mongod-Instanzen**, die dieselben Daten verwalten und replizieren.
+Es ist die empfohlene Methode für **Replikation** in MongoDB.
+
+---
+
+### **Bestandteile eines Replica Sets**
+
+* **Primary** → nimmt Schreib- und Leseoperationen entgegen.
+* **Secondaries** → replizieren Daten vom Primary (können für Lesezugriffe genutzt werden).
+* **Arbiter (optional)** → nimmt nur an Wahlen teil, speichert aber keine Daten.
+
+---
+
+### **Funktionsweise**
+
+* Alle Schreiboperationen gehen auf den **Primary**.
+* Änderungen werden in das **oplog** (Operations-Log) geschrieben.
+* **Secondaries** lesen das oplog und wenden die Änderungen an.
+* Wenn der Primary ausfällt, wählen die Mitglieder automatisch einen neuen Primary (**Failover**).
+
+---
+
+### **Vorteile**
+
+1. **Hochverfügbarkeit**: automatisches Failover, kein Single Point of Failure.
+2. **Datensicherheit**: mehrere Kopien schützen vor Datenverlust.
+3. **Lastverteilung**: Leseanfragen können auf Secondaries verteilt werden.
+4. **Disaster Recovery**: Backups können von Secondaries erstellt werden, ohne Primary zu belasten.
+
+---
+
+### **Beispiel**
+
+```
+Primary <---- repliziert ---- Secondary1
+   |
+   +---- repliziert ---- Secondary2
+   |
+   +---- Arbiter (nur für Wahlen)
+```
+
+---
+
+**Offizielle Quelle:** [MongoDB Replica Sets](https://www.mongodb.com/docs/manual/replication/)
+
+---
+
+**Zusammenfassung:**
+Ein **Replica Set** ist eine Gruppe von MongoDB-Servern (Primary + Secondaries), die dieselben Daten verwalten. Es ist wichtig für **Hochverfügbarkeit, Ausfallsicherheit, Datensicherheit und Skalierung von Leseanfragen**.
 
 
   **[⬆ Наверх](#top)**
 
-88. ### <a name="88"></a> 
+88. ### <a name="88"></a> Wie optimiert man Queries in MongoDB (Explain, Indexe)?
 
+**Query-Optimierung in MongoDB** erfolgt hauptsächlich durch **Indexe** und Analyse der Abfrage mit **`explain()`**.
+
+---
+
+### **1. explain()**
+
+* Zeigt, **wie MongoDB eine Abfrage ausführt** (Query Plan).
+* Hilft, langsame Abfragen zu identifizieren.
+
+```js
+// Beispiel: Explain nutzen
+const result = await db.collection("users")
+  .find({ age: { $gt: 25 } })
+  .explain("executionStats");
+
+console.log(JSON.stringify(result, null, 2));
+```
+
+👉 Wichtige Infos in `executionStats`:
+
+* `totalDocsExamined` → wie viele Dokumente geprüft wurden.
+* `totalKeysExamined` → wie viele Indexeinträge geprüft wurden.
+* `executionTimeMillis` → Dauer der Abfrage.
+
+**Optimale Abfrage:** wenige Dokumente geprüft (`COLLSCAN` vermeiden → Index nutzen).
+
+---
+
+### **2. Indexe nutzen**
+
+* **Single-Field Index** für häufig genutzte Filterfelder.
+* **Compound Index** für Kombinationen von Feldern (z. B. `{ age: 1, name: 1 }`).
+* **Covered Queries**: wenn alle benötigten Felder im Index enthalten sind → Zugriff auf eigentliche Dokumente entfällt → sehr schnell.
+
+```js
+db.users.createIndex({ age: 1 });
+db.users.createIndex({ age: 1, name: 1 });
+```
+
+---
+
+### **3. Projektion**
+
+* Nur benötigte Felder zurückgeben (`{ field: 1 }`).
+* Verhindert unnötige Datenübertragung.
+
+```js
+await db.collection("users").find(
+  { age: { $gt: 25 } },
+  { projection: { name: 1, _id: 0 } }
+);
+```
+
+---
+
+### **4. Sortierungen optimieren**
+
+* Abfragen mit `sort()` sollten passende Indexe haben.
+* Sort ohne Index → langsame In-Memory-Sortierung.
+
+```js
+db.users.createIndex({ age: 1 });
+await db.users.find().sort({ age: 1 });
+```
+
+---
+
+### **5. Weitere Best Practices**
+
+* **Limit + Skip** für Pagination.
+* **Shard Keys** sinnvoll wählen (bei Sharding).
+* **Denormalisierung** nutzen (eingebettete Dokumente statt zu viele Joins mit `$lookup`).
+* Abfragen regelmäßig mit `explain()` analysieren.
+
+---
+
+**Offizielle Quellen:**
+
+* [MongoDB explain()](https://www.mongodb.com/docs/manual/reference/method/cursor.explain/)
+* [MongoDB Indexes](https://www.mongodb.com/docs/manual/indexes/)
+
+---
+
+**Zusammenfassung:**
+
+* **`explain()`** nutzen, um Abfragepläne zu prüfen und Engpässe zu erkennen.
+* **Indexe** gezielt einsetzen (Single, Compound, Covered).
+* Projektion, sinnvolle Sortierung und Limitierungen verbessern die Performance.
+* Ziel: **wenige Dokumente prüfen, viele über Indexe finden**.
 
 
   **[⬆ Наверх](#top)**
 
-89. ### <a name="89"></a> 
+89. ### <a name="89"></a> Wie schützt man MongoDB vor unautorisiertem Zugriff?
 
+Zum **Schutz von MongoDB vor unautorisiertem Zugriff** gibt es mehrere Sicherheitsmaßnahmen:
+
+---
+
+### **1. Authentifizierung aktivieren**
+
+* Standardmäßig kann MongoDB (früher) ohne Authentifizierung starten → riskant.
+* **Role-Based Access Control (RBAC)** verwenden.
+
+```bash
+# MongoDB mit Authentifizierung starten
+mongod --auth --port 27017 --dbpath /data/db
+```
+
+**Beispiel: Benutzer anlegen**
+
+```js
+use admin
+db.createUser({
+  user: "admin",
+  pwd: "sicheresPasswort",
+  roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+});
+```
+
+---
+
+### **2. Netzwerkzugriff einschränken**
+
+* MongoDB standardmäßig auf **localhost** binden.
+* In `mongod.conf` einstellen:
+
+```yaml
+net:
+  bindIp: 127.0.0.1   # nur lokale Verbindungen
+  port: 27017
+```
+
+* Zugriff nur für bestimmte IP-Adressen erlauben (z. B. durch Firewall oder Security Groups in der Cloud).
+
+---
+
+### **3. TLS/SSL-Verschlüsselung**
+
+* Kommunikation zwischen Client und Server mit TLS absichern.
+* So können Passwörter und Daten nicht im Klartext abgefangen werden.
+
+```yaml
+net:
+  ssl:
+    mode: requireSSL
+    PEMKeyFile: /etc/ssl/mongodb.pem
+```
+
+---
+
+### **4. Rollen und Berechtigungen einschränken**
+
+* **Prinzip der minimalen Rechte (least privilege)**:
+
+  * Application-User → nur `readWrite` auf spezifische DB.
+  * Admin-User → nur für Verwaltung.
+
+```js
+db.createUser({
+  user: "appUser",
+  pwd: "appPass123",
+  roles: [ { role: "readWrite", db: "meineDB" } ]
+});
+```
+
+---
+
+### **5. Sicherheitsfunktionen**
+
+* **Auditing aktivieren** → protokolliert Zugriffe.
+* **IP-Whitelisting** in Cloud-Deployments (MongoDB Atlas).
+* **Fail2ban / Firewall** einsetzen, um Brute-Force-Angriffe zu verhindern.
+
+---
+
+### **6. Allgemeine Best Practices**
+
+* Starke Passwörter oder **SCRAM-SHA-Authentifizierung**.
+* Regelmäßige Updates installieren.
+* Unnötige Ports und Dienste schließen.
+* Backups verschlüsseln.
+
+---
+
+**Offizielle Quellen:**
+
+* [MongoDB Security Checklist](https://www.mongodb.com/docs/manual/administration/security-checklist/)
+* [Enable Authentication](https://www.mongodb.com/docs/manual/tutorial/enable-authentication/)
+
+---
+
+**Zusammenfassung:**
+
+* **Authentifizierung + RBAC** aktivieren.
+* **Netzwerkzugriff beschränken** (localhost/IP-Whitelist, Firewalls).
+* **TLS/SSL-Verschlüsselung** nutzen.
+* **Minimalprinzip für Rollen** anwenden.
+* Updates, Auditing und Firewalls für zusätzlichen Schutz einsetzen.
 
 
   **[⬆ Наверх](#top)**
 
-90. ### <a name="90"></a> 
+90. ### <a name="90"></a> Unterschied zwischen Rollen und Berechtigungen (z. B. read, readWrite)?
 
+In MongoDB gibt es ein **rollenbasiertes Berechtigungssystem (RBAC)**. Dabei ist der Unterschied zwischen **Rollen** und **Berechtigungen** (Privileges):
+
+---
+
+### **Berechtigungen (Privileges)**
+
+* Kleinste Einheit der Zugriffskontrolle.
+* Bestehen aus:
+
+  * **Ressource** (z. B. Datenbank, Collection)
+  * **Aktionen** (z. B. `find`, `insert`, `update`, `remove`).
+
+👉 Beispiel für ein Privilege:
+
+```js
+{
+  resource: { db: "meineDB", collection: "users" },
+  actions: ["find", "insert"]
+}
+```
+
+---
+
+### **Rollen (Roles)**
+
+* Sammlung von **Berechtigungen**.
+* Rollen werden Benutzern zugewiesen.
+* Es gibt eingebaute Rollen und benutzerdefinierte Rollen.
+
+👉 Eingebaute Rollen-Beispiele:
+
+* `read` → darf Daten lesen (`find`), keine Änderungen.
+* `readWrite` → darf lesen + schreiben (`find`, `insert`, `update`, `remove`).
+* `dbAdmin` → Verwaltungsaufgaben auf einer DB (Indexe, Profiling, Stats).
+* `userAdmin` → Benutzer- und Rollenverwaltung.
+* `clusterAdmin` → Verwaltung des gesamten Clusters.
+
+**User mit Rolle `readWrite` in `meineDB` erstellen:**
+
+```js
+db.createUser({
+  user: "appUser",
+  pwd: "appPass123",
+  roles: [ { role: "readWrite", db: "meineDB" } ]
+});
+```
+
+---
+
+### **Vergleich**
+
+| **Begriff**      | **Beschreibung**                                            |
+| ---------------- | ----------------------------------------------------------- |
+| **Berechtigung** | Einzelne Aktion auf Ressource (`find`, `insert`).           |
+| **Rolle**        | Sammlung von Berechtigungen, die Benutzern zugewiesen wird. |
+
+---
+
+**Offizielle Quelle:** [MongoDB Built-In Roles](https://www.mongodb.com/docs/manual/core/authorization/#built-in-roles)
+
+---
+
+**Zusammenfassung:**
+
+* **Berechtigungen** = konkrete Aktionen auf Ressourcen.
+* **Rollen** = Bündel von Berechtigungen, die einem Benutzer zugewiesen werden.
+* Beispiel: `read` (nur lesen), `readWrite` (lesen + schreiben).
 
 
   **[⬆ Наверх](#top)**  
