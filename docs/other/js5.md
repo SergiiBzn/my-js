@@ -9661,139 +9661,110 @@ console.log(summe); // ✅ 10
 
 95. ### <a name="95"></a> Reguläre Ausdrücke (RegExp)
 
-### **Reguläre Ausdrücke (`RegExp`) in JavaScript**  
+**Reguläre Ausdrücke (RegExp) in JavaScript**
 
-Reguläre Ausdrücke (**Regular Expressions, RegExp**) sind **Muster**, um **Texte zu durchsuchen, zu validieren oder zu ersetzen**.  
-
----
-
-## **1. Regulären Ausdruck erstellen**
-### **1.1 Mit Schrägstrichen (`/regex/`)**
-```javascript
-const regex = /hallo/;
-console.log(regex.test("hallo Welt")); // ✅ true
-console.log(regex.test("Hallo Welt")); // ❌ false (Groß-/Kleinschreibung beachtet)
-```
-✅ **Direkte Schreibweise**  
-
-### **1.2 Mit `RegExp`-Konstruktor**
-```javascript
-const regex = new RegExp("hallo", "i"); // "i" ignoriert Groß-/Kleinschreibung
-console.log(regex.test("Hallo Welt")); // ✅ true
-```
-✅ **Dynamische Muster möglich (`new RegExp(variable)`)**  
+Ein **Regulärer Ausdruck** ist ein Muster, das für die Suche, das Ersetzen oder die Validierung von Strings verwendet wird. In JavaScript werden RegExps mit **`/muster/flags`** oder mit dem **`RegExp`-Konstruktor** erstellt.
 
 ---
 
-## **2. Flags (`/pattern/flags`)**
-| Flag | Bedeutung |
-|------|-----------|
-| **`g`** | Global – Alle Vorkommen suchen |
-| **`i`** | Case-insensitive – Groß-/Kleinschreibung ignorieren |
-| **`m`** | Multiline – Mehrzeilenmodus |
-| **`s`** | Dotall – `.` erfasst auch Zeilenumbrüche |
-| **`u`** | Unicode-Unterstützung |
-| **`y`** | Sticky – Sucht genau ab aktueller Position |
+### Erzeugung
 
-```javascript
-const regex = /hallo/gi;
-console.log("Hallo hallo hallo".match(regex)); // ✅ ["Hallo", "hallo", "hallo"]
+```js
+// Literal-Notation
+const regex1 = /abc/;
+
+// Mit Konstruktor
+const regex2 = new RegExp('abc');
 ```
 
 ---
 
-## **3. Zeichenklassen (`[...]`, `\d`, `\w`, `\s`)**
-| Zeichen | Bedeutung | Beispiel |
-|---------|-----------|----------|
-| **`.`** | Jedes Zeichen außer Zeilenumbruch | `/h.llo/` → `hallo`, `hxllo` |
-| **`\d`** | Ziffer `[0-9]` | `/\d/` → `5`, `9` |
-| **`\w`** | Wortzeichen `[a-zA-Z0-9_]` | `/\w/` → `a`, `9`, `_` |
-| **`\s`** | Leerzeichen, Tab, Zeilenumbruch | `/\s/` → `" "` |
-| **`\b`** | Wortgrenze | `/\btest\b/` findet `test`, aber nicht `testing` |
-| **`[xyz]`** | Eines dieser Zeichen | `/[aeiou]/` → findet Vokale |
+### Wichtige Flags
 
-```javascript
-console.log(/\d/.test("Haus 123")); // ✅ true (Ziffer gefunden)
-console.log(/\w+/.exec("Hallo Welt!")); // ✅ ["Hallo"]
+* **g** → global (alle Treffer, nicht nur der erste)
+* **i** → ignore case (Groß-/Kleinschreibung ignorieren)
+* **m** → multiline (^ und \$ funktionieren zeilenweise)
+* **s** → dotAll (Punkt `.` matcht auch Zeilenumbrüche)
+* **u** → Unicode (korrekt mit Unicode-Zeichen arbeiten)
+* **y** → sticky (Treffer muss an der aktuellen Position starten)
+
+---
+
+### Grundlegende Metazeichen
+
+* `.` → beliebiges Zeichen (außer Zeilenumbruch)
+* `^` → Anfang des Strings
+* `$` → Ende des Strings
+* `\d` → Ziffer \[0-9]
+* `\w` → Wortzeichen \[A-Za-z0-9\_]
+* `\s` → Whitespace (Leerzeichen, Tab, Zeilenumbruch)
+* `+` → ein oder mehr
+* `*` → null oder mehr
+* `?` → optional (null oder eins)
+* `{n,m}` → mindestens n, höchstens m Wiederholungen
+* `|` → oder
+
+---
+
+### Methoden für Strings
+
+```js
+const text = "Hallo 123 Welt";
+
+// Suche (true/false)
+console.log(/123/.test(text)); // true
+
+// Finde erstes Match
+console.log(text.match(/\d+/)); 
+// ["123"]
+
+// Alle Matches (mit Flag g)
+console.log(text.match(/\d+/g)); 
+// ["123"]
+
+// Ersetzen
+console.log(text.replace(/\d+/, "XYZ")); 
+// "Hallo XYZ Welt"
+
+// Split
+console.log(text.split(/\s+/)); 
+// ["Hallo", "123", "Welt"]
 ```
 
 ---
 
-## **4. Quantoren (`+`, `*`, `?`, `{n,m}`)**
-| Quantor | Bedeutung | Beispiel |
-|---------|-----------|----------|
-| **`+`** | Mindestens einmal | `/a+/` → `aaa` in `"baa"` |
-| **`*`** | Beliebig oft (auch 0-mal) | `/bo*l/` → `bl`, `bol`, `bool` |
-| **`?`** | Optional (0 oder 1-mal) | `/colou?r/` → `color`, `colour` |
-| **`{n}`** | Genau `n` Wiederholungen | `/\d{4}/` → `2023` |
-| **`{n,}`** | Mindestens `n`-mal | `/\d{2,}/` → `12`, `123` |
-| **`{n,m}`** | Zwischen `n` und `m`-mal | `/a{2,4}/` → `aa`, `aaa`, `aaaa` |
+### Methoden für RegExp
 
-```javascript
-console.log(/a{2,}/.test("baaa")); // ✅ true (mind. 2-mal `a`)
-console.log(/bo*l/.test("bl")); // ✅ true (kein `o` nötig)
+```js
+const regex = /\d+/g;
+const str = "Preis: 20€, Rabatt: 5€";
+
+let match;
+while ((match = regex.exec(str)) !== null) {
+  console.log(match[0]); 
+  // "20", dann "5"
+}
 ```
 
 ---
 
-## **5. Gruppen (`()`, `|`, `?:`)**
-| Zeichen | Bedeutung | Beispiel |
-|---------|-----------|----------|
-| **`(abc)`** | Gruppe | `/H(a|e)llo/` → `Hallo`, `Hello` |
-| **`(?:abc)`** | Nicht speichernde Gruppe | `/H(?:e|a)llo/` → Kein Gruppenspeicher |
-| **`|`** | ODER (Alternation) | `/rot|blau/` → `rot`, `blau` |
+### Beispiel: E-Mail-Validierung
 
-```javascript
-console.log(/(Hallo|Hi) Welt/.test("Hi Welt")); // ✅ true
-console.log(/(abc){2}/.test("abcabc")); // ✅ true (2-mal `abc`)
+```js
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+console.log(emailRegex.test("test@example.com")); // true
+console.log(emailRegex.test("falsche-mail"));     // false
 ```
 
 ---
 
-## **6. Methoden mit `RegExp`**
-| Methode | Beschreibung |
-|---------|-------------|
-| **`regex.test(str)`** | Gibt `true` zurück, wenn Übereinstimmung gefunden |
-| **`regex.exec(str)`** | Gibt erstes Match als Array zurück |
-| **`str.match(regex)`** | Findet alle Übereinstimmungen |
-| **`str.replace(regex, ersatz)`** | Ersetzt Übereinstimmungen |
-| **`str.search(regex)`** | Gibt Index des ersten Treffers zurück |
+**Zusammenfassung:**
+RegExps in JavaScript sind Muster, die mit `/pattern/flags` oder `new RegExp()` erstellt werden. Sie werden für Suche, Ersetzung und Validierung in Strings genutzt. Zentrale Methoden sind `test()`, `match()`, `replace()`, `split()` und `exec()`. Flags steuern das Verhalten (z. B. `g`, `i`, `m`).
 
-```javascript
-const text = "Die Zahl 42 ist wichtig!";
-console.log(/\d+/.test(text)); // ✅ true
-console.log(text.match(/\d+/)); // ✅ ["42"]
-console.log(text.replace(/\d+/, "100")); // ✅ "Die Zahl 100 ist wichtig!"
-```
+📖 Quelle: [MDN Web Docs — RegExp](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/RegExp)
 
 ---
-
-## **7. Lookaheads & Lookbehinds**
-| Lookaround | Beschreibung | Beispiel |
-|------------|-------------|----------|
-| **`(?=...)`** | Positiver Lookahead | `/\d(?=€)/` → `5` in `5€` |
-| **`(?!...)`** | Negativer Lookahead | `/\d(?!€)/` → `5` in `5$` |
-| **`(?<=...)`** | Positives Lookbehind | `/(?<=€)\d/` → `5` in `€5` |
-| **`(?<!...)`** | Negatives Lookbehind | `/(?<!€)\d/` → `5` in `$5` |
-
-```javascript
-console.log(/(?<=€)\d+/.exec("€100")); // ✅ ["100"]
-console.log(/\d+(?=€)/.exec("50€")); // ✅ ["50"]
-```
-
----
-
-### **Zusammenfassung**
-| Konzept | Beispiel | Bedeutung |
-|---------|---------|-----------|
-| **Zeichenklassen** | `/\d/`, `/\w/` | `\d` = Zahl, `\w` = Wortzeichen |
-| **Quantoren** | `/a+/`, `/b{2,4}/` | `+` mind. 1-mal, `{2,4}` 2-4-mal |
-| **Gruppen** | `/(abc|def)/` | Sucht `abc` oder `def` |
-| **Lookaheads** | `\d+(?=€)` | Zahl vor `€` |
-| **Lookbehinds** | `(?<=€)\d+` | Zahl nach `€` |
-| **Testen** | `/regex/.test("text")` | Gibt `true` oder `false` zurück |
-
-🔗 [MDN-Dokumentation zu RegExp](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/RegExp)
 
   **[⬆ Наверх](#top)**
 
