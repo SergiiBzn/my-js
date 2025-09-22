@@ -136,693 +136,448 @@
   
 1. ### <a name="1"></a> Klassifizierung von Datentypen, Typumwandlung
 
-### **Datentypen in JavaScript**  
-
-In JavaScript gibt es **primitive Datentypen** und **Referenztypen**.  
+**Klassifizierung von Datentypen und Typumwandlung in JavaScript**
 
 ---
 
-## **1. Primitive Datentypen (Werte werden direkt gespeichert)**  
-Primitive Datentypen sind **immutable** (unveränderlich) und speichern Werte direkt im Speicher.
+### 1. Datentypen in JavaScript
 
-| Datentyp   | Beschreibung | Beispiel |
-|------------|-------------|-----------|
-| **`string`** | Zeichenkette | `"Hallo"`, `'Test'`, `` `Template` `` |
-| **`number`** | Zahlen (Ganzzahlen, Dezimal, `NaN`, `Infinity`) | `42`, `3.14`, `NaN`, `Infinity` |
-| **`bigint`** | Sehr große Ganzzahlen | `123456789012345678901234567890n` |
-| **`boolean`** | Wahrheitswerte | `true`, `false` |
-| **`undefined`** | Variable wurde deklariert, aber nicht zugewiesen | `let x; console.log(x); // undefined` |
-| **`null`** | Bewusste "leere" Variable | `let y = null;` |
-| **`symbol`** | Einzigartige, unveränderliche Identifikatoren | `let id = Symbol("id");` |
+**Primitive Typen (werden direkt gespeichert, unveränderlich):**
 
-```js
-let name = "Max"; // string
-let alter = 25; // number
-let isStudent = true; // boolean
-let nichts = null; // null
-let unbestimmt; // undefined
-let großeZahl = 123456789012345678901n; // bigint
-let uniqueKey = Symbol("key"); // symbol
-```
+* **string** → `"Hallo"`
+* **number** → `42`, `3.14`, `NaN`
+* **bigint** → `123n`
+* **boolean** → `true`, `false`
+* **undefined** → nicht zugewiesener Wert
+* **symbol** → eindeutiger Bezeichner (`Symbol('id')`)
+* **null** → explizit "kein Wert"
+
+**Referenztypen (nicht direkt gespeichert, verweisen auf Objekte):**
+
+* **Object**
+* **Array**
+* **Function**
+* **Date**, **RegExp**, usw.
 
 ---
 
-## **2. Referenztypen (Speichern Verweise auf Objekte im Speicher)**
-Referenztypen speichern **Referenzen** auf Speicherorte, nicht die Werte direkt.
+### 2. Dynamische Typisierung
 
-| Datentyp   | Beschreibung | Beispiel |
-|------------|-------------|-----------|
-| **`object`** | Sammlungen von Werten als Key-Value-Paare | `{name: "Max", alter: 25}` |
-| **`array`** | Listen von Werten | `[1, 2, 3, "Test"]` |
-| **`function`** | Funktionen sind Objekte | `function add(a, b) { return a + b; }` |
-| **`date`** | Datum und Zeit | `new Date()` |
-| **`RegExp`** | Reguläre Ausdrücke | `/abc/i` |
+JavaScript ist **dynamisch typisiert**, d. h. der Typ einer Variablen kann sich ändern:
 
 ```js
-let person = { name: "Max", alter: 25 }; // Objekt
-let zahlen = [1, 2, 3, 4]; // Array
-function sagHallo() { console.log("Hallo!"); } // Funktion
-let heute = new Date(); // Datum
-let regex = /abc/i; // Regulärer Ausdruck
+let x = 42;       // number
+x = "Hallo";      // string
 ```
 
 ---
 
-## **3. Unterschiede zwischen Primitiven und Referenztypen**
-| Eigenschaft | Primitive Typen | Referenztypen |
-|------------|----------------|--------------|
-| Speicherort | Direkt im Stack gespeichert | Verweis auf Speicheradresse im Heap |
-| Vergleich | Vergleicht Werte (`===` und `==` gleich) | Vergleicht Speicherreferenzen (`{}` !== `{}`) |
-| Veränderbarkeit | **Immutable** (Wert kann nicht direkt geändert werden) | **Mutable** (Werte innerhalb des Objekts/Arrays können geändert werden) |
+### 3. Typumwandlung (Type Conversion)
+
+#### Implizite Umwandlung (Type Coercion)
+
+JavaScript wandelt automatisch um, wenn nötig:
 
 ```js
-let a = 5;
-let b = a;
-b = 10;
-console.log(a); // 5 (unverändert)
+console.log("5" * 2);    // 10  ("5" → number)
+console.log("5" + 2);    // "52" (2 → string)
+console.log(true + 1);   // 2    (true → 1)
+```
 
-let obj1 = { name: "Max" };
-let obj2 = obj1; // Referenz auf dasselbe Objekt
-obj2.name = "Anna";
-console.log(obj1.name); // "Anna" (beide verweisen auf dasselbe Objekt)
+#### Explizite Umwandlung
+
+Mit Konstruktorfunktionen oder Operatoren:
+
+```js
+// Zu String
+console.log(String(123));   // "123"
+console.log((123).toString()); // "123"
+
+// Zu Number
+console.log(Number("42"));  // 42
+console.log(+"42");         // 42
+console.log(parseInt("42px", 10)); // 42
+console.log(parseFloat("3.14"));  // 3.14
+
+// Zu Boolean
+console.log(Boolean(0));    // false
+console.log(Boolean(""));   // false
+console.log(Boolean("Hi")); // true
 ```
 
 ---
 
-## **4. Sonderfälle**
-### **Falsy und Truthy Werte**
-#### **Falsy-Werte (`Boolean(wert) → false`)**
-Diese Werte werden als `false` interpretiert:
-```js
-false, 0, "", null, undefined, NaN
-```
+### 4. Truthy und Falsy Werte
 
-#### **Truthy-Werte (`Boolean(wert) → true`)**
-Alle anderen Werte sind `true`, z. B.:
-```js
-"0", "false", [], {}, function() {}, Infinity
-```
+* **Falsy**: `false`, `0`, `""`, `null`, `undefined`, `NaN`
+* Alles andere ist **truthy**.
 
 ```js
-console.log(Boolean(0)); // false
-console.log(Boolean("")); // false
-console.log(Boolean([])); // true (leeres Array ist truthy)
-console.log(Boolean({})); // true (leeres Objekt ist truthy)
+if ("Hallo") {
+  console.log("wird ausgeführt"); // truthy
+}
 ```
 
 ---
 
-## **5. Dynamische Typisierung in JavaScript**
-JavaScript ist eine **dynamisch typisierte** Sprache, d. h., eine Variable kann den Typ zur Laufzeit ändern:
-```js
-let x = "Hallo"; // String
-x = 42; // Jetzt eine Zahl
-x = true; // Jetzt ein Boolean
-console.log(x); // true
-```
+### 5. Besonderheiten
+
+* `null` ist ein **eigenständiger Typ**, aber `typeof null === "object"` (historischer Bug).
+* `NaN` ist vom Typ **number**, aber `NaN !== NaN`.
+  Prüfen mit `Number.isNaN()`.
 
 ---
 
-### **Zusammenfassung**
-✅ **Primitive Typen** speichern Werte direkt und sind immutable.  
-✅ **Referenztypen** speichern Verweise auf Objekte und sind veränderbar.  
-✅ **Vergleich von Referenztypen** erfolgt über Speicherreferenzen.  
-✅ **Falsy-Werte** sind `0, "", null, undefined, NaN`.  
-✅ **Dynamische Typisierung** erlaubt das Ändern von Typen zur Laufzeit.
+**Zusammenfassung:**
+JavaScript kennt **7 primitive Typen** und **Referenztypen** (Objekte). Typumwandlungen erfolgen entweder **implizit** (Coercion) oder **explizit** (z. B. `Number()`, `String()`, `Boolean()`). Wichtige Konzepte sind **dynamische Typisierung**, **truthy/falsy Werte** und Sonderfälle wie `NaN` oder `null`.
 
-
-### **Typumwandlung in JavaScript (Type Conversion)**
-
-In JavaScript gibt es zwei Arten der Typumwandlung:
-1. **Implizite Typumwandlung (Type Coercion)** → Automatische Konvertierung durch JavaScript  
-2. **Explizite Typumwandlung (Type Casting)** → Manuelle Konvertierung durch den Entwickler
+📖 Quelle: [MDN Web Docs — Data types](https://developer.mozilla.org/ru/docs/Web/JavaScript/Data_structures)
 
 ---
-
-## **1. Implizite Typumwandlung (Automatische Umwandlung)**
-JavaScript wandelt Werte automatisch um, wenn sie in bestimmten Operationen verwendet werden.
-
-### **String-Konkatenation mit `+` (Zahl → String)**
-```js
-console.log("10" + 5); // "105" (Zahl wird zu String)
-console.log(5 + "10"); // "510"
-console.log("Hello " + true); // "Hello true"
-```
-
-### **Arithmetische Operationen (`-`, `*`, `/`) (String → Zahl)**
-```js
-console.log("10" - 5); // 5 ("10" wird zu 10)
-console.log("6" * "2"); // 12
-console.log("100" / "10"); // 10
-console.log("5" - true); // 4 (true → 1)
-console.log("5" - false); // 5 (false → 0)
-```
-
-### **Vergleiche mit `==` (Typumwandlung vor dem Vergleich)**
-```js
-console.log(0 == "0");  // true (String wird zu Zahl)
-console.log(false == ""); // true ("" wird zu false)
-console.log(null == undefined); // true
-```
-👉 **Verwende `===`, um ohne Typumwandlung zu vergleichen!**
-```js
-console.log(0 === "0"); // false
-console.log(false === ""); // false
-```
-
----
-
-## **2. Explizite Typumwandlung (Manuelle Umwandlung)**
-Hier erfolgt die Umwandlung durch Methoden wie `Number()`, `String()`, `Boolean()`.
-
-### **String → Number**
-```js
-console.log(Number("42")); // 42
-console.log(Number("3.14")); // 3.14
-console.log(Number("10abc")); // NaN (Fehler, da "abc" keine Zahl ist)
-console.log(parseInt("42px")); // 42 (ignoriert "px")
-console.log(parseFloat("3.14abc")); // 3.14
-```
-
-### **Number → String**
-```js
-console.log(String(100)); // "100"
-console.log((42).toString()); // "42"
-console.log((3.14).toFixed(1)); // "3.1" (Rundet und gibt String zurück)
-```
-
-### **Beliebiger Wert → Boolean**
-```js
-console.log(Boolean(1)); // true
-console.log(Boolean(0)); // false
-console.log(Boolean("Hello")); // true
-console.log(Boolean("")); // false
-console.log(Boolean(null)); // false
-console.log(Boolean(undefined)); // false
-console.log(Boolean([])); // true (leeres Array ist truthy!)
-console.log(Boolean({})); // true (leeres Objekt ist truthy!)
-```
-
----
-
-## **Spezialfälle und Fallstricke**
-### **1. `NaN` (Not-a-Number)**
-```js
-console.log(Number("abc")); // NaN
-console.log(0 / 0); // NaN
-console.log(NaN == NaN); // false (NaN ist nicht gleich NaN!)
-```
-
-### **2. `null` und `undefined` Verhalten**
-```js
-console.log(Number(null)); // 0
-console.log(Number(undefined)); // NaN
-console.log(Boolean(null)); // false
-console.log(Boolean(undefined)); // false
-```
-
----
-
-## **Fazit**
-- **Implizite Typumwandlung** passiert automatisch, kann aber zu unerwarteten Ergebnissen führen.
-- **Explizite Typumwandlung** ist sicherer und kontrollierter.
-- **Nutze `===` statt `==`**, um unerwartete Konvertierungen zu vermeiden.
-
----
-📖 Weitere Informationen findest du in der offiziellen [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Data_structures).
 
   **[⬆ Наверх](#top)**
 
 2. ### <a name="2"></a> Unterschied zwischen null und undefined
 
-# Unterschied zwischen `null` und `undefined` in JavaScript
-
-In JavaScript stehen `null` und `undefined` für das Fehlen eines Wertes, aber sie unterscheiden sich in ihrer Bedeutung und Verwendung.
-
-## **`undefined`**
-- Eine Variable wurde deklariert, aber nicht initialisiert.
-- Ist der Standardwert für nicht zugewiesene Variablen.
-- Wird zurückgegeben, wenn eine Funktion kein explizites `return` hat.
-- Wird zurückgegeben, wenn auf eine nicht existierende Objekt-Eigenschaft oder ein nicht existierendes Array-Element zugegriffen wird.
-
-### **Beispiele für `undefined`**
-```js
-let x;
-console.log(x); // undefined
-```
-
-```js
-function doSomething() {
-  // Keine Rückgabe
-}
-console.log(doSomething()); // undefined
-```
-
-```js
-let obj = {};
-console.log(obj.nonExistentProperty); // undefined
-```
-
-## **`null`**
-- `null` ist ein expliziter Wert, der anzeigt, dass eine Variable bewusst leer oder nicht gesetzt ist.
-- Wird vom Entwickler zugewiesen, um eine Variable als „ohne Wert“ zu markieren.
-
-### **Beispiel für `null`**
-```js
-let y = null;
-console.log(y); // null
-```
-
-## **Unterschiede zusammengefasst**
-| Eigenschaft   | `undefined` | `null` |
-|--------------|------------|--------|
-| Standardwert | Ja (bei nicht zugewiesenen Variablen) | Nein (muss explizit gesetzt werden) |
-| Rückgabewert | Funktionen ohne `return`, fehlende Objekteigenschaften | Muss manuell zugewiesen werden |
-| Typ          | `undefined` | `object` (bekannter JavaScript-Bug) |
-
-## **Wann `null` oder `undefined` verwenden?**
-- **Verwende `null`**, wenn du eine Variable explizit auf „kein Wert“ setzen möchtest.
-- **Lass `undefined`** dem System überlassen (z. B. nicht initialisierte Variablen, fehlende Eigenschaften).
+**Unterschied zwischen `null` und `undefined` in JavaScript**
 
 ---
-📖 Weitere Informationen findest du in der offiziellen [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/null).
+
+### `undefined`
+
+* Automatischer Standardwert, wenn eine Variable **deklariert, aber nicht initialisiert** wurde.
+* Bedeutet: „Wert nicht zugewiesen“.
+
+```js
+let a;
+console.log(a); // undefined
+```
+
+* Rückgabewert von Funktionen ohne `return`:
+
+```js
+function foo() {}
+console.log(foo()); // undefined
+```
+
+* Zugriff auf nicht existierende Objekteigenschaft:
+
+```js
+const obj = {};
+console.log(obj.prop); // undefined
+```
+
+---
+
+### `null`
+
+* Muss **explizit** vom Entwickler gesetzt werden.
+* Bedeutet: „bewusst kein Wert“ oder „leer“.
+
+```js
+let user = null; // Platzhalter für späteres Objekt
+```
+
+---
+
+### Vergleich
+
+```js
+console.log(null == undefined);  // true (lose Gleichheit)
+console.log(null === undefined); // false (strikte Gleichheit)
+
+console.log(typeof undefined); // "undefined"
+console.log(typeof null);      // "object" (bekannter Bug in JS)
+```
+
+---
+
+### Typische Verwendung
+
+* **`undefined`** → vom System automatisch, „Wert fehlt“
+* **`null`** → vom Entwickler gesetzt, „bewusste Leere“
+
+---
+
+**Zusammenfassung:**
+`undefined` zeigt an, dass **kein Wert zugewiesen** wurde (Standard in JS).
+`null` bedeutet, dass ein Entwickler **absichtlich keinen Wert** gesetzt hat.
+Mit `==` sind beide gleich, aber mit `===` strikt verschieden.
+
+📖 Quelle: [MDN Web Docs — null](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/null), [MDN Web Docs — undefined](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/undefined)
+
+---
 
   **[⬆ Наверх](#top)**
 
 3. ### <a name="3"></a> Variablen let, const, var. Strikter Modus
 
-# `let`, `const`, `var` und der strikte Modus in JavaScript
-
-## **Unterschiede zwischen `let`, `const` und `var`**
-JavaScript bietet drei Möglichkeiten, Variablen zu deklarieren: `let`, `const` und `var`. Hier sind ihre Unterschiede:
-
-### **`let`** – Blockscope und Neu-Zuweisung erlaubt
-- Hat **Block-Scope** (gültig innerhalb `{}`).
-- Kann neu zugewiesen werden.
-- **Hoisting:** Wird hochgehoben, aber nicht initialisiert.
-
-**Beispiel:**
-```js
-let x = 5;
-if (true) {
-  let x = 10;
-  console.log(x); // 10 (innerhalb des Blocks)
-}
-console.log(x); // 5 (außerhalb des Blocks)
-```
-
-### **`const`** – Blockscope und unveränderlich
-- Hat ebenfalls **Block-Scope**.
-- Muss **direkt initialisiert** werden.
-- Kann **nicht** neu zugewiesen werden.
-
-**Beispiel:**
-```js
-const y = 7;
-// y = 10; // ❌ Fehler: `const`-Variablen können nicht neu zugewiesen werden.
-```
-
-### **`var`** – Funktionaler Scope und Hoisting
-- Hat **funktionalen Scope** (sichtbar in der gesamten Funktion, in der sie deklariert wurde).
-- Wird **gehoistet** und erhält beim Hoisting den Wert `undefined`.
-- Kann überschrieben und neu deklariert werden.
-
-**Beispiel:**
-```js
-var z = 3;
-if (true) {
-  var z = 6;
-  console.log(z); // 6
-}
-console.log(z); // 6 (da `var` global oder funktionsweit gültig ist)
-```
-
-🚀 **Empfehlung:** Verwende **`let`** oder **`const`**, da sie sicherer sind. **`var`** sollte vermieden werden.
+**Variablen (`let`, `const`, `var`) und strikter Modus (`"use strict"`) in JavaScript**
 
 ---
 
-## **Strikter Modus (`"use strict"`)**
-Der **strikte Modus** (`"use strict";`) aktiviert eine strengere Interpretation von JavaScript und hilft, Fehler frühzeitig zu erkennen.
+### 1. `var`
 
-### **Aktivierung des strikten Modus**
+* Gültig seit ES5 und früher.
+* **Funktions-Scope**, nicht blockbasiert.
+* **Hoisting**: Deklaration wird nach oben verschoben, aber nicht die Initialisierung.
+* Mehrfachdeklaration möglich.
+
 ```js
-"use strict";
-function myFunction() {
-  x = 10; // ❌ Fehler: `x` wurde nicht mit `let`, `const` oder `var` deklariert.
+function test() {
+  console.log(a); // undefined (Hoisting)
+  var a = 5;
+  console.log(a); // 5
+}
+test();
+```
+
+---
+
+### 2. `let`
+
+* Eingeführt mit ES6.
+* **Block-Scope** (nur innerhalb `{}` sichtbar).
+* Kein erneutes Deklarieren in demselben Scope möglich.
+* **Temporal Dead Zone (TDZ)**: Zugriff vor Deklaration führt zu Fehler.
+
+```js
+{
+  // console.log(b); // ReferenceError
+  let b = 10;
+  console.log(b); // 10
 }
 ```
 
-### **Wichtige Änderungen durch `"use strict"`**
-1. **Keine impliziten globalen Variablen**
-   ```js
-   "use strict";
-   myVar = 10; // ❌ Fehler: Variable wurde nicht deklariert.
-   ```
+---
 
-2. **Kein mehrfaches Deklarieren von Parametern**
-   ```js
-   "use strict";
-   function sum(a, a) { // ❌ Fehler: Doppelte Parameter-Namen nicht erlaubt.
-       return a + a;
-   }
-   ```
+### 3. `const`
 
-3. **Kein Löschen von Variablen und Funktionen**
-   ```js
-   "use strict";
-   let myVar = 10;
-   delete myVar; // ❌ Fehler: Variablen können nicht gelöscht werden.
-   ```
+* Wie `let`, aber Wert **muss bei Deklaration gesetzt** werden.
+* Der **Bezeichner** ist konstant, nicht der Inhalt.
+* Bei Objekten/Arrays können Inhalte geändert werden.
 
-4. **`this` ist `undefined` in einer Funktion**
-   ```js
-   "use strict";
-   function show() {
-       console.log(this); // `undefined` statt `window`
-   }
-   show();
-   ```
+```js
+const PI = 3.14;
+// PI = 3.15; // TypeError
 
-### **Warum `"use strict"` verwenden?**
-✅ Verhindert häufige Fehler.  
-✅ Erhöht die Code-Sicherheit.  
-✅ Hilft, modernen JavaScript-Standards zu entsprechen.
+const arr = [1, 2];
+arr.push(3); // erlaubt
+console.log(arr); // [1, 2, 3]
+```
 
-📖 Weitere Informationen findest du in der offiziellen [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Strict_mode).
+---
+
+### 4. Strikter Modus (`"use strict"`)
+
+* Aktiviert durch `"use strict";` am Anfang einer Datei oder Funktion.
+* Verhindert „unsauberes“ Verhalten:
+
+  * Keine impliziten globalen Variablen.
+  * Kein Löschen von Variablen/Funktionen.
+  * Reservierte Schlüsselwörter geschützt.
+  * Mehr Sicherheit für `this`.
+
+```js
+"use strict";
+
+x = 10; // ReferenceError: x is not defined
+```
+
+---
+
+### Vergleich `var`, `let`, `const`
+
+| Merkmal             | var                     | let                                      | const                                    |
+| ------------------- | ----------------------- | ---------------------------------------- | ---------------------------------------- |
+| Scope               | Funktions-Scope         | Block-Scope                              | Block-Scope                              |
+| Hoisting            | Ja (Wert = `undefined`) | Ja (TDZ, ReferenceError vor Deklaration) | Ja (TDZ, ReferenceError vor Deklaration) |
+| Mehrfachdeklaration | erlaubt                 | nicht erlaubt                            | nicht erlaubt                            |
+| Neuzuweisung        | erlaubt                 | erlaubt                                  | nicht erlaubt                            |
+
+---
+
+**Zusammenfassung:**
+
+* `var`: Funktions-Scope, veraltet, hoisting mit `undefined`.
+* `let`: Block-Scope, moderne Standard-Variante.
+* `const`: Block-Scope, unveränderlicher Bezeichner, Inhalte von Objekten/Arrays veränderbar.
+* `"use strict"`: erzwingt sauberen, sicheren Code, verhindert implizite Globals und unsauberes Verhalten.
+
+📖 Quelle: [MDN Web Docs — let](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/let), [MDN Web Docs — const](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/const), [MDN Web Docs — var](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/var), [MDN Web Docs — Strict mode](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Strict_mode)
+
+---
 
   **[⬆ Наверх](#top)**
 
 4. ### <a name="4"></a> Interaktion mit dem Benutzer: alert(), prompt(), confirm()
 
-# Benutzerinteraktion in JavaScript: `alert()`, `prompt()`, `confirm()`
-
-JavaScript bietet drei eingebaute Funktionen zur Benutzerinteraktion über modale Dialoge im Browser: `alert()`, `prompt()` und `confirm()`. Diese blockieren die weitere Ausführung des Skripts, bis der Benutzer eine Aktion ausführt.
-
-## **`alert()` – Anzeige einer einfachen Nachricht**
-Verwendet, um eine Nachricht in einem Dialogfeld mit einer **OK-Schaltfläche** anzuzeigen. 
-
-**Beispiel:**
-```js
-alert("Hallo, Welt!"); // Zeigt eine Meldung an.
-```
-
-📌 **Eigenschaften:**
-- Blockiert den Code, bis der Benutzer auf **OK** klickt.
-- Hat **keine** Rückgabe (immer `undefined`).
+**Interaktion mit dem Benutzer: `alert()`, `prompt()`, `confirm()` in JavaScript**
 
 ---
 
-## **`prompt()` – Benutzereingabe anfordern**
-Zeigt ein Dialogfeld mit einer Nachricht, einem **Eingabefeld** und den Schaltflächen **OK / Abbrechen**.
+### 1. `alert()`
 
-**Beispiel:**
+* Zeigt eine einfache Meldung an.
+* Gibt **immer `undefined`** zurück.
+* Blockiert den Code, bis der Nutzer „OK“ klickt.
+
 ```js
-let name = prompt("Wie heißt du?");
-console.log("Hallo, " + name + "!");
-```
-
-📌 **Eigenschaften:**
-- Gibt den **eingegebenen Text** als `string` zurück.
-- Gibt `null` zurück, wenn der Benutzer **Abbrechen** klickt.
-- Standardmäßig wird alles als `string` gespeichert (auch Zahlen!).
-
-👉 **Achtung:** Wenn eine Zahl benötigt wird, sollte `Number()` verwendet werden:
-```js
-let age = Number(prompt("Gib dein Alter ein:"));
-console.log(age + 1); // Falls eine Zahl eingegeben wurde, wird sie korrekt erhöht.
+alert("Willkommen auf meiner Seite!");
 ```
 
 ---
 
-## **`confirm()` – Benutzerentscheidung abfragen**
-Zeigt ein Dialogfeld mit einer Nachricht und zwei Schaltflächen: **OK / Abbrechen**.
+### 2. `prompt()`
 
-**Beispiel:**
+* Fragt den Benutzer nach Eingabe.
+* Syntax: `prompt(message, defaultValue)`
+* Rückgabewert:
+
+  * String mit Eingabe
+  * `null`, wenn Abbrechen gedrückt wird
+
 ```js
-let result = confirm("Bist du sicher?");
-if (result) {
-  console.log("Benutzer hat OK geklickt");
+const name = prompt("Wie heißt du?", "Max");
+console.log(name); 
+```
+
+---
+
+### 3. `confirm()`
+
+* Stellt eine Ja/Nein-Frage.
+* Gibt **boolean** zurück:
+
+  * `true`, wenn „OK“ geklickt wurde
+  * `false`, wenn „Abbrechen“
+
+```js
+const isSure = confirm("Bist du sicher?");
+if (isSure) {
+  console.log("Aktion bestätigt");
 } else {
-  console.log("Benutzer hat Abbrechen geklickt");
+  console.log("Aktion abgebrochen");
 }
 ```
 
-📌 **Eigenschaften:**
-- Gibt `true` zurück, wenn der Benutzer **OK** klickt.
-- Gibt `false` zurück, wenn der Benutzer **Abbrechen** klickt.
+---
+
+### 4. Eigenschaften
+
+* Alle drei Methoden sind **modal**: sie blockieren die Interaktion mit der Seite, bis der Dialog geschlossen wird.
+* Werden meist für **Tests oder kleine Demos** genutzt, nicht in professionellen UIs.
+* In modernen Projekten ersetzt man sie durch **eigene Dialog-Komponenten** (z. B. in React, mit CSS/JS).
 
 ---
 
-## **Einschränkungen der Modalfenster**
-❌ Können nicht gestylt oder angepasst werden.  
-❌ Unterbrechen den Codefluss (synchron).  
-❌ Können in modernen Web-Apps störend sein, daher sind **benutzerdefinierte Dialoge** (`<dialog>`-Element oder modale Fenster mit JavaScript/CSS) oft besser.
+**Zusammenfassung:**
 
-📖 Weitere Informationen findest du in der offiziellen [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/API/Window/alert).
+* `alert()` → Meldung anzeigen.
+* `prompt()` → Eingabe vom Nutzer erhalten (String oder `null`).
+* `confirm()` → Bestätigung abfragen (`true`/`false`).
+  Alle sind blockierend und werden in realen Projekten durch benutzerdefinierte Dialoge ersetzt.
+
+📖 Quelle: [MDN Web Docs — Dialoge mit alert(), prompt() und confirm()](https://developer.mozilla.org/ru/docs/Web/API/Window/alert)
+
+---
 
   **[⬆ Наверх](#top)**
 
 5. ### <a name="5"></a> Interpolation (ES6)
 
-### **Interpolation in JavaScript (ES6)**
+**Interpolation (Template Literals in ES6)**
 
-Interpolation in JavaScript refers to embedding variables or expressions inside a string literal dynamically. This is done using **template literals**, introduced in **ES6**.
+---
 
-#### **Syntax of Template Literals**
-Template literals are enclosed in **backticks** (`` ` ``) instead of quotes. The placeholders for variables or expressions are written inside **`${}`**.
+### 1. Einführung
+
+* Seit **ES6** gibt es Template-Literale (Backticks `` ` ``).
+* Ermöglichen **Interpolation** von Variablen und Ausdrücken mit `${...}`.
+* Unterstützen **mehrzeilige Strings**, ohne `\n`.
+
+---
+
+### 2. Variablen-Interpolation
 
 ```js
-let variable = "Wert";
-let expression = 2 + 2;
+const name = "Sergii";
+const age = 33;
 
-let interpolatedString = `Text: ${variable}, Ausdruck: ${expression}`;
-console.log(interpolatedString); // "Text: Wert, Ausdruck: 4"
-```
-
-#### **Example: Dynamic String Construction**
-```js
-let name = "Alice";
-let age = 25;
-
-let message = `Hallo, mein Name ist ${name} und ich bin ${age} Jahre alt.`;
+const message = `Mein Name ist ${name} und ich bin ${age} Jahre alt.`;
 console.log(message);
-// Ausgabe: "Hallo, mein Name ist Alice und ich bin 25 Jahre alt."
+// "Mein Name ist Sergii und ich bin 33 Jahre alt."
 ```
 
-#### **Advantages of Template Literals**
-✅ **Better Readability**: No need to concatenate strings using `+`.  
-✅ **Expression Embedding**: Mathematical operations or function calls can be directly embedded.  
-✅ **Multiline Strings**: Supports **multiline strings** without `\n`.  
+---
 
-**Example with Multiline String:**
+### 3. Ausdrucks-Interpolation
+
 ```js
-let text = `Das ist eine mehrzeilige
-Zeichenkette ohne Escape-Sequenzen.`;
+const a = 10;
+const b = 5;
+
+console.log(`Die Summe von ${a} + ${b} ist ${a + b}`);
+// "Die Summe von 10 + 5 ist 15"
+```
+
+---
+
+### 4. Mehrzeilige Strings
+
+```js
+const text = `Dies ist
+ein mehrzeiliger
+String.`;
+
 console.log(text);
 ```
 
-📌 **Use Case:** Template literals make it easier to build dynamic messages, queries, or HTML content.
+---
 
-Weitere Details findest du in den [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Template_literals). 🚀
+### 5. Verschachtelte Ausdrücke und Funktionen
+
+```js
+function upper(str) {
+  return str.toUpperCase();
+}
+
+const user = "sergii";
+console.log(`Hallo, ${upper(user)}!`);
+// "Hallo, SERGII!"
+```
+
+---
+
+### 6. Tagged Templates (fortgeschritten)
+
+```js
+function highlight(strings, ...values) {
+  return strings.reduce((acc, str, i) =>
+    `${acc}${str}<b>${values[i] ?? ""}</b>`, "");
+}
+
+const city = "Leipzig";
+const country = "Deutschland";
+
+console.log(highlight`Ich lebe in ${city}, ${country}.`);
+// "Ich lebe in <b>Leipzig</b>, <b>Deutschland</b>."
+```
+
+---
+
+**Zusammenfassung:**
+ES6-Template-Literale (`` `...` ``) ermöglichen **Interpolation** mit `${...}`, **mehrzeilige Strings** und erweiterte Funktionen wie **Tagged Templates**. Sie ersetzen die unübersichtliche String-Konkatenation mit `+`.
+
+📖 Quelle: [MDN Web Docs — Template literals](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Template_literals)
+
+---
 
   **[⬆ Наверх](#top)**
 
 6. ### <a name="6"></a> Operatoren in JavaScript
 
-### **Operatoren in JavaScript**  
 
-JavaScript bietet verschiedene Operatoren, die in mehrere Kategorien unterteilt werden können:  
-
----
-
-## **1. Arithmetische Operatoren**
-Diese Operatoren führen mathematische Berechnungen durch.  
-
-| Operator | Beschreibung  | Beispiel | Ergebnis |
-|----------|--------------|----------|----------|
-| `+`      | Addition     | `5 + 2`  | `7` |
-| `-`      | Subtraktion  | `5 - 2`  | `3` |
-| `*`      | Multiplikation | `5 * 2` | `10` |
-| `/`      | Division     | `5 / 2`  | `2.5` |
-| `%`      | Modulo (Rest) | `5 % 2`  | `1` |
-| `++`     | Inkrement    | `let a = 5; a++` | `6` |
-| `--`     | Dekrement    | `let b = 2; b--` | `1` |
-
-**Beispiel:**  
-```js
-let a = 5;
-let b = 2;
-
-console.log(a + b); // 7
-console.log(a - b); // 3
-console.log(a * b); // 10
-console.log(a / b); // 2.5
-console.log(a % b); // 1
-```
-
----
-
-## **2. Zuweisungsoperatoren**
-Diese Operatoren weisen Werte zu und können eine Kombination aus Rechenoperationen und Zuweisung sein.
-
-| Operator | Beschreibung | Beispiel | Ergebnis |
-|----------|-------------|----------|----------|
-| `=`      | Zuweisung    | `x = 10` | `x = 10` |
-| `+=`     | Addition und Zuweisung | `x += 5` | `x = x + 5` |
-| `-=`     | Subtraktion und Zuweisung | `x -= 3` | `x = x - 3` |
-| `*=`     | Multiplikation und Zuweisung | `x *= 2` | `x = x * 2` |
-| `/=`     | Division und Zuweisung | `x /= 4` | `x = x / 4` |
-
-**Beispiel:**  
-```js
-let x = 10;
-x += 5;  // x = 15
-x -= 3;  // x = 12
-x *= 2;  // x = 24
-x /= 4;  // x = 6
-console.log(x);
-```
-
----
-
-## **3. Vergleichsoperatoren**
-Vergleichsoperatoren vergleichen zwei Werte und geben ein Boolean-Ergebnis (`true` oder `false`) zurück.
-
-| Operator | Bedeutung | Beispiel | Ergebnis |
-|----------|------------|----------|----------|
-| `==`     | Gleich (Wert) | `5 == "5"` | `true` |
-| `===`    | Strikt gleich (Wert und Typ) | `5 === "5"` | `false` |
-| `!=`     | Ungleich | `5 != 3` | `true` |
-| `!==`    | Strikt ungleich | `5 !== "5"` | `true` |
-| `>`      | Größer als | `5 > 3` | `true` |
-| `<`      | Kleiner als | `5 < 3` | `false` |
-| `>=`     | Größer oder gleich | `5 >= 5` | `true` |
-| `<=`     | Kleiner oder gleich | `3 <= 5` | `true` |
-
-**Beispiel:**  
-```js
-let a = 5;
-let b = "5";
-
-console.log(a == b);  // true
-console.log(a === b); // false
-console.log(a !== b); // true
-console.log(a > 3);   // true
-```
-
----
-
-## **4. Logische Operatoren**
-Werden für logische Ausdrücke verwendet.
-
-| Operator | Bedeutung | Beispiel | Ergebnis |
-|----------|------------|----------|----------|
-| `&&`     | Logisches UND | `true && false` | `false` |
-| `||`     | Logisches ODER | `true || false` | `true` |
-| `!`      | Logisches NICHT | `!true` | `false` |
-
-**Beispiel:**  
-```js
-let x = 5;
-let y = 10;
-
-console.log(x > 0 && y > 0); // true
-console.log(x > 0 || y < 0); // true
-console.log(!(x > 0));       // false
-```
-
----
-
-## **5. Nullish Coalescing Operator (`??`)**
-Gibt den **ersten definierten Wert** zurück (wenn der linke Wert `null` oder `undefined` ist, wird der rechte verwendet).
-
-**Beispiel:**  
-```js
-let username = null;
-let defaultUsername = "Gast";
-
-let finalUsername = username ?? defaultUsername;
-console.log(finalUsername); // "Gast"
-
-let count = 0;
-let finalCount = count ?? 10;
-console.log(finalCount); // 0 (weil `count` nicht `null` oder `undefined` ist)
-```
-
----
-
-## **6. Optionale Verkettung (`?.`)**
-Ermöglicht den **sicheren Zugriff** auf Eigenschaften oder Methoden von `null` oder `undefined`, ohne einen Fehler auszulösen.
-
-**Beispiel:**  
-```js
-let user = {
-  name: "John",
-  address: {
-    city: "Berlin"
-  }
-};
-
-console.log(user?.name);         // "John"
-console.log(user?.address?.city); // "Berlin"
-console.log(user?.age);          // undefined (statt Fehler)
-```
-
----
-
-## **7. Bitweise Operatoren**
-Arbeiten direkt auf den Binärwerten von Zahlen.
-
-| Operator | Beschreibung | Beispiel | Ergebnis |
-|----------|-------------|----------|----------|
-| `&`      | Bitweises UND | `5 & 3`  | `1` |
-| `|`      | Bitweises ODER | `5 | 3`  | `7` |
-| `^`      | Bitweises XOR | `5 ^ 3`  | `6` |
-| `~`      | Bitweises NOT | `~5` | `-6` |
-| `<<`     | Linksverschiebung | `5 << 1` | `10` |
-| `>>`     | Rechtsverschiebung | `5 >> 1` | `2` |
-
-**Beispiel:**  
-```js
-let a = 5;  // Binär: 101
-let b = 3;  // Binär: 011
-
-console.log(a & b); // 1 (001)
-console.log(a | b); // 7 (111)
-console.log(a ^ b); // 6 (110)
-console.log(~a);    // -6
-console.log(a << 1); // 10
-console.log(b >> 1); // 1
-```
-
----
-
-## **8. Unterschied zwischen unärem und binärem `+`**
-- **Binärer `+`**: Führt Addition oder String-Konkatenation durch.
-- **Unärer `+`**: Wandelt einen Wert in eine Zahl um.
-
-**Beispiel:**  
-```js
-let a = "10";
-let b = 5;
-
-console.log(a + b);  // "105" (String-Konkatenation)
-console.log(+a + b); // 15 (Addition)
-
-console.log(+"123"); // 123 (String → Zahl)
-console.log(+true);  // 1 (Boolean → Zahl)
-console.log(+"abc"); // NaN (ungültige Umwandlung)
-```
-
----
-
-### **Zusammenfassung**
-- Verwende `===` für verlässliche Vergleiche.
-- Nutze `??` für Standardwerte bei `null` oder `undefined`.
-- Die **optionale Verkettung (`?.`)** ist hilfreich für den sicheren Zugriff auf Objekte.
-- **Unärer `+`** kann nützlich sein, um Strings in Zahlen zu konvertieren.
-
-📖 Weitere Details findest du in den [MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Operators). 🚀
 
   **[⬆ Наверх](#top)**
 
