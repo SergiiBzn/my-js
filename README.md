@@ -89,7 +89,7 @@
 
 ## Вопросы, сниппеты и другое
 
-- :memo:&nbsp;&nbsp;[pro_JS (de)](./docs/other/js5.md)
+- :memo:&nbsp;&nbsp;[JS5 (de)](./docs/other/js5.md)
 - :memo:&nbsp;&nbsp;[pro_JS (de)](./docs/other/proJS.md)
 - :memo:&nbsp;&nbsp;[pro_Base (de)](./docs/other/proBase.md)
 - :memo:&nbsp;&nbsp;[lastone JS](./docs/other/lastone.md)
