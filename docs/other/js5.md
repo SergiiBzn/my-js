@@ -8961,6 +8961,94 @@ document.addEventListener("DOMContentLoaded", () => {
 ✔ **Ohne externe Bibliotheken**  
 ✔ **Kann leicht erweitert oder gestylt werden**  
 
+---
+---
+Hier ist die **einfache Tabs-Implementierung** mit Beschreibung **auf Deutsch**:
+
+```html
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Einfache Tabs</title>
+  <style>
+    .tabs { max-width: 400px; margin: 2rem auto; font-family: sans-serif; }
+    .tab-buttons { display: flex; gap: .5rem; margin-bottom: 1rem; }
+    .tab-buttons button {
+      padding: .5rem 1rem;
+      border: 1px solid #ccc;
+      background: #f5f5f5;
+      cursor: pointer;
+    }
+    .tab-buttons button.active { background: #0ea5e9; color: white; }
+    .tab-content { border: 1px solid #ccc; padding: 1rem; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
+</head>
+<body>
+  <div class="tabs">
+    <div class="tab-buttons">
+      <button data-tab="1" class="active">Tab 1</button>
+      <button data-tab="2">Tab 2</button>
+      <button data-tab="3">Tab 3</button>
+    </div>
+
+    <div class="tab-content">
+      <div id="tab-1" class="tab-panel active">Inhalt von Tab 1</div>
+      <div id="tab-2" class="tab-panel">Inhalt von Tab 2</div>
+      <div id="tab-3" class="tab-panel">Inhalt von Tab 3</div>
+    </div>
+  </div>
+
+  <script>
+    // Alle Buttons und Panels auswählen
+    const buttons = document.querySelectorAll('.tab-buttons button');
+    const panels = document.querySelectorAll('.tab-panel');
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.dataset.tab;
+
+        // Zuerst alle aktiven Zustände entfernen
+        buttons.forEach(b => b.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+
+        // Geklickten Button + zugehöriges Panel aktivieren
+        button.classList.add('active');
+        document.getElementById('tab-' + tabId).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
+```
+
+---
+
+### Erklärung auf Deutsch
+
+1. **Daten-Attribut (`data-tab`)**
+   Jeder Button besitzt ein `data-tab="nummer"`.
+   Damit wissen wir, zu welchem Panel er gehört.
+
+2. **ID-Zuordnung**
+   Jedes Panel hat ein `id="tab-nummer"`, sodass die Verbindung klar ist.
+
+3. **Event-Listener**
+   Beim Klick:
+
+   * Entfernen wir überall die Klasse `active`.
+   * Aktivieren Button und Panel mit derselben Nummer.
+
+4. **CSS**
+
+   * Panels sind standardmäßig `display: none`.
+   * Das aktive Panel (`.active`) wird sichtbar.
+   * Aktiver Button wird farbig hervorgehoben.
+
+---
+
   **[⬆ Наверх](#top)**  
 
 102. ### <a name="102"></a> Countdown-Timer
@@ -9053,6 +9141,100 @@ startCountdown(countdownDate);
 🔹 **Live-Anpassung des Enddatums?** – Über ein Eingabefeld setzen  
 🔹 **Animationen hinzufügen?** – `fade-in` Effekt für Sekunden  
 🔹 **Ton abspielen?** – Sound beim Ablauf des Countdowns  
+
+---
+---
+## Timer
+
+```html
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Countdown in Tagen</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    #timer { font-size: 2rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Countdown bis Ziel-Datum</h1>
+  <div id="timer"></div>
+
+  <script>
+    // Ziel-Datum einstellen (z. B. 31. Dezember 2025 um 23:59)
+    const targetDate = new Date("2025-12-31T23:59:00");
+
+    const timerEl = document.getElementById("timer");
+
+    function updateTimer() {
+      const now = new Date();
+      const remaining = targetDate - now;
+
+      if (remaining <= 0) {
+        timerEl.textContent = "Zeit abgelaufen!";
+        clearInterval(intervalId);
+        return;
+      }
+
+      // Umrechnung in Tage, Stunden, Minuten, Sekunden
+      const days    = Math.floor(remaining / (1000 * 60 * 60 * 24));
+      const hours   = Math.floor((remaining / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((remaining / (1000 * 60)) % 60);
+      const seconds = Math.floor((remaining / 1000) % 60);
+
+      timerEl.textContent =
+        days + "d " +
+        String(hours).padStart(2, "0") + "h " +
+        String(minutes).padStart(2, "0") + "m " +
+        String(seconds).padStart(2, "0") + "s";
+    }
+
+    // Sofort starten
+    updateTimer();
+    // Jede Sekunde aktualisieren
+    const intervalId = setInterval(updateTimer, 1000);
+  </script>
+</body>
+</html>
+```
+---
+
+### Erklärung auf Deutsch
+
+1. **Ziel-Datum festlegen**
+   Im Code wird ein Datum definiert, z. B.
+
+   ```js
+   const targetDate = new Date("2025-12-31T23:59:00");
+   ```
+
+   Dieses Datum ist der Zeitpunkt, bis wann der Countdown läuft.
+
+2. **Differenz berechnen**
+   Mit `targetDate - now` wird die verbleibende Zeit in Millisekunden berechnet.
+
+3. **Umwandlung in Tage, Stunden, Minuten, Sekunden**
+
+   * Tage: `Math.floor(remaining / (1000 * 60 * 60 * 24))`
+   * Stunden: `(remaining / (1000 * 60 * 60)) % 24`
+   * Minuten: `(remaining / (1000 * 60)) % 60`
+   * Sekunden: `(remaining / 1000) % 60`
+
+4. **Anzeige formatieren**
+   Das Ergebnis wird als `Xd XXh XXm XXs` im HTML-Element angezeigt.
+   Beispiel: `10d 05h 23m 09s`.
+
+5. **Aktualisierung jede Sekunde**
+   Mit `setInterval(updateTimer, 1000)` wird der Countdown alle 1000 ms neu berechnet.
+
+6. **Abbruch**
+   Sobald das Ziel-Datum erreicht oder überschritten ist (`remaining <= 0`),
+
+   * wird `"Zeit abgelaufen!"` angezeigt,
+   * und der Timer mit `clearInterval` gestoppt.
+
+---
 
   **[⬆ Наверх](#top)** 
 
@@ -9157,6 +9339,140 @@ document.addEventListener("DOMContentLoaded", () => {
 🔹 **Animationen (`opacity`, `transform`) für sanfte Übergänge hinzufügen**  
 🔹 **Tastatursteuerung (`ESC`-Taste zum Schließen)**  
 🔹 **Mehrere Modals in einer Seite verwalten**  
+
+---
+---
+## Modal Fenster
+---
+## Beispiel: Modales Fenster
+
+```html
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Einfaches Modal</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+
+    /* Hintergrund (Overlay) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Modalfenster */
+    .modal {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      width: 300px;
+      max-width: 80%;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      text-align: left;
+      position: relative;
+    }
+
+    .modal h2 { margin-top: 0; }
+    .modal button { margin-top: 1rem; }
+
+    /* Button zum Schließen (oben rechts) */
+    .close-btn {
+      position: absolute;
+      top: .5rem;
+      right: .5rem;
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    /* Sichtbar machen */
+    .show { display: flex; }
+  </style>
+</head>
+<body>
+  <h1>Beispiel: Modales Fenster</h1>
+  <button id="openModal">Modal öffnen</button>
+
+  <!-- Overlay + Modal -->
+  <div id="overlay" class="modal-overlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="close-btn" id="closeModal">&times;</button>
+      <h2 id="modalTitle">Hallo!</h2>
+      <p>Dies ist ein einfaches modales Fenster.</p>
+      <button id="okBtn">OK</button>
+    </div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById("overlay");
+    const openBtn = document.getElementById("openModal");
+    const closeBtn = document.getElementById("closeModal");
+    const okBtn = document.getElementById("okBtn");
+
+    // Modal öffnen
+    openBtn.addEventListener("click", () => {
+      overlay.classList.add("show");
+    });
+
+    // Modal schließen (X oder OK)
+    closeBtn.addEventListener("click", () => {
+      overlay.classList.remove("show");
+    });
+    okBtn.addEventListener("click", () => {
+      overlay.classList.remove("show");
+    });
+
+    // Schließen beim Klick auf Overlay
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) {
+        overlay.classList.remove("show");
+      }
+    });
+
+    // Schließen mit Escape-Taste
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        overlay.classList.remove("show");
+      }
+    });
+  </script>
+</body>
+</html>
+```
+---
+
+### Erklärung auf Deutsch
+
+1. **HTML-Struktur**
+
+   * Ein Button, um das Modal zu öffnen.
+   * Ein `div.overlay` (halbtransparenter Hintergrund).
+   * Darin ein `div.modal` mit Inhalt.
+
+2. **CSS**
+
+   * Overlay ist standardmäßig `display: none`.
+   * Mit `.show` wird es sichtbar (`display: flex`).
+   * Das Modal selbst ist mittig und hat Schatten/Radius.
+
+3. **JavaScript**
+
+   * `overlay.classList.add("show")` → Modal sichtbar machen.
+   * `overlay.classList.remove("show")` → Modal schließen.
+   * Schließen funktioniert über:
+
+     * Klick auf X,
+     * Klick auf OK,
+     * Klick neben das Modal (auf Overlay),
+     * Escape-Taste.
+
+---
 
   **[⬆ Наверх](#top)** 
 
@@ -9277,6 +9593,160 @@ setInterval(() => {
 🔹 **Mit `transform: translateX()` für flüssige Animationen**  
 🔹 **Pagination (Punkte unter den Bildern zum Wechseln)**  
 🔹 **Swipe-Funktion für mobile Geräte (`touchstart`, `touchend`)**  
+
+---
+---
+## Slider
+---
+
+## Beispiel: Bild-Slider
+
+```html
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Bild-Slider</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 30px; }
+
+    .slider {
+      position: relative;
+      width: 600px;
+      max-width: 90%;
+      margin: auto;
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .slides {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+    }
+
+    .slides img {
+      width: 100%;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    /* Navigation Buttons */
+    .prev, .next {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      font-size: 20px;
+      border-radius: 50%;
+    }
+    .prev { left: 10px; }
+    .next { right: 10px; }
+
+    /* Punkte (Indikatoren) */
+    .dots {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .dots span {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin: 5px;
+      background: #ccc;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .dots .active { background: #0ea5e9; }
+  </style>
+</head>
+<body>
+  <h1>Bild-Slider (Karussell)</h1>
+
+  <div class="slider">
+    <div class="slides">
+      <img src="https://picsum.photos/id/1015/600/300" alt="Bild 1">
+      <img src="https://picsum.photos/id/1025/600/300" alt="Bild 2">
+      <img src="https://picsum.photos/id/1035/600/300" alt="Bild 3">
+    </div>
+    <button class="prev">&#10094;</button>
+    <button class="next">&#10095;</button>
+  </div>
+
+  <div class="dots"></div>
+
+  <script>
+    const slides = document.querySelector('.slides');
+    const images = document.querySelectorAll('.slides img');
+    const prevBtn = document.querySelector('.prev');
+    const nextBtn = document.querySelector('.next');
+    const dotsContainer = document.querySelector('.dots');
+
+    let index = 0;
+
+    // Punkte dynamisch erstellen
+    images.forEach((_, i) => {
+      const dot = document.createElement('span');
+      if (i === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => goToSlide(i));
+      dotsContainer.appendChild(dot);
+    });
+    const dots = document.querySelectorAll('.dots span');
+
+    function showSlide(i) {
+      if (i < 0) index = images.length - 1;
+      else if (i >= images.length) index = 0;
+      else index = i;
+
+      slides.style.transform = `translateX(${-index * 100}%)`;
+
+      dots.forEach(d => d.classList.remove('active'));
+      dots[index].classList.add('active');
+    }
+
+    function nextSlide() { showSlide(index + 1); }
+    function prevSlide() { showSlide(index - 1); }
+    function goToSlide(i) { showSlide(i); }
+
+    nextBtn.addEventListener('click', nextSlide);
+    prevBtn.addEventListener('click', prevSlide);
+
+    // Auto-Slide alle 4 Sekunden
+    setInterval(nextSlide, 4000);
+  </script>
+</body>
+</html>
+```
+
+---
+
+### Erklärung auf Deutsch
+
+1. **HTML-Struktur**
+
+   * `div.slider` enthält alle Bilder (`.slides`).
+   * Buttons links/rechts für Navigation.
+   * Punkte (`.dots`) für direkte Auswahl.
+
+2. **CSS**
+
+   * `display: flex` für Bilder in einer Reihe.
+   * `transform: translateX()` verschiebt die Bilder.
+   * Buttons und Punkte mit Styling für Usability.
+
+3. **JavaScript**
+
+   * Index (`let index = 0`) bestimmt, welches Bild sichtbar ist.
+   * Funktion `showSlide(i)` aktualisiert Position und Punkte.
+   * Buttons (`prev/next`) rufen `showSlide` auf.
+   * Punkte (`dots`) sind klickbar → springen direkt zu einem Bild.
+   * `setInterval` für automatisches Wechseln alle 4 Sekunden.
+
+---
 
   **[⬆ Наверх](#top)** 
 
