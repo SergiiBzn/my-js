@@ -229,752 +229,725 @@
   
 1. ### <a name="1"></a> Was ist React und welche Probleme löst es?
 
-# Was ist React und welche Probleme löst es?
+**React** ist eine **JavaScript-Bibliothek** für den Aufbau von **User Interfaces** (UI), entwickelt von Facebook (heute Meta). Sie konzentriert sich auf die **View-Schicht** (im MVC-Pattern) und löst typische Probleme moderner Frontend-Entwicklung:
 
-**React** ist eine JavaScript-Bibliothek zur Erstellung von **Benutzeroberflächen (UIs)**. Sie wurde von **Meta (Facebook)** entwickelt und hilft beim Bau interaktiver, dynamischer Webanwendungen.
+### Probleme, die React löst
+
+1. **Komplexität bei dynamischen UIs**
+
+   * Klassisches DOM-Manipulieren mit `document.querySelector` oder `innerHTML` ist fehleranfällig und schwer zu warten.
+   * React nutzt das **Virtual DOM**, um Änderungen effizient zu berechnen und nur die nötigen Teile des echten DOM zu aktualisieren.
+
+2. **Wiederverwendbarkeit von UI-Logik**
+
+   * In Vanilla JS oder jQuery ist es schwierig, UI-Elemente als eigenständige, wiederverwendbare Bausteine zu organisieren.
+   * React bietet **Komponenten** (Functions oder Classes), die UI + Logik kapseln.
+
+3. **State-Management**
+
+   * Ohne Framework muss man Zustände (z. B. Eingaben, UI-Änderungen) manuell im DOM nachverfolgen.
+   * React bietet ein klares **State- und Props-Konzept**: Datenfluss von oben nach unten (Top-down Data Flow) und kontrollierte Zustandsverwaltung.
+
+4. **Lesbarkeit & Wartbarkeit**
+
+   * Mit **JSX** verbindet React deklarative Syntax mit JavaScript, wodurch UI-Struktur dem HTML ähnelt, aber direkt in JS geschrieben wird.
+   * Dadurch wird Code strukturierter, testbarer und besser wartbar.
 
 ---
 
-## 🔧 Welche Probleme löst React?
-
-1. **Komplexität großer Anwendungen**  
-   → React zerlegt die UI in **kleine, wiederverwendbare Komponenten**, wodurch der Code modular und wartbar bleibt.
-
-2. **Manuelles DOM-Handling**  
-   → Mit dem **virtuellen DOM** optimiert React DOM-Änderungen und verbessert die Performance.
-
-3. **Unstrukturierter Code (z. B. bei jQuery)**  
-   → React fördert einen **komponentenbasierten Aufbau**, bei dem Logik, Markup und Styling zusammengehören.
-
-4. **Schwierige Zustandsverwaltung (State)**  
-   → React bietet eingebaute Hooks wie `useState` oder `useReducer`, um den Zustand klar und vorhersehbar zu verwalten.
-
----
-
-## 💡 Beispielcode
+### Beispiel
 
 ```jsx
-import { useState } from 'react';
+import { useState } from "react";
 
 function Counter() {
-  const [count, setCount] = useState(0); // React verwaltet den Zustand intern
+  const [count, setCount] = useState(0);
 
   return (
-    <button onClick={() => setCount(count + 1)}>
-      Du hast {count} Mal geklickt
-    </button>
+    <div>
+      <p>Aktueller Wert: {count}</p>
+      <button onClick={() => setCount(count + 1)}>
+        Erhöhen
+      </button>
+    </div>
   );
 }
+
+export default Counter;
 ```
 
-➡️ **React aktualisiert automatisch das UI**, wenn sich der Zustand ändert – kein manuelles DOM-Update notwendig.
+* `useState` verwaltet den Zustand.
+* Bei jedem Klick wird nur der relevante Teil des DOM aktualisiert.
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-React ist eine **komponentenbasierte UI-Bibliothek**, die typische Probleme der Webentwicklung löst:
+* **React** = Bibliothek für deklarative UI-Entwicklung.
+* Löst Probleme: ineffiziente DOM-Manipulation, fehlende Wiederverwendbarkeit, unübersichtliches State-Handling.
+* Schlüsselkonzepte: **Virtual DOM, Komponenten, State, Props, JSX**.
 
-- unübersichtlicher Code  
-- ineffiziente DOM-Manipulation  
-- schwieriges State-Management  
-- mangelnde Wiederverwendbarkeit
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Grundlagen](https://react.dev/learn)
+* [MDN – Einführung in das DOM](https://developer.mozilla.org/ru/docs/Web/API/Document_Object_Model/Introduction)
 
 ---
-
-## 🔗 Quellen
-
-- [React – Offizielle Einführung](https://react.dev/learn)
-- [React auf MDN Web Docs](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_starten)
 
   **[⬆ Наверх](#top)**
 
 2. ### <a name="2"></a> Was ist JSX und warum wird es verwendet?
 
-# Was ist JSX und warum wird es verwendet?
-
-**JSX (JavaScript XML)** ist eine **Erweiterungssyntax für JavaScript**, die es ermöglicht, HTML-ähnlichen Code innerhalb von JavaScript zu schreiben. JSX wird von **React** verwendet, um die Struktur der Benutzeroberfläche deklarativ zu beschreiben.
+**JSX (JavaScript XML)** ist eine **erweiterte Syntax für JavaScript**, die es erlaubt, UI-Strukturen in einer HTML-ähnlichen Schreibweise direkt im JavaScript-Code zu definieren. JSX wird von **Babel** oder anderen Transpilern in reines JavaScript (meist `React.createElement`) übersetzt.
 
 ---
 
-## 🔍 Warum JSX?
+### Warum wird JSX verwendet?
 
-1. **Bessere Lesbarkeit**  
-   → JSX kombiniert **HTML-Struktur und JavaScript-Logik** in einem einzigen Codeblock – ideal für Komponenten.
+1. **Deklarative UI-Beschreibung**
 
-2. **Deklarativer Stil**  
-   → Statt manuelle DOM-Elemente mit `document.createElement` zu erzeugen, beschreibt JSX **was** dargestellt werden soll, nicht **wie**.
+   * UI-Struktur sieht aus wie HTML, ist aber vollständig in JavaScript eingebettet.
+   * Entwicklern fällt es leichter, die Logik und das UI zusammen zu lesen und zu verstehen.
 
-3. **Kompakter und effizienter Code**  
-   → JSX kompiliert zu `React.createElement(...)`-Aufrufen, die das virtuelle DOM erzeugen.
+2. **Verknüpfung von Logik und Darstellung**
+
+   * Man kann JavaScript-Ausdrücke direkt in JSX einbetten: `{...}`.
+   * Bedingte Renderings oder Schleifen lassen sich elegant integrieren.
+
+3. **Bessere Lesbarkeit & Wartbarkeit**
+
+   * Statt verschachtelter `React.createElement`-Aufrufe ist JSX kürzer, klarer und näher an HTML.
 
 ---
 
-## 💡 Beispielcode
+### Beispiel
 
 ```jsx
-function Welcome(props) {
-  return <h1>Hallo, {props.name}!</h1>;
+import { useState } from "react";
+
+function Greeting() {
+  const [name, setName] = useState("Sergii");
+
+  return (
+    <div>
+      <h1>Hallo, {name}!</h1> {/* JS-Ausdruck in geschweiften Klammern */}
+      <button onClick={() => setName("Frontend-Dev")}>
+        Ändern
+      </button>
+    </div>
+  );
+}
+
+export default Greeting;
+```
+
+Ohne JSX würde derselbe Code so aussehen:
+
+```js
+import { createElement, useState } from "react";
+
+function Greeting() {
+  const [name, setName] = useState("Sergii");
+
+  return createElement(
+    "div",
+    null,
+    createElement("h1", null, `Hallo, ${name}!`),
+    createElement(
+      "button",
+      { onClick: () => setName("Frontend-Dev") },
+      "Ändern"
+    )
+  );
 }
 ```
 
-➡️ Der obige JSX-Code wird von Babel kompiliert zu:
-
-```js
-React.createElement('h1', null, 'Hallo, ', props.name);
-```
-
 ---
 
-## 📌 Wichtig
+### Zusammenfassung
 
-JSX ist **nicht zwingend erforderlich**, aber stark empfohlen, da es:
+* **JSX** = Syntax-Erweiterung für JavaScript, die UI-Strukturen wie HTML aussehen lässt.
+* Vorteile: bessere Lesbarkeit, Integration von Logik + UI, effizienteres Arbeiten mit React.
+* JSX wird in reines JavaScript transpiliert.
 
-- die Entwicklung mit React beschleunigt  
-- die Struktur klarer macht  
-- die Fehleranfälligkeit reduziert
+📖 Weiterführend:
 
----
-
-## 📝 Zusammenfassung
-
-JSX ist eine JavaScript-Erweiterung, die HTML-ähnlichen Code im JavaScript ermöglicht.  
-Es erleichtert die Entwicklung mit React durch bessere Lesbarkeit, Wartbarkeit und Integration von Logik und Layout.
+* [React Offizielle Dokumentation – JSX](https://react.dev/learn/writing-markup-with-jsx)
+* [MDN – JSX (Einführung)](https://developer.mozilla.org/ru/docs/Glossary/JSX)
 
 ---
-
-## 🔗 Quellen
-
-- [JSX in React – react.dev](https://react.dev/learn/writing-markup-with-jsx)  
-- [JSX auf MDN Web Docs](https://developer.mozilla.org/de/docs/Web/JavaScript/JavaScript_technologies_overview#jsx)
 
   **[⬆ Наверх](#top)**
 
 3. ### <a name="3"></a> Was ist Virtual DOM und wie funktioniert es?
 
-# Was ist Virtual DOM und wie funktioniert es?
-
-**Virtual DOM** ist eine in JavaScript abgebildete, **leichte Kopie des echten DOM**. React nutzt dieses Konzept, um effizient UI-Änderungen zu erkennen und durchzuführen, ohne den echten DOM direkt zu manipulieren – was langsam und ressourcenintensiv wäre.
+**Virtual DOM (VDOM)** ist eine **leichte, virtuelle Repräsentation** des echten DOM im Speicher. Es dient als Zwischenschicht, um Änderungen effizient zu berechnen, bevor sie im **realen DOM** angewendet werden.
 
 ---
 
-## 🔧 Wie funktioniert Virtual DOM?
+### Funktionsweise
 
-1. **Rendern in den virtuellen DOM**  
-   → React rendert Komponenten zuerst **im virtuellen DOM**, nicht direkt im echten DOM.
+1. **Rendern in den Virtual DOM**
 
-2. **Vergleich (Diffing)**  
-   → React vergleicht (diffing) den **alten virtuellen DOM** mit dem **neuen**, um herauszufinden, **welche Teile sich verändert haben**.
+   * Wenn sich State oder Props ändern, erzeugt React ein **neues Virtual DOM**-Baumobjekt.
 
-3. **Minimaler Update im echten DOM**  
-   → Nur die **veränderten Teile** werden effizient und gezielt im echten DOM aktualisiert.
+2. **Diffing-Algorithmus**
+
+   * React vergleicht den neuen VDOM mit der vorherigen Version (Reconciliation).
+   * Nur die Unterschiede („diff“) werden ermittelt.
+
+3. **Minimaler Update im echten DOM**
+
+   * React aktualisiert nur die tatsächlich veränderten Teile im **realen DOM**.
+   * Dadurch sind Updates wesentlich effizienter, da direkte DOM-Manipulationen sehr teuer sind.
 
 ---
 
-## 💡 Beispiel: Wie React intern arbeitet
+### Beispiel
 
 ```jsx
-const element = <h1>Hello, world!</h1>;
-ReactDOM.render(element, document.getElementById('root'));
+import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>Zähler: {count}</p>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+    </div>
+  );
+}
+
+export default Counter;
 ```
 
-**Ablauf:**
-
-1. JSX wird zu `React.createElement()` → virtuelles DOM-Element
-2. React baut daraus eine virtuelle Baumstruktur
-3. Bei Änderungen:
-   - React erstellt einen neuen virtuellen DOM
-   - vergleicht ihn mit dem alten
-   - findet Unterschiede
-   - updated gezielt den echten DOM
+* Bei `setCount` erstellt React ein neues Virtual DOM.
+* React erkennt, dass nur `<p>` sich geändert hat.
+* Nur dieser Knoten im echten DOM wird neu gerendert, **nicht die gesamte Seite**.
 
 ---
 
-## 📈 Vorteile
+### Zusammenfassung
 
-- **Performance**: weniger direkte DOM-Zugriffe
-- **Klarer Codefluss**: UI-Updates sind vorhersehbar und deklarativ
-- **Skalierbarkeit**: geeignet für große, dynamische Anwendungen
+* **Virtual DOM** = virtuelles Abbild des echten DOM.
+* Ablauf: **neuer VDOM → Diffing → minimaler DOM-Update**.
+* Vorteil: Performance, klare Trennung von Logik und DOM-Manipulation.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Reconciliation](https://react.dev/learn/render-and-commit#step-2-react-renders-your-components)
+* [MDN – DOM Einführung](https://developer.mozilla.org/ru/docs/Web/API/Document_Object_Model/Introduction)
 
 ---
-
-## 📝 Zusammenfassung
-
-Der Virtual DOM ist eine **interne, optimierte Datenstruktur** in React, die es erlaubt, **nur notwendige DOM-Änderungen** durchzuführen. Dadurch wird die Performance deutlich verbessert und die UI bleibt synchron mit dem App-Zustand.
-
----
-
-## 🔗 Quellen
-
-- [React: Rendering und Virtual DOM](https://react.dev/learn/rendering-elements)  
-- [MDN: DOM vs Virtual DOM (extern)](https://developer.mozilla.org/)
 
   **[⬆ Наверх](#top)**
 
 4. ### <a name="4"></a> Was ist der Unterschied zwischen React und ReactDOM?
 
-# Was ist der Unterschied zwischen React und ReactDOM?
-
-**React** und **ReactDOM** sind zwei getrennte Pakete mit unterschiedlichen Aufgaben in einer React-Anwendung.
-
----
-
-## 📦 React
-
-Das Paket `react` enthält:
-
-- Die **Core-Funktionalität** von React
-- **Komponentenlogik**, z. B. `useState`, `useEffect`, `useReducer`
-- Das Erstellen von **React-Elementen** über `React.createElement()`
-- JSX-Verarbeitung (nach dem Transpiling)
-
-### Beispiel:
-
-```jsx
-import { useState } from 'react';
-
-function Counter() {
-  const [count, setCount] = useState(0);
-  return <button onClick={() => setCount(count + 1)}>Zähler: {count}</button>;
-}
-```
+**React** ist die **Kernbibliothek**, die Werkzeuge für das **Erstellen von Komponenten, State-Management, Hooks und JSX-Verarbeitung** bereitstellt.
+**ReactDOM** ist das **Rendering-Paket**, das React-Komponenten mit dem **echten DOM im Browser** verbindet.
 
 ---
 
-## 🌐 ReactDOM
+### Details
 
-Das Paket `react-dom` wird verwendet, um **React-Komponenten in das DOM** des Browsers zu rendern.
+1. **React**
 
-- Bindeglied zwischen **virtuellem DOM (React)** und **echtem DOM (Browser)**
-- Enthält Methoden wie `ReactDOM.createRoot()` oder `ReactDOM.render()` (früher)
+   * Definiert, **wie** UI-Komponenten aussehen und funktionieren.
+   * Enthält Hooks wie `useState`, `useEffect`.
+   * Ist plattformunabhängig (kann auch mit React Native, ReactDOM, ReactVR genutzt werden).
 
-### Beispiel:
+2. **ReactDOM**
+
+   * Speziell für **Web-Umgebungen** gedacht.
+   * Stellt Funktionen wie `createRoot` oder `render` bereit, um React-Komponenten in den Browser zu mounten.
+   * Trennt die Logik von der konkreten Rendering-Umgebung (Browser-DOM).
+
+---
+
+### Beispiel
 
 ```jsx
-import ReactDOM from 'react-dom/client';
-import App from './App';
+// index.jsx
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.jsx";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = createRoot(document.getElementById("root"));
 root.render(<App />);
 ```
 
----
-
-## 📝 Zusammenfassung
-
-| Paket      | Aufgabe                          |
-|------------|----------------------------------|
-| `react`    | Erstellen von Komponenten, Hooks, virtueller DOM |
-| `react-dom`| Rendering ins Browser-DOM        |
+* `React` stellt die Komponente `App` bereit.
+* `ReactDOM` sorgt dafür, dass diese Komponente im `<div id="root">` im Browser angezeigt wird.
 
 ---
 
-## 🔗 Quellen
+### Zusammenfassung
 
-- [React – Einführung](https://react.dev/learn)  
-- [ReactDOM API – react.dev](https://react.dev/reference/react-dom)  
-- [MDN Web Docs: Einführung in React](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_starten)
+* **React** = Kernbibliothek (Komponenten, State, Hooks).
+* **ReactDOM** = Bindeglied zum echten Browser-DOM (Mounting, Rendering).
+* Trennung ermöglicht, React auch außerhalb des Browsers (z. B. mit React Native) zu verwenden.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Einstieg](https://react.dev/learn)
+* [ReactDOM API – Offizielle Docs](https://react.dev/reference/react-dom)
+
+---
 
   **[⬆ Наверх](#top)**
 
 5. ### <a name="5"></a> Warum importieren wir React, auch wenn es scheinbar nicht benutzt wird?
 
-# Warum importieren wir React, auch wenn es scheinbar nicht benutzt wird?
+Früher musste man in jeder Datei mit JSX immer **`import React from "react";`** schreiben, auch wenn React im Code nicht direkt benutzt wurde.
+Grund: **JSX wird von Babel in `React.createElement`-Aufrufe umgewandelt**, daher war `React` im Scope notwendig.
 
-Früher (vor React 17) musste man `React` **immer importieren**, wenn man JSX benutzt hat, **auch wenn man React nicht direkt im Code verwendet** hat.
+Seit **React 17 (2020)** wurde das durch die **neue JSX-Transform** geändert:
+
+* Der Compiler fügt die nötigen Funktionen automatisch hinzu.
+* Deshalb muss man `import React` nicht mehr explizit einfügen, wenn man nur JSX nutzt.
+* In älteren Projekten oder Setups ohne neue Transform ist der Import weiterhin Pflicht.
 
 ---
 
-## 🧠 Warum?
+### Beispiel – Babel-Umwandlung
 
-JSX wird vom Compiler (z. B. Babel) in `React.createElement()`-Aufrufe umgewandelt:
+**JSX-Eingabe:**
 
 ```jsx
-const element = <h1>Hello</h1>;
+const element = <h1>Hallo Welt</h1>;
 ```
 
-wird zu:
+**Transpilierte Ausgabe (vor React 17):**
 
 ```js
-const element = React.createElement('h1', null, 'Hello');
+import React from "react";
+
+const element = React.createElement("h1", null, "Hallo Welt");
 ```
 
-➡️ Deshalb musste `React` **immer verfügbar** sein.
+**Transpilierte Ausgabe (ab React 17 mit neuer JSX-Transform):**
 
----
+```js
+import { jsx as _jsx } from "react/jsx-runtime";
 
-## 🔄 Seit React 17+
-
-Dank des neuen JSX-Transform ist der `React`-Import **nicht mehr zwingend nötig**, **wenn du einen modernen Build-Tool (z. B. Vite, CRA, Next.js)** verwendest.
-
-### Beispiel (ab React 17):
-
-```jsx
-function App() {
-  return <h1>Hello World</h1>;
-}
-
-// kein expliziter Import von React nötig, wenn JSX-Transform aktiv
+const element = _jsx("h1", { children: "Hallo Welt" });
 ```
 
 ---
 
-## 📦 Voraussetzung
+### Zusammenfassung
 
-Damit das funktioniert, muss dein Projekt folgende Bedingungen erfüllen:
+* Früher: `import React` war nötig, weil JSX → `React.createElement` kompiliert wurde.
+* Heute (React 17+): Dank neuer JSX-Transform meist **nicht mehr notwendig**.
+* Import wird nur gebraucht, wenn man `React` direkt nutzt (z. B. `React.Children`, `React.cloneElement`).
 
-- React 17 oder neuer  
-- JSX-Transform ist im Build-Tool (z. B. Babel, Vite, CRA) aktiviert  
-- Du benutzt keine `React.createElement()` direkt
+📖 Weiterführend:
 
----
-
-## 📝 Zusammenfassung
-
-Früher war der Import von `React` bei JSX zwingend, da JSX zu `React.createElement()` kompiliert wurde.  
-Seit React 17 ist der Import **nicht mehr notwendig**, wenn moderne Tools und der neue JSX-Transform verwendet werden.
+* [React Offizielle Dokumentation – Neue JSX-Transform](https://react.dev/blog/2020/09/22/introducing-the-new-jsx-transform)
+* [MDN – JSX](https://developer.mozilla.org/ru/docs/Glossary/JSX)
 
 ---
-
-## 🔗 Quellen
-
-- [JSX-Transform Erklärung – React](https://react.dev/learn/writing-markup-with-jsx#the-new-jsx-transform)
-- [JSX auf MDN](https://developer.mozilla.org/de/docs/Web/JavaScript/JavaScript_technologies_overview#jsx)
 
   **[⬆ Наверх](#top)**
 
 6. ### <a name="6"></a> Was ist ein React Fragment und warum ist es nützlich?
 
-# Was ist ein React Fragment und warum ist es nützlich?
-
-Ein **React Fragment** (`<React.Fragment>` oder `<> </>`) ist ein **Wrapper ohne zusätzliches HTML-Element im DOM**.  
-Er wird verwendet, wenn eine Komponente **mehrere Elemente zurückgeben** muss, ohne unnötiges Markup zu erzeugen.
+**React Fragment** ist ein spezieller Wrapper (`<React.Fragment>` oder Kurzschreibweise `<>...</>`), mit dem man **mehrere Elemente gruppieren** kann, **ohne zusätzliches DOM-Element** (wie `<div>`) zu erzeugen.
 
 ---
 
-## 🔍 Warum nützlich?
+### Warum nützlich?
 
-- Vermeidet zusätzliche DOM-Knoten (z. B. unnötige `<div>`s)
-- Macht den DOM sauberer und strukturierter
-- Erforderlich, da JSX nur **ein Wurzelelement** pro Komponente erlaubt
+1. **Kein unnötiges DOM-Markup**
+
+   * `<div>`-Wrapper erzeugen oft „div soup“ und machen das DOM unübersichtlich.
+   * Fragmente fügen nichts ins echte DOM ein.
+
+2. **Mehrere Elemente zurückgeben**
+
+   * Eine React-Komponente darf nur **ein einziges Root-Element** zurückgeben.
+   * Mit Fragmenten kann man mehrere Geschwister-Elemente zurückgeben.
+
+3. **Performance & Semantik**
+
+   * Weniger DOM-Knoten → bessere Performance.
+   * Bessere Semantik, da unnötige Container-Elemente vermieden werden.
 
 ---
 
-## 💡 Beispiel mit Fragment
+### Beispiel
+
+```jsx
+import React from "react";
+
+function UserInfo() {
+  return (
+    <>
+      <h2>Benutzername: Sergii</h2>
+      <p>Rolle: Frontend-Entwickler</p>
+    </>
+  );
+}
+
+export default UserInfo;
+```
+
+Ohne Fragment müsste man alles in ein `<div>` packen:
 
 ```jsx
 function UserInfo() {
   return (
-    <>
-      <h1>Max Mustermann</h1>
-      <p>Frontend Developer</p>
-    </>
-  );
-}
-```
-
-Das erzeugt im echten DOM **nur `<h1>` und `<p>`**, **kein zusätzliches Wrapper-Element**.
-
----
-
-## 💡 Alternativ: `React.Fragment` mit Key (nützlich in Listen)
-
-```jsx
-<>
-  {items.map(item => (
-    <React.Fragment key={item.id}>
-      <dt>{item.name}</dt>
-      <dd>{item.description}</dd>
-    </React.Fragment>
-  ))}
-</>
-```
-
-➡️ Nur `React.Fragment` (nicht `<>`) unterstützt `key`-Props.
-
----
-
-## 📝 Zusammenfassung
-
-React Fragments erlauben das Gruppieren mehrerer Elemente **ohne zusätzliches DOM-Element**.  
-Sie sorgen für **sauberen Code und schlankes HTML**.
-
----
-
-## 🔗 Quellen
-
-- [Fragments – React Docs](https://react.dev/reference/react/Fragment)  
-- [JSX mit Fragmenten – MDN](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment#react_fragments)
-
-  **[⬆ Наверх](#top)**
-
-7. ### <a name="7"></a> Was ist der Unterschied zwischen einem Element, einer Komponente und einer Instanz?
-
-# Was ist der Unterschied zwischen einem Element, einer Komponente und einer Instanz?
-
-In React gibt es drei zentrale Begriffe, die oft verwechselt werden: **Element**, **Komponente** und **Instanz**.  
-Hier ist eine klare Unterscheidung:
-
----
-
-## 1. 🧱 React Element
-
-Ein **React-Element** ist ein **einfaches JavaScript-Objekt**, das beschreibt, **was im UI gerendert werden soll**.
-
-Es ist **keine Komponente** selbst, sondern das Ergebnis von JSX oder `React.createElement()`.
-
-### Beispiel:
-
-```jsx
-const element = <h1>Hello, world!</h1>;
-```
-
-➡️ Das ist ein **React-Element**, kein DOM-Knoten.
-
----
-
-## 2. ⚙️ React Komponente
-
-Eine **Komponente** ist eine **Funktion oder Klasse**, die ein React-Element zurückgibt.
-
-Sie beschreibt **wie ein UI-Teil aussehen und sich verhalten soll**. Komponenten können **wiederverwendet** und **verschachtelt** werden.
-
-### Beispiel:
-
-```jsx
-function Welcome(props) {
-  return <h1>Hallo, {props.name}</h1>;
-}
-```
-
-➡️ Dies ist eine **Komponente**, die ein **Element** zurückgibt.
-
----
-
-## 3. 🧬 Instanz (Komponenteninstanz)
-
-Eine **Instanz** entsteht, wenn React eine Komponente **rendert** und ihren internen Zustand (State, Lifecycle etc.) verwaltet.  
-Bei **Funktionalen Komponenten** ist die Instanzierung „unsichtbar“, bei **Klassenkomponenten** existiert ein echtes Objekt.
-
-➡️ Die Instanz ist das **laufende Exemplar** einer Komponente mit Daten, Hooks, Events etc.
-
----
-
-## 🔁 Vergleich
-
-| Begriff       | Was ist es?                         | Beispiel                                      |
-|---------------|--------------------------------------|-----------------------------------------------|
-| Element       | Objekt, das UI beschreibt            | `<div>Hello</div>`                            |
-| Komponente    | Funktion/Klasse, die ein Element zurückgibt | `function App() { return <div /> }`        |
-| Instanz       | Laufzeit-Exemplar einer Komponente   | Ausführung mit State, Props etc.              |
-
----
-
-## 📝 Zusammenfassung
-
-- **Element**: Beschreibung eines UI-Teils (z. B. `<h1>Hello</h1>`)
-- **Komponente**: Funktion/Klasse, die Elemente zurückgibt
-- **Instanz**: Laufendes Objekt der Komponente zur Laufzeit mit State und Verhalten
-
----
-
-## 🔗 Quellen
-
-- [React: Komponenten & Rendering – react.dev](https://react.dev/learn/your-first-component)  
-- [MDN: JSX und React-Komponenten](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_starten)
-
-  **[⬆ Наверх](#top)**
-
-8. ### <a name="8"></a> Was ist das Fiber-Architekturmodell in React?
-
-# Was ist das Fiber-Architekturmodell in React?
-
-**Fiber** ist die **neue Rendering-Engine von React**, eingeführt mit React 16.  
-Sie ersetzt das alte, **rekursive Rendering-Modell** und ermöglicht eine **feinere Steuerung des Renderprozesses**.
-
----
-
-## 🎯 Warum wurde Fiber eingeführt?
-
-Das alte Modell (Stack Reconciler) hatte folgende Probleme:
-
-- UI konnte bei großen Updates **nicht unterbrochen** werden  
-- Keine **Priorisierung** von wichtigen Updates (z. B. Benutzerinteraktionen)
-- Kein gutes Fundament für **Concurrent Mode**, **Suspense** oder **Time Slicing**
-
----
-
-## 🧬 Was macht Fiber besser?
-
-### ✅ Unterbrechbares Rendering
-
-React kann Rendering-Arbeit **in kleine Schritte aufteilen** und zwischenzeitlich pausieren oder abbrechen.
-
-### ✅ Priorisierung
-
-Fiber erlaubt die **Zuweisung von Prioritäten** zu verschiedenen Updates:  
-→ z. B. Benutzerinteraktionen werden schneller behandelt als langsame Datenupdates.
-
-### ✅ Besseres Fehler-Handling
-
-Fiber macht es möglich, **Fehlergrenzen (Error Boundaries)** effizient zu verwenden.
-
----
-
-## 🔧 Wie funktioniert Fiber technisch?
-
-- React erstellt beim Rendern eine **Fiber-Node** für jedes Element
-- Diese Nodes bilden einen **Fiber-Tree**, ähnlich wie ein virtuelles DOM
-- Der Tree wird **inkrementell** und **asynchron** verarbeitet
-- Nach dem Vergleich (Reconciliation) folgt die **Commit-Phase**, wo echte DOM-Updates stattfinden
-
----
-
-## 💡 Beispiel: Priorisierung
-
-```jsx
-startTransition(() => {
-  // niedrige Priorität – z. B. Daten neu laden
-  setSearchQuery(input);
-});
-```
-
-➡️ Dank Fiber kann React Hintergrundarbeit (wie Filterung) **niedrig priorisieren**.
-
----
-
-## 📝 Zusammenfassung
-
-Das **Fiber-Modell** ist Reacts moderne Rendering-Architektur.  
-Es bringt:
-
-- unterbrechbares Rendering  
-- Priorisierung von Updates  
-- bessere Performance bei großen Anwendungen  
-- Grundlage für neue Features wie **Concurrent Mode** und **Suspense**
-
----
-
-## 🔗 Quellen
-
-- [React: Einführung in Fiber](https://react.dev/learn/rendering-and-committing)  
-- [React Fiber Architecture (Deep Dive – englisch)](https://github.com/acdlite/react-fiber-architecture)
-
-  **[⬆ Наверх](#top)**
-
-9. ### <a name="9"></a> Was bedeutet „Batching“ in React?
-
-# Was bedeutet „Batching“ in React?
-
-**Batching** bezeichnet in React den Prozess, **mehrere State-Änderungen zu einer einzigen Rendering-Phase zusammenzufassen**, um unnötige Re-Renders zu vermeiden und die Performance zu verbessern.
-
----
-
-## 🎯 Warum ist Batching wichtig?
-
-Ohne Batching würde jede einzelne `setState`- oder `useState`-Änderung **sofort** ein neues Rendern auslösen – selbst wenn sie direkt hintereinander stehen.
-
-### Beispiel **ohne Batching (theoretisch)**
-
-```jsx
-setCount(count + 1);
-setName('Anna');
-```
-
-→ Ohne Batching: 2 Re-Renders  
-→ Mit Batching: **nur 1 Re-Render**
-
----
-
-## 🧠 Wie funktioniert Batching?
-
-- In **Event-Handlern** (z. B. `onClick`, `onChange`) **batcht React automatisch**
-- Seit React 18 funktioniert Batching auch in **`setTimeout`, Promises, async/await**, etc.
-
-### Beispiel:
-
-```jsx
-function handleClick() {
-  setCount(c => c + 1);
-  setName('Anna');
-}
-```
-
-➡️ React führt **nur einen Re-Render** durch, obwohl 2 States geändert wurden.
-
----
-
-## 🔁 Batching in asynchronem Code (ab React 18)
-
-```jsx
-useEffect(() => {
-  fetchData().then(() => {
-    setLoading(false);
-    setData(result);
-  });
-}, []);
-```
-
-→ Auch hier wird **automatisch gebatcht** (ab React 18), sodass nur ein Re-Render erfolgt.
-
----
-
-## 🛠️ Manuelles Batching (z. B. außerhalb von React-Kontexten)
-
-Falls nötig, kann man `flushSync()` oder `unstable_batchedUpdates()` verwenden – aber in der Regel ist das nicht notwendig.
-
----
-
-## 📝 Zusammenfassung
-
-**Batching** fasst mehrere State-Änderungen in einer Rendering-Phase zusammen.  
-Das reduziert die Anzahl der Re-Renders und verbessert die Performance – vor allem bei komplexen Komponenten.
-
----
-
-## 🔗 Quellen
-
-- [Batching – React Docs](https://react.dev/learn/state-a-components-memory#react-batches-state-updates)  
-- [React 18 Automatic Batching](https://react.dev/learn/queueing-a-series-of-state-updates#react-batches-state-updates)
-
-  **[⬆ Наверх](#top)**
-
-10. ### <a name="10"></a> Was ist die Rolle des key in React-Listen?
-
-# Was ist die Rolle des `key` in React-Listen?
-
-In React ist der `key` ein **einzigartiger Identifikator** für jedes Element in einer Liste.  
-Er hilft React, **zu erkennen, welche Elemente sich geändert, hinzugefügt oder entfernt** haben.
-
----
-
-## 🎯 Warum ist `key` wichtig?
-
-React verwendet `key`, um die **Effizienz beim Rendering** zu erhöhen:
-
-- Vermeidet unnötige Neurenderings
-- Beibehaltung des Zustands bei gleichbleibenden Komponenten
-- Präzises **Vergleichen alter und neuer Elemente** im virtuellen DOM
-
----
-
-## ❌ Problem ohne `key`
-
-```jsx
-{items.map(item => (
-  <li>{item.text}</li>  // kein key → ineffizient und potenziell buggy
-))}
-```
-
-➡️ React kann nicht eindeutig zuordnen, welches Element welches ist.
-
----
-
-## ✅ Richtige Nutzung von `key`
-
-```jsx
-{items.map(item => (
-  <li key={item.id}>{item.text}</li>
-))}
-```
-
-➡️ `key={item.id}` sorgt dafür, dass React jedes Element **korrekt identifiziert**.
-
----
-
-## ⚠️ Warnung: Kein Index als `key`, außer in Sonderfällen
-
-```jsx
-// schlecht bei dynamischen Listen
-<li key={index}>{item.text}</li>
-```
-
-Vermeide den **Array-Index als key**, weil das zu **falschen Updates** führen kann, wenn sich die Reihenfolge ändert.
-
----
-
-## 📝 Zusammenfassung
-
-Der `key` in React-Listen dient zur **eindeutigen Identifizierung von Listenelementen**.  
-Er verbessert die Performance und verhindert Rendering-Probleme.  
-→ Verwende **stabile, eindeutige Werte** wie `id`, nicht den Array-Index.
-
----
-
-## 🔗 Quellen
-
-- [Rendering-Listen mit keys – react.dev](https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key)  
-- [React keys auf MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions#react_keys)
-
-  **[⬆ Наверх](#top)**
-
-11. ### <a name="11"></a> Wie funktioniert die Wiederverwendung von Komponenten?
-
-# Wie funktioniert die Wiederverwendung von Komponenten?
-
-In React bedeutet **Wiederverwendung**, dass dieselbe Komponente **mehrfach an verschiedenen Stellen mit unterschiedlichen Daten (Props)** eingesetzt werden kann.  
-Das macht den Code **modular, DRY (Don't Repeat Yourself)** und wartungsfreundlich.
-
----
-
-## 🔁 Wie funktioniert das?
-
-### 1. **Komponente erstellen (z. B. `Button`)**
-
-```jsx
-function Button({ label, onClick }) {
-  return <button onClick={onClick}>{label}</button>;
-}
-```
-
-### 2. **Wiederverwendung mit unterschiedlichen Props**
-
-```jsx
-<Button label="Speichern" onClick={saveData} />
-<Button label="Löschen" onClick={deleteData} />
-```
-
-➡️ React verwendet dieselbe **Komponentenlogik**, aber mit unterschiedlichen **Eigenschaften (Props)**.
-
----
-
-## 📦 Vorteile der Wiederverwendung
-
-- ✅ Einheitliches Verhalten
-- ✅ Leichter wartbar
-- ✅ Skalierbarer Code
-- ✅ Kombinierbarkeit zu größeren Komponenten
-
----
-
-## 💡 Wiederverwendung auch innerhalb anderer Komponenten
-
-```jsx
-function Dialog() {
-  return (
     <div>
-      <Button label="Abbrechen" onClick={closeDialog} />
-      <Button label="Bestätigen" onClick={confirmAction} />
+      <h2>Benutzername: Sergii</h2>
+      <p>Rolle: Frontend-Entwickler</p>
     </div>
   );
 }
 ```
 
-➡️ Komponenten können **geschachtelt und kombiniert** werden.
+Ergebnis im DOM:
+
+* Mit Fragment → nur `<h2>` und `<p>`.
+* Mit `<div>` → unnötiger zusätzlicher Container.
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-Komponenten werden in React wiederverwendet, indem man sie **mit verschiedenen Props mehrfach rendert**.  
-Das fördert sauberen, wartbaren und skalierbaren Code.
+* **React Fragment** gruppiert mehrere Elemente ohne zusätzliches DOM-Tag.
+* Vorteile: sauberes DOM, bessere Semantik, kein „div soup“.
+* Schreibweisen: `<React.Fragment>...</React.Fragment>` oder `<>...</>`.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Fragments](https://react.dev/reference/react/Fragment)
 
 ---
 
-## 🔗 Quellen
+  **[⬆ Наверх](#top)**
 
-- [React Komponenten wiederverwenden – react.dev](https://react.dev/learn/passing-props-to-a-component)  
-- [Komponentenstruktur – MDN Web Docs](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components)
+7. ### <a name="7"></a> Was ist der Unterschied zwischen einem Element, einer Komponente und einer Instanz?
+
+### Unterschied: Element, Komponente, Instanz
+
+1. **React Element**
+
+   * Ein **leichtes, unveränderliches Objekt**, das beschreibt, **was im UI gerendert werden soll**.
+   * Wird von JSX erzeugt und dient React als Bauplan.
+   * Beispiel:
+
+   ```jsx
+   const element = <h1>Hallo</h1>; // React Element
+   ```
+
+2. **React Komponente**
+
+   * Eine **Funktion oder Klasse**, die React Elements zurückgibt.
+   * Definiert **wie UI-Elemente aufgebaut sind** (Logik + Struktur).
+   * Beispiel:
+
+   ```jsx
+   function Greeting() {
+     return <h1>Hallo Sergii</h1>;
+   }
+   ```
+
+3. **Instanz einer Komponente**
+
+   * Entsteht, wenn React eine Komponente **rendert** und im UI einsetzt.
+   * Jede Verwendung von `<Greeting />` erzeugt eine neue Instanz dieser Komponente.
+   * Beispiel:
+
+   ```jsx
+   function App() {
+     return (
+       <>
+         <Greeting />   {/* Instanz 1 */}
+         <Greeting />   {/* Instanz 2 */}
+       </>
+     );
+   }
+   ```
+
+---
+
+### Bildhafte Erklärung
+
+* **Element** = Bauplan/Zwischenschicht (JSX-Output).
+* **Komponente** = Definition (Funktion/Klasse).
+* **Instanz** = konkrete Ausprägung der Komponente im DOM.
+
+---
+
+### Zusammenfassung
+
+* **Element**: unveränderliches Objekt, beschreibt UI.
+* **Komponente**: Funktion/Klasse, die Elemente zurückgibt.
+* **Instanz**: konkrete gerenderte Erscheinung einer Komponente.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Rendering Elements](https://react.dev/learn/render-and-commit)
+* [MDN – Komponenten-Definition](https://developer.mozilla.org/ru/docs/Glossary/Component)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+8. ### <a name="8"></a> Was ist das Fiber-Architekturmodell in React?
+
+### Fiber-Architekturmodell in React
+
+**React Fiber** ist die **neue Rendering-Engine** von React (seit v16), die das alte „Stack Reconciler“-Modell ersetzt. Ziel: **flexible, unterbrechbare Updates** im UI.
+
+---
+
+### Hauptideen
+
+1. **Unterbrechbare Renderings**
+
+   * Große UI-Updates können in **kleine Arbeitseinheiten** zerlegt werden.
+   * React kann Rendering pausieren, priorisieren oder abbrechen, wenn wichtigere Aufgaben (z. B. User-Input) eintreffen.
+
+2. **Priorisierung von Updates**
+
+   * Updates erhalten eine **Priorität** (z. B. Animation > Datenladen).
+   * Dadurch bleibt die UI reaktionsschnell.
+
+3. **Inkremetelles Rendern**
+
+   * Statt den ganzen Baum auf einmal zu rendern, wird er Stück für Stück (fiberweise) bearbeitet.
+
+---
+
+### Aufbau
+
+* **Fiber Node**: interner Datenknoten, der eine **Einheit der Arbeit** repräsentiert (z. B. eine Komponente oder ein DOM-Element).
+* Jeder Fiber enthält Infos wie: Typ der Komponente, Props, State, Nebenwirkungen.
+
+---
+
+### Beispiel (vereinfacht gedacht)
+
+```jsx
+function App() {
+  return (
+    <>
+      <Header />
+      <Content />
+      <Footer />
+    </>
+  );
+}
+```
+
+* Für `Header`, `Content`, `Footer` erstellt React einzelne **Fiber-Nodes**.
+* React arbeitet diese nacheinander ab, kann aber z. B. `Footer` später fertigstellen, wenn ein **User-Klick** sofort verarbeitet werden muss.
+
+---
+
+### Zusammenfassung
+
+* **Fiber** = Reacts Rendering-Engine ab v16.
+* Vorteile: unterbrechbare, priorisierte und inkrementelle Renderings.
+* Kernziel: **bessere Performance & User Experience** bei komplexen UIs.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Render and Commit](https://react.dev/learn/render-and-commit)
+* [React Blog – Fiber Architecture](https://reactjs.org/docs/faq-internals.html#what-is-react-fiber)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+9. ### <a name="9"></a> Was bedeutet „Batching“ in React?
+
+### Batching in React
+
+**Batching** bedeutet, dass React mehrere **State-Updates** zusammenfasst und in **einem einzigen Re-Render** ausführt, anstatt nach jedem Update sofort zu rendern. Das reduziert unnötige DOM-Updates und verbessert die Performance.
+
+---
+
+### Details
+
+* Standardmäßig werden in **Event-Handlern** (z. B. `onClick`) mehrere `setState`-Aufrufe gebündelt.
+* Seit **React 18** gilt „Automatic Batching“ auch für **Promises, setTimeout, native Events** usw.
+* Ohne Batching würde jede State-Änderung einzeln ein Re-Render auslösen.
+
+---
+
+### Beispiel
+
+```jsx
+import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  const [text, setText] = useState("");
+
+  function handleClick() {
+    setCount(c => c + 1);
+    setText("Aktualisiert");
+    // Beide Updates werden in EINEM Re-Render gebündelt (Batching)
+  }
+
+  return (
+    <>
+      <p>{count} - {text}</p>
+      <button onClick={handleClick}>Update</button>
+    </>
+  );
+}
+
+export default Counter;
+```
+
+---
+
+### Zusammenfassung
+
+* **Batching** = mehrere State-Updates → ein Re-Render.
+* Vorteil: weniger DOM-Updates, bessere Performance.
+* Seit React 18: **automatisches Batching überall**, nicht nur in Event-Handlern.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – State Updates Batching](https://react.dev/learn/queueing-a-series-of-state-updates#batching-of-state-updates)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+10. ### <a name="10"></a> Was ist die Rolle des key in React-Listen?
+
+### Rolle des `key` in React-Listen
+
+**`key`** ist ein spezielles Attribut in React, das jeder Listenkomponente zugewiesen wird, um sie **eindeutig zu identifizieren**. Es hilft React beim **Diffing-Prozess** (Vergleich von altem und neuem Virtual DOM), effizient zu erkennen, welche Elemente geändert, hinzugefügt oder entfernt wurden.
+
+---
+
+### Warum wichtig?
+
+1. **Performance**: React muss nicht die ganze Liste neu rendern, sondern nur die betroffenen Elemente.
+2. **Stabilität**: `key` sorgt dafür, dass Komponenteninstanzen korrekt erhalten bleiben (z. B. State in Formularfeldern).
+3. **Vorhersehbarkeit**: Ohne eindeutigen Key kann es zu unerwarteten UI-Effekten kommen.
+
+---
+
+### Beispiel
+
+```jsx
+const users = ["Anna", "Max", "Sergii"];
+
+function UserList() {
+  return (
+    <ul>
+      {users.map(user => (
+        <li key={user}>{user}</li> // key = eindeutiger Identifier
+      ))}
+    </ul>
+  );
+}
+
+export default UserList;
+```
+
+**Falsch (z. B. Index als Key, nur wenn Daten wirklich stabil sind):**
+
+```jsx
+<li key={index}>{user}</li>
+```
+
+→ Problematisch, wenn Elemente umsortiert oder gelöscht werden.
+
+---
+
+### Zusammenfassung
+
+* **`key`** identifiziert Listenelemente eindeutig.
+* Hilft React beim effizienten Re-Rendern und verhindert UI-Fehler.
+* Best Practice: stabile, eindeutige IDs nutzen, **nicht** Array-Index.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Schlüssel (Keys)](https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+11. ### <a name="11"></a> Wie funktioniert die Wiederverwendung von Komponenten?
+
+### Wiederverwendung von Komponenten in React
+
+**Wiederverwendbarkeit** bedeutet, dass eine Komponente mehrfach in unterschiedlichen Kontexten eingesetzt werden kann, ohne ihren Code zu duplizieren. React erreicht dies durch **Props, Komposition und Children**.
+
+---
+
+### Hauptmechanismen
+
+1. **Props**
+
+   * Komponenten können konfigurierbar gemacht werden, indem man ihnen Daten übergibt.
+
+   ```jsx
+   function Button({ label, color }) {
+     return <button style={{ background: color }}>{label}</button>;
+   }
+
+   export default function App() {
+     return (
+       <>
+         <Button label="Speichern" color="green" />
+         <Button label="Löschen" color="red" />
+       </>
+     );
+   }
+   ```
+
+   → Gleiche Komponente, unterschiedliche Darstellung durch Props.
+
+2. **Komposition**
+
+   * Komponenten können andere Komponenten enthalten oder kombinieren.
+
+   ```jsx
+   function Card({ children }) {
+     return <div className="card">{children}</div>;
+   }
+
+   function App() {
+     return (
+       <Card>
+         <h2>Titel</h2>
+         <p>Inhalt</p>
+       </Card>
+     );
+   }
+   ```
+
+   → Card ist wiederverwendbar als Container für beliebigen Inhalt.
+
+3. **Children & Higher-Order-Komponenten / Render Props**
+
+   * Muster, um Verhalten und Layout flexibel wiederzuverwenden.
+
+---
+
+### Zusammenfassung
+
+* Wiederverwendbarkeit in React basiert auf **Props, Komposition und Children**.
+* Eine Komponente kann mehrfach in verschiedenen Kontexten mit unterschiedlicher Konfiguration genutzt werden.
+* Ziel: **DRY-Prinzip** (Don’t Repeat Yourself) und saubere Architektur.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Komposition vs. Vererbung](https://react.dev/learn/passing-props-to-a-component#passing-jsx-as-children)
+
+---
 
   **[⬆ Наверх](#top)**
 
@@ -1034,1079 +1007,859 @@ Das fördert sauberen, wartbaren und skalierbaren Code.
 
 21. ### <a name="21"></a> Was sind Props und wozu werden sie verwendet?
 
-# Was sind Props und wozu werden sie verwendet?
+### Props in React
 
-**Props** (kurz für **"Properties"**) sind **Daten, die von einer Elternkomponente an eine Kindkomponente übergeben werden**.  
-Sie machen React-Komponenten **dynamisch und wiederverwendbar**.
-
----
-
-## 🧠 Eigenschaften von Props
-
-- Props sind **nur lesbar** (readonly)
-- Sie werden **als Objekt** an Komponenten übergeben
-- Sie ermöglichen das **Anpassen des Verhaltens oder Inhalts** einer Komponente
+**Props (Properties)** sind **Eingabeparameter**, die von einer Elternkomponente an eine Kindkomponente übergeben werden. Sie machen Komponenten **dynamisch, wiederverwendbar und konfigurierbar**.
 
 ---
 
-## 💡 Beispiel
+### Eigenschaften von Props
 
-### Elternkomponente:
+1. **Read-only** – Props können innerhalb der Kindkomponente **nicht verändert** werden.
+2. **Datenfluss** – Props folgen dem **Top-down Data Flow** (von Eltern zu Kindern).
+3. **Flexibilität** – erlauben es, dasselbe UI-Element mit unterschiedlichen Werten zu nutzen.
+
+---
+
+### Beispiel
 
 ```jsx
-function App() {
-  return <Welcome name="Sergii" />;
-}
-```
-
-### Kindkomponente:
-
-```jsx
-function Welcome(props) {
-  return <h1>Hallo, {props.name}!</h1>;
-}
-```
-
-➡️ `name="Sergii"` ist ein **Prop**, das an `Welcome` übergeben wird.  
-Im Code erreichbar über `props.name`.
-
----
-
-## 🎯 Wozu werden Props verwendet?
-
-- Weitergabe von Daten zwischen Komponenten  
-- Wiederverwendung einer Komponente mit **unterschiedlichen Inhalten**  
-- Kommunikation **von Eltern zu Kind**
-
----
-
-## 📦 Props mit Destructuring
-
-```jsx
-function Welcome({ name }) {
+function Greeting({ name }) {
   return <h1>Hallo, {name}!</h1>;
 }
+
+function App() {
+  return (
+    <>
+      <Greeting name="Sergii" />
+      <Greeting name="Anna" />
+    </>
+  );
+}
+
+export default App;
 ```
 
-➡️ Kurzform für besseren Lesefluss.
+* `Greeting` ist wiederverwendbar.
+* `name` wird als Prop übergeben und individuell gerendert.
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-**Props** sind Eingabedaten für Komponenten.  
-Sie ermöglichen die **dynamische Anpassung** von Komponenten und fördern **Wiederverwendbarkeit**.  
-Props fließen **nur von oben nach unten** (Parent → Child).
+* **Props** = unveränderliche Eingabeparameter für Komponenten.
+* Nutzen: Datenweitergabe, Wiederverwendbarkeit, dynamisches Rendering.
+* Props sind **nur lesbar** und werden von Eltern an Kinder übergeben.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Props](https://react.dev/learn/passing-props-to-a-component)
 
 ---
-
-## 🔗 Quellen
-
-- [Props in React – react.dev](https://react.dev/learn/passing-props-to-a-component)  
-- [Komponenten und Props – MDN Web Docs](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#eigenschaften_props)
 
   **[⬆ Наверх](#top)**
 
 22. ### <a name="22"></a> Was ist der Unterschied zwischen Props und State?
 
-# Was ist der Unterschied zwischen Props und State?
+### Unterschied zwischen **Props** und **State**
 
-In React sind **Props** und **State** zwei zentrale Konzepte zur Steuerung von Daten in Komponenten.  
-Sie dienen unterschiedlichen Zwecken und haben verschiedene Eigenschaften.
+1. **Props**
+
+   * Eingabeparameter, die eine Komponente von außen (Elternkomponente) erhält.
+   * **Unveränderlich** innerhalb der Kindkomponente (read-only).
+   * Dienen zur **Datenweitergabe** und **Konfiguration**.
+
+2. **State**
+
+   * Interner Zustand einer Komponente, der sich über die Zeit ändern kann.
+   * Wird mit Hooks wie `useState` verwaltet.
+   * Änderungen am State lösen ein **Re-Render** der Komponente aus.
 
 ---
 
-## 📦 Props
-
-- **Daten von außen** → werden von der **Elternkomponente übergeben**
-- **Readonly**: können innerhalb der Komponente **nicht verändert** werden
-- Erlauben die **Wiederverwendung von Komponenten**
-- Fließen **von oben nach unten** (unidirektional)
-
-### Beispiel:
+### Beispiel
 
 ```jsx
-function Welcome({ name }) {
-  return <h1>Hallo, {name}!</h1>;
+import { useState } from "react";
+
+function Counter({ initial }) {   // Prop
+  const [count, setCount] = useState(initial); // State
+
+  return (
+    <>
+      <p>Zähler: {count}</p>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+    </>
+  );
+}
+
+export default function App() {
+  return <Counter initial={5} />; // Übergabe per Prop
 }
 ```
 
-→ `name` ist ein **Prop**, das z. B. von `<Welcome name="Anna" />` kommt
+* `initial` = **Prop**, von außen übergeben, nicht veränderbar.
+* `count` = **State**, gehört zur Komponente selbst und wird durch User-Interaktion verändert.
 
 ---
 
-## 🔄 State
+### Zusammenfassung
 
-- **Interne Daten** einer Komponente  
-- Können sich **im Lauf der Zeit ändern** (z. B. durch Benutzerinteraktion)
-- Änderungen am State führen zu **einem Re-Render**
-- Wird mit Hooks wie `useState` verwaltet
+* **Props**: von außen, unveränderlich, konfigurieren Komponenten.
+* **State**: intern, veränderlich, speichert dynamische Daten.
+* Zusammenspiel: Props geben Startwerte, State steuert dynamisches Verhalten.
 
-### Beispiel:
+📖 Weiterführend:
 
-```jsx
-function Counter() {
-  const [count, setCount] = useState(0);
-  return <button onClick={() => setCount(count + 1)}>Zähler: {count}</button>;
-}
-```
-
-→ `count` ist der **State** der Komponente
+* [React Offizielle Dokumentation – Props vs State](https://react.dev/learn/state-a-components-memory)
 
 ---
-
-## 🔁 Vergleich Props vs. State
-
-| Merkmal          | Props                      | State                          |
-|------------------|----------------------------|--------------------------------|
-| Ursprung         | Elternkomponente           | Innerhalb der Komponente       |
-| Veränderbar?     | ❌ Nein (readonly)         | ✅ Ja (mit `setState` / `useState`) |
-| Zweck            | Konfiguration von außen    | Dynamische, sich ändernde Daten |
-| Kontrolle        | Vom Elternteil gesteuert   | Von der Komponente selbst      |
-
----
-
-## 📝 Zusammenfassung
-
-- **Props**: Eingabedaten von außen, unveränderlich, durch Eltern gesteuert  
-- **State**: Interner Zustand, veränderlich, durch die Komponente selbst verwaltet
-
-Beides zusammen macht Komponenten **dynamisch und wiederverwendbar**.
-
----
-
-## 🔗 Quellen
-
-- [Props vs. State – react.dev](https://react.dev/learn/state-a-components-memory#comparing-state-and-props)  
-- [MDN: Komponenten mit Props und State](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components)
 
   **[⬆ Наверх](#top)**
 
 23. ### <a name="23"></a> Warum sind Props nur lesbar?
 
-# Warum sind Props nur lesbar?
+### Warum Props nur lesbar sind
 
-**Props** (Properties) sind in React **nur lesbar**, weil sie die Daten darstellen,  
-die **von außen** (also von der Elternkomponente) **an eine Kindkomponente übergeben werden**.
+1. **Eindirektionaler Datenfluss (Top-down Data Flow)**
 
----
+   * React erzwingt, dass Daten **nur von Eltern zu Kindern** fließen.
+   * Dadurch bleibt der Datenfluss vorhersehbar und leicht nachvollziehbar.
 
-## 🎯 Hauptgründe für die Unveränderlichkeit von Props
+2. **Unveränderlichkeit**
 
-### 1. 🔒 **Datenfluss kontrollieren (Unidirektionalität)**
+   * Props sind **read-only**, weil sie von außen (Elternkomponente) kontrolliert werden.
+   * Würden Kinder Props verändern, könnte es zu **Inkonsistenzen und schwer nachvollziehbaren Fehlern** kommen.
 
-React folgt dem Prinzip des **einseitigen Datenflusses**:  
-Daten fließen **von oben (Parent) nach unten (Child)**.  
-Wenn Kind-Komponenten Props verändern könnten, würde der Datenfluss **chaotisch und unvorhersehbar** werden.
+3. **Wartbarkeit & Debugging**
 
----
-
-### 2. 🧩 **Komponenten bleiben vorhersehbar und wiederverwendbar**
-
-Eine Komponente, die ihre Props **nicht verändert**, ist:
-
-- einfacher zu testen  
-- leichter wiederzuverwenden  
-- unabhängig vom Kontext, in dem sie verwendet wird
+   * Wenn nur die Eltern Daten ändern dürfen, ist klar definiert, **wo Daten herkommen** und **wer sie verändert**.
+   * Das erhöht die Stabilität großer Anwendungen.
 
 ---
 
-### 3. 🔁 Änderungen sollen in der Elternkomponente passieren
-
-Wenn sich ein Wert ändern soll, soll die **Elternkomponente** dies tun und **neue Props übergeben**.
-
-### Beispiel:
+### Beispiel
 
 ```jsx
-function Child({ count }) {
-  // count ist readonly
-  return <p>Zähler: {count}</p>;
+function Greeting({ name }) {
+  // name = Prop, nicht veränderbar
+  return <h1>Hallo, {name}</h1>;
+}
+
+function App() {
+  return <Greeting name="Sergii" />;
 }
 ```
 
-➡️ Wenn `count` verändert werden soll, muss das in der **Elternkomponente** passieren, z. B. mit `useState`.
+* `Greeting` darf `name` **nicht überschreiben**.
+* Änderungen am Wert müssen in der Elternkomponente erfolgen.
 
 ---
 
-## 🔧 Was tun, wenn sich Werte ändern sollen?
+### Zusammenfassung
 
-Verwende **State (`useState`)** in der Elternkomponente und gib ggf. **Callback-Funktionen** per Prop mit.
+* **Props sind nur lesbar**, weil React einen klaren, eindirektionalen Datenfluss erzwingt.
+* Eltern kontrollieren die Daten, Kinder konsumieren sie.
+* Ergebnis: **Vorhersehbarkeit, Stabilität und einfacheres Debugging**.
 
-```jsx
-function Parent() {
-  const [count, setCount] = useState(0);
+📖 Weiterführend:
 
-  return <Child count={count} onIncrement={() => setCount(count + 1)} />;
-}
-```
+* [React Offizielle Dokumentation – Props](https://react.dev/learn/passing-props-to-a-component)
 
 ---
-
-## 📝 Zusammenfassung
-
-**Props sind nur lesbar**, um den **einseitigen Datenfluss** zu erhalten, die **Vorhersehbarkeit** der Komponenten zu sichern und Änderungen **kontrolliert über die Elternkomponente** zu steuern.
-
----
-
-## 🔗 Quellen
-
-- [Props in React – react.dev](https://react.dev/learn/passing-props-to-a-component)  
-- [Datenfluss in React – react.dev](https://react.dev/learn/thinking-in-react#step-5-add-inverse-data-flow)
 
   **[⬆ Наверх](#top)**
 
 24. ### <a name="24"></a> Wie funktioniert der unidirektionale Datenfluss in React?
 
-# Wie funktioniert der unidirektionale Datenfluss in React?
+### Unidirektionaler Datenfluss in React
 
-In React bedeutet **unidirektionaler Datenfluss**, dass **Daten immer nur in eine Richtung fließen**:  
-**von der Elternkomponente zur Kindkomponente**.
+React folgt strikt dem Prinzip des **Top-down Data Flow**:
 
----
-
-## 🔁 Was heißt das konkret?
-
-- Elternkomponenten **geben Daten über Props weiter**
-- Kindkomponenten können diese Props **verwenden**, aber **nicht verändern**
-- Änderungen am Zustand (State) **finden immer in der zuständigen Komponente statt**
+* **Elternkomponenten** geben Daten über **Props** an ihre **Kindkomponenten** weiter.
+* Daten fließen **nur in eine Richtung** (von oben nach unten).
+* Kindkomponenten können Daten nicht direkt zurückgeben, sondern nur über **Callbacks/Events** Änderungen an die Eltern melden.
 
 ---
 
-## 📦 Beispiel
+### Beispiel
 
 ```jsx
+import { useState } from "react";
+
+function Child({ value, onChange }) {
+  return (
+    <>
+      <p>Aktueller Wert: {value}</p>
+      <button onClick={() => onChange(value + 1)}>+1</button>
+    </>
+  );
+}
+
 function Parent() {
   const [count, setCount] = useState(0);
 
-  return <Child count={count} onIncrement={() => setCount(count + 1)} />;
+  return <Child value={count} onChange={setCount} />;
 }
 
-function Child({ count, onIncrement }) {
-  return (
-    <div>
-      <p>Zähler: {count}</p>
-      <button onClick={onIncrement}>+1</button>
-    </div>
-  );
-}
+export default Parent;
 ```
 
-### Erklärung:
-
-- `Parent` hält den **State**
-- `Child` bekommt `count` und `onIncrement` als **Props**
-- Der Datenfluss geht **von Parent → Child**
-- Änderungen (Button-Klick) **lösen in der Elternkomponente eine State-Änderung aus**, die **neue Props an das Kind sendet**
+* `Parent` besitzt den **State**.
+* `Child` erhält `value` und `onChange` als **Props**.
+* Änderungen fließen **über ein Callback** zurück zur Elternkomponente.
 
 ---
 
-## 🎯 Vorteile des unidirektionalen Datenflusses
+### Vorteile
 
-- ✅ **Vorhersehbares Verhalten**
-- ✅ **Bessere Debuggability**
-- ✅ Klare Trennung von Zuständigkeiten
-- ✅ Weniger Fehler durch unkontrollierte Datenänderungen
-
----
-
-## 🔁 Daten „nach oben“ geben (umgekehrt)
-
-Kindkomponenten können über **Callback-Funktionen als Prop** indirekt Daten nach oben melden:
-
-```jsx
-onChange={(newValue) => parentCallback(newValue)}
-```
-
-➡️ So bleibt die **Datenkontrolle bei der Elternkomponente**.
+1. **Vorhersehbarkeit**: Es ist klar, wo Daten liegen und wie sie sich ändern.
+2. **Wartbarkeit**: Einfacher zu debuggen, da Daten nur an einer Stelle gepflegt werden.
+3. **Stabilität**: Keine unkontrollierten Seiteneffekte durch bidirektionalen Fluss.
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-Der **unidirektionale Datenfluss** sorgt dafür, dass Daten in React immer von **Eltern zu Kind** fließen.  
-Das sorgt für eine **klare Struktur**, bessere Wartbarkeit und **kontrollierbare Zustandsänderungen**.
+* **Unidirektionaler Datenfluss** = Daten von Eltern → Kinder (via Props).
+* Kinder melden Änderungen durch **Events/Callbacks** zurück.
+* Ergebnis: **klare Struktur, bessere Wartbarkeit, weniger Fehler**.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Datenfluss](https://react.dev/learn/passing-props-to-a-component#how-props-flow-through-components)
 
 ---
-
-## 🔗 Quellen
-
-- [Thinking in React – react.dev](https://react.dev/learn/thinking-in-react#step-5-add-inverse-data-flow)  
-- [Props und Datenfluss – MDN](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#datenfluss)
 
   **[⬆ Наверх](#top)**
 
 25. ### <a name="25"></a> Was ist State in Klassen- und Funktionskomponenten?
 
-# Was ist State in Klassen- und Funktionskomponenten?
+### State in React
 
-**State** ist ein **interner Speicher** (Zustand) einer React-Komponente, der sich **über die Zeit ändern** kann.  
-Änderungen am State lösen ein **automatisches Re-Rendern** der Komponente aus.
+1. **State in Klassenkomponenten**
 
----
+   * Wird in einer Klasse als Objekt definiert.
+   * Zugriff über `this.state`, Änderungen mit `this.setState()`.
 
-## ⚙️ State in Funktionskomponenten (mit Hooks)
+   ```jsx
+   import React, { Component } from "react";
 
-Seit React 16.8 wird State in Funktionskomponenten mit dem Hook `useState` verwaltet.
+   class Counter extends Component {
+     constructor(props) {
+       super(props);
+       this.state = { count: 0 }; // State-Objekt
+     }
 
-### Beispiel:
+     render() {
+       return (
+         <>
+           <p>Zähler: {this.state.count}</p>
+           <button onClick={() => this.setState({ count: this.state.count + 1 })}>
+             +1
+           </button>
+         </>
+       );
+     }
+   }
 
-```jsx
-import { useState } from 'react';
+   export default Counter;
+   ```
 
-function Counter() {
-  const [count, setCount] = useState(0); // count = aktueller Wert, setCount = Funktion zum Ändern
-
-  return (
-    <button onClick={() => setCount(count + 1)}>
-      Du hast {count} Mal geklickt
-    </button>
-  );
-}
-```
-
-➡️ Jeder `setCount` löst ein **Re-Rendern** der Komponente mit dem neuen Wert aus.
-
----
-
-## 🏗️ State in Klassenkomponenten (vor Hooks)
-
-Vor Hooks wurde der State mit `this.state` und `this.setState()` in **Klassenkomponenten** verwendet.
-
-### Beispiel:
-
-```jsx
-import React, { Component } from 'react';
-
-class Counter extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { count: 0 }; // Initialwert
-  }
-
-  render() {
-    return (
-      <button onClick={() => this.setState({ count: this.state.count + 1 })}>
-        Du hast {this.state.count} Mal geklickt
-      </button>
-    );
-  }
-}
-```
-
-➡️ `this.setState()` aktualisiert den Zustand **asynchron** und triggert ein Re-Render.
+   * `this.setState()` führt **asynchrone Updates** aus und triggert ein Re-Render.
 
 ---
 
-## 🔁 Vergleich: Funktions- vs. Klassenkomponenten
+2. **State in Funktionskomponenten**
 
-| Merkmal         | Funktionskomponente      | Klassenkomponente           |
-|-----------------|--------------------------|-----------------------------|
-| Einführung ab   | React 16.8 (mit Hooks)   | Frühere React-Versionen     |
-| State-Verwaltung| `useState()`             | `this.state` + `setState()` |
-| Syntax          | Einfacher, moderner      | Komplexer, mehr Boilerplate |
+   * Ab React 16.8 mit **Hooks** möglich (`useState`).
+   * State ist kein Objekt mehr, sondern ein beliebiger Wert (Primitive oder Objekt).
+
+   ```jsx
+   import { useState } from "react";
+
+   function Counter() {
+     const [count, setCount] = useState(0); // State-Hook
+
+     return (
+       <>
+         <p>Zähler: {count}</p>
+         <button onClick={() => setCount(count + 1)}>+1</button>
+       </>
+     );
+   }
+
+   export default Counter;
+   ```
+
+   * `useState` gibt ein Array `[state, updater]` zurück.
+   * Updates sind deklarativ und lösen ein Re-Render aus.
 
 ---
 
-## 📝 Zusammenfassung
+### Vergleich
 
-**State** ist der dynamische Datenbereich einer Komponente.  
-- In **Funktionskomponenten** nutzt man `useState`  
-- In **Klassenkomponenten** verwendet man `this.state` und `this.setState`  
-State-Änderungen führen **automatisch zu UI-Updates**
+| Klassenkomponente              | Funktionskomponente       |
+| ------------------------------ | ------------------------- |
+| `this.state = { ... }`         | `const [value, setValue]` |
+| Änderung mit `this.setState()` | Änderung mit Setter       |
+| OOP-Stil                       | Funktional, Hooks         |
 
 ---
 
-## 🔗 Quellen
+### Zusammenfassung
 
-- [State in React – react.dev](https://react.dev/learn/state-a-components-memory)  
-- [useState Hook – react.dev](https://react.dev/reference/react/useState)  
-- [MDN: Klassenkomponenten und State](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#state_in_klassenkomponenten)
+* **State = interner Speicher** einer Komponente, der sich über die Zeit ändern kann.
+* In **Klassen**: Objekt mit `this.state` + Updates via `setState()`.
+* In **Funktionen**: `useState`-Hook mit Wert + Setter.
+* Änderungen triggern ein **Re-Render** der Komponente.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – State und Lifecycle](https://react.dev/learn/state-a-components-memory)
+
+---
 
   **[⬆ Наверх](#top)**
 
 26. ### <a name="26"></a> Wie funktioniert setState?
 
-# Wie funktioniert `setState`?
+### Funktionsweise von `setState` in React
 
-`setState` ist die Methode in React, mit der der **Zustand (State)** einer Komponente **aktualisiert** wird.  
-Sie ist in **Klassenkomponenten** verfügbar und wird in **Funktionskomponenten** durch `useState` ersetzt.
+1. **In Klassenkomponenten**
 
----
+   * `setState()` ist die Methode zum Aktualisieren des internen **State-Objekts**.
+   * Updates sind **asynchron** und werden oft zusammengefasst (**Batching**).
+   * `setState` kann ein **Objekt** oder eine **Funktion** akzeptieren.
 
-## ⚙️ `setState` in Klassenkomponenten
+   ```jsx
+   this.setState({ count: this.state.count + 1 }); // Objektform
+   this.setState(prev => ({ count: prev.count + 1 })); // Funktionsform (empfohlen)
+   ```
 
-### Beispiel:
+2. **In Funktionskomponenten** (`useState`)
 
-```jsx
-class Counter extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { count: 0 };
-  }
+   * `setState` ist der **Updater**, den React vom Hook zurückgibt.
+   * Überschreibt den alten Wert durch einen neuen.
+   * Akzeptiert direkt einen Wert oder eine Funktion basierend auf dem vorherigen Wert.
 
-  increment = () => {
-    this.setState({ count: this.state.count + 1 });
-  };
+   ```jsx
+   const [count, setCount] = useState(0);
 
-  render() {
-    return <button onClick={this.increment}>Zähler: {this.state.count}</button>;
-  }
-}
-```
-
-### Was passiert hier?
-
-1. `this.setState(...)` wird aufgerufen
-2. React **merged** das neue Objekt mit dem aktuellen `state`
-3. Es erfolgt ein **Re-Render** der Komponente mit dem neuen Zustand
+   setCount(count + 1);          // Wert
+   setCount(prev => prev + 1);   // Funktionsform (empfohlen bei Abhängigkeit vom alten Wert)
+   ```
 
 ---
 
-## ⚠️ Wichtig: `setState` ist **asynchron**
+### Wichtige Eigenschaften
 
-Das bedeutet: Wenn du direkt nach `setState` auf `this.state` zugreifst, ist der neue Wert noch **nicht garantiert verfügbar**.
-
-### Falsch:
-
-```js
-this.setState({ count: this.state.count + 1 });
-console.log(this.state.count); // Kann noch alt sein!
-```
+* **Asynchron**: Mehrere Aufrufe von `setState` können gebatcht werden.
+* **Re-Render**: Jede Änderung löst ein erneutes Rendern der Komponente aus.
+* **Funktionsform** wird bevorzugt, wenn der neue Wert vom alten abhängt.
 
 ---
 
-## ✅ Korrekt mit Callback-Funktion (abhängig vom vorherigen Wert)
+### Zusammenfassung
 
-```js
-this.setState((prevState) => ({
-  count: prevState.count + 1
-}));
-```
+* `setState` aktualisiert den State und löst ein Re-Render aus.
+* In **Klassenkomponenten**: Methode mit Objekt/Funktion.
+* In **Funktionskomponenten**: Setter vom `useState`-Hook.
+* Updates sind **asynchron** und werden **gebündelt**.
 
-➡️ So stellst du sicher, dass du immer mit dem aktuellen Zustand arbeitest – auch bei mehreren State-Updates hintereinander.
+📖 Weiterführend:
 
----
-
-## 📘 In Funktionskomponenten
-
-Verwendet man stattdessen `useState`:
-
-```jsx
-const [count, setCount] = useState(0);
-setCount(count + 1);
-```
+* [React Offizielle Dokumentation – setState](https://react.dev/reference/react/useState#updating-state-based-on-the-previous-state)
 
 ---
-
-## 📝 Zusammenfassung
-
-- `setState` aktualisiert den Zustand in **Klassenkomponenten**
-- Updates sind **asynchron** und können **gebatcht** werden
-- Verwende Callback-Form (`prevState`) bei abhängigen Updates
-- In **Funktionskomponenten** wird `useState` verwendet
-
----
-
-## 🔗 Quellen
-
-- [setState – React Docs](https://react.dev/reference/react/Component#setstate)  
-- [State-Updates richtig ausführen – react.dev](https://react.dev/learn/queueing-a-series-of-state-updates)
 
   **[⬆ Наверх](#top)**
 
 27. ### <a name="27"></a> Was ist der Unterschied zwischen kontrollierten und unkontrollierten Komponenten?
 
-# Was ist der Unterschied zwischen kontrollierten und unkontrollierten Komponenten?
+### Unterschied: Kontrollierte vs. Unkontrollierte Komponenten
 
-In React unterscheidet man zwischen **kontrollierten** und **unkontrollierten Komponenten**,  
-wenn es um die Verwaltung von Formular-Elementen wie `<input>`, `<textarea>` oder `<select>` geht.
+1. **Kontrollierte Komponenten**
 
----
+   * Der **State der Eingabeelemente** (z. B. `input`, `textarea`, `select`) wird in React verwaltet.
+   * Der Wert kommt aus dem **State** der Komponente, Änderungen laufen über ein Event-Handler.
+   * React = **Single Source of Truth**.
 
-## ✅ Kontrollierte Komponenten
+   ```jsx
+   import { useState } from "react";
 
-Bei **kontrollierten Komponenten** wird der **Wert eines Formularfelds durch den React-State gesteuert**.
+   function ControlledInput() {
+     const [value, setValue] = useState("");
 
-### Merkmale:
-
-- Der **aktuelle Wert** kommt aus dem `useState`-State
-- Änderungen werden über `onChange` an React gemeldet
-- Die Komponente ist **vollständig unter Reacts Kontrolle**
-
-### Beispiel:
-
-```jsx
-function ControlledInput() {
-  const [value, setValue] = useState('');
-
-  return (
-    <input 
-      value={value} 
-      onChange={(e) => setValue(e.target.value)} 
-    />
-  );
-}
-```
-
-➡️ Der `value` wird durch den State bestimmt. React "besitzt" das Eingabefeld.
+     return (
+       <input
+         value={value} // State bestimmt den Wert
+         onChange={e => setValue(e.target.value)} // React kontrolliert
+       />
+     );
+   }
+   ```
 
 ---
 
-## ❌ Unkontrollierte Komponenten
+2. **Unkontrollierte Komponenten**
 
-Bei **unkontrollierten Komponenten** übernimmt **das DOM selbst die Kontrolle über den Wert**.  
-React greift bei Bedarf über ein **Ref** darauf zu.
+   * Der Wert wird direkt vom **DOM selbst** verwaltet.
+   * Zugriff über **Refs** anstatt über State.
+   * React kontrolliert den Wert **nicht kontinuierlich**.
 
-### Merkmale:
+   ```jsx
+   import { useRef } from "react";
 
-- Kein `useState`, kein `onChange`
-- Zugriff über `useRef` → z. B. beim Abschicken eines Formulars
-- Das Feld verwaltet seinen Zustand **eigenständig**
+   function UncontrolledInput() {
+     const inputRef = useRef();
 
-### Beispiel:
+     const handleClick = () => {
+       alert(inputRef.current.value); // Wert direkt aus DOM
+     };
 
-```jsx
-function UncontrolledInput() {
-  const inputRef = useRef();
-
-  const handleSubmit = () => {
-    alert(inputRef.current.value);
-  };
-
-  return (
-    <>
-      <input ref={inputRef} />
-      <button onClick={handleSubmit}>Absenden</button>
-    </>
-  );
-}
-```
-
-➡️ React greift **nur lesend** auf den DOM zu – keine direkte Kontrolle über den Wert.
+     return (
+       <>
+         <input ref={inputRef} />
+         <button onClick={handleClick}>Zeig Wert</button>
+       </>
+     );
+   }
+   ```
 
 ---
 
-## 🔁 Vergleich
+### Vergleich
 
-| Merkmal               | Kontrolliert                 | Unkontrolliert              |
-|------------------------|------------------------------|------------------------------|
-| Wertquelle             | React-State (`useState`)     | DOM                          |
-| Kontrolle              | React                        | Browser                      |
-| Zugriff auf Wert       | `value` + `onChange`         | `useRef().current.value`     |
-| Empfohlen für          | Validierung, komplexe Logik  | einfache Formulare, schnelles Prototyping |
-
----
-
-## 📝 Zusammenfassung
-
-- **Kontrollierte Komponenten**: React verwaltet den Eingabewert → präzise, kontrolliert, ideal für Validierung
-- **Unkontrollierte Komponenten**: DOM verwaltet den Wert → einfacher, aber weniger flexibel
+| Kontrolliert                         | Unkontrolliert                           |
+| ------------------------------------ | ---------------------------------------- |
+| React verwaltet den Wert (State)     | DOM verwaltet den Wert                   |
+| `value` + `onChange`                 | Zugriff via `ref`                        |
+| Besser für Validierung & komplexe UI | Einfacher für schnelle, kleine Formulare |
 
 ---
 
-## 🔗 Quellen
+### Zusammenfassung
 
-- [Kontrollierte Komponenten – react.dev](https://react.dev/learn/sharing-state-between-components#controlled-and-uncontrolled-components)  
-- [Formulare in React – MDN](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_forms)
+* **Kontrollierte Komponenten**: Wert = State in React, Änderungen laufen über Events → **voller React-Kontrolle**.
+* **Unkontrollierte Komponenten**: Wert = DOM, Zugriff über Ref → **schneller, aber weniger flexibel**.
+* Best Practice: Kontrollierte Komponenten für größere UIs, unkontrollierte für einfache Fälle.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Forms](https://react.dev/learn/sharing-state-between-components#controlled-and-uncontrolled-components)
+
+---
 
   **[⬆ Наверх](#top)**
 
 28. ### <a name="28"></a> Was sind Default Props und PropTypes?
 
-# Was sind Default Props und PropTypes?
+### Default Props
 
-In React bieten **Default Props** und **PropTypes** zwei Möglichkeiten, um die Verwendung von **Props sicherer und robuster** zu machen.
-
----
-
-## ✅ 1. Default Props
-
-**Default Props** sind **Standardwerte** für Props, die verwendet werden,  
-wenn ein Prop **nicht vom Elternteil übergeben wurde**.
-
-### Beispiel:
+* Mit **Default Props** kann man Standardwerte für Props definieren, falls der Elternkomponente kein Wert übergeben wird.
+* Praktisch, um **Fallback-Werte** sicherzustellen.
 
 ```jsx
-function Welcome({ name }) {
-  return <h1>Hallo, {name}!</h1>;
+function Button({ label }) {
+  return <button>{label}</button>;
 }
 
-Welcome.defaultProps = {
-  name: 'Gast',
+// Standardwert, falls `label` nicht übergeben wird
+Button.defaultProps = {
+  label: "Klicken"
 };
+
+export default Button;
 ```
 
-➡️ Wenn `name` nicht übergeben wurde, zeigt die Komponente automatisch `Hallo, Gast!` an.
+→ In modernen React-Versionen (17+) werden Default Props für **Funktionskomponenten** weniger genutzt, stattdessen oft **Default-Parameter**:
+
+```jsx
+function Button({ label = "Klicken" }) {
+  return <button>{label}</button>;
+}
+```
 
 ---
 
-## ✅ 2. PropTypes
+### PropTypes
 
-**PropTypes** werden verwendet, um die **Datentypen der Props zu validieren**.  
-React gibt **eine Warnung in der Konsole**, wenn ein Prop nicht dem erwarteten Typ entspricht.
-
-### Beispiel:
+* **PropTypes** ist ein Typprüfungssystem für Props zur **Laufzeit**.
+* Hilft, Fehler früh zu erkennen, indem überprüft wird, ob Props den erwarteten Typ haben.
 
 ```jsx
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 
-function Welcome({ name, age }) {
-  return (
-    <p>
-      Hallo, {name}! Du bist {age} Jahre alt.
-    </p>
-  );
+function User({ name, age }) {
+  return <p>{name} ist {age} Jahre alt</p>;
 }
 
-Welcome.propTypes = {
+User.propTypes = {
   name: PropTypes.string.isRequired,
-  age: PropTypes.number,
+  age: PropTypes.number
 };
 ```
 
-➡️ Warnung in der Konsole, wenn z. B. `name` fehlt oder `age` kein `number` ist.
+* Wird ein falscher Typ übergeben, zeigt React im **Konsolen-Log eine Warnung**.
 
 ---
 
-## 📦 Unterstützte Typen
+### Zusammenfassung
 
-| Typ               | Beschreibung                        |
-|-------------------|--------------------------------------|
-| `PropTypes.string`| Zeichenkette                         |
-| `PropTypes.number`| Zahl                                 |
-| `PropTypes.bool`  | Boolean                              |
-| `PropTypes.func`  | Funktion                             |
-| `PropTypes.array` | Array                                |
-| `PropTypes.object`| Objekt                               |
-| `.isRequired`     | Macht das Prop erforderlich          |
+* **Default Props**: legen Standardwerte fest, wenn keine Props übergeben werden.
+* **PropTypes**: prüfen Props-Typen **zur Laufzeit** und helfen bei der Fehlervermeidung.
+* Heute oft ersetzt durch **TypeScript** für statische Typisierung.
 
----
+📖 Weiterführend:
 
-## 📝 Zusammenfassung
-
-- **Default Props**: Definieren **Standardwerte**, wenn keine Props übergeben werden
-- **PropTypes**: Helfen bei der **Typprüfung** von Props zur Laufzeit (für Debugging und Klarheit)
+* [React Offizielle Dokumentation – Typprüfung](https://react.dev/reference/react/Component#static-defaultprops)
+* [PropTypes auf npm](https://www.npmjs.com/package/prop-types)
 
 ---
-
-## 🔗 Quellen
-
-- [React: Default Props – react.dev](https://react.dev/learn/passing-props-to-a-component#default-props)  
-- [PropTypes – React Docs](https://reactjs.org/docs/typechecking-with-proptypes.html)
 
   **[⬆ Наверх](#top)**
 
 29. ### <a name="29"></a> Was ist React.memo und wofür wird es verwendet?
 
-# Was ist `React.memo` und wofür wird es verwendet?
+### React.memo
 
-**`React.memo`** ist eine **Higher-Order-Komponente (HOC)**, die eine **Funktionskomponente speichert (memoisiert)**  
-und **nur neu rendert**, wenn sich ihre **Props tatsächlich geändert haben**.
-
----
-
-## 🎯 Zweck von `React.memo`
-
-- Vermeidet **unnötige Re-Renders**  
-- Verbessert die **Performance** großer Anwendungen  
-- Nützlich bei **teuren Berechnungen oder komplexem UI**
+**`React.memo`** ist eine **Higher-Order-Komponente (HOC)**, die Funktionskomponenten **memoisiert**.
+Das bedeutet: Eine Komponente wird **nur neu gerendert, wenn sich ihre Props ändern**.
 
 ---
 
-## 🧠 Wie funktioniert es?
+### Wofür wird es verwendet?
+
+1. **Performance-Optimierung**
+
+   * Verhindert unnötige Re-Renders bei unveränderten Props.
+   * Besonders sinnvoll bei **teuren Berechnungen** oder **großen Listen**.
+
+2. **Vergleich der Props**
+
+   * Standardmäßig nutzt React einen **shallow comparison** (flacher Vergleich).
+   * Für komplexe Objekte kann man eine eigene Vergleichsfunktion übergeben.
+
+---
+
+### Beispiel
 
 ```jsx
-const MemoizedComponent = React.memo(MyComponent);
-```
+import React, { useState } from "react";
 
-React vergleicht bei jedem Render die **alten und neuen Props mit `===`**.  
-Nur bei Änderung wird `MyComponent` neu gerendert.
-
----
-
-## 💡 Beispiel
-
-```jsx
-const Greeting = React.memo(function Greeting({ name }) {
-  console.log('gerendert');
-  return <p>Hallo, {name}</p>;
+const Child = React.memo(function Child({ value }) {
+  console.log("Render:", value);
+  return <p>Wert: {value}</p>;
 });
-```
 
-➡️ Wird `name` nicht geändert, wird die Komponente **nicht neu gerendert**.
+export default function App() {
+  const [count, setCount] = useState(0);
+  const [text, setText] = useState("");
 
----
-
-## 🔧 Mit benutzerdefiniertem Vergleich (optional)
-
-```jsx
-function areEqual(prevProps, nextProps) {
-  return prevProps.name === nextProps.name;
+  return (
+    <>
+      <Child value={count} />
+      <button onClick={() => setCount(count + 1)}>+1</button>
+      <input value={text} onChange={e => setText(e.target.value)} />
+    </>
+  );
 }
-
-const MemoGreeting = React.memo(Greeting, areEqual);
 ```
 
-➡️ Du kannst einen **eigenen Vergleichsalgorithmus** definieren.
+* `Child` rendert nur neu, wenn sich `value` ändert.
+* Änderungen an `text` haben **keinen Einfluss** auf `Child`.
 
 ---
 
-## ⚠️ Wann NICHT verwenden?
+### Zusammenfassung
 
-- Bei **häufig wechselnden Props**
-- Bei **sehr einfachen Komponenten**
-- Wenn Re-Renders keine merkliche Performance-Auswirkung haben
+* **`React.memo`** = Memoization für Funktionskomponenten.
+* Verhindert unnötige Re-Renders, wenn Props unverändert bleiben.
+* Standard: **shallow comparison**, optional eigene Vergleichsfunktion.
 
----
+📖 Weiterführend:
 
-## 📝 Zusammenfassung
-
-- `React.memo` verhindert unnötige Re-Renders von **Funktionskomponenten**
-- Es vergleicht Props und rendert nur bei Änderungen
-- Ideal bei **leistungsintensiven Komponenten** mit stabilen Props
+* [React Offizielle Dokumentation – React.memo](https://react.dev/reference/react/memo)
 
 ---
-
-## 🔗 Quellen
-
-- [React.memo – React Docs](https://react.dev/reference/react/memo)  
-- [Optimizing Performance – React](https://react.dev/learn/optimizing-performance#memoizing-components)
 
   **[⬆ Наверх](#top)**
 
 30. ### <a name="30"></a> Was ist PureComponent und wie unterscheidet es sich von Component?
 
-# Was ist `PureComponent` und wie unterscheidet es sich von `Component`?
+### PureComponent vs. Component
 
-In React gibt es zwei Basisklassen für Klassenkomponenten:
+1. **`React.Component`**
 
-- `React.Component`
-- `React.PureComponent`
+   * Basis-Klasse für Klassenkomponenten.
+   * Führt bei jedem `setState` oder neuen Props ein Re-Render durch, auch wenn sich die Werte nicht tatsächlich geändert haben.
 
-Der Unterschied liegt im **Verhalten beim Rendern**.
+2. **`React.PureComponent`**
 
----
-
-## ✅ `React.Component`
-
-- Jede Änderung von `state` oder `props` → **führt immer zu einem Re-Render**
-- Kein Vergleich alter und neuer Props/State
-- Du kannst `shouldComponentUpdate()` selbst überschreiben, um Rendering zu optimieren
+   * Erweiterung von `Component`.
+   * Führt **automatisch einen shallow comparison** (flachen Vergleich) von Props und State durch.
+   * Rendert nur neu, wenn sich **wirklich etwas geändert hat**.
 
 ---
 
-## ✅ `React.PureComponent`
-
-- Führt **automatisch einen flachen Vergleich** (`shallow compare`) von `props` und `state` durch
-- **Rendert nur**, wenn sich etwas **tatsächlich geändert hat**
-- Du musst `shouldComponentUpdate()` **nicht selbst schreiben**
-
----
-
-## 💡 Beispiel
+### Beispiel
 
 ```jsx
-class MyComponent extends React.Component {
+import React, { Component, PureComponent } from "react";
+
+class NormalComponent extends Component {
   render() {
-    console.log('MyComponent rendert immer');
-    return <div>{this.props.text}</div>;
+    console.log("NormalComponent gerendert");
+    return <p>{this.props.value}</p>;
   }
 }
 
-class MyPureComponent extends React.PureComponent {
+class OptimizedComponent extends PureComponent {
   render() {
-    console.log('MyPureComponent rendert nur bei Änderung');
-    return <div>{this.props.text}</div>;
+    console.log("PureComponent gerendert");
+    return <p>{this.props.value}</p>;
   }
 }
 ```
 
-Wenn `text` sich nicht ändert, wird **`MyPureComponent` nicht neu gerendert**,  
-aber **`MyComponent` rendert trotzdem**.
+* `NormalComponent` rendert bei **jeder Aktualisierung**, auch wenn `value` gleich bleibt.
+* `OptimizedComponent` rendert **nur, wenn sich `value` geändert hat**.
 
 ---
 
-## ⚠️ Einschränkung
+### Unterschiede im Überblick
 
-- `PureComponent` macht **nur einen flachen Vergleich**
-  - Änderungen in **verschachtelten Objekten/Arrays** werden **nicht erkannt**
-- Beispiel:
-
-```js
-this.setState({ data: { name: 'Max' } }); // Neuer Objekt-Referenz, aber inhaltlich gleich → Re-Render
-```
+| **Component**                         | **PureComponent**                                 |
+| ------------------------------------- | ------------------------------------------------- |
+| Rendert immer bei Updates             | Rendert nur bei Änderungen (shallow compare)      |
+| Keine Optimierung                     | Eingebaute Performance-Optimierung                |
+| Manuell `shouldComponentUpdate` nötig | `shouldComponentUpdate` automatisch implementiert |
 
 ---
 
-## 🔁 Vergleich
+### Zusammenfassung
 
-| Merkmal              | `Component`            | `PureComponent`                   |
-|----------------------|------------------------|------------------------------------|
-| Re-Render bei Update | immer                  | nur bei Änderungen (shallow check)|
-| Performance          | normal                 | optimiert für einfache Props/State|
-| shouldComponentUpdate| manuell definierbar    | intern automatisch                |
+* **Component**: rendert immer neu bei Updates.
+* **PureComponent**: optimiert, rendert nur bei tatsächlichen Änderungen (shallow compare).
+* Ziel: **Performance-Optimierung** bei Klassenkomponenten.
 
----
+📖 Weiterführend:
 
-## 📝 Zusammenfassung
-
-- `Component`: rendert immer bei State-/Props-Änderung
-- `PureComponent`: rendert nur bei tatsächlicher Änderung (flacher Vergleich)
-- Ideal bei **statischen Props oder Performance-kritischen Klassenkomponenten**
+* [React Offizielle Dokumentation – PureComponent](https://react.dev/reference/react/PureComponent)
 
 ---
-
-## 🔗 Quellen
-
-- [React.PureComponent – React Docs](https://react.dev/reference/react/PureComponent)  
-- [React-Komponenten optimieren – react.dev](https://react.dev/learn/optimizing-performance#purecomponents)
 
   **[⬆ Наверх](#top)**  
 
 31. ### <a name="31"></a> Wann sollte shouldComponentUpdate verwendet werden?
 
-# Wann sollte `shouldComponentUpdate` verwendet werden?
+### `shouldComponentUpdate` in React
 
-Die Methode **`shouldComponentUpdate(nextProps, nextState)`** wird in **Klassenkomponenten** verwendet,  
-um zu **steuern, ob eine Komponente neu gerendert werden soll**.
-
----
-
-## 🎯 Zweck
-
-- **Performance-Optimierung**: Vermeide unnötige Re-Renders bei unveränderten Props oder State
-- Besonders nützlich bei **großen Komponenten** oder **häufigen Updates**
+**`shouldComponentUpdate(nextProps, nextState)`** ist eine Lifecycle-Methode in **Klassenkomponenten**, die bestimmt, ob ein Re-Render stattfinden soll.
+Sie gibt **true** (neu rendern) oder **false** (kein Render) zurück.
 
 ---
 
-## 💡 Beispiel
+### Wann einsetzen?
+
+1. **Performance-Optimierung**
+
+   * Wenn eine Komponente sehr oft aktualisiert wird, aber die meisten Updates keine sichtbaren Änderungen im UI verursachen.
+   * Durch Rückgabe von `false` können unnötige Re-Renders vermieden werden.
+
+2. **Feinsteuerung**
+
+   * Wenn der Standardvergleich von `PureComponent` (shallow compare) nicht ausreicht.
+   * Beispiel: tiefe Objektstrukturen, die differenziert geprüft werden müssen.
+
+---
+
+### Beispiel
 
 ```jsx
-class MyComponent extends React.Component {
+import React, { Component } from "react";
+
+class User extends Component {
   shouldComponentUpdate(nextProps) {
-    return nextProps.value !== this.props.value;
+    // Nur neu rendern, wenn sich der Name geändert hat
+    return nextProps.name !== this.props.name;
   }
 
   render() {
-    console.log('gerendert');
-    return <div>{this.props.value}</div>;
+    console.log("Rendering:", this.props.name);
+    return <p>{this.props.name}</p>;
   }
 }
+
+export default User;
 ```
 
-➡️ Die Komponente rendert **nur**, wenn sich `value` geändert hat.
-
 ---
 
-## 🧠 Wann sinnvoll?
+### Zusammenfassung
 
-| Situation | Verwendung von `shouldComponentUpdate` sinnvoll? |
-|-----------|--------------------------------------------------|
-| Große Komponenten mit viel DOM | ✅ Ja                       |
-| Props ändern sich selten       | ✅ Ja                       |
-| Props enthalten komplexe Objekte (z. B. Arrays) | ✅ mit Deep Compare |
-| Kleine statische Komponenten   | ❌ Nicht nötig              |
-| Du verwendest `PureComponent`  | ❌ Schon eingebaut          |
+* **`shouldComponentUpdate`** steuert, ob ein Re-Render notwendig ist.
+* Sinnvoll bei **Performance-Optimierungen** und **kontrollierten Updates**.
+* Heute oft ersetzt durch **PureComponent** oder **React.memo** in Funktionskomponenten.
 
----
+📖 Weiterführend:
 
-## ⚠️ Vorsicht bei Objekten und Arrays
-
-```js
-shouldComponentUpdate(nextProps) {
-  return nextProps.data !== this.props.data;
-}
-```
-
-→ **Referenzvergleich**: wenn `data` neu erstellt wird, auch mit gleichem Inhalt, erfolgt ein Re-Render.  
-→ Bei komplexeren Strukturen: ggf. **tiefer Vergleich (deep equality)** erforderlich.
+* [React Offizielle Dokumentation – shouldComponentUpdate](https://react.dev/reference/react/Component#shouldcomponentupdate)
 
 ---
-
-## 📝 Zusammenfassung
-
-`shouldComponentUpdate` wird verwendet, um **Rerender manuell zu kontrollieren**,  
-wenn **Props oder State sich nicht tatsächlich geändert haben**.  
-Das spart Rechenzeit und verbessert die **Performance**, insbesondere bei großen Komponenten.
-
----
-
-## 🔗 Quellen
-
-- [shouldComponentUpdate – React Docs](https://react.dev/reference/react/Component#shouldcomponentupdate)  
-- [React Performance – react.dev](https://react.dev/learn/optimizing-performance)
 
   **[⬆ Наверх](#top)**
 
 32. ### <a name="32"></a> Was ist ein ref und wann wird er eingesetzt?
 
-# Was ist ein `ref` und wann wird er eingesetzt?
+### Ref in React
 
-Ein **`ref` (reference)** in React ist ein Objekt, das **direkten Zugriff auf ein DOM-Element oder eine React-Komponente** ermöglicht – **ohne den üblichen Datenfluss über Props oder State**.
-
----
-
-## 🧠 Wofür werden Refs verwendet?
-
-- 📌 **Direkter Zugriff auf DOM-Elemente**
-- 🎮 **Manuelles Fokus-Management** (z. B. `input.focus()`)
-- ⏯️ **Steuerung von Medien (Video/Audio)**
-- 📦 **Integration von Drittanbieter-Bibliotheken**
-- 🧪 **Lesen von Werten in unkontrollierten Komponenten**
+Ein **ref (reference)** ist ein spezielles Objekt in React, mit dem man direkt auf ein **DOM-Element** oder eine **Komponenteninstanz** zugreifen kann. Refs werden mit `useRef` (Funktionskomponenten) oder `React.createRef` (Klassenkomponenten) erstellt.
 
 ---
 
-## 💡 Beispiel: DOM-Element fokussieren
+### Wann einsetzen?
+
+1. **Direkter Zugriff auf DOM-Elemente**
+
+   * Fokus setzen, Text selektieren, Scrollen steuern.
+
+2. **Speichern von veränderlichen Werten**
+
+   * Werte zwischen Renders behalten, ohne ein Re-Render auszulösen.
+
+3. **Integration mit Drittbibliotheken**
+
+   * z. B. Zugriff auf Canvas, Charts, Animationen.
+
+---
+
+### Beispiele
+
+**Funktionskomponente mit `useRef`:**
 
 ```jsx
-import { useRef, useEffect } from 'react';
+import { useRef } from "react";
 
-function FocusInput() {
-  const inputRef = useRef(null);
-
-  useEffect(() => {
-    inputRef.current.focus(); // Direktes DOM-Zugreifen
-  }, []);
-
-  return <input ref={inputRef} />;
-}
-```
-
-➡️ `inputRef.current` zeigt auf das `<input>` DOM-Element.
-
----
-
-## 📦 `useRef` vs. `createRef`
-
-| Hook/Method        | Verwendung                        |
-|--------------------|-----------------------------------|
-| `useRef()`         | In **Funktionskomponenten**       |
-| `createRef()`      | In **Klassenkomponenten**         |
-
----
-
-## 🧬 Beispiel: Unkontrolliertes Eingabefeld
-
-```jsx
-function UncontrolledForm() {
+function InputFocus() {
   const inputRef = useRef();
 
-  const handleSubmit = () => {
-    alert(`Eingegeben: ${inputRef.current.value}`);
+  const handleClick = () => {
+    inputRef.current.focus(); // direkter DOM-Zugriff
   };
 
   return (
     <>
-      <input ref={inputRef} />
-      <button onClick={handleSubmit}>Absenden</button>
+      <input ref={inputRef} type="text" />
+      <button onClick={handleClick}>Fokus setzen</button>
     </>
+  );
+}
+
+export default InputFocus;
+```
+
+**Persistente Werte ohne Re-Render:**
+
+```jsx
+import { useRef, useState } from "react";
+
+function Timer() {
+  const countRef = useRef(0);
+  const [stateCount, setStateCount] = useState(0);
+
+  const increment = () => {
+    countRef.current += 1;      // kein Re-Render
+    setStateCount(stateCount+1); // triggert Re-Render
+  };
+
+  return (
+    <p>Ref: {countRef.current}, State: {stateCount}</p>
   );
 }
 ```
 
-➡️ Zugriff auf den Wert **ohne State/Props**.
-
 ---
 
-## ⚠️ Wann **nicht** verwenden?
+### Zusammenfassung
 
-- ❌ Kein Ersatz für `state` bei kontrollierten Komponenten  
-- ❌ Kein Mittel zur Datenverarbeitung oder Logiksteuerung  
-- ❌ Nicht für das Auslösen von Re-Renders gedacht
+* **Refs** = direkte Referenzen auf DOM-Elemente oder persistente Werte.
+* Einsatz: Fokus, Scroll, Animationssteuerung, Integration mit Drittlibs, Werte speichern ohne Re-Render.
+* Erstellung: `useRef` (Hooks), `createRef` (Klassen).
 
----
+📖 Weiterführend:
 
-## 📝 Zusammenfassung
-
-Ein `ref` ist eine **Referenz auf ein DOM-Element oder eine Komponente**.  
-Er wird eingesetzt, wenn React **nicht der beste Ort zur Verwaltung von Verhalten ist**, z. B. bei Fokus, Scroll, Animationen oder Drittanbieter-APIs.
+* [React Offizielle Dokumentation – Refs](https://react.dev/learn/referencing-values-with-refs)
 
 ---
-
-## 🔗 Quellen
-
-- [Refs und DOM – React Docs](https://react.dev/learn/referencing-values-with-refs)  
-- [useRef Hook – react.dev](https://react.dev/reference/react/useRef)
 
   **[⬆ Наверх](#top)**
 
 33. ### <a name="33"></a> Was bedeutet „Lifting State Up“?
 
-# Was bedeutet „Lifting State Up“?
+### Lifting State Up in React
 
-**„Lifting State Up“** bezeichnet ein Muster in React, bei dem **mehrere Komponenten denselben State benötigen** –  
-aber **nur eine Elternkomponente** diesen Zustand verwalten soll.
-
----
-
-## 🎯 Warum „State anheben“?
-
-Wenn zwei oder mehr Komponenten auf denselben Wert zugreifen oder ihn ändern müssen,  
-ist es besser, den **State in die nächste gemeinsame Elternkomponente zu verschieben**.
+**Lifting State Up** bedeutet, dass man den **State aus einer Kindkomponente in die gemeinsame Elternkomponente verlagert**, wenn mehrere Komponenten denselben Zustand benötigen.
+So entsteht **eine gemeinsame Quelle der Wahrheit** (Single Source of Truth), und der Datenfluss bleibt **eindirektional**.
 
 ---
 
-## 💡 Beispiel
-
-### ✅ Struktur mit „Lifting State Up“
+### Beispiel
 
 ```jsx
-function Parent() {
-  const [text, setText] = useState('');
+import { useState } from "react";
 
+function TemperatureInput({ label, value, onChange }) {
   return (
     <>
-      <Input text={text} onTextChange={setText} />
-      <Display text={text} />
+      <label>{label}: </label>
+      <input
+        type="number"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+      />
     </>
   );
 }
 
-function Input({ text, onTextChange }) {
+function Calculator() {
+  const [temperature, setTemperature] = useState("");
+
   return (
-    <input 
-      value={text} 
-      onChange={(e) => onTextChange(e.target.value)} 
-    />
+    <>
+      <TemperatureInput
+        label="Celsius"
+        value={temperature}
+        onChange={setTemperature}
+      />
+      <TemperatureInput
+        label="Fahrenheit"
+        value={(temperature * 9) / 5 + 32}
+        onChange={val => setTemperature(((val - 32) * 5) / 9)}
+      />
+    </>
   );
 }
 
-function Display({ text }) {
-  return <p>Aktueller Text: {text}</p>;
-}
+export default Calculator;
 ```
 
-➡️ `Parent` verwaltet den Zustand `text`,  
-und beide Kind-Komponenten (`Input`, `Display`) **bekommen diesen State als Prop**.
+* Beide Inputs teilen sich denselben **State in der Elternkomponente**.
+* Änderungen an einem Feld werden sofort im anderen reflektiert.
 
 ---
 
-## 🔁 Vorteile
+### Zusammenfassung
 
-- ✅ **Zentrale Datenquelle** für mehrere Komponenten
-- ✅ Einfache Synchronisation und Datenfluss
-- ✅ Vermeidung von doppeltem State
+* **Lifting State Up** = Verschieben von State in die **Elternkomponente**, um Daten zwischen Kindern zu synchronisieren.
+* Vorteile: eine gemeinsame Wahrheit, konsistenter Datenfluss, bessere Wartbarkeit.
 
----
+📖 Weiterführend:
 
-## ⚠️ Typischer Anwendungsfall
-
-- Zwei Komponenten müssen sich **auf denselben Wert beziehen**
-- Eine Komponente ändert den Wert, die andere zeigt ihn an
+* [React Offizielle Dokumentation – Lifting State Up](https://react.dev/learn/sharing-state-between-components#lifting-state-up)
 
 ---
-
-## 📝 Zusammenfassung
-
-**„Lifting State Up“** bedeutet, den gemeinsamen Zustand in eine **höherliegende Elternkomponente zu verschieben**,  
-damit mehrere untergeordnete Komponenten synchron auf denselben Wert zugreifen können.
-
----
-
-## 🔗 Quellen
-
-- [Lifting State Up – react.dev](https://react.dev/learn/sharing-state-between-components#lifting-state-up)  
-- [State Sharing in React – MDN](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#lifting_state_up)
 
   **[⬆ Наверх](#top)**
 
@@ -2154,393 +1907,412 @@ damit mehrere untergeordnete Komponenten synchron auf denselben Wert zugreifen k
 
 41. ### <a name="41"></a> Was sind die Phasen des Komponentenlebenszyklus?
 
-# Was sind die Phasen des Komponentenlebenszyklus?
+### Phasen des Komponentenlebenszyklus (Class Components)
 
-Der **Komponentenlebenszyklus** in React beschreibt die **Abfolge von Ereignissen**,  
-die eine Komponente während ihres Bestehens durchläuft – vom Erstellen bis zum Entfernen aus dem DOM.
+In React (bei **Klassenkomponenten**) besteht der **Lebenszyklus** einer Komponente aus drei Hauptphasen:
 
-➡️ Lebenszyklus-Methoden gelten hauptsächlich für **Klassenkomponenten**.  
-In **Funktionskomponenten** verwendet man **Hooks** wie `useEffect`.
+1. **Mounting (Einfügen ins DOM)**
 
----
+   * Methoden:
 
-## 📅 Die 3 Hauptphasen
+     * `constructor()`
+     * `static getDerivedStateFromProps()`
+     * `render()`
+     * `componentDidMount()`
 
-### 1. 🏗️ **Mounting (Einfügen)**  
-Die Komponente wird in den DOM eingefügt.
+2. **Updating (Aktualisierung bei Props/State-Änderungen)**
 
-| Methode             | Beschreibung                                      |
-|---------------------|---------------------------------------------------|
-| `constructor()`     | Initialisierung, z. B. State setzen               |
-| `render()`          | Gibt JSX zurück                                   |
-| `componentDidMount()` | Wird **nach dem ersten Render** aufgerufen       |
+   * Methoden:
 
----
+     * `static getDerivedStateFromProps()`
+     * `shouldComponentUpdate()`
+     * `render()`
+     * `getSnapshotBeforeUpdate()`
+     * `componentDidUpdate()`
 
-### 2. 🔄 **Updating (Aktualisierung)**  
-Wenn Props oder State sich ändern, wird die Komponente neu gerendert.
+3. **Unmounting (Entfernen aus dem DOM)**
 
-| Methode                 | Beschreibung                                         |
-|-------------------------|------------------------------------------------------|
-| `render()`              | Gibt JSX erneut zurück                               |
-| `componentDidUpdate()`  | Wird **nach jeder Änderung** von Props oder State aufgerufen |
+   * Methode:
+
+     * `componentWillUnmount()`
 
 ---
 
-### 3. ❌ **Unmounting (Entfernen)**  
-Die Komponente wird aus dem DOM entfernt.
-
-| Methode                | Beschreibung                           |
-|------------------------|----------------------------------------|
-| `componentWillUnmount()` | Aufräumarbeiten (z. B. Event-Listener entfernen) |
-
----
-
-## ⚠️ Veraltete Methoden (nicht mehr empfohlen)
-
-- `componentWillMount()`  
-- `componentWillReceiveProps()`  
-- `componentWillUpdate()`  
-
-➡️ Stattdessen: moderne Methoden oder `useEffect` in Funktionskomponenten verwenden.
-
----
-
-## 🔁 Lifecycle in Funktionskomponenten
-
-Mit **`useEffect()`** können alle drei Phasen abgebildet werden:
+### Beispiel
 
 ```jsx
-useEffect(() => {
-  // Mounting & Updating
-  return () => {
-    // Unmounting
-  };
-}, [dependencies]);
+import React, { Component } from "react";
+
+class Demo extends Component {
+  constructor(props) {
+    super(props);
+    console.log("1. constructor");
+    this.state = { count: 0 };
+  }
+
+  componentDidMount() {
+    console.log("4. componentDidMount");
+  }
+
+  shouldComponentUpdate() {
+    console.log("Update? -> true");
+    return true;
+  }
+
+  componentDidUpdate() {
+    console.log("componentDidUpdate");
+  }
+
+  componentWillUnmount() {
+    console.log("componentWillUnmount");
+  }
+
+  render() {
+    console.log("render()");
+    return (
+      <button onClick={() => this.setState({ count: this.state.count + 1 })}>
+        {this.state.count}
+      </button>
+    );
+  }
+}
+
+export default Demo;
 ```
 
-- Kein zweiter Parameter → bei jedem Render
-- Leeres Array `[]` → nur beim Mount
-- Mit Rückgabefunktion → beim Unmount
+---
+
+### Vergleich zu Hooks
+
+* **Mounting/Updating/Unmounting** wird heute meist mit **`useEffect`** in Funktionskomponenten abgebildet.
+
+```jsx
+import { useState, useEffect } from "react";
+
+function Demo() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    console.log("Mounting & Updating");
+    return () => console.log("Unmounting");
+  }, [count]);
+
+  return <button onClick={() => setCount(count + 1)}>{count}</button>;
+}
+```
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-| Phase       | Methode (Klasse)             | Hook (Funktion)         |
-|-------------|------------------------------|-------------------------|
-| Mounting    | `constructor`, `componentDidMount` | `useEffect(() => {...}, [])` |
-| Updating    | `componentDidUpdate`         | `useEffect(() => {...}, [dep])` |
-| Unmounting  | `componentWillUnmount`       | `useEffect(() => {... return () => {...} })` |
+* Lebenszyklus hat drei Phasen: **Mounting, Updating, Unmounting**.
+* Klassenkomponenten nutzen Methoden (`componentDidMount`, `componentDidUpdate`, `componentWillUnmount`).
+* Funktionskomponenten verwenden stattdessen **Hooks (useEffect)**.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Lifecycle](https://react.dev/reference/react/Component)
 
 ---
-
-## 🔗 Quellen
-
-- [Komponenten-Lebenszyklus – React Docs](https://react.dev/learn/referencing-values-with-refs#synchronizing-with-effects)  
-- [MDN: Lebenszyklusmethoden in Klassenkomponenten](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#lebenszyklusmethoden)
 
   **[⬆ Наверх](#top)**
 
 42. ### <a name="42"></a> Welche Lifecycle-Methoden gibt es in Klassenkomponenten?
 
-# Welche Lifecycle-Methoden gibt es in Klassenkomponenten?
+### Lifecycle-Methoden in Klassenkomponenten
 
-In **React-Klassenkomponenten** sind **Lifecycle-Methoden** spezielle Funktionen,  
-die automatisch zu bestimmten Zeitpunkten im **Lebenszyklus einer Komponente** aufgerufen werden.
-
----
-
-## 🧭 Übersicht: Lifecycle-Phasen & Methoden
-
-### 1. 🏗️ Mounting (Einfügen in den DOM)
-
-| Methode                 | Beschreibung                                      |
-|-------------------------|---------------------------------------------------|
-| `constructor()`         | Initialisiert State und bindet Methoden           |
-| `static getDerivedStateFromProps()` | Reagiert auf Props vor dem ersten Render (selten genutzt) |
-| `render()`              | Gibt JSX zurück                                   |
-| `componentDidMount()`   | Wird **nach dem ersten Render** aufgerufen (z. B. Daten laden) |
+React-Klassenkomponenten haben verschiedene Lifecycle-Methoden, die in drei Phasen eingeteilt werden:
 
 ---
 
-### 2. 🔄 Updating (Wenn Props oder State sich ändern)
+#### 1. **Mounting (Einfügen ins DOM)**
 
-| Methode                        | Beschreibung                                                |
-|--------------------------------|-------------------------------------------------------------|
-| `static getDerivedStateFromProps()` | (auch hier nutzbar – selten nötig)                   |
-| `shouldComponentUpdate()`      | Steuert, ob neu gerendert werden soll (Performance)         |
-| `render()`                     | Gibt aktualisiertes JSX zurück                              |
-| `getSnapshotBeforeUpdate()`    | Erfasst DOM-Infos vor dem Update (z. B. Scrollposition)      |
-| `componentDidUpdate()`         | Wird **nach jedem Update** aufgerufen                       |
+* `constructor()` → Initialisierung von State und Binding.
+* `static getDerivedStateFromProps(props, state)` → selten genutzt, synchronisiert State mit Props.
+* `render()` → gibt das JSX zurück.
+* `componentDidMount()` → ausgeführt **nach dem ersten Render**, ideal für API-Calls oder DOM-Manipulation.
 
 ---
 
-### 3. ❌ Unmounting (Entfernen aus dem DOM)
+#### 2. **Updating (bei Props/State-Änderungen)**
 
-| Methode                 | Beschreibung                                        |
-|-------------------------|-----------------------------------------------------|
-| `componentWillUnmount()`| Aufräumen (Timer löschen, EventListener entfernen etc.) |
-
----
-
-### 4. ⚠️ Legacy-Methoden (veraltet, nicht mehr empfohlen)
-
-| Methode                    | Hinweis                                               |
-|----------------------------|-------------------------------------------------------|
-| `componentWillMount()`     | ersetzt durch `constructor()`                        |
-| `componentWillReceiveProps()` | ersetzt durch `getDerivedStateFromProps()`       |
-| `componentWillUpdate()`    | ersetzt durch `getSnapshotBeforeUpdate()`            |
-
-➡️ Diese Methoden sind **deprecated** und in neuem Code **nicht mehr verwenden**.
+* `static getDerivedStateFromProps(props, state)` → wird auch hier aufgerufen.
+* `shouldComponentUpdate(nextProps, nextState)` → entscheidet, ob Re-Render nötig ist (Performance-Optimierung).
+* `render()` → erneutes Rendern der Komponente.
+* `getSnapshotBeforeUpdate(prevProps, prevState)` → Zugriff auf DOM vor dem Update.
+* `componentDidUpdate(prevProps, prevState, snapshot)` → nach dem Rendern, gut für Netzwerkaufrufe oder DOM-Updates.
 
 ---
 
-## 📝 Zusammenfassung
+#### 3. **Unmounting (Entfernen aus DOM)**
 
-| Phase        | Wichtige Methoden                              |
-|--------------|-------------------------------------------------|
-| Mounting     | `constructor`, `render`, `componentDidMount`   |
-| Updating     | `shouldComponentUpdate`, `render`, `componentDidUpdate` |
-| Unmounting   | `componentWillUnmount`                         |
-
-Nutze in neuen Projekten **Funktionskomponenten mit `useEffect()`**, wann immer möglich.
+* `componentWillUnmount()` → Aufräumarbeiten (Timer clearen, Event Listener entfernen).
 
 ---
 
-## 🔗 Quellen
+#### 4. **Error Handling (seit React 16)**
 
-- [Lifecycle-Methoden – React Docs](https://react.dev/reference/react/Component)  
-- [MDN: Komponentenlebenszyklus](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#lebenszyklusmethoden)
+* `static getDerivedStateFromError(error)` → fängt Fehler ab, bevor UI zusammenbricht.
+* `componentDidCatch(error, info)` → Logging von Fehlern.
+
+---
+
+### Zusammenfassung
+
+* **Mounting**: `constructor`, `getDerivedStateFromProps`, `render`, `componentDidMount`.
+* **Updating**: `getDerivedStateFromProps`, `shouldComponentUpdate`, `render`, `getSnapshotBeforeUpdate`, `componentDidUpdate`.
+* **Unmounting**: `componentWillUnmount`.
+* **Error Handling**: `getDerivedStateFromError`, `componentDidCatch`.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Component API](https://react.dev/reference/react/Component)
+
+---
 
   **[⬆ Наверх](#top)**
 
 43. ### <a name="43"></a> Welche Lifecycle-Methoden sind veraltet?
 
-# Welche Lifecycle-Methoden sind veraltet?
+### Veraltete Lifecycle-Methoden in React
 
-React hat mit Version **16.3** einige Lifecycle-Methoden als **veraltet (deprecated)** markiert,  
-weil sie zu **Fehlverhalten** oder **unerwarteten Updates** führen konnten – insbesondere mit **asynchronem Rendering (z. B. Concurrent Mode)**.
-
----
-
-## ⚠️ Veraltete Lifecycle-Methoden
-
-| Methode                    | Status            | Empfehlung                     |
-|----------------------------|-------------------|--------------------------------|
-| `componentWillMount()`     | ❌ Veraltet        | Verwende stattdessen `constructor` oder `componentDidMount` |
-| `componentWillReceiveProps(nextProps)` | ❌ Veraltet | Ersetze durch `getDerivedStateFromProps(nextProps, state)` |
-| `componentWillUpdate(nextProps, nextState)` | ❌ Veraltet | Ersetze durch `getSnapshotBeforeUpdate(prevProps, prevState)` |
+Einige Lifecycle-Methoden von **Klassenkomponenten** gelten seit **React 16.3** als **deprecated** (veraltet), weil sie oft zu **Fehlern und unerwartetem Verhalten** führten.
 
 ---
 
-## 📦 Warum wurden sie entfernt?
+### Veraltete Methoden
 
-- Sie wurden **vor dem eigentlichen Rendern** aufgerufen  
-- Bei **asynchronem Rendering** (React 18+) können sie mehrfach oder verspätet aufgerufen werden  
-- Das führte zu **Seiteneffekten** (z. B. doppelte Datenanforderungen)
+1. **`componentWillMount()`**
 
----
+   * Wurde vor dem ersten Render ausgeführt.
+   * Ersetzt durch: **`constructor`** oder **`componentDidMount`**.
 
-## 🔄 Alternativen
+2. **`componentWillReceiveProps(nextProps)`**
 
-| Veraltete Methode         | Alternative                             |
-|---------------------------|------------------------------------------|
-| `componentWillMount()`    | `constructor()` oder `componentDidMount()` |
-| `componentWillReceiveProps()` | `getDerivedStateFromProps()`        |
-| `componentWillUpdate()`   | `getSnapshotBeforeUpdate()` + `componentDidUpdate()` |
+   * Wurde bei neuen Props aufgerufen.
+   * Ersetzt durch: **`static getDerivedStateFromProps`** oder **`componentDidUpdate`**.
 
----
+3. **`componentWillUpdate(nextProps, nextState)`**
 
-## 🧠 Hinweis
-
-React führt diese Methoden in bestimmten Build-Tools mit dem Präfix **`UNSAFE_`** weiter,  
-z. B. `UNSAFE_componentWillMount()` – **diese solltest du aber vermeiden!**
+   * Wurde vor einem Update aufgerufen.
+   * Ersetzt durch: **`getSnapshotBeforeUpdate`** oder **`componentDidUpdate`**.
 
 ---
 
-## 📝 Zusammenfassung
+### UNSAFE_-Präfix
 
-Folgende Methoden gelten als **veraltet**:
+Seit React 16.3 existieren diese Methoden noch, aber mit **`UNSAFE_`-Präfix**, z. B.:
 
-- `componentWillMount()`  
-- `componentWillReceiveProps()`  
-- `componentWillUpdate()`
-
-Stattdessen solltest du **neue Lifecycle-Methoden** oder **Hooks wie `useEffect()`** in Funktionskomponenten verwenden.
+* `UNSAFE_componentWillMount`
+* `UNSAFE_componentWillReceiveProps`
+* `UNSAFE_componentWillUpdate`
 
 ---
 
-## 🔗 Quellen
+### Zusammenfassung
 
-- [React Docs – Legacy Lifecycle Methods](https://reactjs.org/docs/react-component.html#legacy-lifecycle-methods)  
-- [React Blog – Update on Async Rendering](https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html)
+* Veraltet: `componentWillMount`, `componentWillReceiveProps`, `componentWillUpdate`.
+* Grund: sie verursachen **Side-Effects** im falschen Zeitpunkt.
+* Alternative: **`getDerivedStateFromProps`, `componentDidMount`, `componentDidUpdate`, `getSnapshotBeforeUpdate`**.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – UNSAFE Lifecycle Methods](https://react.dev/reference/react/Component#unsafe_componentwillmount)
+
+---
 
   **[⬆ Наверх](#top)**
 
 44. ### <a name="44"></a> Wie kann man Lifecycle-Methoden mit Hooks ersetzen?
 
-# Wie kann man Lifecycle-Methoden mit Hooks ersetzen?
+### Lifecycle-Methoden → Hooks: 1:1-Ersatz und Patterns
 
-In **Funktionskomponenten** verwendet man den **Hook `useEffect()`**, um Verhalten zu implementieren,  
-das früher in **Lifecycle-Methoden von Klassenkomponenten** enthalten war.
-
----
-
-## 🔁 Vergleich: Klassenmethoden vs. `useEffect`
-
-| Klassenkomponente               | Funktionskomponente mit Hook         |
-|----------------------------------|--------------------------------------|
-| `componentDidMount()`            | `useEffect(() => { ... }, [])`       |
-| `componentDidUpdate()`           | `useEffect(() => { ... }, [deps])`   |
-| `componentWillUnmount()`         | `useEffect(() => { return () => {...} }, [])` |
-| `componentDidUpdate()` (spezifisch) | `useEffect()` mit bestimmten Abhängigkeiten |
+| Klassen-Lifecycle                                             | Entsprechung mit Hooks (Funktionskomponenten)                                                                                | Hinweis                                                              |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `constructor`                                                 | Initial-State via `useState(initial)`                                                                                        | Auch für Event-Handler-Binding nicht nötig.                          |
+| `componentDidMount`                                           | `useEffect(() => { /* init */ }, [])`                                                                                        | Läuft nach dem ersten Render (commit).                               |
+| `componentDidUpdate`                                          | `useEffect(() => { /* reagiert auf deps */ }, [deps])`                                                                       | Läuft nach jedem Render, wenn `deps` sich ändern.                    |
+| `componentWillUnmount`                                        | Cleanup-Funktion in `useEffect`: `return () => {/* cleanup */}`                                                              | Abmelden von Listenern, Timer clearen etc.                           |
+| `shouldComponentUpdate`                                       | Strukturell: `React.memo(Component)`; feingranular: `useMemo`, `useCallback`                                                 | Verhindert unnötige Re-Renders.                                      |
+| `getDerivedStateFromProps`                                    | Meist **vermeiden**. Alternativen: ableiten im Render, `useMemo` für teure Ableitungen, oder `useEffect` zum Synchronisieren | Props nicht in State duplizieren, wenn möglich.                      |
+| `getSnapshotBeforeUpdate` → `componentDidUpdate`              | `useLayoutEffect` + `useRef` für **Layout-Messungen** vor dem Paint; Vor-/Nachwerte per Ref speichern                        | `useLayoutEffect` läuft synchron nach DOM-Mutationen, vor dem Paint. |
+| Fehlergrenzen: `getDerivedStateFromError`/`componentDidCatch` | **Kein Hook-Äquivalent**. Error Boundaries weiterhin als **Klassenkomponenten** implementieren                               | Alternativ: vorhandene Boundary-Komponenten wiederverwenden.         |
 
 ---
 
-## 💡 Beispiel 1: `componentDidMount`
+### Minimalbeispiele
+
+**Mount/Update/Unmount (Effect + Cleanup)**
 
 ```jsx
-useEffect(() => {
-  console.log('Komponente wurde gemountet');
-}, []);
+import { useEffect, useState } from "react";
+
+export default function Chat() {
+  const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    const conn = connect();       // componentDidMount / DidUpdate (deps s.u.)
+    setConnected(true);
+    return () => conn.disconnect(); // componentWillUnmount
+  }, []); // leeres Array: nur einmal nach Mount
+
+  return <p>{connected ? "Online" : "Offline"}</p>;
+}
 ```
 
-➡️ Wird **nur einmal beim Mount** aufgerufen (`[]` = leere Abhängigkeiten)
-
----
-
-## 💡 Beispiel 2: `componentDidUpdate`
+**shouldComponentUpdate → React.memo**
 
 ```jsx
-useEffect(() => {
-  console.log('State oder Prop wurde geändert');
-}, [value]);
+import React, { useMemo } from "react";
+
+const List = React.memo(function List({ items }) {
+  const total = useMemo(() => items.reduce((s, x) => s + x.value, 0), [items]);
+  return <p>Total: {total}</p>;
+});
+
+export default List;
 ```
 
-➡️ Wird aufgerufen, wenn sich `value` ändert
-
----
-
-## 💡 Beispiel 3: `componentWillUnmount`
+**getDerivedStateFromProps vermeiden (Ableitung statt Spiegeln)**
 
 ```jsx
-useEffect(() => {
-  return () => {
-    console.log('Komponente wird entfernt');
-  };
-}, []);
+import { useMemo } from "react";
+
+// Statt Prop -> State-Spiegelung:
+export default function Price({ net, vatPercent }) {
+  const gross = useMemo(() => net * (1 + vatPercent / 100), [net, vatPercent]);
+  return <span>{gross.toFixed(2)} €</span>;
+}
 ```
 
-➡️ Rückgabefunktion von `useEffect` = **Aufräumcode (Cleanup)**
-
----
-
-## 🔁 Kombinierte Nutzung
+**getSnapshotBeforeUpdate → useLayoutEffect für Layout/Scroll**
 
 ```jsx
-useEffect(() => {
-  // Mount & Update
-  console.log('Mount oder Update');
+import { useLayoutEffect, useRef } from "react";
 
-  return () => {
-    // Unmount
-    console.log('Cleanup bei Unmount oder vor nächstem Update');
-  };
-}, [someValue]);
+export default function AutoScroll({ messages }) {
+  const listRef = useRef(null);
+  const prevLen = useRef(0);
+
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    const nearBottom =
+      list.scrollHeight - list.scrollTop - list.clientHeight < 20;
+
+    // läuft nach DOM-Mutationen, vor dem Paint
+    if (nearBottom || messages.length < prevLen.current) {
+      list.scrollTop = list.scrollHeight; // „Snapshot“-artiges Verhalten
+    }
+    prevLen.current = messages.length;
+  }, [messages]);
+
+  return (
+    <ul ref={listRef} style={{ maxHeight: 200, overflow: "auto" }}>
+      {messages.map(m => <li key={m.id}>{m.text}</li>)}
+    </ul>
+  );
+}
+```
+
+**Fehlergrenze (weiterhin Klasse)**
+
+```jsx
+import React from "react";
+
+export class ErrorBoundary extends React.Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, info) {
+    console.error(error, info);
+  }
+  render() {
+    return this.state.hasError ? <h1>Etwas ging schief.</h1> : this.props.children;
+  }
+}
 ```
 
 ---
 
-## 🧠 Hinweis
+### Zusammenfassung
 
-- `useEffect()` kann **mehrmals pro Komponente verwendet** werden
-- Nutze **mehrere `useEffect`-Blöcke** für klar getrennte Logik (z. B. Daten laden, Events, Timer)
+* Mount/Update/Unmount: `useEffect` (mit/ohne deps) + **Cleanup**.
+* Rendersteuerung: `React.memo`, `useMemo`, `useCallback`.
+* Layout-kritisch: `useLayoutEffect` + `useRef`.
+* `getDerivedStateFromProps` meist vermeiden (Props nicht spiegeln).
+* Error Boundaries: weiterhin **Klassenkomponenten**.
 
----
+📖 Weiterführend:
 
-## 📝 Zusammenfassung
-
-Lifecycle-Methoden in Klassenkomponenten werden durch **`useEffect`** ersetzt.  
-Je nach Abhängigkeitsarray (`[]`, `[dep]`, leer) kannst du steuern, ob der Code beim **Mount**, **Update** oder **Unmount** ausgeführt wird.
-
----
-
-## 🔗 Quellen
-
-- [useEffect – React Docs](https://react.dev/reference/react/useEffect)  
-- [Effekte verstehen – react.dev](https://react.dev/learn/synchronizing-with-effects)
+* React Docs: [Effects](https://react.dev/learn/synchronizing-with-effects), [useEffect](https://react.dev/reference/react/useEffect), [useLayoutEffect](https://react.dev/reference/react/useLayoutEffect), [Memoisierung](https://react.dev/learn/escape-hatches#memoizing-calculations), [React.memo](https://react.dev/reference/react/memo), [Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
+* MDN (RU): [События](https://developer.mozilla.org/ru/docs/Learn/JavaScript/Building_blocks/Events), [requestAnimationFrame](https://developer.mozilla.org/ru/docs/Web/API/window/requestAnimationFrame) (Kontext für Layout/Rendering-Zeitpunkte)
 
   **[⬆ Наверх](#top)**
 
 45. ### <a name="45"></a> Was ist componentDidMount und was ist das Äquivalent mit Hooks?
 
-# Was ist `componentDidMount` und was ist das Äquivalent mit Hooks?
+### `componentDidMount` in Klassenkomponenten
 
-## 📌 `componentDidMount` (in Klassenkomponenten)
+* Wird **einmal nach dem ersten Render** ausgeführt, sobald die Komponente ins DOM eingefügt wurde.
+* Typische Einsätze:
 
-`componentDidMount()` ist eine **Lifecycle-Methode**, die aufgerufen wird,  
-**nachdem** die Komponente **zum ersten Mal** in den DOM eingefügt wurde.
-
-### Typische Anwendungsfälle:
-
-- Daten vom Server laden (API-Aufrufe)
-- Event-Listener registrieren
-- Initiale DOM-Manipulation (z. B. Fokus setzen)
-
-### Beispiel (Klasse):
+  * **API-Requests starten**
+  * **Event-Listener registrieren**
+  * **DOM-Manipulationen** (Fokus setzen etc.)
 
 ```jsx
-class MyComponent extends React.Component {
+import React, { Component } from "react";
+
+class Demo extends Component {
   componentDidMount() {
-    console.log('Komponente wurde gemountet');
+    console.log("Komponente wurde gemountet");
+    document.title = "Hallo Sergii";
   }
 
   render() {
-    return <div>Hallo</div>;
+    return <h1>Hallo</h1>;
   }
 }
 ```
 
 ---
 
-## ✅ Äquivalent mit Hooks: `useEffect(() => { ... }, [])`
+### Äquivalent mit Hooks → `useEffect`
 
-In **Funktionskomponenten** erreichst du das gleiche Verhalten mit dem Hook `useEffect`  
-und einem **leeren Abhängigkeitsarray (`[]`)**.
+In Funktionskomponenten übernimmt `useEffect` die Rolle von Lifecycle-Methoden.
 
-### Beispiel (Funktion):
+* **Äquivalent zu `componentDidMount`:** `useEffect` mit leerem Abhängigkeitsarray `[]`.
 
 ```jsx
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-function MyComponent() {
+function Demo() {
   useEffect(() => {
-    console.log('Komponente wurde gemountet');
-  }, []);
+    console.log("Komponente wurde gemountet");
+    document.title = "Hallo Sergii";
+  }, []); // leeres Array -> nur beim ersten Mount
 
-  return <div>Hallo</div>;
+  return <h1>Hallo</h1>;
 }
+
+export default Demo;
 ```
 
-➡️ Der Effekt wird **nur einmal beim ersten Render** ausgeführt – genau wie `componentDidMount`.
-
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-| Klassenkomponente              | Funktionskomponente           |
-|--------------------------------|-------------------------------|
-| `componentDidMount()`          | `useEffect(() => { ... }, [])` |
+* **`componentDidMount`**: läuft einmal nach dem Einfügen ins DOM (Klassenkomponenten).
+* **Hook-Äquivalent**: `useEffect(() => { ... }, [])` in Funktionskomponenten.
+* Typische Nutzung: API-Calls, Event-Registrierung, DOM-Manipulation.
 
-Beide Varianten eignen sich für **initiale Logik**, die **nur einmal** beim Mounting ausgeführt werden soll.
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – useEffect](https://react.dev/reference/react/useEffect)
 
 ---
-
-## 🔗 Quellen
-
-- [componentDidMount – React Docs](https://react.dev/reference/react/Component#componentdidmount)  
-- [useEffect Hook – React Docs](https://react.dev/reference/react/useEffect)
 
   **[⬆ Наверх](#top)**
 
@@ -2576,762 +2348,574 @@ Beide Varianten eignen sich für **initiale Logik**, die **nur einmal** beim Mou
 
 51. ### <a name="51"></a> Was sind Hooks in React?
 
-# Was sind Hooks in React?
+### Hooks in React
 
-**Hooks** sind **Funktionen**, die es dir ermöglichen, in **Funktionskomponenten** von React  
-**State** und andere **React-Funktionen** zu verwenden – **ohne Klassen zu schreiben**.
-
-Sie wurden mit **React 16.8** eingeführt.
+**Hooks** sind spezielle **Funktionen**, die es ermöglichen, in **Funktionskomponenten** React-Features wie **State, Lifecycle-Methoden und Context** zu nutzen – ohne Klassenkomponenten zu schreiben. Sie wurden mit **React 16.8** eingeführt.
 
 ---
 
-## 🎯 Warum Hooks?
+### Warum Hooks?
 
-Vor Hooks waren **Klassenkomponenten nötig**, um z. B.:
-
-- State zu verwalten
-- Lifecycle-Methoden zu verwenden
-- auf den DOM zuzugreifen
-
-➡️ Mit Hooks kannst du das **alles auch in Funktionskomponenten** tun – **einfacher, klarer, wiederverwendbarer**.
+1. Ersetzen viele Anwendungsfälle von **Klassenkomponenten**.
+2. Erlauben **Wiederverwendung von Logik** (Custom Hooks).
+3. Machen Code **kürzer, klarer und besser testbar**.
 
 ---
 
-## 🔧 Wichtige React-Hooks
+### Wichtige eingebaute Hooks
 
-| Hook            | Beschreibung                                    |
-|------------------|-------------------------------------------------|
-| `useState()`     | Lokaler Zustand (State)                        |
-| `useEffect()`    | Nebenwirkungen / Lifecycle-Ersatz              |
-| `useRef()`       | Zugriff auf DOM oder persistente Werte         |
-| `useContext()`   | Zugriff auf globale Daten aus einem Context    |
-| `useReducer()`   | Alternative zu `useState` für komplexeren State|
-| `useMemo()`      | Ergebnis zwischenspeichern (Memoisierung)      |
-| `useCallback()`  | Funktionen zwischenspeichern (verhindert Neu-Erstellung) |
-| `useLayoutEffect()` | wie `useEffect`, aber synchron nach Layout  |
+* **State**: `useState` → lokaler Zustand.
+* **Lifecycle/Side Effects**: `useEffect`, `useLayoutEffect`.
+* **Referenzen**: `useRef`.
+* **Performance**: `useMemo`, `useCallback`.
+* **Context**: `useContext`.
+* **Reducer**: `useReducer` für komplexere State-Logik.
 
 ---
 
-## 💡 Beispiel: `useState` und `useEffect`
+### Beispiel
 
 ```jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-function Timer() {
-  const [seconds, setSeconds] = useState(0);
+function Counter() {
+  const [count, setCount] = useState(0); // State-Hook
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSeconds(s => s + 1);
-    }, 1000);
+    document.title = `Zähler: ${count}`; // Effect-Hook (componentDidMount/DidUpdate)
+  }, [count]);
 
-    return () => clearInterval(interval); // Aufräumen bei Unmount
-  }, []);
-
-  return <p>Timer: {seconds} Sekunden</p>;
+  return (
+    <>
+      <p>Zähler: {count}</p>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+    </>
+  );
 }
+
+export default Counter;
 ```
 
 ---
 
-## 🔁 Regeln für Hooks
+### Zusammenfassung
 
-1. ✅ Nur in **Funktionskomponenten oder eigenen Hooks** verwenden  
-2. ✅ Nur **ganz oben im Funktionskörper aufrufen** (nicht in Bedingungen, Schleifen, etc.)
+* **Hooks = Funktionen**, die React-Features (State, Lifecycle, Context) in **Funktionskomponenten** bringen.
+* Vorteil: keine Klassen mehr nötig, bessere Wiederverwendung von Logik.
+* Kernhooks: `useState`, `useEffect`, `useContext`, `useRef`, `useMemo`, `useCallback`.
 
----
+📖 Weiterführend:
 
-## 📝 Zusammenfassung
-
-**Hooks** sind moderne Werkzeuge, um **State, Effekte und andere React-Funktionalitäten**  
-in **Funktionskomponenten** zu nutzen – ohne Klassen.  
-Sie machen Komponenten **einfacher, flexibler und wiederverwendbar**.
+* [React Offizielle Dokumentation – Einführung in Hooks](https://react.dev/learn/state-a-components-memory#using-hooks)
 
 ---
-
-## 🔗 Quellen
-
-- [Einführung in Hooks – react.dev](https://react.dev/learn/state-a-components-memory)  
-- [Alle React-Hooks – React Docs](https://react.dev/reference/react)
 
   **[⬆ Наверх](#top)**
 
 52. ### <a name="52"></a> Wie funktionieren useState und useEffect?
 
-# Wie funktionieren `useState` und `useEffect`?
+### `useState`
 
-Die Hooks **`useState`** und **`useEffect`** gehören zu den wichtigsten Bausteinen  
-in React-Funktionskomponenten.  
-Sie ersetzen `this.state` und Lifecycle-Methoden wie `componentDidMount`.
-
----
-
-## 🧠 `useState` – Zustand in Funktionskomponenten
-
-Mit `useState` kannst du **lokale Zustände (State)** in einer Komponente erstellen und aktualisieren.
-
-### Syntax:
+* `useState` ist ein Hook, der in einer **Funktionskomponente** lokalen State speichert.
+* Er liefert ein **Array mit zwei Werten**: `[aktuellerState, SetterFunktion]`.
+* Änderungen über den Setter triggern ein **Re-Render** der Komponente.
 
 ```jsx
-const [state, setState] = useState(anfangsWert);
-```
+import { useState } from "react";
 
-- `state`: aktueller Wert
-- `setState`: Funktion zum Ändern des Werts
-- `useState(...)`: Initialwert beim ersten Render
+function Counter() {
+  const [count, setCount] = useState(0); // Initialwert = 0
 
-### Beispiel:
-
-```jsx
-const [count, setCount] = useState(0);
-
-<button onClick={() => setCount(count + 1)}>
-  Geklickt: {count}
-</button>
-```
-
-➡️ Jeder `setCount(...)` löst ein Re-Rendern der Komponente aus.
-
----
-
-## ⚙️ `useEffect` – Nebenwirkungen / Lifecycle-Ersatz
-
-`useEffect` führt **Seiteneffekte (Effects)** aus, z. B.:
-
-- API-Aufrufe
-- EventListener setzen
-- Timer starten
-- Cleanup beim Unmount
-
-### Syntax:
-
-```jsx
-useEffect(() => {
-  // Code beim Mount oder Update
-
-  return () => {
-    // Cleanup beim Unmount
-  };
-}, [abhängigkeiten]);
+  return (
+    <>
+      <p>Zähler: {count}</p>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+    </>
+  );
+}
 ```
 
 ---
 
-## 💡 Beispiel: `useState` + `useEffect`
+### `useEffect`
+
+* `useEffect` ermöglicht **Side Effects** in Funktionskomponenten (z. B. API-Calls, Event-Listener, DOM-Manipulation).
+* Standardmäßig läuft er **nach jedem Render**.
+* Mit **Abhängigkeitsarray** kann man steuern:
+
+  * `[]` → nur beim ersten Mount (`componentDidMount`).
+  * `[deps]` → bei Änderungen der Abhängigkeiten (`componentDidUpdate`).
+  * Cleanup-Funktion → beim Unmount (`componentWillUnmount`).
 
 ```jsx
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
 function Timer() {
   const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSeconds(s => s + 1);
-    }, 1000);
+    const id = setInterval(() => setSeconds(s => s + 1), 1000);
 
-    return () => clearInterval(interval); // Aufräumen beim Unmount
+    return () => clearInterval(id); // Cleanup beim Unmount
   }, []);
 
-  return <p>Zeit: {seconds} Sek.</p>;
+  return <p>Timer: {seconds}s</p>;
 }
 ```
 
-- ⏱️ Timer startet beim Mount (`[]`)
-- ⛔ Aufräumen mit `clearInterval` beim Unmount
-
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-| Hook        | Zweck                               | Wird verwendet für                       |
-|-------------|--------------------------------------|-------------------------------------------|
-| `useState`  | Lokalen Zustand speichern            | Zähler, Formulare, Flags usw.             |
-| `useEffect` | Effekte und Lifecycle-Verhalten      | Daten laden, Timer, Event-Handling, Cleanup |
+* **`useState`**: lokaler State in Funktionskomponenten (`[state, setState]`).
+* **`useEffect`**: verwaltet Side Effects (API, Timer, DOM), inkl. Cleanup.
+* Zusammen bilden sie das Grundgerüst für State-Management und Lifecycle-Handling in React.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – useState](https://react.dev/reference/react/useState)
+* [React Offizielle Dokumentation – useEffect](https://react.dev/reference/react/useEffect)
 
 ---
-
-## 🔗 Quellen
-
-- [useState – React Docs](https://react.dev/reference/react/useState)  
-- [useEffect – React Docs](https://react.dev/reference/react/useEffect)
 
   **[⬆ Наверх](#top)**
 
 53. ### <a name="53"></a> Was macht useContext?
 
-# Was macht `useContext`?
+### `useContext` in React
 
-Der Hook **`useContext`** ermöglicht dir den **Zugriff auf globale Daten** (z. B. Theme, Sprache, User),  
-die mit Reacts **Context API** bereitgestellt werden – **ohne Props manuell durch alle Komponenten zu leiten**.
-
----
-
-## 🎯 Warum `useContext`?
-
-- ✅ Vermeidet **Prop-Drilling** (Props durch viele Ebenen weitergeben)  
-- ✅ Ermöglicht Zugriff auf **globale Zustände oder Konfigurationen**  
-- ✅ Macht den Code **lesbarer und wartbarer**
+* **`useContext`** ist ein Hook, der Zugriff auf den Wert eines **React Contexts** ermöglicht.
+* Er ersetzt die Notwendigkeit, Props durch viele Komponenten weiterzureichen (**Prop Drilling**).
+* Jede Komponente, die `useContext` nutzt, wird neu gerendert, sobald sich der Context-Wert ändert.
 
 ---
 
-## 🧱 Funktionsweise
-
-1. ✅ Erstelle einen Context mit `React.createContext()`  
-2. ✅ Umgib die betroffenen Komponenten mit dem `<Provider>`  
-3. ✅ Verwende `useContext(...)` in einer Komponente, um auf die Werte zuzugreifen
-
----
-
-## 💡 Beispiel
+### Beispiel
 
 ```jsx
-import { createContext, useContext } from 'react';
+import { createContext, useContext } from "react";
 
 // 1. Context erstellen
-const ThemeContext = createContext('light');
+const ThemeContext = createContext("light");
 
-function App() {
+function ThemedButton() {
+  // 2. Zugriff auf den aktuellen Wert
+  const theme = useContext(ThemeContext);
+  return <button className={theme}>Klick mich</button>;
+}
+
+export default function App() {
   return (
-    // 2. Context-Provider mit aktuellem Wert
+    // 3. Provider legt den Wert fest
     <ThemeContext.Provider value="dark">
-      <Toolbar />
+      <ThemedButton />
     </ThemeContext.Provider>
   );
 }
-
-function Toolbar() {
-  return (
-    <div>
-      <ThemeButton />
-    </div>
-  );
-}
-
-// 3. useContext verwenden
-function ThemeButton() {
-  const theme = useContext(ThemeContext);
-  return <button className={theme}>Theme: {theme}</button>;
-}
 ```
 
-➡️ `ThemeButton` erhält den Wert **direkt aus dem Kontext**, **ohne Props** von `App → Toolbar → ThemeButton`.
+* `ThemeContext.Provider` → stellt den Wert (`"dark"`) bereit.
+* `useContext(ThemeContext)` → liest den Wert aus, ohne Props weiterzureichen.
 
 ---
 
-## 🧠 Wichtig
+### Zusammenfassung
 
-- `useContext` **abonniert** den Context – bei Änderungen wird die Komponente **neu gerendert**
-- Der Context-Wert kann **beliebige Datentypen enthalten** (String, Object, Funktion, etc.)
+* **`useContext`**: Hook zum direkten Zugriff auf einen Context-Wert.
+* Nutzen: Vermeidet **Prop Drilling**, ideal für globale Daten (Theme, Auth, Sprache).
+* Änderung des Contexts → Re-Render aller abhängigen Komponenten.
 
----
+📖 Weiterführend:
 
-## 📝 Zusammenfassung
-
-- `useContext` liest Werte aus einem **React Context**  
-- Ideal, um globale Daten wie Theme, Sprache oder Authentifizierung zu teilen  
-- Vermeidet manuelles Weitergeben von Props durch die Komponenten-Hierarchie
+* [React Offizielle Dokumentation – useContext](https://react.dev/reference/react/useContext)
 
 ---
-
-## 🔗 Quellen
-
-- [useContext – React Docs](https://react.dev/reference/react/useContext)  
-- [Context API – React Docs](https://react.dev/learn/passing-data-deeply-with-context)
 
   **[⬆ Наверх](#top)**
 
 54. ### <a name="54"></a> Was ist useRef und wann wird es verwendet?
 
-# Was ist `useRef` und wann wird es verwendet?
+### `useRef` in React
 
-Der Hook **`useRef`** wird in React verwendet, um **eine Referenz auf ein DOM-Element** oder **einen stabilen Wert** zu speichern,  
-der **über Re-Renders hinweg erhalten bleibt**, ohne ein Re-Render auszulösen.
-
----
-
-## 📦 Was macht `useRef`?
-
-- Erstellt ein **ref-Objekt**: `{ current: ... }`
-- Wird **nicht beim Re-Render verändert**
-- Wird **nicht automatisch im UI angezeigt**
-- Kann sowohl für **DOM-Zugriff** als auch für **persistente Werte** verwendet werden
+* **`useRef`** ist ein Hook, der ein **veränderbares Objekt mit der Eigenschaft `.current`** zurückgibt.
+* Dieses Objekt bleibt **über die gesamte Lebensdauer** der Komponente gleich.
+* Änderungen an `.current` lösen **kein Re-Render** aus.
 
 ---
 
-## 💡 Anwendungsfälle
+### Wann wird `useRef` verwendet?
 
-### 1. 📌 Zugriff auf DOM-Elemente
+1. **Direkter Zugriff auf DOM-Elemente**
+
+   * Fokus setzen, Scroll-Position manipulieren, Integration mit Drittbibliotheken.
+
+2. **Speichern von Werten zwischen Renders**
+
+   * Persistente Werte behalten (z. B. Timer-ID, vorheriger Wert).
+
+3. **Performance-Optimierung**
+
+   * Verhindern, dass ein Wert bei jedem Render neu erzeugt wird.
+
+---
+
+### Beispiele
+
+**DOM-Zugriff:**
 
 ```jsx
-import { useRef, useEffect } from 'react';
+import { useRef } from "react";
 
 function InputFocus() {
   const inputRef = useRef();
 
-  useEffect(() => {
-    inputRef.current.focus(); // Fokus setzen beim Mount
-  }, []);
+  const handleClick = () => {
+    inputRef.current.focus(); // Zugriff auf das DOM-Element
+  };
 
-  return <input ref={inputRef} />;
+  return (
+    <>
+      <input ref={inputRef} type="text" />
+      <button onClick={handleClick}>Fokus setzen</button>
+    </>
+  );
 }
 ```
 
-➡️ Zugriff auf das echte DOM-Element, ohne `document.querySelector`.
-
----
-
-### 2. 🎯 Persistente Werte zwischen Renders (ohne Re-Render auszulösen)
+**Persistenter Wert (kein Re-Render):**
 
 ```jsx
-const renderCount = useRef(0);
-renderCount.current++;
-console.log('Render: ', renderCount.current);
+import { useRef, useEffect } from "react";
+
+function Timer() {
+  const count = useRef(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      count.current += 1; // Wert ändern ohne Re-Render
+      console.log("Sekunden:", count.current);
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return <p>Siehe Konsole</p>;
+}
 ```
 
-➡️ Ideal z. B. für Zähler, Timer-IDs, vorherige Werte usw.
-
 ---
 
-### 3. 🧹 Aufräum-Referenzen
+### Zusammenfassung
 
-```jsx
-const intervalId = useRef();
+* **`useRef`** speichert eine veränderbare Referenz (`.current`) über Renders hinweg.
+* Einsatz: DOM-Zugriffe, persistente Werte, Performance-Optimierung.
+* Unterschied zu State: **Änderungen an `useRef` triggern kein Re-Render**.
 
-useEffect(() => {
-  intervalId.current = setInterval(...);
+📖 Weiterführend:
 
-  return () => clearInterval(intervalId.current);
-}, []);
-```
-
-➡️ Praktisch für Cleanup-Logik in `useEffect`.
+* [React Offizielle Dokumentation – useRef](https://react.dev/reference/react/useRef)
 
 ---
-
-## 🔁 Vergleich zu `state`
-
-| Hook      | Re-Renders bei Änderung? | Persistiert zwischen Renders? | Typischer Anwendungsfall         |
-|-----------|---------------------------|-------------------------------|----------------------------------|
-| `useState`| ✅ Ja                     | ✅ Ja                          | UI-Zustände                     |
-| `useRef`  | ❌ Nein                   | ✅ Ja                          | DOM-Zugriff, Werte außerhalb der UI |
-
----
-
-## 📝 Zusammenfassung
-
-- `useRef` wird verwendet für:
-  - **DOM-Zugriff**
-  - **Zwischenspeicherung von Werten ohne Re-Renders**
-  - **Cleanup / Speichern von IDs, vorherigen Werten etc.**
-- Das ref-Objekt hat eine `.current`-Eigenschaft, die verändert werden kann, ohne UI zu beeinflussen
-
----
-
-## 🔗 Quellen
-
-- [useRef – React Docs](https://react.dev/reference/react/useRef)  
-- [React: Refs und DOM – react.dev](https://react.dev/learn/referencing-values-with-refs)
 
   **[⬆ Наверх](#top)**
 
 55. ### <a name="55"></a> Was ist useCallback, useMemo, useReducer?
 
-# Was ist `useCallback`, `useMemo`, `useReducer`?
+### 1. `useCallback`
 
-Diese drei React-Hooks sind **fortgeschrittene Werkzeuge**,  
-die helfen, **Performance zu optimieren** oder **komplexeren State** zu verwalten.
-
----
-
-## ✅ `useCallback`
-
-`useCallback(fn, deps)` gibt eine **zwischengespeicherte (memoisierte)** Version der Funktion `fn` zurück,  
-die **nur neu erstellt wird**, wenn sich eine der **Abhängigkeiten (`deps`)** ändert.
-
-### Zweck:
-- ✅ Verhindert **unnötige Neudefinition** von Funktionen
-- ✅ Vermeidet **unnötige Re-Renders** von Kindkomponenten, die Funktionen als Props bekommen
-
-### Beispiel:
+* Gibt eine **memoisierte Callback-Funktion** zurück.
+* Nützlich, um **unnötige Re-Renders** von Kindkomponenten zu vermeiden, die eine Callback-Prop erhalten.
+* Nur neu erstellt, wenn sich die Abhängigkeiten ändern.
 
 ```jsx
-const handleClick = useCallback(() => {
-  console.log('Geklickt!');
-}, []);
+import { useState, useCallback } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  const increment = useCallback(() => setCount(c => c + 1), []);
+  // gleiche Funktion bleibt über Renders hinweg erhalten
+
+  return <button onClick={increment}>{count}</button>;
+}
 ```
 
 ---
 
-## ✅ `useMemo`
+### 2. `useMemo`
 
-`useMemo(() => result, deps)` berechnet und speichert einen **Wert**,  
-und **berechnet ihn nur neu**, wenn sich eine Abhängigkeit ändert.
-
-### Zweck:
-- ✅ Vermeidet **teure Berechnungen bei jedem Render**
-- ✅ Liefert **stabilen Wert** über mehrere Renders hinweg
-
-### Beispiel:
+* Gibt einen **memoisierten Wert** zurück.
+* Verhindert, dass **teure Berechnungen** bei jedem Render erneut ausgeführt werden.
+* Nur neu berechnet, wenn sich die Abhängigkeiten ändern.
 
 ```jsx
-const sortedItems = useMemo(() => {
-  return items.sort((a, b) => a.value - b.value);
-}, [items]);
+import { useState, useMemo } from "react";
+
+function ExpensiveCalc({ num }) {
+  const result = useMemo(() => {
+    console.log("Teure Berechnung...");
+    return num * 2;
+  }, [num]);
+
+  return <p>Ergebnis: {result}</p>;
+}
 ```
 
 ---
 
-## ✅ `useReducer`
+### 3. `useReducer`
 
-`useReducer(reducer, initialState)` ist eine Alternative zu `useState`,  
-die sich besonders bei **komplexem State oder mehreren abhängigen Zuständen** lohnt.
-
-### Zweck:
-- ✅ Klare Struktur für **State-Management**
-- ✅ Ähnlich wie `Redux`-Reducer
-
-### Beispiel:
+* Alternative zu `useState`, besonders für **komplexe State-Logik** oder **mehrere verbundene Zustände**.
+* Funktioniert ähnlich wie ein **Redux-Reducer**: `state` + `action` → neuer `state`.
 
 ```jsx
+import { useReducer } from "react";
+
 function reducer(state, action) {
   switch (action.type) {
-    case 'increment': return { count: state.count + 1 };
-    case 'decrement': return { count: state.count - 1 };
-    default: return state;
+    case "increment":
+      return { count: state.count + 1 };
+    case "decrement":
+      return { count: state.count - 1 };
+    default:
+      return state;
   }
 }
 
-const [state, dispatch] = useReducer(reducer, { count: 0 });
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 });
 
-<button onClick={() => dispatch({ type: 'increment' })}>
-  {state.count}
-</button>
+  return (
+    <>
+      <p>Zähler: {state.count}</p>
+      <button onClick={() => dispatch({ type: "increment" })}>+1</button>
+      <button onClick={() => dispatch({ type: "decrement" })}>-1</button>
+    </>
+  );
+}
 ```
 
 ---
 
-## 🔁 Vergleich
+### Zusammenfassung
 
-| Hook         | Zweck                                  | Typischer Einsatz                    |
-|--------------|-----------------------------------------|--------------------------------------|
-| `useCallback`| Funktion nur bei Bedarf neu erstellen   | Callback-Props, Performance-Tuning   |
-| `useMemo`    | Teure Berechnung nur bei Änderung       | sortieren, filtern, berechnen        |
-| `useReducer` | Komplexen State zentral verwalten       | Formulare, komplexe Logik, Redux-Ersatz |
+* **`useCallback`**: memoisiert Funktionen → vermeidet unnötige Neu-Erstellungen.
+* **`useMemo`**: memoisiert Werte → verhindert teure Neuberechnungen.
+* **`useReducer`**: State-Management für komplexe Logik, basierend auf Reducer-Pattern.
 
----
+📖 Weiterführend:
 
-## 📝 Zusammenfassung
-
-- `useCallback`: Memoisiert Funktionen  
-- `useMemo`: Memoisiert Werte  
-- `useReducer`: Komplexes State-Management mit einer zentralen Logik
-
-Diese Hooks verbessern **Performance und Struktur** bei wachsender App-Komplexität.
+* [React Offizielle Dokumentation – useCallback](https://react.dev/reference/react/useCallback)
+* [React Offizielle Dokumentation – useMemo](https://react.dev/reference/react/useMemo)
+* [React Offizielle Dokumentation – useReducer](https://react.dev/reference/react/useReducer)
 
 ---
-
-## 🔗 Quellen
-
-- [useCallback – React Docs](https://react.dev/reference/react/useCallback)  
-- [useMemo – React Docs](https://react.dev/reference/react/useMemo)  
-- [useReducer – React Docs](https://react.dev/reference/react/useReducer)
 
   **[⬆ Наверх](#top)**
 
 56. ### <a name="56"></a> Wie schreibt man einen benutzerdefinierten Hook?
 
-# Wie schreibt man einen benutzerdefinierten Hook?
+### Benutzerdefinierte Hooks (Custom Hooks)
 
-Ein **benutzerdefinierter Hook** (engl. *custom hook*) ist eine **eigene JavaScript-Funktion**,  
-die **andere Hooks verwendet**, um **wiederverwendbare Logik** aus React-Komponenten auszulagern.
-
----
-
-## 🎯 Warum benutzerdefinierte Hooks?
-
-- ✅ Wiederverwendbare Logik kapseln (z. B. Formular, API, Timer)
-- ✅ Komponenten schlanker und verständlicher machen
-- ✅ Mehrere Hooks gemeinsam verwenden
+Ein **Custom Hook** ist eine normale **JavaScript-Funktion**, deren Name mit **`use`** beginnt und die **React Hooks** (z. B. `useState`, `useEffect`) verwendet.
+Zweck: **Wiederverwendung von Logik** in verschiedenen Komponenten.
 
 ---
 
-## 📦 Regeln für eigene Hooks
+### Regeln
 
-1. Beginnt immer mit `use` (z. B. `useForm`, `useTimer`)  
-2. Darf **nur innerhalb von Funktionskomponenten oder anderen Hooks** aufgerufen werden  
-3. Nutzt beliebige andere React-Hooks (`useState`, `useEffect`, `useRef`, usw.)
+1. Name muss mit `use...` beginnen.
+2. Darf nur innerhalb von React-Komponenten oder anderen Hooks verwendet werden.
+3. Muss die [Regeln der Hooks](https://react.dev/warnings/rules-of-hooks) einhalten: nur **Top-Level**, niemals in Schleifen oder Bedingungen.
 
 ---
 
-## 💡 Beispiel: `useWindowWidth`
+### Beispiel – Fensterbreite beobachten
 
 ```jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
+// Custom Hook
 function useWindowWidth() {
   const [width, setWidth] = useState(window.innerWidth);
 
   useEffect(() => {
-    function handleResize() {
-      setWidth(window.innerWidth);
-    }
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  return width;
+  return width; // gibt Wert zurück
 }
-```
 
-➡️ Dieser Hook liefert die **aktuelle Fensterbreite** und aktualisiert sie automatisch bei Resize.
-
----
-
-## ✅ Verwendung in Komponente
-
-```jsx
-function App() {
+// Nutzung in einer Komponente
+export default function App() {
   const width = useWindowWidth();
 
-  return <p>Fensterbreite: {width}px</p>;
+  return <p>Aktuelle Fensterbreite: {width}px</p>;
 }
 ```
 
 ---
 
-## 🔁 Beispiel: `useLocalStorage`
+### Zusammenfassung
 
-```jsx
-function useLocalStorage(key, initialValue) {
-  const [value, setValue] = useState(() => {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : initialValue;
-  });
+* **Custom Hook** = Funktion mit `use...`, die Hooks nutzt, um Logik wiederverwendbar zu machen.
+* Vorteile: **Code-Wiederverwendung, bessere Lesbarkeit, klarere Trennung von Logik und UI**.
+* Beispiel: `useWindowWidth`, `useFetch`, `useForm`.
 
-  useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value]);
+📖 Weiterführend:
 
-  return [value, setValue];
-}
-```
-
-➡️ Verwaltet einen State **synchron mit localStorage**.
+* [React Offizielle Dokumentation – Eigene Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks)
 
 ---
-
-## 📝 Zusammenfassung
-
-- Benutzerdefinierte Hooks sind **Funktionen mit eigenen Namen**, die andere Hooks enthalten
-- Sie dienen der **Wiederverwendung von Logik**
-- Sie **starten immer mit `use`**
-- Sie machen Komponenten **sauberer, testbarer und wartbarer**
-
----
-
-## 🔗 Quellen
-
-- [Eigene Hooks erstellen – React Docs](https://react.dev/learn/reusing-logic-with-custom-hooks)  
-- [Custom Hooks – React API Docs](https://react.dev/reference/react#custom-hooks)
 
   **[⬆ Наверх](#top)**
 
 57. ### <a name="57"></a> Wie verhindert man eine Endlosschleife in useEffect?
 
-# Wie verhindert man eine Endlosschleife in `useEffect`?
+### Endlosschleifen in `useEffect`
 
-Eine **Endlosschleife** in `useEffect` entsteht meist dann, wenn der Effekt bei jedem Render erneut ausgeführt wird,  
-weil sich eine **Abhängigkeit ständig verändert** oder **nicht korrekt definiert wurde**.
-
----
-
-## ⚠️ Ursachen für Endlosschleifen
-
-### 1. ❌ Fehlende Abhängigkeitsliste
-
-```jsx
-useEffect(() => {
-  fetchData(); // Wird bei jedem Render erneut aufgerufen!
-});
-```
-
-➡️ Ohne `[]` wird der Effekt **bei jedem Render** ausgeführt → Endlosschleife möglich.
+Eine Endlosschleife entsteht, wenn **State im Effect geändert** wird, ohne die Abhängigkeiten korrekt zu steuern → jeder State-Update löst erneut den Effect aus.
 
 ---
 
-### 2. ❌ Abhängigkeit verändert sich bei jedem Render
+### Ursachen
 
-```jsx
-useEffect(() => {
-  const data = { id: 1 }; // neues Objekt bei jedem Render
-  doSomething(data);
-}, [{ id: 1 }]);
-```
+1. **Fehlendes oder falsches Abhängigkeitsarray**
 
-➡️ Das Objekt `{ id: 1 }` ist **bei jedem Render neu** → `useEffect` wird ständig neu ausgeführt.
+   ```jsx
+   useEffect(() => {
+     setCount(count + 1); // triggert bei jedem Render -> Endlosschleife
+   }); // kein []
+   ```
 
----
+2. **Unnötige Abhängigkeiten**
 
-## ✅ Lösungen
-
-### ✅ 1. Leeres Array (`[]`) → nur beim Mount
-
-```jsx
-useEffect(() => {
-  fetchData(); // wird nur einmal ausgeführt
-}, []);
-```
-
-➡️ Effekt läuft **nur beim ersten Render**
+   * Wenn Werte ins Array aufgenommen werden, die sich bei jedem Render ändern (z. B. Objekte/Funktionen).
 
 ---
 
-### ✅ 2. Stabile Abhängigkeiten verwenden
+### Lösungen
 
-Vermeide Funktionen/Objekte als Abhängigkeiten, **wenn sie bei jedem Render neu erzeugt werden**.
+1. **Korrektes Abhängigkeitsarray nutzen**
 
-### Statt:
+   ```jsx
+   useEffect(() => {
+     fetchData();
+   }, []); // nur beim ersten Mount
+   ```
 
-```jsx
-useEffect(() => {
-  doSomething(() => {});
-}, []);
-```
+2. **Funktionsupdates für State nutzen**
 
-### Besser:
+   ```jsx
+   useEffect(() => {
+     const id = setInterval(() => {
+       setCount(prev => prev + 1); // nutzt vorherigen Wert, vermeidet Endlosschleife
+     }, 1000);
 
-```jsx
-const stableFn = useCallback(() => {
-  doSomething();
-}, []);
+     return () => clearInterval(id);
+   }, []);
+   ```
 
-useEffect(() => {
-  stableFn();
-}, [stableFn]);
-```
+3. **Memoization für Objekte/Funktionen**
 
----
+   * `useMemo` oder `useCallback` nutzen, damit sich die Abhängigkeiten nicht bei jedem Render ändern.
 
-### ✅ 3. Werte in `useRef` speichern, die keinen Re-Render auslösen sollen
+   ```jsx
+   const memoizedFn = useCallback(() => {
+     console.log("Nur bei Bedarf neu erzeugt");
+   }, []);
 
-```jsx
-const dataRef = useRef({ id: 1 });
-
-useEffect(() => {
-  doSomething(dataRef.current);
-}, []);
-```
-
----
-
-## 📝 Zusammenfassung
-
-Um Endlosschleifen in `useEffect` zu vermeiden:
-
-- ✅ Nutze ein **leeres Abhängigkeitsarray `[]`** für einmalige Ausführung
-- ✅ **Memoisiere Funktionen oder Objekte** mit `useCallback` oder `useMemo`
-- ✅ Verwende `useRef`, wenn keine Reaktivität notwendig ist
-- ❌ Vermeide **direkte Objekterzeugung** oder **Funktionen** in der Abhängigkeitsliste
+   useEffect(() => {
+     memoizedFn();
+   }, [memoizedFn]);
+   ```
 
 ---
 
-## 🔗 Quellen
+### Zusammenfassung
 
-- [useEffect – React Docs](https://react.dev/reference/react/useEffect)  
-- [Effekt-Abhängigkeiten verstehen – react.dev](https://react.dev/learn/synchronizing-with-effects#specifying-dependencies)
+* Endlosschleifen entstehen durch **falsche oder fehlende Dependency Arrays** in `useEffect`.
+* Lösung: korrektes Abhängigkeitsarray, funktionale Updates, Memoization (`useCallback`, `useMemo`).
+* Grundregel: **nur echte Abhängigkeiten angeben** und Werte stabil halten.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – useEffect](https://react.dev/reference/react/useEffect)
+
+---
 
   **[⬆ Наверх](#top)**
 
 58. ### <a name="58"></a> Wie implementiert man Timeout oder Interval mit Hooks?
 
-# Wie implementiert man `setTimeout` oder `setInterval` mit Hooks?
+### Timeout & Interval mit Hooks
 
-Mit **`useEffect`** und **`useRef`** kannst du in Funktionskomponenten sauber **Timeouts** und **Intervalle** verwalten –  
-inklusive **automatischem Aufräumen** beim Unmount.
+In Funktionskomponenten werden **`setTimeout`** und **`setInterval`** zusammen mit `useEffect` und `useRef` genutzt. Wichtig: **Cleanup** im `useEffect` verhindert Speicherlecks.
 
 ---
 
-## ⏱️ `setTimeout` mit `useEffect`
+### Timeout (`setTimeout`)
 
 ```jsx
-import { useEffect } from 'react';
+import { useEffect, useState } from "react";
 
-function TimeoutExample() {
+function TimeoutDemo() {
+  const [message, setMessage] = useState("Warte...");
+
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      console.log('Einmaliger Timeout nach 3 Sekunden');
+    const id = setTimeout(() => {
+      setMessage("Fertig nach 3 Sekunden!");
     }, 3000);
 
-    return () => clearTimeout(timeoutId); // Cleanup bei Unmount
+    return () => clearTimeout(id); // Cleanup beim Unmount
   }, []);
 
-  return <p>Warte auf Timeout…</p>;
+  return <p>{message}</p>;
 }
-```
 
-➡️ Der Effekt wird **nur einmal** beim Mount ausgeführt (`[]`).
+export default TimeoutDemo;
+```
 
 ---
 
-## 🔁 `setInterval` mit `useEffect`
+### Interval (`setInterval`)
 
 ```jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-function IntervalExample() {
+function IntervalDemo() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCount(c => c + 1); // Immer aktuellen Wert verwenden
+    const id = setInterval(() => {
+      setCount(prev => prev + 1); // funktionales Update vermeidet Endlosschleife
     }, 1000);
 
-    return () => clearInterval(intervalId); // Aufräumen beim Unmount
+    return () => clearInterval(id); // Cleanup beim Unmount
   }, []);
 
   return <p>Zähler: {count}</p>;
 }
-```
 
-➡️ Der Intervall wird beim Mount gestartet und beim Unmount gestoppt.
-
----
-
-## 💡 Tipp: `useRef` für Zugriff auf aktuelle Werte
-
-Für erweiterte Kontrolle (z. B. stoppen/starten), verwende `useRef`:
-
-```jsx
-const intervalRef = useRef();
-
-useEffect(() => {
-  intervalRef.current = setInterval(() => {
-    ...
-  }, 1000);
-
-  return () => clearInterval(intervalRef.current);
-}, []);
+export default IntervalDemo;
 ```
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-| Ziel          | Hook             | Beschreibung                          |
-|---------------|------------------|----------------------------------------|
-| `setTimeout`  | `useEffect`      | Einmalige Verzögerung                  |
-| `setInterval` | `useEffect`      | Wiederholende Aktion mit Cleanup       |
-| Kontrolle     | `useRef`         | ID speichern, Zugriff auf aktuellen Zustand |
+* **Timeout**: `setTimeout` + `clearTimeout` in `useEffect`.
+* **Interval**: `setInterval` + `clearInterval` in `useEffect`.
+* Cleanup-Funktion verhindert Leaks und unerwünschte Effekte.
+* Funktionale Updates (`prev => prev + 1`) sind wichtig, um Endlosschleifen zu vermeiden.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – useEffect](https://react.dev/reference/react/useEffect)
 
 ---
-
-## 🔗 Quellen
-
-- [useEffect – React Docs](https://react.dev/reference/react/useEffect)  
-- [MDN – setTimeout](https://developer.mozilla.org/de/docs/Web/API/setTimeout)  
-- [MDN – setInterval](https://developer.mozilla.org/de/docs/Web/API/setInterval)
 
   **[⬆ Наверх](#top)**
 
