@@ -109,7 +109,7 @@
 
 ---
 
-- :memo:&nbsp;&nbsp;[pro React (de)](./docs/other/react5.md)
+- :memo:&nbsp;&nbsp;[react5 (de)](./docs/other/react5.md)
 - :memo:&nbsp;&nbsp;[pro React (de)](./docs/other/proReact.md)
 - :memo:&nbsp;&nbsp;[Вопросы по React New](./docs/other/rnew.md)
 - :memo:&nbsp;&nbsp;[Вопросы по React Part 1](./docs/other/react-part-1.md)
