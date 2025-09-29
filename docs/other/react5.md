@@ -2933,889 +2933,650 @@ export default IntervalDemo;
 
 61. ### <a name="61"></a> Was ist ein Higher-Order Component (HOC)?
 
-# Was ist ein Higher-Order Component (HOC)?
+### Higher-Order Component (HOC)
 
-Ein **Higher-Order Component (HOC)** ist ein **Designmuster in React**,  
-bei dem **eine Funktion eine Komponente nimmt und eine neue, erweiterte Komponente zurückgibt**.
-
----
-
-## 🎯 Zweck eines HOC
-
-- ✅ **Wiederverwendbare Logik** auf mehrere Komponenten anwenden  
-- ✅ Komponenten **mit zusätzlichen Props, Verhalten oder Styling** erweitern  
-- ✅ Trennung von Zuständigkeiten (Separation of Concerns)
+Ein **Higher-Order Component (HOC)** ist eine **Funktion**, die eine Komponente entgegennimmt und eine **neue erweiterte Komponente** zurückgibt.
+HOCs sind ein **Pattern zur Wiederverwendung von Logik** zwischen Komponenten.
 
 ---
 
-## 📦 Definition
+### Merkmale
 
-```js
-const EnhancedComponent = withSomething(WrappedComponent);
-```
-
-➡️ `withSomething` ist das HOC, `WrappedComponent` ist die Originalkomponente.
+* HOC = **`Component => NewComponent`**.
+* Trennung von **Logik** und **Darstellung**.
+* Typisch für: Code-Wiederverwendung, Cross-Cutting Concerns (z. B. Auth, Logging).
 
 ---
 
-## 💡 Einfaches Beispiel: `withLogger`
+### Beispiel
 
 ```jsx
+import React from "react";
+
+// HOC: nimmt Komponente, liefert neue zurück
 function withLogger(WrappedComponent) {
-  return function EnhancedComponent(props) {
-    console.log('Props:', props);
+  return function Enhanced(props) {
+    console.log("Props:", props);
     return <WrappedComponent {...props} />;
   };
 }
-```
 
-### Verwendung:
+// Nutzung
+function Button({ label }) {
+  return <button>{label}</button>;
+}
 
-```jsx
 const LoggedButton = withLogger(Button);
+
+export default function App() {
+  return <LoggedButton label="Klick mich" />;
+}
 ```
 
-➡️ Jedes Mal, wenn `LoggedButton` verwendet wird, werden die Props geloggt.
+* `withLogger` erweitert `Button` um Logging.
+* `Button` selbst bleibt unverändert, Wiederverwendung bleibt möglich.
 
 ---
 
-## 🔁 Typische Anwendungsfälle
+### Zusammenfassung
 
-- Zugriffsschutz (z. B. `withAuth`)
-- Theming (z. B. `withTheme`)
-- Logging & Analytics
-- Fehlerbehandlung (`withErrorBoundary`)
-- Datenanbindung (z. B. `connect()` in Redux)
+* **HOC** = Funktion, die eine Komponente um zusätzliche Logik erweitert.
+* Typische Verwendung: **Code-Sharing, Auth, Logging, Daten-Handling**.
+* Heute oft ersetzt durch **Hooks** oder **Render Props**.
 
----
+📖 Weiterführend:
 
-## ⚠️ Hinweise
-
-- HOCs **verändern nicht** die ursprüngliche Komponente, sondern **verpacken sie**
-- HOC **dürfen keine Seiteneffekte beim Rendern haben**
-- Der **Komponentenname sollte erhalten bleiben** (z. B. mit `displayName`), für Debugging
+* [React Offizielle Dokumentation – HOCs](https://react.dev/learn/reusing-logic-with-higher-order-components)
 
 ---
-
-## 📝 Zusammenfassung
-
-Ein **Higher-Order Component (HOC)** ist eine Funktion,  
-die eine Komponente nimmt und **eine neue Komponente mit erweitertem Verhalten** zurückgibt.  
-Sie ist ein mächtiges Werkzeug zur **Wiederverwendung von Logik und Struktur**.
-
----
-
-## 🔗 Quellen
-
-- [React Docs – Higher-Order Components](https://reactjs.org/docs/higher-order-components.html)  
-- [MDN – React Komponentendesignmuster](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#higher-order-components)
 
   **[⬆ Наверх](#top)**
 
 62. ### <a name="62"></a> Was ist das Render-Prop-Pattern?
 
-# Was ist das Render-Prop-Pattern?
+### Render-Prop-Pattern
 
-Das **Render-Prop-Pattern** ist ein **React-Designmuster**,  
-bei dem eine Komponente eine **Funktion als Prop (render prop)** erhält,  
-um **flexibel zu steuern, was gerendert werden soll**.
-
----
-
-## 🎯 Zweck des Patterns
-
-- ✅ Ermöglicht das **Teilen von wiederverwendbarer Logik**
-- ✅ Gibt der Elternkomponente die **volle Kontrolle über das gerenderte UI**
-- ✅ Alternative zu HOCs oder Hooks bei **logikbasiertem Code-Sharing**
+Ein **Render-Prop** ist ein **Pattern in React**, bei dem eine Komponente eine **Funktion als Prop** erhält, die bestimmt, **was gerendert wird**.
+Damit können Komponenten **Logik wiederverwenden**, ohne UI starr vorzugeben.
 
 ---
 
-## 📦 Struktur
+### Merkmale
 
-```jsx
-<MyComponent render={(data) => (
-  <p>{data.message}</p>
-)} />
-```
-
-Oder via `children`-Prop:
-
-```jsx
-<MyComponent>
-  {(data) => <p>{data.message}</p>}
-</MyComponent>
-```
+* „Prop“ = eine **Funktion**, die React-Elemente zurückgibt.
+* Trennung von **Logik** (in der Container-Komponente) und **Darstellung** (durch die Render-Prop-Funktion).
+* Alternative zu HOCs für **Code-Wiederverwendung**.
 
 ---
 
-## 💡 Beispiel: `MouseTracker` mit Render-Prop
+### Beispiel
 
 ```jsx
+import { useState } from "react";
+
+// Container-Komponente mit Render-Prop
 function MouseTracker({ render }) {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [pos, setPos] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
-    const handleMove = (e) => setPosition({ x: e.clientX, y: e.clientY });
-    window.addEventListener('mousemove', handleMove);
-    return () => window.removeEventListener('mousemove', handleMove);
-  }, []);
+  return (
+    <div
+      style={{ height: "200px", border: "1px solid black" }}
+      onMouseMove={e => setPos({ x: e.clientX, y: e.clientY })}
+    >
+      {render(pos)} {/* Render-Prop entscheidet, was angezeigt wird */}
+    </div>
+  );
+}
 
-  return render(position);
+// Nutzung
+export default function App() {
+  return (
+    <MouseTracker
+      render={({ x, y }) => (
+        <p>Cursor bei ({x}, {y})</p>
+      )}
+    />
+  );
 }
 ```
 
-### Verwendung:
-
-```jsx
-<MouseTracker
-  render={({ x, y }) => (
-    <p>Position: {x}, {y}</p>
-  )}
-/>
-```
+* `MouseTracker` enthält die **Logik (onMouseMove)**.
+* Das UI wird flexibel durch `render` definiert.
 
 ---
 
-## 🔁 Vorteile gegenüber HOC
+### Zusammenfassung
 
-| Aspekt               | Render-Prop             | HOC                           |
-|----------------------|-------------------------|--------------------------------|
-| Mehrfach verwendbar  | ✅ Ja                   | ✅ Ja                          |
-| Flexibel im UI       | ✅ Sehr flexibel         | ❌ Eingeschränkter UI-Zugriff |
-| Komponentenbaum flach| ✅ Ja                   | ❌ Kann tiefe Wrapper erzeugen |
+* **Render-Prop-Pattern**: Komponente erhält eine **Funktion als Prop**, die JSX zurückgibt.
+* Vorteil: **Wiederverwendbare Logik** + flexible Darstellung.
+* Wird heute oft durch **Custom Hooks** ersetzt.
 
----
+📖 Weiterführend:
 
-## ⚠️ Nachteile
-
-- Kann bei vielen Ebenen zu **"Wrapper Hell"** führen (ähnlich wie HOC)
-- Wird heute oft durch **Hooks ersetzt**, da diese **einfacher und lesbarer** sind
+* [React Offizielle Dokumentation – Render Props](https://react.dev/learn/passing-props-to-a-component#passing-render-props)
 
 ---
-
-## 📝 Zusammenfassung
-
-Das **Render-Prop-Pattern** ermöglicht das **Weitergeben von Logik über Funktionen als Props**.  
-Die aufrufende Komponente entscheidet, **wie das UI aussehen soll**, während die Logik zentral bleibt.
-
----
-
-## 🔗 Quellen
-
-- [Render Props – React Docs](https://reactjs.org/docs/render-props.html)  
-- [React Patterns – Render Props](https://reactpatterns.com/#render-callback)
 
   **[⬆ Наверх](#top)**
 
 63. ### <a name="63"></a> Was ist die Context-API und wie funktioniert useContext?
 
-# Was ist die Context-API und wie funktioniert `useContext`?
+### Context-API in React
 
-Die **Context-API** von React ist ein integrierter Mechanismus,  
-um **globale Daten (z. B. Theme, Sprache, Benutzerinfos)**  
-an beliebige Komponenten im Komponentenbaum **weiterzugeben**,  
-**ohne Props manuell durch mehrere Ebenen zu reichen**.
+Die **Context-API** ist ein Mechanismus, um **globale Daten** (z. B. Theme, Auth-Status, Sprache) bereitzustellen, **ohne Prop Drilling** durch viele Ebenen.
+Sie besteht aus drei Teilen:
 
----
-
-## 🎯 Warum Context?
-
-- ✅ Vermeidet **Prop-Drilling**  
-- ✅ Ideal für **globale Zustände oder Konfigurationen**  
-- ✅ Einfach zu kombinieren mit `useContext`
+1. `createContext(defaultValue)` – erstellt einen Context.
+2. `Provider` – stellt den Wert für Kinder bereit.
+3. `useContext` – liest den Wert direkt in einer Kindkomponente aus.
 
 ---
 
-## 🧱 Bestandteile der Context-API
+### Funktionsweise von `useContext`
 
-1. **`createContext()`** – erstellt einen neuen Kontext  
-2. **`<Provider>`** – stellt einen Wert zur Verfügung  
-3. **`useContext(Context)`** – liest den aktuellen Wert des Kontexts
+* `useContext(MyContext)` greift auf den **nächstgelegenen Provider-Wert** zu.
+* Ändert sich der Context-Wert, werden alle abhängigen Komponenten neu gerendert.
+* Ohne Provider wird der **defaultValue** genutzt.
 
 ---
 
-## 💡 Beispiel: ThemeContext
-
-### 1. Context erstellen:
+### Beispiel
 
 ```jsx
-import { createContext } from 'react';
+import { createContext, useContext } from "react";
 
-const ThemeContext = createContext('light'); // optionaler Default-Wert
-```
+// 1. Context erstellen
+const ThemeContext = createContext("light");
 
----
+function ThemedButton() {
+  // 2. Zugriff auf den Wert
+  const theme = useContext(ThemeContext);
+  return <button className={theme}>Thema: {theme}</button>;
+}
 
-### 2. Provider verwenden:
-
-```jsx
-function App() {
+export default function App() {
   return (
+    // 3. Provider umschließt die Kinder
     <ThemeContext.Provider value="dark">
-      <Toolbar />
+      <ThemedButton />
     </ThemeContext.Provider>
   );
 }
 ```
 
----
-
-### 3. Zugriff mit `useContext`:
-
-```jsx
-import { useContext } from 'react';
-
-function ThemeButton() {
-  const theme = useContext(ThemeContext); // "dark"
-  return <button className={theme}>Aktuelles Theme: {theme}</button>;
-}
-```
-
-➡️ `ThemeButton` hat Zugriff auf den Kontextwert, ohne dass Props über `Toolbar` weitergegeben werden müssen.
+* `App` definiert den Wert `"dark"`.
+* `ThemedButton` greift mit `useContext(ThemeContext)` darauf zu.
 
 ---
 
-## 📌 Wichtig zu wissen
+### Zusammenfassung
 
-- Jeder Context-Wert ist **nur innerhalb seines `<Provider>` sichtbar**  
-- Komponenten werden **neu gerendert**, wenn sich der Context-Wert ändert  
-- Context ist **nicht als globaler State-Ersatz für komplexe Logik** gedacht (→ besser: Redux, Zustand, etc.)
+* **Context-API** = globale Datenverwaltung ohne Prop Drilling.
+* **`useContext`** = Hook zum direkten Zugriff auf Context-Werte.
+* Vorteil: einfache Verteilung globaler Zustände, Nachteil: viele Re-Renders bei großen Bäumen → oft mit **Memoization/State-Management-Libs** kombiniert.
 
----
+📖 Weiterführend:
 
-## 📝 Zusammenfassung
-
-- Die **Context-API** erlaubt das **Teilen globaler Werte** im Komponentenbaum  
-- Mit `useContext(Context)` kannst du in Funktionskomponenten **einfach auf diese Werte zugreifen**  
-- Sie ist nützlich für Dinge wie **Themen, Sprache, Benutzerinfo, Feature-Flags**
+* [React Offizielle Dokumentation – Context](https://react.dev/reference/react/useContext)
 
 ---
-
-## 🔗 Quellen
-
-- [Context – React Docs](https://react.dev/learn/passing-data-deeply-with-context)  
-- [useContext – React Docs](https://react.dev/reference/react/useContext)  
-- [MDN: Context in React](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_components#context)
 
   **[⬆ Наверх](#top)**
 
 64. ### <a name="64"></a> Was sind Portale in React?
 
-# Was sind Portale in React?
+### Portale in React
 
-**Portale** (engl. *Portals*) in React ermöglichen es, **Komponenten außerhalb der normalen DOM-Hierarchie**  
-zu rendern – also **außerhalb des `div#root`**, aber trotzdem **vollständig von React verwaltet**.
-
----
-
-## 🎯 Wann braucht man ein Portal?
-
-- Modale Dialoge (z. B. `<Modal />`)  
-- Tooltips  
-- Dropdown-Menüs  
-- Overlays  
-- Elemente, die visuell **über anderen Komponenten liegen** müssen
-
-➡️ Diese Elemente müssen oft **am Ende des `<body>`** gerendert werden, um korrekt zu funktionieren (z. B. Z-Index, Positionierung).
+Ein **Portal** in React ermöglicht es, **JSX-Inhalte außerhalb der DOM-Hierarchie der Elternkomponente** zu rendern.
+Man kann damit UI-Elemente (z. B. Modals, Tooltips, Overlays) direkt in einen **anderen DOM-Knoten** einfügen.
 
 ---
 
-## 💡 Beispiel: Portal verwenden
+### Funktionsweise
 
-### 1. Ziel-Element im HTML
-
-```html
-<body>
-  <div id="root"></div>
-  <div id="modal-root"></div> <!-- Hier wird das Portal platziert -->
-</body>
-```
+* `ReactDOM.createPortal(child, container)`
+* `child` = React-Element(e), die gerendert werden sollen.
+* `container` = Zielknoten im DOM, außerhalb des Standard-Root-Elements.
 
 ---
 
-### 2. Komponente mit Portal
+### Beispiel
 
 ```jsx
-import { createPortal } from 'react-dom';
+import { useState } from "react";
+import { createPortal } from "react-dom";
 
-function Modal({ children }) {
+function Modal({ children, onClose }) {
   return createPortal(
-    <div className="modal">{children}</div>,
-    document.getElementById('modal-root')
+    <div className="modal">
+      <div className="content">{children}</div>
+      <button onClick={onClose}>Schließen</button>
+    </div>,
+    document.getElementById("modal-root") // anderer DOM-Knoten
   );
 }
-```
 
----
+export default function App() {
+  const [open, setOpen] = useState(false);
 
-### 3. Verwendung in der App
-
-```jsx
-function App() {
   return (
     <>
-      <h1>Seite</h1>
-      <Modal>
-        <p>Ich werde außerhalb von #root gerendert!</p>
-      </Modal>
+      <button onClick={() => setOpen(true)}>Modal öffnen</button>
+      {open && <Modal onClose={() => setOpen(false)}>Hallo aus dem Portal!</Modal>}
     </>
   );
 }
 ```
 
-➡️ Das Modal wird **optisch außerhalb** des Hauptbaums gerendert,  
-aber **logisch bleibt es Teil von React** – inklusive Props, State, Events usw.
+* In `index.html` muss ein zusätzlicher Knoten vorhanden sein:
+
+```html
+<div id="root"></div>
+<div id="modal-root"></div>
+```
 
 ---
 
-## 🔁 Vorteile von Portalen
+### Zusammenfassung
 
-| Vorteil                    | Beschreibung                                       |
-|----------------------------|----------------------------------------------------|
-| 🔄 Event-Bubbling bleibt   | Events funktionieren weiterhin wie gewohnt         |
-| 🎯 Flexibles Layout        | Bessere Positionierung im DOM                      |
-| 🔒 Kein CSS-Zusammenstoß   | Vermeidet Probleme mit `overflow: hidden`, `z-index` etc.
+* **Portale** = Möglichkeit, Inhalte in einen **anderen DOM-Knoten** zu rendern.
+* Typische Anwendungsfälle: **Modals, Tooltips, Overlays**.
+* API: `ReactDOM.createPortal(child, container)`.
 
----
+📖 Weiterführend:
 
-## 📝 Zusammenfassung
-
-- Portale rendern Komponenten **außerhalb des DOM-Hierarchie der Eltern**
-- Nützlich für **Modale, Tooltips, Overlays**
-- Implementiert mit `ReactDOM.createPortal(element, domNode)`
+* [React Offizielle Dokumentation – Portals](https://react.dev/reference/react-dom/createPortal)
 
 ---
-
-## 🔗 Quellen
-
-- [Portals – React Docs](https://reactjs.org/docs/portals.html)  
-- [MDN: DOM-Portale und Modale](https://developer.mozilla.org/de/docs/Web/HTML/Element/dialog)
 
   **[⬆ Наверх](#top)**
 
 65. ### <a name="65"></a> Was ist bedingtes Rendern (Conditional Rendering)?
 
-# Was ist bedingtes Rendern (Conditional Rendering) in React?
+### Bedingtes Rendern in React
 
-**Bedingtes Rendern** bedeutet in React, dass eine Komponente **abhängig von einer Bedingung**  
-**unterschiedlichen JSX-Inhalt rendert** – also **dynamisch entscheidet, was angezeigt wird**.
-
----
-
-## 🎯 Anwendungsbeispiele
-
-- Benutzer ist **eingeloggt oder nicht**
-- Ladevorgang (`Loading...`) vs. Datenanzeige
-- Verschiedene UI-Elemente abhängig von Status, Rollen, Berechtigungen
+**Conditional Rendering** bedeutet, dass eine Komponente **UI-Elemente abhängig von Bedingungen** rendert – ähnlich wie `if/else` in JavaScript.
+Damit kann React **unterschiedliche Inhalte** anzeigen, je nach State, Props oder Logik.
 
 ---
 
-## 🔧 Methoden für bedingtes Rendern
+### Beispiele
 
-### ✅ 1. `if`-Anweisung
+**1. If/Else über ternären Operator:**
 
 ```jsx
-if (isLoggedIn) {
-  return <Dashboard />;
-} else {
-  return <LoginForm />;
+function Greeting({ isLoggedIn }) {
+  return (
+    <div>
+      {isLoggedIn ? <h1>Willkommen zurück!</h1> : <h1>Bitte einloggen</h1>}
+    </div>
+  );
+}
+```
+
+**2. Bedingte Anzeige mit `&&`:**
+
+```jsx
+function Notification({ unread }) {
+  return (
+    <div>
+      <h2>Postfach</h2>
+      {unread > 0 && <p>Du hast {unread} ungelesene Nachrichten.</p>}
+    </div>
+  );
+}
+```
+
+**3. Rückgabe von `null`:**
+
+```jsx
+function Warning({ show }) {
+  if (!show) return null; // nichts rendern
+  return <p>Achtung!</p>;
 }
 ```
 
 ---
 
-### ✅ 2. Ternärer Operator (`? :`)
+### Zusammenfassung
 
-```jsx
-return (
-  <div>
-    {isLoading ? <p>Lade Daten...</p> : <DataList />}
-  </div>
-);
-```
+* **Conditional Rendering** = UI abhängig von Bedingungen.
+* Möglichkeiten: **Ternary Operator, `&&`, `if/else`, `null`**.
+* Typische Fälle: Auth, Ladezustand, Fehleranzeige.
 
----
+📖 Weiterführend:
 
-### ✅ 3. Logischer UND-Operator (`&&`)
-
-```jsx
-{hasPermission && <DeleteButton />}
-```
-
-➡️ Rendert `DeleteButton` **nur**, wenn `hasPermission === true` ist.
+* [React Offizielle Dokumentation – Conditional Rendering](https://react.dev/learn/conditional-rendering)
 
 ---
-
-### ✅ 4. Optionales Rendering mit `null`
-
-```jsx
-{shouldShow ? <Component /> : null}
-```
-
-➡️ Wenn `shouldShow === false`, wird **gar nichts** gerendert.
-
----
-
-## 📝 Zusammenfassung
-
-**Conditional Rendering** bedeutet, dass JSX **dynamisch** auf Basis von Bedingungen  
-**unterschiedlichen Inhalt rendert**.  
-React unterstützt dafür mehrere Schreibweisen:  
-`if`, `? :`, `&&`, Rückgabe von `null`.
-
----
-
-## 🔗 Quellen
-
-- [Conditional Rendering – React Docs](https://react.dev/learn/conditional-rendering)  
-- [MDN: Bedingte Ausdrücke](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Operators/Conditional_Operator)
 
   **[⬆ Наверх](#top)**
 
 66. ### <a name="66"></a> Was ist ein Error Boundary?
 
-# Was ist ein Error Boundary in React?
+### Error Boundary in React
 
-Ein **Error Boundary** (Fehlergrenze) ist eine **spezielle React-Komponente**,  
-die **JavaScript-Fehler** in ihrer **Kind-Komponenten-Hierarchie abfängt**,  
-um zu verhindern, dass der **gesamte UI-Baum zusammenbricht**.
+Ein **Error Boundary** ist eine **Klassenkomponente**, die **JavaScript-Fehler** in ihrem Kind-Baum abfängt und eine **Fallback-UI** anzeigt, anstatt dass die gesamte Anwendung abstürzt.
 
 ---
 
-## 🎯 Zweck von Error Boundaries
+### Eigenschaften
 
-- ✅ Fehler im UI **abfangen**, anzeigen und kontrolliert behandeln  
-- ✅ Verhindert den **Absturz der gesamten App**  
-- ✅ Zeigt stattdessen **Fallback-UI** oder eine Fehlermeldung an
+* Error Boundaries fangen **Render-Fehler**, Fehler in **Lifecycle-Methoden** und in **Konstruktoren von Kind-Komponenten** ab.
+* Sie fangen **keine Fehler** in Event-Handlern, asynchronem Code (z. B. `setTimeout`) oder Server-Code.
+* Wichtige Methoden:
 
----
-
-## 📦 Wann tritt ein Fehler auf?
-
-Error Boundaries fangen **nur Fehler während des Renderns**,  
-in **Lifecycle-Methoden** und in **Konstruktoren von Klassenkomponenten** ab.
-
-**Nicht abgefangen werden**:
-- Fehler in Event-Handlern (diese müssen manuell mit `try/catch` behandelt werden)
-- Fehler in `async`-Funktionen
-- Fehler außerhalb des React-Baums
+  * `static getDerivedStateFromError(error)` → aktualisiert State für Fallback-UI.
+  * `componentDidCatch(error, info)` → Logging oder Error-Reporting.
 
 ---
 
-## 💡 Beispiel: Error Boundary (Klassenkomponente)
+### Beispiel
 
 ```jsx
+import React from "react";
+
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
   componentDidCatch(error, info) {
-    console.error('Fehler abgefangen:', error, info);
+    console.error("Fehler abgefangen:", error, info);
   }
 
   render() {
     if (this.state.hasError) {
       return <h2>Etwas ist schiefgelaufen.</h2>;
     }
-
     return this.props.children;
   }
+}
+
+// Nutzung
+function BuggyComponent() {
+  throw new Error("Crash!");
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <BuggyComponent />
+    </ErrorBoundary>
+  );
 }
 ```
 
 ---
 
-### ✅ Verwendung:
+### Zusammenfassung
 
-```jsx
-<ErrorBoundary>
-  <ProblematicComponent />
-</ErrorBoundary>
-```
+* **Error Boundary** = Klassenkomponente, die Fehler abfängt und Fallback-UI rendert.
+* Methoden: `getDerivedStateFromError`, `componentDidCatch`.
+* Einsatz: Schutz vor UI-Crashs, Logging, bessere User Experience.
 
-➡️ Wenn `ProblematicComponent` crasht, zeigt `ErrorBoundary` stattdessen die Fallback-UI.
+📖 Weiterführend:
 
----
-
-## 🧪 Wann verwenden?
-
-- Um Teile der App **abzusichern** (z. B. Seitenbereiche, Widgets)
-- Um **Logs zu erfassen** (`componentDidCatch`)
-- Um den Nutzer bei Fehlern **nicht allein zu lassen**
+* [React Offizielle Dokumentation – Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
 
 ---
-
-## 📝 Zusammenfassung
-
-Ein **Error Boundary** ist eine **Klassenkomponente**,  
-die Fehler in der React-Komponentenstruktur **abfängt und behandelt**,  
-ohne dass die ganze App abstürzt.  
-Sie bietet eine **Fallback-UI** und hilft bei **Debugging & Stabilität**.
-
----
-
-## 🔗 Quellen
-
-- [Error Boundaries – React Docs](https://react.dev/learn/managing-errors)  
-- [MDN: Fehlerbehandlung in React](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch#handling_errors_in_react)
 
   **[⬆ Наверх](#top)**
 
 67. ### <a name="67"></a> Wie funktioniert Event-Handling in React?
 
-# Wie funktioniert Event-Handling in React?
+### Event-Handling in React
 
-**Event-Handling** in React funktioniert ähnlich wie in HTML/JavaScript,  
-aber mit einigen **Unterschieden in Syntax und Verhalten**.
-
----
-
-## 🎯 Besonderheiten in React
-
-- React verwendet **camelCase** statt Kleinschreibung:
-  - `onClick` statt `onclick`
-- Event-Handler werden als **Funktionen (nicht Strings)** übergeben:
-  - `{handleClick}` statt `"handleClick()"`
+* Events in React funktionieren ähnlich wie in DOM, sind aber in eine **synthetische Event-Schicht** (Synthetic Events) eingebettet.
+* Dadurch sind Events in allen Browsern **konsistent**.
+* Event-Handler werden als **CamelCase-Props** übergeben (z. B. `onClick` statt `onclick`).
+* Statt Strings wird eine **Funktion** übergeben.
 
 ---
 
-## 💡 Beispiel: Klick-Event
+### Beispiel
 
 ```jsx
 function Button() {
-  function handleClick() {
-    alert('Button wurde geklickt!');
+  function handleClick(event) {
+    console.log("Geklickt!", event.type);
   }
 
-  return <button onClick={handleClick}>Klicken</button>;
+  return (
+    <button onClick={handleClick}>
+      Klick mich
+    </button>
+  );
 }
+
+export default Button;
 ```
+
+* `onClick={handleClick}` → Funktion wird als Callback übergeben.
+* Das Event-Objekt (`event`) ist ein **SyntheticEvent** mit gleichen Methoden wie beim DOM-Event (`preventDefault`, `stopPropagation`).
 
 ---
 
-## 📦 Event-Objekt
+### Besondere Punkte
 
-React stellt ein **synthetisches Event-Objekt** (`SyntheticEvent`) bereit,  
-das mit allen Browsern konsistent funktioniert.
+1. **Event-Bindung mit Arrow Functions**
+
+   ```jsx
+   <button onClick={() => console.log("Inline-Handler")}>Click</button>
+   ```
+
+2. **`this`-Binding bei Klassen**
+   In Klassenkomponenten muss man Methoden oft im Konstruktor binden oder Arrow Functions verwenden.
+
+3. **Event Delegation**
+   React hängt Events **nicht direkt am DOM-Element**, sondern am Root-Knoten (`document`), was Performance optimiert.
+
+---
+
+### Zusammenfassung
+
+* Event-Handling in React basiert auf **Synthetic Events** für Browser-Konsistenz.
+* Syntax: **CamelCase**-Props + Callback-Funktion.
+* Vorteile: einheitliches API, Event Delegation, bekannte DOM-Methoden (`preventDefault`, `stopPropagation`).
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Events](https://react.dev/learn/responding-to-events)
+* [MDN – Einführung in DOM-Events (RU)](https://developer.mozilla.org/ru/docs/Learn/JavaScript/Building_blocks/Events)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+68. ### <a name="68"></a> Was ist ein synthetisches Ereignis (SyntheticEvent)?
+
+### SyntheticEvent in React
+
+Ein **SyntheticEvent** ist eine von React bereitgestellte **Wrapper-Schicht um native DOM-Events**.
+Es sorgt für **Browser-Konsistenz** und stellt in allen Umgebungen die gleiche API bereit.
+
+---
+
+### Eigenschaften
+
+* Enthält die gleichen Methoden wie native Events: `preventDefault()`, `stopPropagation()`.
+* Funktioniert in allen Browsern gleich → kein spezielles Polyfill nötig.
+* Events werden aus Performance-Gründen **gepoolt** (nach der Event-Callback-Ausführung sind die Eigenschaften auf `null` gesetzt).
+
+  * Falls man das Event **asynchron** nutzen will, muss man `event.persist()` aufrufen.
+
+---
+
+### Beispiel
 
 ```jsx
-function Input() {
+function Form() {
+  function handleSubmit(e) {
+    e.preventDefault(); // SyntheticEvent mit DOM-API
+    console.log("Formular gesendet!");
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <button type="submit">Absenden</button>
+    </form>
+  );
+}
+```
+
+**Asynchrone Nutzung:**
+
+```jsx
+function InputLogger() {
   function handleChange(e) {
-    console.log('Eingegeben:', e.target.value);
+    e.persist(); // Event bleibt erhalten
+    setTimeout(() => console.log(e.target.value), 1000);
   }
 
   return <input onChange={handleChange} />;
 }
 ```
 
-➡️ `e` ist das SyntheticEvent, das sich **ähnlich wie ein native DOM-Event** verhält.
-
 ---
 
-## 🔁 Weitere Event-Beispiele
+### Zusammenfassung
 
-| Event         | Attribut        | Beispiel                           |
-|---------------|------------------|------------------------------------|
-| Klick         | `onClick`        | `<button onClick={fn} />`          |
-| Eingabe       | `onChange`       | `<input onChange={fn} />`          |
-| Fokus         | `onFocus`        | `<input onFocus={fn} />`           |
-| Maus bewegen  | `onMouseMove`    | `<div onMouseMove={fn} />`         |
-| Formular      | `onSubmit`       | `<form onSubmit={fn} />`           |
-| Taste drücken | `onKeyDown`      | `<input onKeyDown={fn} />`         |
+* **SyntheticEvent** = React-Wrapper um native DOM-Events.
+* Vorteil: **einheitliches Event-System, Cross-Browser-Kompatibilität, Performance durch Event-Pooling**.
+* Bei asynchroner Nutzung: `event.persist()`.
 
----
+📖 Weiterführend:
 
-## ✅ Standardverhalten verhindern
-
-```jsx
-function Form() {
-  function handleSubmit(e) {
-    e.preventDefault(); // verhindert Seitenreload
-    console.log('Formular abgesendet');
-  }
-
-  return <form onSubmit={handleSubmit}>...</form>;
-}
-```
+* [React Offizielle Dokumentation – SyntheticEvent](https://react.dev/reference/react/SyntheticEvent)
+* [MDN – DOM Events](https://developer.mozilla.org/ru/docs/Web/API/Event)
 
 ---
-
-## 📝 Zusammenfassung
-
-- React verwendet eigene Events (`SyntheticEvent`) mit vertrauter API  
-- Event-Handler werden als Funktionen mit camelCase geschrieben  
-- Du kannst Standardverhalten (z. B. Form-Submit) mit `e.preventDefault()` unterdrücken
-
----
-
-## 🔗 Quellen
-
-- [Events in React – React Docs](https://react.dev/learn/responding-to-events)  
-- [React Event Handling – MDN](https://developer.mozilla.org/en-US/docs/Web/Events)
-
-  **[⬆ Наверх](#top)**
-
-68. ### <a name="68"></a> Was ist ein synthetisches Ereignis (SyntheticEvent)?
-
-# Was ist ein synthetisches Ereignis (SyntheticEvent) in React?
-
-Ein **synthetisches Ereignis** (`SyntheticEvent`) ist ein von React bereitgestelltes **plattformsicheres Wrapper-Objekt**  
-für native DOM-Ereignisse wie `click`, `change`, `submit`, etc.
-
----
-
-## 🎯 Zweck von `SyntheticEvent`
-
-- ✅ Einheitliches Verhalten in **allen Browsern**
-- ✅ Automatisches **Event-Pooling** (früher)
-- ✅ Konsistente API für alle Event-Typen
-- ✅ Kombiniert die Vorteile von DOM- und Custom-Events
-
----
-
-## 📦 Eigenschaften
-
-- `SyntheticEvent` hat die **gleichen Methoden und Eigenschaften** wie ein normales DOM-Event:  
-  - `e.target`, `e.preventDefault()`, `e.stopPropagation()` usw.
-- Funktioniert für **alle Event-Typen**: Maus, Tastatur, Formulare, Fokus, usw.
-
----
-
-## 💡 Beispiel
-
-```jsx
-function Form() {
-  function handleSubmit(e) {
-    e.preventDefault(); // verhindert Reload
-    console.log('Eingabefeld:', e.target.elements.name.value);
-  }
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input name="name" />
-      <button type="submit">Absenden</button>
-    </form>
-  );
-}
-```
-
-➡️ `e` ist ein `SyntheticEvent`, nicht das native `Event`-Objekt des Browsers.
-
----
-
-## ⚠️ Hinweis: Event-Pooling (früher)
-
-Früher wurden `SyntheticEvent`-Objekte **recycelt** (Event Pooling), was bedeutete:  
-Zugriff auf das Event nach dem Event-Handler war **nicht mehr möglich**.  
-**Seit React 17+ ist Pooling deaktiviert.**
-
----
-
-## 📝 Zusammenfassung
-
-Ein `SyntheticEvent` ist Reacts **einheitliche Event-API**,  
-die unabhängig vom Browser funktioniert und dieselbe Oberfläche wie das native DOM-Event bietet.  
-Du kannst es wie gewohnt verwenden (`e.preventDefault()`, `e.target.value`, etc.).
-
----
-
-## 🔗 Quellen
-
-- [React Docs – SyntheticEvent](https://react.dev/reference/react-dom/SyntheticEvent)  
-- [MDN: DOM Events Übersicht](https://developer.mozilla.org/de/docs/Web/Events)
 
   **[⬆ Наверх](#top)**
 
 69. ### <a name="69"></a> Was ist props.children?
 
-# Was ist `props.children` in React?
+### `props.children` in React
 
-**`props.children`** ist eine spezielle React-Prop,  
-die automatisch alle **verschachtelten Elemente (Child-Komponenten oder JSX-Inhalte)** enthält,  
-die **innerhalb einer Komponente übergeben** werden.
-
----
-
-## 🎯 Wozu wird `props.children` verwendet?
-
-- ✅ Um **dynamisch Inhalte zu rendern**, die von außen übergeben werden  
-- ✅ Um **Wrapper-Komponenten** (z. B. Layouts, Container) zu erstellen  
-- ✅ Für **wiederverwendbare UI-Strukturen**
+* **`props.children`** ist eine **spezielle Prop**, die automatisch alle **verschachtelten Inhalte (Child-Elemente)** einer Komponente enthält.
+* Damit lassen sich **Wrapper- oder Layout-Komponenten** flexibel gestalten, ohne vorher zu wissen, was darin steht.
 
 ---
 
-## 💡 Beispiel
+### Beispiel
 
 ```jsx
-function Card(props) {
-  return <div className="card">{props.children}</div>;
+function Card({ children }) {
+  return <div className="card">{children}</div>;
 }
 
-function App() {
+export default function App() {
   return (
     <Card>
       <h2>Titel</h2>
-      <p>Das ist der Inhalt der Card.</p>
+      <p>Das ist Inhalt innerhalb von Card</p>
     </Card>
   );
 }
 ```
 
-➡️ Die `Card`-Komponente erhält:
-
-```jsx
-<h2>...</h2>
-<p>...</p>
-```
-
-als `props.children` und rendert sie **im Inneren**.
+* `props.children` enthält hier `<h2>...</h2>` und `<p>...</p>`.
+* Card kann beliebige Inhalte aufnehmen, ohne diese fest im Code zu definieren.
 
 ---
 
-## 📦 Typen von `props.children`
+### Zusammenfassung
 
-- Kann ein **Element**, ein **Text**, ein **Array**, `null`, `undefined` oder ein **Fragment** sein
-- Du kannst `children` auch **prüfen oder filtern**, z. B. mit `React.Children`
+* **`props.children`** = Container für verschachtelte Inhalte einer Komponente.
+* Einsatz: Wrapper-, Layout- und Container-Komponenten.
+* Vorteil: **maximale Flexibilität** und Wiederverwendung von UI-Strukturen.
 
----
+📖 Weiterführend:
 
-## 🧪 Beispiel mit mehreren Kindern
-
-```jsx
-function Wrapper({ children }) {
-  return (
-    <section>
-      {React.Children.map(children, (child, index) => (
-        <div key={index}>{child}</div>
-      ))}
-    </section>
-  );
-}
-```
-
-➡️ So kannst du **alle `children` gezielt verarbeiten**.
+* [React Offizielle Dokumentation – Children](https://react.dev/learn/passing-props-to-a-component#passing-jsx-as-children)
 
 ---
-
-## 📝 Zusammenfassung
-
-- `props.children` enthält **alle JSX-Inhalte**, die **zwischen den Tags** einer Komponente übergeben werden  
-- Es macht Komponenten **flexibel und wiederverwendbar**
-- Typisch bei Layout-Komponenten, Dialogen, Containern
-
----
-
-## 🔗 Quellen
-
-- [React Docs – Children](https://react.dev/learn/passing-props-to-a-component#using-the-children-prop)  
-- [React.Children API – React Docs](https://react.dev/reference/react/Children)
 
   **[⬆ Наверх](#top)**
 
 70. ### <a name="70"></a> Was bedeutet „controlled component“ und „uncontrolled component“ bei Formularen?
 
-# Was bedeutet „controlled component“ und „uncontrolled component“ bei Formularen in React?
+### Controlled Components
 
-In React beschreibt man Formular-Elemente wie `<input>`, `<textarea>` oder `<select>` als  
-**controlled** oder **uncontrolled**, je nachdem, **wie ihr Wert verwaltet wird**.
-
----
-
-## ✅ Controlled Component
-
-Ein **controlled component** wird **vollständig durch React kontrolliert** –  
-der Wert kommt aus dem **State** und wird über `onChange` aktualisiert.
-
-### Eigenschaften:
-
-- Wert liegt im React-State
-- Änderungen erfolgen über `setState` / `useState`
-- Ideal für Validierung, dynamische Formulare, zentrale Kontrolle
-
-### Beispiel:
+* Bei einer **controlled component** verwaltet **React den Wert** eines Formularelements über den **State**.
+* Der Wert wird durch `value`-Prop gesetzt und über `onChange` aktualisiert.
+* React = **Single Source of Truth**.
 
 ```jsx
-function Form() {
-  const [name, setName] = useState('');
+import { useState } from "react";
+
+function ControlledInput() {
+  const [text, setText] = useState("");
 
   return (
-    <input 
-      value={name}
-      onChange={(e) => setName(e.target.value)}
+    <input
+      value={text}
+      onChange={e => setText(e.target.value)}
     />
   );
 }
 ```
 
-➡️ Das Eingabefeld zeigt **immer den aktuellen State-Wert**.
-
 ---
 
-## ❌ Uncontrolled Component
+### Uncontrolled Components
 
-Ein **uncontrolled component** verwaltet seinen Wert **intern im DOM**,  
-React **greift nur über ein Ref** darauf zu – z. B. beim Absenden des Formulars.
-
-### Eigenschaften:
-
-- Kein React-State für den Wert
-- Zugriff über `ref`
-- Einfach, aber schwerer zu validieren
-
-### Beispiel:
+* Bei einer **uncontrolled component** verwaltet das **DOM selbst den Wert**.
+* React greift über eine **Ref** auf den aktuellen Wert zu.
+* Weniger Code, aber weniger Kontrolle durch React.
 
 ```jsx
-function Form() {
+import { useRef } from "react";
+
+function UncontrolledInput() {
   const inputRef = useRef();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert(inputRef.current.value);
+  const handleSubmit = () => {
+    alert(inputRef.current.value); // Wert direkt aus DOM
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <>
       <input ref={inputRef} />
-      <button type="submit">Absenden</button>
-    </form>
+      <button onClick={handleSubmit}>Absenden</button>
+    </>
   );
 }
 ```
 
-➡️ Der Wert wird **nicht in React gespeichert**, sondern **aus dem DOM gelesen**.
+---
+
+### Vergleich
+
+| Controlled                       | Uncontrolled                  |
+| -------------------------------- | ----------------------------- |
+| React verwaltet den Wert (State) | DOM verwaltet den Wert        |
+| `value` + `onChange`             | Zugriff via `ref`             |
+| Bessere Validierung & Kontrolle  | Einfachere schnelle Umsetzung |
 
 ---
 
-## 🔁 Vergleich
+### Zusammenfassung
 
-| Merkmal              | Controlled                   | Uncontrolled                    |
-|----------------------|------------------------------|----------------------------------|
-| Datenquelle          | React-State (`useState`)     | DOM (intern)                     |
-| Zugriff              | `value` + `onChange`         | `ref.current.value`              |
-| Validierung          | Einfach                      | Komplizierter                    |
-| Flexibilität         | Hoch                         | Gering                           |
-| Initialwert          | via State                    | via `defaultValue`               |
+* **Controlled Component**: Wert im React-State, volle Kontrolle.
+* **Uncontrolled Component**: Wert im DOM, Zugriff via Ref.
+* Best Practice: Controlled für komplexe Formulare, Uncontrolled für einfache Fälle.
 
----
+📖 Weiterführend:
 
-## 📝 Zusammenfassung
-
-- **Controlled Components**: React verwaltet den Formularwert → vollständig kontrollierbar
-- **Uncontrolled Components**: Der Browser verwaltet den Wert → Zugriff nur über Ref
-- Controlled ist der **empfohlene Standard**, besonders bei komplexen Formularen
+* [React Offizielle Dokumentation – Controlled vs. Uncontrolled](https://react.dev/learn/sharing-state-between-components#controlled-and-uncontrolled-components)
 
 ---
-
-## 🔗 Quellen
-
-- [Controlled Components – React Docs](https://react.dev/learn/sharing-state-between-components#controlled-and-uncontrolled-components)  
-- [Formulare in React – MDN](https://developer.mozilla.org/de/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_forms)
 
   **[⬆ Наверх](#top)**
 
@@ -3851,40 +3612,31 @@ function Form() {
 
 76. ### <a name="76"></a> Wie führt man API-Aufrufe mit Fetch oder Axios durch?
 
-# Wie führt man API-Aufrufe mit `fetch` oder `axios` in React durch?
+### API-Aufrufe in React mit **Fetch** und **Axios**
 
-In React kannst du API-Anfragen auf zwei gängige Arten durchführen:
-
-1. Mit dem **integrierten `fetch`-API** (nativ in JavaScript)
-2. Mit der **Axios-Bibliothek** (komfortabler, aber extern)
+In React führt man API-Requests meist in **`useEffect`** aus, damit sie nach dem Rendern starten.
+Der Response wird im **State** gespeichert.
 
 ---
 
-## ✅ 1. API-Aufruf mit `fetch`
+### Mit **Fetch**
 
 ```jsx
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from "react";
 
-function UserList() {
+function Users() {
   const [users, setUsers] = useState([]);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('https://jsonplaceholder.typicode.com/users')
-      .then((res) => {
-        if (!res.ok) throw new Error('Fehler beim Laden');
-        return res.json();
-      })
-      .then((data) => setUsers(data))
-      .catch((err) => setError(err.message));
-  }, []);
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then(res => res.json())
+      .then(data => setUsers(data))
+      .catch(err => console.error(err));
+  }, []); // nur einmal beim Mount
 
-  if (error) return <p>Fehler: {error}</p>;
   return (
     <ul>
-      {users.map((u) => (
-        <li key={u.id}>{u.name}</li>
-      ))}
+      {users.map(u => <li key={u.id}>{u.name}</li>)}
     </ul>
   );
 }
@@ -3892,37 +3644,24 @@ function UserList() {
 
 ---
 
-## ✅ 2. API-Aufruf mit `axios`
-
-### Installation:
-
-```bash
-npm install axios
-```
-
-### Verwendung:
+### Mit **Axios**
 
 ```jsx
-import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from "react";
+import axios from "axios";
 
-function PostList() {
-  const [posts, setPosts] = useState([]);
-  const [error, setError] = useState(null);
+function Users() {
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    axios
-      .get('https://jsonplaceholder.typicode.com/posts')
-      .then((res) => setPosts(res.data))
-      .catch((err) => setError(err.message));
+    axios.get("https://jsonplaceholder.typicode.com/users")
+      .then(res => setUsers(res.data))
+      .catch(err => console.error(err));
   }, []);
 
-  if (error) return <p>Fehler: {error}</p>;
   return (
     <ul>
-      {posts.map((p) => (
-        <li key={p.id}>{p.title}</li>
-      ))}
+      {users.map(u => <li key={u.id}>{u.name}</li>)}
     </ul>
   );
 }
@@ -3930,873 +3669,882 @@ function PostList() {
 
 ---
 
-## 🔁 Vergleich: `fetch` vs. `axios`
+### Unterschiede **Fetch vs. Axios**
 
-| Merkmal             | `fetch` (nativ)              | `axios` (Bibliothek)             |
-|---------------------|------------------------------|----------------------------------|
-| Integriert in JS?   | ✅ Ja                         | ❌ Nein (muss installiert werden) |
-| JSON automatisch?   | ❌ Nein (manuell: `.json()`) | ✅ Ja (direkt `res.data`)         |
-| Fehlerbehandlung    | Manuell mit `res.ok` prüfen  | Automatisch bei HTTP-Fehler      |
-| Unterstützt Abbrechen | ❌ Nur mit AbortController | ✅ Ja                             |
+* **Fetch**: eingebaut im Browser, aber kein automatisches JSON-Parsing für Fehler.
+* **Axios**: externe Bibliothek, komfortabler (automatisches JSON, Timeouts, Interceptors).
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-- Mit `fetch` und `axios` kannst du in `useEffect` **API-Daten laden**
-- `fetch`: nativ, minimalistisch  
-- `axios`: komfortabler, bessere Fehlerbehandlung  
-- Immer Fehler abfangen (`.catch`) und Zustand (`loading`, `error`, `data`) verwalten
+* API-Aufrufe in React mit **`useEffect` + State** umsetzen.
+* **Fetch** = native API, minimalistisch.
+* **Axios** = komfortabler, mit Extras wie Interceptors.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Daten abrufen](https://react.dev/learn/synchronizing-with-effects#fetching-data)
+* [MDN – Fetch API (RU)](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API)
 
 ---
-
-## 🔗 Quellen
-
-- [fetch – MDN Web Docs](https://developer.mozilla.org/de/docs/Web/API/Fetch_API)
-- [Axios – GitHub Docs](https://axios-http.com/docs/intro)
-- [Daten in React laden – React Docs](https://react.dev/learn/you-might-not-need-an-effect#fetching-data)
 
   **[⬆ Наверх](#top)**
 
 77. ### <a name="77"></a> Wie verwaltet man Lade-, Fehler- und Erfolgsstatus?
 
-# Wie verwaltet man Lade-, Fehler- und Erfolgsstatus in React?
+### Lade-, Fehler- und Erfolgsstatus verwalten (Patterns)
 
-Beim **Abrufen von Daten (API)** ist es wichtig, den **Status** der Anfrage zu verwalten:
-
-1. 🔄 **Ladezustand** (`isLoading`)
-2. ✅ **Erfolgszustand** (Daten verfügbar)
-3. ❌ **Fehlerzustand** (Fehler beim Laden)
-
-Diese drei Zustände werden meist mit **`useState` und `useEffect`** verwaltet.
+**Grundidee:** Status als **endlichen Automat** modellieren (`'idle' | 'loading' | 'success' | 'error'`) und **UI zustandsbasiert** rendern.
 
 ---
 
-## 💡 Beispiel mit `fetch`
+### Minimal-Pattern mit Fetch + `useEffect`
 
 ```jsx
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
-function UserList() {
-  const [users, setUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function Users() {
+  const [status, setStatus] = useState("idle");     // 'idle' | 'loading' | 'success' | 'error'
+  const [data, setData] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('https://jsonplaceholder.typicode.com/users')
-      .then((res) => {
-        if (!res.ok) throw new Error('Fehler beim Laden');
-        return res.json();
-      })
-      .then((data) => {
-        setUsers(data);
-        setError(null);
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setIsLoading(false));
+    const ctrl = new AbortController();
+    const load = async () => {
+      try {
+        setStatus("loading");
+        const res = await fetch("https://jsonplaceholder.typicode.com/users", { signal: ctrl.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        setData(json);
+        setStatus("success");
+      } catch (e) {
+        if (e.name !== "AbortError") {
+          setError(e);
+          setStatus("error");
+        }
+      }
+    };
+    load();
+    return () => ctrl.abort(); // Cleanup verhindert Setzen nach Unmount
   }, []);
 
-  if (isLoading) return <p>⏳ Lade Daten...</p>;
-  if (error) return <p>❌ Fehler: {error}</p>;
-
-  return (
-    <ul>
-      {users.map((user) => (
-        <li key={user.id}>{user.name}</li>
-      ))}
-    </ul>
-  );
+  if (status === "loading") return <p>Laden…</p>;
+  if (status === "error") return <p>Fehler: {error.message}</p>;
+  if (status === "success") {
+    return <ul>{data.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+  }
+  return <button onClick={() => { /* optional: Lazy-Load triggern */ }}>Daten laden</button>;
 }
+```
+
+**Wichtig**
+
+* **Ein Statusfeld** statt mehrerer Booleans (verhindert inkonsistente Kombinationen).
+* **AbortController** für Abbruch bei Unmount/Neuladen.
+* **Fehlerprüfung** (`!res.ok`) vor `res.json()`.
+
+---
+
+### Reusable: kleiner `useAsync`-Hook
+
+```jsx
+import { useEffect, useRef, useState } from "react";
+
+export function useAsync(fn, deps = []) {
+  const [state, setState] = useState({ status: "idle", data: null, error: null });
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    const run = async () => {
+      setState({ status: "loading", data: null, error: null });
+      try {
+        const data = await fn();
+        if (mounted.current) setState({ status: "success", data, error: null });
+      } catch (err) {
+        if (mounted.current) setState({ status: "error", data: null, error: err });
+      }
+    };
+    run();
+    return () => { mounted.current = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  return state; // {status, data, error}
+}
+
+// Nutzung
+// const { status, data, error } = useAsync(() => fetch("/api").then(r => r.json()), []);
 ```
 
 ---
 
-## ✅ Statusverwaltung im Überblick
+### UI-Muster
 
-| Zustand     | Variable     | Bedeutung                                 |
-|-------------|--------------|--------------------------------------------|
-| Ladezustand | `isLoading`  | Wird `true` beim Start der Anfrage         |
-| Erfolgsdaten| `data`, `users`, etc. | Wird nach erfolgreichem Laden gesetzt |
-| Fehlerzustand| `error`     | Wird gesetzt, wenn `.catch()` ausgelöst wird |
-
----
-
-## 🔄 Alternativen
-
-- Eigener **Custom Hook** (`useFetch`, `useApi`)
-- **State Machine** (z. B. mit `xstate`)
-- Zustand mit `useReducer` verwalten, wenn komplexer
+* **Skeleton/Spinner** bei `loading`.
+* **Retry-Button** bei `error` (neuen Fetch triggern).
+* **Disabled/ARIA** während `loading` (Barrierefreiheit).
+* **Optimistic UI**/Rollback bei Mutationen (separater Status je Mutation).
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-- Nutze `useState` für `isLoading`, `error` und `data`
-- Nutze `useEffect`, um Daten zu laden
-- Zeige je nach Zustand: Ladeanzeige, Fehlernachricht oder Daten
+* Status als **disjunkte Zustände** modellieren; UI rein **zustandsgetrieben** rendern.
+* Netzwerkcode in `useEffect` (mit **Cleanup/Abort**), Fehler früh prüfen.
+* Für Wiederverwendung: **Custom Hook** (`useAsync`) oder Libraries (z. B. React Query/SWR).
 
----
+📖 Weiterführend:
 
-## 🔗 Quellen
-
-- [React: API-Daten laden – react.dev](https://react.dev/learn/you-might-not-need-an-effect#fetching-data)  
-- [fetch API – MDN Docs](https://developer.mozilla.org/de/docs/Web/API/Fetch_API)
+* React Docs: [Synchronizing with Effects](https://react.dev/learn/synchronizing-with-effects), [Conditional Rendering](https://react.dev/learn/conditional-rendering)
+* MDN (RU): [Fetch API](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API), [AbortController](https://developer.mozilla.org/ru/docs/Web/API/AbortController)
 
   **[⬆ Наверх](#top)**
 
 78. ### <a name="78"></a> Wie funktioniert WebSocket mit React?
 
-# Wie funktioniert WebSocket mit React?
+### WebSocket mit React: Grundlagen & Pattern
 
-**WebSockets** ermöglichen eine **bidirektionale, permanente Verbindung** zwischen Client (Browser) und Server.  
-In React kannst du damit **Echtzeit-Daten** verarbeiten – z. B. für Chats, Benachrichtigungen oder Live-Dashboards.
-
----
-
-## 🔄 Grundprinzip WebSocket
-
-1. Verbindung zum Server aufbauen
-2. Nachrichten senden & empfangen
-3. Verbindung schließen (bei Unmount oder Fehler)
+**Idee:** In React öffnest du die Verbindung in einem **Effect**, hältst die Socket-Instanz in einem **Ref**, registrierst **Event-Handler**, und räumst im **Cleanup** wieder auf. State speichert eingehende Daten.
 
 ---
 
-## 💡 Beispiel: WebSocket in React verwenden
+### Minimalbeispiel (Empfangen & Senden)
 
 ```jsx
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from "react";
 
-function WebSocketComponent() {
-  const socketRef = useRef(null);
+export default function Chat() {
   const [messages, setMessages] = useState([]);
+  const [connected, setConnected] = useState(false);
+  const socketRef = useRef(null);
 
+  // Verbindung aufbauen
   useEffect(() => {
-    // 1. Verbindung aufbauen
-    socketRef.current = new WebSocket('wss://example.com/socket');
+    const ws = new WebSocket("wss://echo.websocket.events"); // Demo-Endpoint
+    socketRef.current = ws;
 
-    // 2. Nachricht empfangen
-    socketRef.current.onmessage = (event) => {
-      setMessages((prev) => [...prev, event.data]);
-    };
+    ws.addEventListener("open", () => setConnected(true));
+    ws.addEventListener("message", (e) => {
+      // optional JSON.parse(e.data)
+      setMessages((prev) => [...prev, String(e.data)]);
+    });
+    ws.addEventListener("close", () => setConnected(false));
+    ws.addEventListener("error", () => setConnected(false));
 
-    // 3. Fehlerbehandlung
-    socketRef.current.onerror = (err) => {
-      console.error('WebSocket-Fehler:', err);
-    };
-
-    // 4. Aufräumen beim Unmount
     return () => {
-      socketRef.current.close();
+      ws.close(); // Cleanup beim Unmount
     };
   }, []);
 
-  // Nachricht senden (z. B. beim Button-Klick)
-  const sendMessage = () => {
-    if (socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send('Hallo vom Client!');
+  // Stabiler send()-Callback
+  const sendMessage = useCallback((text) => {
+    const ws = socketRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(text);
     }
-  };
+  }, []);
 
   return (
-    <div>
-      <h3>Empfangene Nachrichten:</h3>
-      <ul>
-        {messages.map((msg, i) => (
-          <li key={i}>{msg}</li>
-        ))}
-      </ul>
-      <button onClick={sendMessage}>Nachricht senden</button>
-    </div>
+    <>
+      <p>Status: {connected ? "verbunden" : "getrennt"}</p>
+      <button onClick={() => sendMessage("Hallo WebSocket!")}>Senden</button>
+      <ul>{messages.map((m, i) => <li key={i}>{m}</li>)}</ul>
+    </>
   );
 }
 ```
 
 ---
 
-## 🔁 Tipps für den produktiven Einsatz
+### Robuster Custom Hook mit Reconnect & Backoff
 
-- Nutze `useRef`, damit WebSocket-Verbindung **nicht bei jedem Render neu aufgebaut** wird  
-- Prüfe `socket.readyState`, bevor du Nachrichten sendest  
-- Verwende ggf. **Reconnect-Strategien**, falls Verbindung abbricht  
-- Für große Projekte: verwalte WebSocket über `Context` oder `Redux`
+```jsx
+import { useEffect, useRef, useState, useCallback } from "react";
+
+export function useWebSocket(url, { reconnect = true, maxDelay = 8000 } = {}) {
+  const wsRef = useRef(null);
+  const [readyState, setReadyState] = useState(WebSocket.CLOSED);
+  const [lastMessage, setLastMessage] = useState(null);
+  const retryRef = useRef(0);
+  const timerRef = useRef(null);
+
+  const connect = useCallback(() => {
+    const ws = new WebSocket(url);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      setReadyState(ws.readyState);
+      retryRef.current = 0; // Reset Backoff
+    };
+    ws.onmessage = (e) => setLastMessage(e.data);
+    ws.onerror = () => {};
+    ws.onclose = () => {
+      setReadyState(WebSocket.CLOSED);
+      if (reconnect) {
+        const delay = Math.min(1000 * 2 ** retryRef.current++, maxDelay);
+        timerRef.current = setTimeout(connect, delay);
+      }
+    };
+    setReadyState(ws.readyState);
+  }, [url, reconnect, maxDelay]);
+
+  useEffect(() => {
+    connect();
+    return () => {
+      reconnect = false; // eslint-disable-line no-param-reassign
+      clearTimeout(timerRef.current);
+      wsRef.current?.close();
+    };
+  }, [connect]);
+
+  const send = useCallback((data) => {
+    const ws = wsRef.current;
+    if (ws?.readyState === WebSocket.OPEN) ws.send(data);
+  }, []);
+
+  return { readyState, lastMessage, send };
+}
+```
+
+**Nutzung:**
+
+```jsx
+import { useEffect, useState } from "react";
+import { useWebSocket } from "./useWebSocket.js";
+
+export default function Ticker() {
+  const { readyState, lastMessage, send } = useWebSocket("wss://echo.websocket.events");
+  const [log, setLog] = useState([]);
+
+  useEffect(() => {
+    if (lastMessage != null) setLog((l) => [...l, String(lastMessage)]);
+  }, [lastMessage]);
+
+  return (
+    <>
+      <p>State: {readyState === WebSocket.OPEN ? "OPEN" : readyState}</p>
+      <button onClick={() => send(JSON.stringify({ ping: Date.now() }))}>Ping</button>
+      <ul>{log.map((x, i) => <li key={i}>{x}</li>)}</ul>
+    </>
+  );
+}
+```
 
 ---
 
-## 📝 Zusammenfassung
+### Best Practices
 
-- WebSocket bietet eine **dauerhafte Verbindung** zwischen React-Client und Server  
-- Ideal für **Live-Kommunikation** (Chat, Echtzeitdaten)  
-- In React: mit `useEffect`, `useRef` und `setState` kombinieren  
-- Nicht vergessen: **Verbindung schließen** bei Unmount
+* **`useRef`** für die Socket-Instanz (verändert sich ohne Re-Render).
+* **Cleanup** im `useEffect` → `ws.close()`.
+* **Nachrichtenformat**: JSON verwenden (`JSON.stringify/parse`), Versionierung des Payloads beachten.
+* **Reconnect** mit **exponentiellem Backoff**; bei Auth-Sockets (JWT) Token-Refresh einplanen.
+* **Sicherheit**: `wss://`, serverseitige Origin/Rate-Limits, Heartbeats/Pings für Keep-Alive.
+* **Zustandsmodell**: UI klar zwischen `OPEN/CONNECTING/CLOSING/CLOSED` unterscheiden.
 
 ---
 
-## 🔗 Quellen
+### Zusammenfassung
 
-- [MDN: WebSocket API](https://developer.mozilla.org/de/docs/Web/API/WebSocket)  
-- [React + WebSocket Guide – LogRocket](https://blog.logrocket.com/using-websocket-react-guide/)
+* WebSocket in React: **öffnen im `useEffect`**, **Instanz in `useRef`**, **Event-Handler registrieren**, **Cleanup** beim Unmount.
+* Senden über stabilen **`useCallback`**; für Wiederverwendung **Custom Hook** mit Reconnect/Backoff bauen.
+* JSON-Payloads, Fehler-/Statushandling und Sicherheit berücksichtigen.
+
+📖 Weiterführend:
+
+* React Docs: [Effects](https://react.dev/learn/synchronizing-with-effects)
+* MDN (RU): [WebSocket API](https://developer.mozilla.org/ru/docs/Web/API/WebSockets_API), [WebSocket](https://developer.mozilla.org/ru/docs/Web/API/WebSocket)
 
   **[⬆ Наверх](#top)**
 
 79. ### <a name="79"></a> Wie kann man Daten zwischen Komponenten weitergeben?
 
-# Wie kann man Daten zwischen Komponenten weitergeben?
+### Datenfluss zwischen Komponenten in React
 
-In React gibt es mehrere Wege, **Daten zwischen Komponenten** auszutauschen.  
-Welcher Weg sinnvoll ist, hängt davon ab, **wie die Komponenten zueinander stehen**.
-
----
-
-## 1️⃣ Parent → Child: via **Props**
-
-Der klassische und einfachste Weg:  
-Elternkomponente übergibt Daten an Kindkomponente als `props`.
+**1) Eltern → Kind: über Props**
 
 ```jsx
-function Child({ username }) {
-  return <p>Hallo, {username}!</p>;
+function Child({ title }) {
+  return <h2>{title}</h2>;
 }
 
-function Parent() {
-  return <Child username="Sergii" />;
+export default function Parent() {
+  return <Child title="Hallo, Sergii" />;
 }
 ```
 
-➡️ Einfache, **unidirektionale Datenweitergabe**.
-
----
-
-## 2️⃣ Child → Parent: via **Callback-Funktion als Prop**
-
-Kindkomponente ruft eine Funktion auf, die der Elternkomponente gehört.
+**2) Kind → Eltern: über Callback-Props (Bottom-up Events)**
 
 ```jsx
-function Child({ onNameChange }) {
-  return <input onChange={(e) => onNameChange(e.target.value)} />;
+import { useState } from "react";
+
+function Child({ onChange }) {
+  return <button onClick={() => onChange("Neuer Wert")}>Senden</button>;
 }
 
-function Parent() {
-  const [name, setName] = useState('');
+export default function Parent() {
+  const [val, setVal] = useState("");
   return (
     <>
-      <Child onNameChange={setName} />
-      <p>Name: {name}</p>
+      <Child onChange={setVal} />
+      <p>Empfangen: {val}</p>
     </>
   );
 }
 ```
 
-➡️ **"Lifting State Up"**: Eltern verwalten den Zustand.
-
----
-
-## 3️⃣ Geschwister-Komponenten (Sibling → Sibling): via **gemeinsamen Eltern-State**
-
-Beide Kinder greifen auf den **Zustand in der Elternkomponente** zu.
+**3) Geschwister-Komponenten:** **Lifting State Up** (gemeinsamer Eltern-State)
 
 ```jsx
-function Input({ onChange }) {
-  return <input onChange={(e) => onChange(e.target.value)} />;
-}
+import { useState } from "react";
 
-function Display({ value }) {
-  return <p>Wert: {value}</p>;
+function A({ value, onChange }) {
+  return <button onClick={() => onChange(value + 1)}>A+1</button>;
 }
+function B({ value }) { return <p>B sieht: {value}</p>; }
 
-function Parent() {
-  const [text, setText] = useState('');
+export default function Parent() {
+  const [n, setN] = useState(0);
   return (
     <>
-      <Input onChange={setText} />
-      <Display value={text} />
+      <A value={n} onChange={setN} />
+      <B value={n} />
     </>
   );
 }
 ```
 
----
-
-## 4️⃣ Tief verschachtelte Komponenten: via **Context API**
-
-Nutze `createContext`, `Provider` und `useContext`,  
-um Daten **global im Baum** verfügbar zu machen.
+**4) Global/über viele Ebenen:** **Context-API (`useContext`)** – vermeidet Prop Drilling
 
 ```jsx
-const ThemeContext = createContext();
+import { createContext, useContext } from "react";
 
-function App() {
+const AuthContext = createContext({ user: null });
+
+function UserTag() {
+  const { user } = useContext(AuthContext);
+  return <span>{user?.name ?? "Gast"}</span>;
+}
+
+export default function App() {
   return (
-    <ThemeContext.Provider value="dark">
-      <DeepChild />
-    </ThemeContext.Provider>
+    <AuthContext.Provider value={{ user: { name: "Sergii" } }}>
+      <UserTag />
+    </AuthContext.Provider>
   );
 }
-
-function DeepChild() {
-  const theme = useContext(ThemeContext);
-  return <p>Aktuelles Theme: {theme}</p>;
-}
 ```
 
----
+**5) Fortgeschritten (optional):**
 
-## 5️⃣ App-weite Zustände: via **State-Management** (z. B. Redux, Zustand)
-
-Für sehr große Apps oder komplexe Interaktionen.
-
-```jsx
-// Redux: useSelector, useDispatch
-// Zustand: useStore()
-// Recoil, Jotai, MobX = Alternativen
-```
+* **URL/Router** (z. B. Query-/Path-Parameter), **State-Management-Libs** (Redux, Zustand), **Events** (selten), **Server State** (React Query/SWR).
+* **Refs** via `forwardRef` für imperativen Zugriff, **nicht** für allgemeinen Datenfluss.
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-| Beziehung          | Lösung                         |
-|--------------------|---------------------------------|
-| Eltern → Kind      | Props                          |
-| Kind → Eltern      | Callback-Funktion als Prop     |
-| Geschwister        | Gemeinsamer Eltern-State       |
-| Tief verschachtelt | Context API                    |
-| Global             | State-Management-Library       |
+* Standard: **Props** (Top-down) und **Callbacks** (Bottom-up).
+* **Geschwister** teilen Daten über **Lifting State Up**.
+* **Context** für globale/weit gestreute Daten.
+* Bei komplexen Fällen: **Router/State-Management/Server-State** ergänzen.
 
----
+📖 Weiterführend:
 
-## 🔗 Quellen
-
-- [React – Props](https://react.dev/learn/passing-props-to-a-component)  
-- [React – State Heben](https://react.dev/learn/sharing-state-between-components)  
-- [React – Context API](https://react.dev/learn/passing-data-deeply-with-context)
+* React Docs: [Props weitergeben](https://react.dev/learn/passing-props-to-a-component), [State teilen & Lifting State Up](https://react.dev/learn/sharing-state-between-components), [Context & useContext](https://react.dev/reference/react/useContext)
+* MDN (RU): [Веб-события (обзор)](https://developer.mozilla.org/ru/docs/Learn/JavaScript/Building_blocks/Events)
 
   **[⬆ Наверх](#top)**
 
 80. ### <a name="80"></a> Wie macht man einen Datenabruf nur beim ersten Rendern?
 
-# Wie macht man einen Datenabruf nur beim ersten Rendern in React?
+### Datenabruf nur beim ersten Render (Mount)
 
-Um eine API-Anfrage **nur einmal beim ersten Laden der Komponente** durchzuführen,  
-nutzt man den Hook **`useEffect` mit leerem Abhängigkeits-Array `[]`**.
-
----
-
-## 💡 Beispiel: API-Fetch beim Mount
+**Pattern:** `useEffect` mit **leerem Abhängigkeitsarray `[]`**.
+Hinweis: In **React 18** ruft der Dev-Mode (Strict Mode) Effekte absichtlich **zweimal** auf (Mount → Cleanup → Mount) zur Fehlererkennung. In Production nur einmal. Nutze **AbortController** oder eine **Ref-Garde**, um Doppel-Requests zu vermeiden.
 
 ```jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from "react";
 
-function UserList() {
+export default function UsersOnce() {
   const [users, setUsers] = useState([]);
+  const [status, setStatus] = useState("idle"); // 'idle' | 'loading' | 'success' | 'error'
+  const fetchedRef = useRef(false); // schützt vor Doppel-Fetch im Dev-Mode
 
   useEffect(() => {
-    fetch('https://jsonplaceholder.typicode.com/users')
-      .then((res) => res.json())
-      .then((data) => setUsers(data));
-  }, []); // ← nur beim ersten Rendern!
+    if (fetchedRef.current) return;    // schon geladen? -> abbrechen
+    fetchedRef.current = true;
 
-  return (
-    <ul>
-      {users.map((u) => (
-        <li key={u.id}>{u.name}</li>
-      ))}
-    </ul>
-  );
+    const ctrl = new AbortController();
+    const load = async () => {
+      try {
+        setStatus("loading");
+        const res = await fetch("https://jsonplaceholder.typicode.com/users", {
+          signal: ctrl.signal,
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setUsers(data);
+        setStatus("success");
+      } catch (e) {
+        if (e.name !== "AbortError") setStatus("error");
+      }
+    };
+
+    load();
+    return () => ctrl.abort(); // Cleanup verhindert Leaks/SetState-after-unmount
+  }, []); // nur beim (ersten) Mount
+
+  if (status === "loading") return <p>Laden…</p>;
+  if (status === "error") return <p>Fehler beim Laden.</p>;
+  return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
 }
 ```
 
----
+**Alternativen/Ergänzungen**
 
-## 📌 Erklärung
-
-- Das leere Array `[]` bedeutet:  
-  **Dieser Effekt läuft nur einmal – beim ersten Rendern (Mount)**.
-- Keine erneute Ausführung bei Re-Renders oder State-Änderungen
+* **Idempotenter Request** (Server akzeptiert wiederholte Calls ohne Seiteneffekt).
+* **Datenbibliotheken** wie React Query/SWR cachen & deduplizieren Requests automatisch.
 
 ---
 
-## 🔁 Alternative: Async-Funktion in `useEffect`
+### Zusammenfassung
 
-Da `useEffect` keine `async`-Funktion direkt erlaubt:
+* „Nur einmal laden“: `useEffect(() => {...}, [])`.
+* In React 18 dev kann der Effekt doppelt laufen → **`AbortController`** oder **Ref-Garde** nutzen.
+* Cleanup im Effekt verhindert Speicherlecks und Fehlzustände.
 
-```jsx
-useEffect(() => {
-  async function fetchData() {
-    const res = await fetch('...');
-    const data = await res.json();
-    setUsers(data);
-  }
+📖 Weiterführend:
 
-  fetchData();
-}, []);
-```
-
----
-
-## 📝 Zusammenfassung
-
-- Verwende `useEffect(() => { ... }, [])`, um einen Effekt **nur einmal beim ersten Rendern** auszuführen  
-- Ideal für **API-Anfragen, Initialdaten oder Setup-Logik**  
-- Async-Aufrufe müssen in eine **innere Funktion** ausgelagert werden
-
----
-
-## 🔗 Quellen
-
-- [React Docs – useEffect](https://react.dev/reference/react/useEffect)  
-- [Daten beim Mount laden – React Patterns](https://reactpatterns.com/#fetch-on-mount)
+* React Docs: [Effects & Abhängigkeiten](https://react.dev/learn/synchronizing-with-effects)
+* React Docs: [useEffect API](https://react.dev/reference/react/useEffect)
+* MDN (RU): [Fetch API](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API), [AbortController](https://developer.mozilla.org/ru/docs/Web/API/AbortController)
 
   **[⬆ Наверх](#top)**  
 
 81. ### <a name="81"></a> Was ist das Problem bei „stale closures“ mit Hooks?
 
-# Was ist das Problem bei „stale closures“ mit Hooks?
+### „Stale Closures“ in React Hooks
 
-Ein **„stale closure“** (veraltete Funktionseinbettung) tritt auf,  
-wenn eine **Funktion in einem Hook (z. B. `useEffect`, `setInterval`, `addEventListener`)**  
-auf **einen veralteten Wert aus dem vorherigen Render** zugreift.
+Ein **stale closure** tritt auf, wenn eine Funktion innerhalb einer Komponente auf **veraltete Variablenwerte** zugreift, weil sie an den Zustand **gebunden wurde, der zum Zeitpunkt der Definition gültig war** – nicht am aktuellen State/Prop.
 
 ---
 
-## 📦 Was ist eine Closure?
-
-Eine **Closure** ist eine Funktion, die Zugriff auf Variablen aus dem **Umgebungskontext** (z. B. vorherigem Render) hat.
-
-Wenn ein Hook eine Funktion verwendet, „merkt“ sich diese Funktion **den Zustand des Wertes zu diesem Zeitpunkt**.
-
----
-
-## 💡 Beispiel: Problem mit `setInterval`
+### Beispiel (Problem)
 
 ```jsx
+import { useEffect, useState } from "react";
+
 function Timer() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setCount(count + 1); // ❌ count ist immer 0!
+      // ❌ stale closure: 'count' ist immer 0
+      setCount(count + 1);
     }, 1000);
 
     return () => clearInterval(id);
-  }, []);
-  
-  return <p>Zähler: {count}</p>;
+  }, []); // [] → Effekt läuft nur einmal, count ist „eingefroren“
+
+  return <p>{count}</p>;
 }
 ```
 
-### 🔴 Problem:
-
-- Die `count`-Variable ist **eingefroren (stale)** bei `0`, weil `useEffect` nur **einmal** ausgeführt wird
-- Der Callback in `setInterval` „sieht“ nie die neuen `count`-Werte
+* `count` im Callback bleibt **immer 0**, weil das Closure aus dem ersten Render eingefroren ist.
+* Ergebnis: Zähler bleibt bei `1` stehen.
 
 ---
 
-## ✅ Lösung 1: Funktionales `setState`
+### Lösungen
 
-```jsx
-setCount((prev) => prev + 1);
-```
+1. **Funktionale Updates verwenden**
 
-```jsx
-useEffect(() => {
-  const id = setInterval(() => {
-    setCount((prev) => prev + 1); // ✅ aktueller Wert
-  }, 1000);
+   ```jsx
+   setCount(prev => prev + 1); // aktueller Wert garantiert
+   ```
 
-  return () => clearInterval(id);
-}, []);
-```
+   ```jsx
+   useEffect(() => {
+     const id = setInterval(() => setCount(prev => prev + 1), 1000);
+     return () => clearInterval(id);
+   }, []);
+   ```
 
-➡️ `prev` wird **zur aktuellen Version** von `count`, unabhängig vom Closure
+2. **Abhängigkeiten korrekt setzen**
 
----
+   ```jsx
+   useEffect(() => {
+     console.log("Neuer Count:", count);
+   }, [count]); // aktualisiert bei jedem Count
+   ```
 
-## ✅ Lösung 2: useRef für aktuelle Werte
+3. **useRef für mutable Werte**
 
-```jsx
-const countRef = useRef(count);
-
-useEffect(() => {
-  countRef.current = count;
-}, [count]);
-
-useEffect(() => {
-  const id = setInterval(() => {
-    console.log(countRef.current); // immer aktuell
-  }, 1000);
-
-  return () => clearInterval(id);
-}, []);
-```
-
-➡️ `useRef` bleibt **zwischen Renders gleich** und kann **aktualisiert** werden.
+   * Wenn man Werte **lesen, aber kein Re-Render auslösen** möchte.
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-- Ein **stale closure** tritt auf, wenn eine Funktion auf **veraltete Werte** zugreift  
-- Typisch bei: `setInterval`, `useEffect`, Event-Handlern  
-- Lösungen:
-  - ✅ Funktionales `setState`
-  - ✅ `useRef` zur Speicherung aktueller Werte
+* **Stale closure** = Callback in Hook verwendet **veraltete Variablenwerte**.
+* Ursache: Closures binden Werte aus dem Render-Zeitpunkt.
+* Lösung: **funktionale Updates (`prev => ...`)**, korrekte **Dependencies** oder **Refs**.
+
+📖 Weiterführend:
+
+* [React Docs – useEffect & Closures](https://react.dev/learn/synchronizing-with-effects#what-to-do-when-you-disagree-with-the-linter)
+* [Dan Abramov – A Complete Guide to useEffect](https://overreacted.io/a-complete-guide-to-useeffect/)
 
 ---
-
-## 🔗 Quellen
-
-- [React Docs – useEffect Gotchas](https://react.dev/learn/synchronizing-with-effects#you-might-see-stale-values-inside-an-effect)  
-- [Dan Abramov – A Complete Guide to useEffect](https://overreacted.io/a-complete-guide-to-useeffect/)
 
   **[⬆ Наверх](#top)**
 
 82. ### <a name="82"></a> Wie funktioniert die Fehlerbehandlung mit try/catch in React?
 
-# Wie funktioniert die Fehlerbehandlung mit `try/catch` in React?
+### Fehlerbehandlung mit `try...catch` in React
 
-In React wird `try/catch` verwendet, um **synchronen und asynchronen Code** innerhalb von Funktionen  
-(z. B. Event-Handlern, `async`-Funktionen) **gezielt abzusichern**.
+1. **In Event-Handlern**
 
-⚠️ `try/catch` funktioniert **nicht für Renderfehler** in JSX – dafür benötigt man **Error Boundaries**.
-
----
-
-## ✅ Verwendung in Event-Handlern
+* Fehler können direkt mit `try...catch` abgefangen werden.
+* Das verhindert, dass die App abstürzt.
 
 ```jsx
-function Button() {
-  const handleClick = () => {
+function Form() {
+  function handleSubmit(e) {
+    e.preventDefault();
     try {
-      // synchroner Fehler
-      throw new Error('Etwas ist schiefgelaufen!');
+      throw new Error("Ups!");
     } catch (err) {
-      console.error('Fehler:', err.message);
+      console.error("Fehler im Event:", err.message);
     }
-  };
+  }
 
-  return <button onClick={handleClick}>Klick mich</button>;
+  return <form onSubmit={handleSubmit}><button>Absenden</button></form>;
 }
 ```
 
 ---
 
-## ✅ Verwendung in `async`-Funktionen (z. B. Daten laden)
+2. **In asynchronem Code (z. B. Fetch, Axios)**
+
+* `try...catch` funktioniert nur in `async`-Funktionen.
+* Alternative: `.catch()` bei Promises.
 
 ```jsx
-function DataLoader() {
+import { useEffect, useState } from "react";
+
+function DataFetcher() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function fetchData() {
+    async function load() {
       try {
-        const res = await fetch('https://api.example.com/data');
-        if (!res.ok) throw new Error('Fehler beim Abrufen');
+        const res = await fetch("https://jsonplaceholder.typicode.com/users");
+        if (!res.ok) throw new Error("HTTP-Fehler " + res.status);
         const json = await res.json();
         setData(json);
       } catch (err) {
-        setError(err.message);
+        setError(err);
       }
     }
-
-    fetchData();
+    load();
   }, []);
 
-  if (error) return <p>❌ Fehler: {error}</p>;
-  if (!data) return <p>⏳ Lädt...</p>;
-  return <pre>{JSON.stringify(data, null, 2)}</pre>;
+  if (error) return <p>Fehler: {error.message}</p>;
+  if (!data) return <p>Laden...</p>;
+  return <ul>{data.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
 }
 ```
 
 ---
 
-## 🔴 Kein `try/catch` für Renderfehler
+3. **Nicht möglich: Render-Phase/Lifecycle**
 
-```jsx
-function App() {
-  try {
-    return <ProblematicComponent />; // ❌ try/catch greift hier nicht
-  } catch (e) {
-    return <p>Fehler!</p>; // ❌ wird nicht erreicht
-  }
-}
-```
-
-➡️ React rendert **asynchron**, deshalb **fangen Error Boundaries** solche Fehler ab, nicht `try/catch`.
+* Fehler im **Rendern von Komponenten** oder in **Hooks** können mit `try...catch` **nicht** abgefangen werden.
+* Dafür braucht man **Error Boundaries** (`getDerivedStateFromError`, `componentDidCatch`).
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-| Fehlerquelle      | `try/catch` geeignet? | Alternative                     |
-|------------------|------------------------|---------------------------------|
-| Event-Handler     | ✅ Ja                  | —                               |
-| `async`-Funktionen| ✅ Ja                  | —                               |
-| Renderzeit (JSX)  | ❌ Nein                | ❗ `ErrorBoundary` verwenden     |
+* **`try...catch`** funktioniert in Event-Handlern und asynchronem Code (z. B. `fetch`).
+* In der Render-Phase reicht `try...catch` nicht → dort braucht man **Error Boundaries**.
+* Best Practice: **`try...catch` für asynchrone Logik**, **Error Boundaries für UI-Absturz-Schutz**.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
+* [MDN – try...catch (RU)](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Statements/try...catch)
 
 ---
-
-## 🔗 Quellen
-
-- [React Docs – Fehlerbehandlung](https://react.dev/learn/managing-errors)  
-- [MDN – try...catch](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Statements/try...catch)
 
   **[⬆ Наверх](#top)**
 
 83. ### <a name="83"></a> Wie kann man ein Mock-API oder Mock Server verwenden?
 
-# Wie kann man ein Mock-API oder Mock Server in React verwenden?
+### Mock-API / Mock Server in React: gängige Optionen
 
-Ein **Mock-API** oder **Mock-Server** simuliert eine echte Backend-API,  
-um die Entwicklung und das Testen von Frontend-Komponenten zu ermöglichen –  
-ohne auf ein echtes Backend warten zu müssen.
+#### 1) **MSW – Mock Service Worker** (empfohlen: realitätsnah im Browser & Node)
 
----
+* Interceptet **`fetch`/`XHR`** auf Netzwerkebene, kein Code-Ändern in Komponenten.
+* Funktioniert in **Dev**, **Storybook** und **Tests (Jest/Vitest)**.
 
-## 🎯 Vorteile
+```js
+// src/mocks/handlers.js
+import { http, HttpResponse } from "msw";
 
-- Unabhängige Entwicklung von Frontend und Backend
-- Offline arbeiten möglich
-- Schnelleres Testen von UI-Logik
-- Kontrolle über Antwortdaten, Fehler, Ladezeiten
+export const handlers = [
+  http.get("/api/users", () => HttpResponse.json([
+    { id: 1, name: "Sergii" },
+    { id: 2, name: "Anna" },
+  ])),
+];
 
----
+// src/mocks/browser.js
+import { setupWorker } from "msw/browser";
+import { handlers } from "./handlers.js";
+export const worker = setupWorker(...handlers);
 
-## ✅ Möglichkeiten für Mocking
+// src/main.jsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.jsx";
 
-### 1️⃣ **JSON Server (lokal)**
+async function enableMocking() {
+  if (import.meta.env.DEV) {
+    const { worker } = await import("./mocks/browser.js");
+    await worker.start({ onUnhandledRequest: "bypass" });
+  }
+}
+enableMocking();
 
-Schneller REST-API-Mock über eine JSON-Datei.
-
-#### 🔧 Installation:
-
-```bash
-npm install -g json-server
+createRoot(document.getElementById("root")).render(
+  <StrictMode><App /></StrictMode>
+);
 ```
 
-#### 📁 `db.json`
+```jsx
+// Normales Fetching bleibt unverändert
+import { useEffect, useState } from "react";
+
+export default function Users() {
+  const [users, setUsers] = useState([]);
+  useEffect(() => {
+    fetch("/api/users").then(r => r.json()).then(setUsers);
+  }, []);
+  return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
+
+**Vorteile:** keine Codeveränderung am Fetching, gleiche API wie Produktion, ideal für UI-Entwicklung & Tests.
+
+---
+
+#### 2) **JSON Server** (schneller REST-Mock via Datei)
+
+* Startet in Sekunden eine REST-API aus `db.json`.
 
 ```json
+// db.json
 {
   "users": [
-    { "id": 1, "name": "Alice" },
-    { "id": 2, "name": "Bob" }
+    { "id": 1, "name": "Sergii" },
+    { "id": 2, "name": "Anna" }
   ]
 }
 ```
 
-#### 🚀 Starten:
-
 ```bash
-json-server --watch db.json --port 4000
+# Installation & Start
+npm i -D json-server
+npx json-server --watch db.json --port 4000
 ```
 
-➡️ API verfügbar unter `http://localhost:4000/users`
+```jsx
+// React: ganz normal fetchen
+import { useEffect, useState } from "react";
 
----
-
-### 2️⃣ **Mock Service Worker (MSW)** – empfohlen für komplexe Szenarien
-
-Interceptet echte Requests auf Netzwerkebene → realistisch & flexibel.
-
-#### 🔧 Installation:
-
-```bash
-npm install msw --save-dev
-```
-
-#### 📁 Beispiel-Handler:
-
-```js
-// src/mocks/handlers.js
-import { rest } from 'msw';
-
-export const handlers = [
-  rest.get('/api/users', (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json([{ id: 1, name: 'Sergii' }, { id: 2, name: 'Anna' }])
-    );
-  }),
-];
-```
-
-#### 🧩 Setup:
-
-```js
-// src/mocks/browser.js
-import { setupWorker } from 'msw';
-import { handlers } from './handlers';
-
-export const worker = setupWorker(...handlers);
-```
-
-```js
-// index.js
-if (process.env.NODE_ENV === 'development') {
-  const { worker } = require('./mocks/browser');
-  worker.start();
+export default function Users() {
+  const [users, setUsers] = useState([]);
+  useEffect(() => {
+    fetch("http://localhost:4000/users").then(r => r.json()).then(setUsers);
+  }, []);
+  return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
 }
 ```
 
----
-
-### 3️⃣ **Online-Tools / öffentliche APIs**
-
-- [https://reqres.in](https://reqres.in)
-- [https://jsonplaceholder.typicode.com](https://jsonplaceholder.typicode.com)
-- [https://mockapi.io](https://mockapi.io)
-
-➡️ Gut für schnelles Testen ohne lokale Einrichtung
+**Vorteile:** echte REST-URLs, unterstützt Filter/Queries, ideal für Team-Prototyping.
+**Hinweis:** CORS/Port beachten; ggf. Proxy in Vite/CRA konfigurieren.
 
 ---
 
-## 📝 Zusammenfassung
+#### 3) **MirageJS** (in-app Mock-Server)
 
-| Methode         | Geeignet für                  | Vorteile                    |
-|------------------|-------------------------------|-----------------------------|
-| `json-server`    | Lokale Fake-REST-API          | Schnell, einfach            |
-| `msw`            | Realistisches Mocking (XHR)   | Sehr mächtig, intercepts    |
-| `mockapi.io`     | Online-Testing                | Kein Setup nötig            |
+* Startet einen **virtuellen Server im Browser**, definiert Routen/Models in JS.
+
+```js
+// src/server.js
+import { createServer } from "miragejs";
+
+export function makeServer() {
+  return createServer({
+    routes() {
+      this.namespace = "api";
+      this.get("/users", () => [
+        { id: "1", name: "Sergii" },
+        { id: "2", name: "Anna" },
+      ]);
+    },
+  });
+}
+
+// src/main.jsx
+import { makeServer } from "./server.js";
+if (import.meta.env.DEV) makeServer();
+```
+
+**Vorteile:** komplexere Szenarien (Beziehungen, Statuscodes) ohne externen Prozess.
 
 ---
 
-## 🔗 Quellen
+### Mocking im **Test** (Jest/Vitest) – minimal
 
-- [Mock Service Worker – offizielle Website](https://mswjs.io)  
-- [JSON Server – GitHub](https://github.com/typicode/json-server)  
-- [jsonplaceholder – Fake API](https://jsonplaceholder.typicode.com)
+* Entweder **MSW (Node-Adapter)** oder **Fetch mocken**:
+
+```js
+// __tests__/users.test.js
+import { render, screen, waitFor } from "@testing-library/react";
+import Users from "../Users.jsx";
+
+global.fetch = vi.fn(() =>
+  Promise.resolve({ ok: true, json: () => Promise.resolve([{ id: 1, name: "Sergii" }]) })
+);
+
+test("rendert Nutzerliste", async () => {
+  render(<Users />);
+  await waitFor(() => screen.getByText("Sergii"));
+});
+```
+
+---
+
+### Wann welche Lösung?
+
+* **MSW:** realitätsnah, „netzwerkgetreu“, Dev & Test – **Standard-Empfehlung**.
+* **JSON Server:** schnell, eigenständiger REST-Endpunkt, gut für Teams/Backend-Entkopplung.
+* **MirageJS:** alles in einem Bundle, mächtig für komplexe Fake-Backends.
+
+---
+
+### Zusammenfassung
+
+* Mocking-Optionen: **MSW** (Intercept), **JSON Server** (echter Dev-Server), **MirageJS** (in-app).
+* React-Code bleibt idR unverändert; Mock-Schicht ersetzt/bedient die API.
+* Für Tests: **MSW (Node)** oder gezieltes **Fetch-Mocking**.
+
+📖 Weiterführend:
+
+* React Docs: [Daten holen mit Effects](https://react.dev/learn/synchronizing-with-effects)
+* MDN (RU): [Fetch API](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API)
+* MSW: [https://mswjs.io](https://mswjs.io)
+* JSON Server: [https://github.com/typicode/json-server](https://github.com/typicode/json-server)
+* MirageJS: [https://miragejs.com](https://miragejs.com)
 
   **[⬆ Наверх](#top)**
 
 84. ### <a name="84"></a> Wie funktioniert Suspense für Datenabfragen?
 
-# Wie funktioniert `React.Suspense` für Datenabfragen?
+### Suspense für Datenabfragen in React
 
-`React.Suspense` erlaubt es, **asynchrone Datenladevorgänge** elegant zu behandeln,  
-indem eine **Fallback-UI** (z. B. Ladeanzeige) angezeigt wird,  
-solange **komponentenabhängige Daten noch nicht verfügbar** sind.
-
----
-
-## ⚠️ Wichtig:
-
-- Suspense für Daten funktioniert **nur mit speziellen Data Fetching Libraries**, z. B.:
-  - **React Query (TanStack Query)**
-  - **Relay**
-  - oder man schreibt einen eigenen **Wrapper mit `Promise`-suspending**
+**Suspense** ist ein React-Feature, das es ermöglicht, eine **Fallback-UI (z. B. Spinner)** anzuzeigen, solange Daten noch nicht geladen sind.
+Anstatt den Ladezustand selbst mit `useState`/`useEffect` zu managen, „wartet“ React, bis ein Promise **resolved** ist, und zeigt in der Zwischenzeit den Fallback an.
 
 ---
 
-## ✅ Beispiel mit React Query (empfohlener Weg)
+### Grundprinzip
 
-### 🔧 Setup:
+* Eine Komponente „wirft“ (`throw`) ein Promise während des Renderns.
+* React erkennt dies und zeigt den `fallback` aus `<Suspense>` an.
+* Sobald das Promise resolved ist, rendert React die eigentliche UI.
 
-```bash
-npm install @tanstack/react-query
-```
+---
 
-### 📦 App mit QueryClient + Suspense:
+### Einfaches Beispiel (Simulation)
 
 ```jsx
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from '@tanstack/react-query';
-import { Suspense } from 'react';
+import { Suspense } from "react";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      suspense: true,
-    },
-  },
-});
+// Hilfsfunktion: "Ressource" mit read()
+function fetchData() {
+  let status = "pending";
+  let result;
+  const suspender = fetch("https://jsonplaceholder.typicode.com/users")
+    .then(r => r.json())
+    .then(
+      res => {
+        status = "success";
+        result = res;
+      },
+      err => {
+        status = "error";
+        result = err;
+      }
+    );
 
-function Users() {
-  const { data } = useQuery({
-    queryKey: ['users'],
-    queryFn: () =>
-      fetch('https://jsonplaceholder.typicode.com/users').then((res) =>
-        res.json()
-      ),
-  });
+  return {
+    read() {
+      if (status === "pending") throw suspender; // löst Suspense aus
+      if (status === "error") throw result;      // löst Error Boundary aus
+      return result;
+    }
+  };
+}
 
+const resource = fetchData();
+
+function UserList() {
+  const users = resource.read(); // wartet über Suspense
   return (
     <ul>
-      {data.map((u) => (
-        <li key={u.id}>{u.name}</li>
-      ))}
+      {users.map(u => <li key={u.id}>{u.name}</li>)}
     </ul>
   );
 }
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Suspense fallback={<p>⏳ Lädt Benutzer...</p>}>
-        <Users />
-      </Suspense>
-    </QueryClientProvider>
+    <Suspense fallback={<p>Lade Nutzer...</p>}>
+      <UserList />
+    </Suspense>
   );
 }
 ```
 
 ---
 
-## 🧠 Was passiert hier?
+### Typische moderne Nutzung
 
-- **`Suspense`** zeigt das `fallback`, solange `Users` noch lädt.
-- Sobald `useQuery` Daten geladen hat, wird `fallback` ersetzt.
-- Vorteil: Kein explizites `isLoading` oder `error` nötig → cleaner Code
-
----
-
-## 🔁 Alternative: Eigene Datenquelle mit `suspense`-like Verhalten
-
-```jsx
-function wrapPromise(promise) {
-  let status = 'pending';
-  let result;
-  const suspender = promise.then(
-    (r) => {
-      status = 'success';
-      result = r;
-    },
-    (e) => {
-      status = 'error';
-      result = e;
-    }
-  );
-
-  return {
-    read() {
-      if (status === 'pending') throw suspender;
-      if (status === 'error') throw result;
-      return result;
-    },
-  };
-}
-```
-
-➡️ Diese Technik ist eher experimentell.
+* React-Team empfiehlt **React Query**, **Relay** oder **Next.js (App Router)** → diese Libraries integrieren Suspense.
+* Suspense selbst liefert nur den **UI-Mechanismus** – kein Fetch- oder Cache-System.
 
 ---
 
-## 📝 Zusammenfassung
+### Zusammenfassung
 
-- `Suspense` kann Ladezustände abfangen und Fallback anzeigen
-- Für Daten: funktioniert nur mit Libraries wie **React Query** oder **Relay**
-- Vorteil: **automatisches Laden + saubere Trennung von UI & Logik**
+* **Suspense** zeigt Fallback-UI, solange Daten noch nicht geladen sind.
+* Funktioniert, indem Komponenten während des Renderns ein **Promise werfen**.
+* Für echte Projekte: in Kombination mit Libraries wie **React Query, Relay, Next.js**.
+
+📖 Weiterführend:
+
+* [React Offizielle Dokumentation – Suspense für Datenabfragen](https://react.dev/reference/react/Suspense#suspense-for-data-fetching)
+* [React Docs – Asynchronous Rendering](https://react.dev/learn/suspense)
 
 ---
-
-## 🔗 Quellen
-
-- [React Suspense für Daten – React Docs](https://react.dev/reference/react/Suspense)  
-- [TanStack Query mit Suspense](https://tanstack.com/query/latest/docs/react/guides/suspense)  
-- [MDN: Promises](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 
   **[⬆ Наверх](#top)**
 
