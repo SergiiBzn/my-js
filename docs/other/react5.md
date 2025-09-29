@@ -4586,550 +4586,575 @@ export default function App() {
 
 91. ### <a name="91"></a> Was ist Unit-, Integration- und E2E-Testing?
 
-# Was ist Unit-, Integration- und E2E-Testing in der Webentwicklung?
-
-Beim Testen von Anwendungen unterscheidet man drei zentrale Testarten:  
-**Unit-Tests**, **Integrationstests** und **End-to-End-Tests (E2E)**.  
-Sie prüfen den Code auf verschiedenen Ebenen.
+**Unit-, Integrations- und End-to-End-Testing (E2E)** sind verschiedene Testebenen in der Softwareentwicklung, auch im Frontend mit ReactJS.
 
 ---
 
-## ✅ 1. Unit-Testing (Einheitentest)
+### **1. Unit-Testing**
 
-**Testet eine einzelne Funktion oder Komponente isoliert.**
+* Testet **einzelne, isolierte Einheiten** (z. B. Funktionen, React-Komponenten).
+* Ziel: Sicherstellen, dass eine kleine Funktionalität unabhängig korrekt funktioniert.
 
-### Ziel:
-- Prüfen, ob eine **kleine logische Einheit** korrekt funktioniert
-
-### Beispiel:
+**Beispiel:**
 
 ```jsx
+// add.js
+export function add(a, b) {
+  return a + b;
+}
+
+// add.test.js (Jest)
+import { add } from "./add.js";
+
+test("addiert zwei Zahlen korrekt", () => {
+  expect(add(2, 3)).toBe(5);
+});
+```
+
+---
+
+### **2. Integration-Testing**
+
+* Testet das **Zusammenspiel mehrerer Einheiten** (z. B. Komponente + API-Aufruf + State).
+* Ziel: Prüfen, ob die Integration der Teile korrekt funktioniert.
+
+**Beispiel mit React Testing Library:**
+
+```jsx
+// Greeting.jsx
+import { useState, useEffect } from "react";
+
+export function Greeting({ name }) {
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setMessage(`Hallo, ${name}!`);
+  }, [name]);
+
+  return <h1>{message}</h1>;
+}
+
+// Greeting.test.js
+import { render, screen } from "@testing-library/react";
+import { Greeting } from "./Greeting.jsx";
+
+test("zeigt eine Begrüßung basierend auf Props", () => {
+  render(<Greeting name="Sergii" />);
+  expect(screen.getByText("Hallo, Sergii!")).toBeInTheDocument();
+});
+```
+
+---
+
+### **3. End-to-End-Testing (E2E)**
+
+* Testet die **gesamte Anwendung** aus Sicht des Benutzers.
+* Simuliert echte Interaktionen im Browser (z. B. Klicks, Navigation, Formulare).
+* Tools: **Cypress**, **Playwright**.
+
+**Beispiel mit Cypress:**
+
+```js
+// e2e.spec.js
+describe("Login Flow", () => {
+  it("erlaubt einem Nutzer, sich einzuloggen", () => {
+    cy.visit("/login");
+    cy.get("input[name=username]").type("testuser");
+    cy.get("input[name=password]").type("secret");
+    cy.get("button[type=submit]").click();
+    cy.url().should("include", "/dashboard");
+    cy.contains("Willkommen, testuser");
+  });
+});
+```
+
+---
+
+### **Zusammenfassung**
+
+* **Unit-Test:** Testet einzelne Funktionen/Komponenten isoliert.
+* **Integration-Test:** Testet Zusammenspiel mehrerer Teile.
+* **E2E-Test:** Testet die komplette Anwendung wie ein echter Benutzer.
+
+📖 Quellen:
+
+* [React Testing Library](https://testing-library.com/docs/react-testing-library/intro)
+* [MDN Testing](https://developer.mozilla.org/ru/docs/Learn/Tools_and_testing/Testing_client-side_JavaScript)
+* [React Docs: Testing](https://react.dev/learn/testing)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+92. ### <a name="92"></a> Was ist Snapshot-Testing?
+
+**Snapshot-Testing** ist eine Testmethode, bei der der **gerenderte Output einer Komponente** gespeichert (als Snapshot-Datei) und bei späteren Testläufen mit der aktuellen Ausgabe verglichen wird.
+Wenn sich die Ausgabe verändert, schlägt der Test fehl – außer man akzeptiert die neue Version des Snapshots.
+
+---
+
+### **Beispiel mit Jest + React Testing Library**
+
+```jsx
+// Button.jsx
+export function Button({ label }) {
+  return <button>{label}</button>;
+}
+
+// Button.test.js
+import { render } from "@testing-library/react";
+import { Button } from "./Button.jsx";
+
+test("Button Snapshot", () => {
+  const { asFragment } = render(<Button label="Klick mich" />);
+  expect(asFragment()).toMatchSnapshot();
+});
+```
+
+➡️ Beim ersten Lauf erstellt Jest eine **Snapshot-Datei** (`__snapshots__/Button.test.js.snap`).
+➡️ Bei späteren Läufen wird verglichen, ob die gerenderte Ausgabe noch identisch ist.
+
+---
+
+### **Vorteile**
+
+* Schnell, einfach zu implementieren.
+* Erkennt ungewollte Änderungen im UI.
+
+### **Nachteile**
+
+* Kann zu **falschen Alarmen** führen, wenn sich die UI oft ändert.
+* Snapshots können groß und unübersichtlich werden.
+* Empfohlen nur für **stabile, UI-relevante Komponenten**.
+
+---
+
+### **Zusammenfassung**
+
+* Snapshot-Tests speichern den UI-Output und vergleichen ihn mit zukünftigen Versionen.
+* Praktisch für UI-Regressionstests, aber vorsichtig einsetzen.
+
+📖 Quellen:
+
+* [React Docs – Testing UI](https://react.dev/learn/testing)
+* [Jest: Snapshot Testing](https://jestjs.io/docs/snapshot-testing)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+93. ### <a name="93"></a> Welche Tools nutzt man für React-Tests (Jest, React Testing Library)?
+
+### **Tools für React-Tests**
+
+#### **1. Jest**
+
+* Test-Runner und Assertions-Bibliothek.
+* Standard-Tool im React-Ökosystem.
+* Unterstützt **Unit-, Integration- und Snapshot-Tests**.
+* Features: Mocking von Modulen, Timer, Snapshots.
+
+**Beispiel:**
+
+```js
 // sum.js
 export function sum(a, b) {
   return a + b;
 }
 
 // sum.test.js
-import { sum } from './sum';
+import { sum } from "./sum.js";
 
-test('addiert zwei Zahlen korrekt', () => {
+test("addiert zwei Zahlen", () => {
   expect(sum(2, 3)).toBe(5);
 });
 ```
 
-### Tools:
-- **Jest**, **Vitest**, **Mocha**
-
 ---
 
-## ✅ 2. Integrationstests
+#### **2. React Testing Library (RTL)**
 
-**Testet das Zusammenspiel mehrerer Einheiten.**
+* Baut auf Jest auf.
+* Fokus: **Testen wie der Nutzer die App erlebt** (DOM-Queries statt Implementationsdetails).
+* Nutzt Queries wie `getByText`, `getByRole`, `getByLabelText`.
 
-### Ziel:
-- Sicherstellen, dass **Komponenten oder Module korrekt interagieren**
-
-### Beispiel:
+**Beispiel:**
 
 ```jsx
-// LoginForm.js mit Input + Button + Handler
-// Integrationstest prüft, ob das Form korrekt absendet
-
-import { render, screen, fireEvent } from '@testing-library/react';
-import LoginForm from './LoginForm';
-
-test('LoginForm ruft onSubmit mit richtigen Daten auf', () => {
-  const handleSubmit = jest.fn();
-  render(<LoginForm onSubmit={handleSubmit} />);
-
-  fireEvent.change(screen.getByLabelText(/email/i), {
-    target: { value: 'test@mail.com' },
-  });
-  fireEvent.click(screen.getByText(/einloggen/i));
-
-  expect(handleSubmit).toHaveBeenCalledWith({
-    email: 'test@mail.com',
-  });
-});
-```
-
-### Tools:
-- **React Testing Library**, **Jest**
-
----
-
-## ✅ 3. E2E-Testing (End-to-End)
-
-**Testet die gesamte App vom Nutzer aus betrachtet (UI + Backend).**
-
-### Ziel:
-- Simulieren, wie ein **echter Benutzer** mit der App interagiert
-- Test umfasst: Browser, Klicks, Navigation, API, Server
-
-### Beispiel:
-
-```js
-// login.spec.js mit Cypress
-
-describe('Login Flow', () => {
-  it('meldet sich erfolgreich an', () => {
-    cy.visit('/login');
-    cy.get('input[name="email"]').type('user@mail.com');
-    cy.get('input[name="password"]').type('pass123');
-    cy.get('button[type="submit"]').click();
-    cy.contains('Willkommen, user@mail.com');
-  });
-});
-```
-
-### Tools:
-- **Cypress**, **Playwright**, **TestCafe**
-
----
-
-## 📊 Vergleich
-
-| Testtyp        | Umfang             | Geschwindigkeit | Stabilität | Fehlerursache erkennbar |
-|----------------|--------------------|------------------|------------|--------------------------|
-| Unit-Test      | Sehr klein (1 Unit)| 🟢 Sehr schnell  | 🟢 Hoch     | 🎯 Sehr präzise          |
-| Integration    | Mittelgroß         | 🟡 Mittel         | 🟡 Gut      | 🎯 Meist klar            |
-| E2E-Test       | Ganze App (UI/API) | 🔴 Langsam        | 🔴 Weniger stabil | ⚠️ Fehler schwerer zu debuggen |
-
----
-
-## 📝 Zusammenfassung
-
-| Testart      | Was wird getestet?                            | Tools                    |
-|--------------|-----------------------------------------------|--------------------------|
-| Unit         | Einzelne Funktion oder Komponente             | Jest, Vitest             |
-| Integration  | Zusammenspiel mehrerer Komponenten            | React Testing Library    |
-| E2E          | Gesamter Ablauf aus Sicht des Benutzers       | Cypress, Playwright      |
-
----
-
-## 🔗 Quellen
-
-- [Jest – Unit Testing](https://jestjs.io/docs/getting-started)  
-- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)  
-- [Cypress E2E Testing](https://www.cypress.io)  
-- [Playwright Testing](https://playwright.dev)
-
-  **[⬆ Наверх](#top)**
-
-92. ### <a name="92"></a> Was ist Snapshot-Testing?
-
-# Was ist Snapshot-Testing in React?
-
-**Snapshot-Testing** ist eine Testmethode, bei der die **Ausgabe einer Komponente** gespeichert  
-und bei jedem Testlauf automatisch mit dem vorherigen **„Snapshot“** verglichen wird.  
-So erkennt man unbeabsichtigte Änderungen in der UI.
-
----
-
-## 🎯 Ziel
-
-- Sicherstellen, dass sich die gerenderte Ausgabe einer Komponente **nicht unerwartet verändert**
-- Ideal für **präsentationsorientierte Komponenten** (UI, Layout)
-
----
-
-## 🧪 Beispiel mit Jest
-
-```jsx
-// Hello.jsx
-function Hello({ name }) {
+// Greeting.jsx
+export function Greeting({ name }) {
   return <h1>Hallo, {name}!</h1>;
 }
 
-export default Hello;
-```
+// Greeting.test.js
+import { render, screen } from "@testing-library/react";
+import { Greeting } from "./Greeting.jsx";
 
-```jsx
-// Hello.test.js
-import { render } from '@testing-library/react';
-import Hello from './Hello';
-
-test('erstellt einen Snapshot der Hello-Komponente', () => {
-  const { asFragment } = render(<Hello name="Sergii" />);
-  expect(asFragment()).toMatchSnapshot();
+test("zeigt Begrüßung an", () => {
+  render(<Greeting name="Sergii" />);
+  expect(screen.getByText("Hallo, Sergii!")).toBeInTheDocument();
 });
 ```
 
-### ➕ Beim ersten Testlauf:
+---
 
-Es wird eine Datei erstellt:  
-`__snapshots__/Hello.test.js.snap` mit dem HTML-Output:
+#### **3. Ergänzende Tools**
 
-```txt
-<document-fragment>
-  <h1>Hallo, Sergii!</h1>
-</document-fragment>
-```
-
-### 🔁 Bei weiteren Testläufen:
-
-- Wenn sich der HTML-Output **ändert**, schlägt der Test fehl
-- Man kann dann entscheiden:  
-  - ✅ „Änderung gewollt“ → `jest -u` zum **aktualisieren**  
-  - ❌ „Fehlerhaft“ → Komponente korrigieren
+* **Cypress / Playwright** → E2E-Tests.
+* **MSW (Mock Service Worker)** → API-Calls mocken.
+* **Vitest** → Alternative zu Jest (schneller, Vite-basiert).
 
 ---
 
-## 📦 Vorteile
+### **Zusammenfassung**
 
-- Schnell und einfach für reine UI-Komponenten
-- Automatisches Erkennen von Änderungen
+* **Jest**: Test-Runner, Assertions, Snapshots.
+* **React Testing Library**: Nutzt DOM-Queries, testet die App wie ein Benutzer.
+* **Weitere Tools**: Cypress, Playwright, MSW für komplexere Szenarien.
 
----
+📖 Quellen:
 
-## ⚠️ Nachteile
-
-- Snapshots können **zu groß** und **unnütz** werden, wenn man zu viele auf einmal testet
-- Änderungen im Output ≠ tatsächlicher Fehler
-
-➡️ Nicht geeignet für **Logiktests** oder dynamische Inhalte
+* [Jest Docs](https://jestjs.io/)
+* [React Testing Library](https://testing-library.com/docs/react-testing-library/intro)
+* [React Docs: Testing](https://react.dev/learn/testing)
 
 ---
-
-## 📝 Zusammenfassung
-
-- Snapshot-Tests vergleichen JSX-Output mit gespeicherten Referenzwerten
-- Verwende `toMatchSnapshot()` z. B. mit **Jest** + **Testing Library**
-- Nur sinnvoll für **statische, visuelle Komponenten**
-
----
-
-## 🔗 Quellen
-
-- [Jest – Snapshot Testing](https://jestjs.io/docs/snapshot-testing)  
-- [React Testing Library – Snapshots](https://testing-library.com/docs/react-testing-library/api/#asfragment)
-
-  **[⬆ Наверх](#top)**
-
-93. ### <a name="93"></a> Welche Tools nutzt man für React-Tests (Jest, React Testing Library)?
-
-# Welche Tools nutzt man für React-Tests?
-
-In der React-Entwicklung sind die gängigsten Test-Tools:
-
-1. **Jest** – Test-Runner + Assertion-Bibliothek  
-2. **React Testing Library (RTL)** – UI-Verhalten aus Nutzersicht testen  
-3. Weitere: **Vitest**, **MSW**, **Cypress**, **Playwright**
-
----
-
-## ✅ 1. Jest
-
-🛠 **Test-Runner**, **Mocking**, **Snapshot-Testing**, **Assertions**
-
-```bash
-npm install --save-dev jest
-```
-
-- Läuft JavaScript-Tests (z. B. `.test.js`)
-- Unterstützt `describe`, `test`, `expect`, `beforeEach` etc.
-- Integriert gut mit Babel, TypeScript und React
-
-### Beispiel:
-
-```js
-test('addiert zwei Zahlen', () => {
-  expect(2 + 2).toBe(4);
-});
-```
-
-📘 [Jest Docs](https://jestjs.io/docs/getting-started)
-
----
-
-## ✅ 2. React Testing Library (RTL)
-
-🔍 Testet **Komponentenverhalten aus Sicht des Nutzers**
-
-```bash
-npm install --save-dev @testing-library/react
-```
-
-- Zugriff auf UI via `getByText`, `getByRole`, `getByLabelText`
-- Kein Zugriff auf Implementierungsdetails
-- Gute Best Practices durch Design
-
-### Beispiel:
-
-```jsx
-import { render, screen } from '@testing-library/react';
-import Button from './Button';
-
-test('zeigt Buttontext korrekt an', () => {
-  render(<Button>Speichern</Button>);
-  expect(screen.getByText('Speichern')).toBeInTheDocument();
-});
-```
-
-📘 [React Testing Library Docs](https://testing-library.com/docs/react-testing-library/intro/)
-
----
-
-## ✅ 3. Vitest (Alternative zu Jest)
-
-🚀 Schneller Test-Runner für Vite-Projekte
-
-```bash
-npm install --save-dev vitest
-```
-
-- Kompatibel mit Jest-API
-- Schneller durch native ESModules
-
-📘 [Vitest Docs](https://vitest.dev)
-
----
-
-## ✅ 4. MSW (Mock Service Worker)
-
-🧪 Simuliert echte API-Requests im Test oder Browser
-
-```bash
-npm install msw --save-dev
-```
-
-📘 [MSW Docs](https://mswjs.io)
-
----
-
-## ✅ 5. Cypress / Playwright
-
-🧭 Für **End-to-End (E2E)**-Tests im echten Browser
-
-- Simuliert Nutzerverhalten: klicken, tippen, navigieren
-- Cypress zielt auf Entwicklerfreundlichkeit
-- Playwright testet auch mehrere Browser
-
-📘 [Cypress.io](https://www.cypress.io)  
-📘 [Playwright.dev](https://playwright.dev)
-
----
-
-## 📝 Zusammenfassung
-
-| Tool                   | Zweck                     | Beschreibung                              |
-|------------------------|---------------------------|--------------------------------------------|
-| **Jest**               | Unit + Snapshot Tests     | Test-Runner & Mocking                      |
-| **React Testing Library** | Integration/Component | Testet aus Nutzersicht                     |
-| **Vitest**             | Schnelle Alternative      | Besonders für Vite-Projekte                |
-| **MSW**                | Mocking API               | Reale Netzwerkrequests simulieren         |
-| **Cypress / Playwright** | E2E Testing             | UI-Tests im echten Browser                 |
-
----
-
-## 🔗 Weitere Links
-
-- [Testing in React – Offizielle Doku](https://react.dev/learn/testing)  
-- [Testing Library – Guide](https://testing-library.com/docs/)  
-- [Jest – Snapshot Testing](https://jestjs.io/docs/snapshot-testing)
 
   **[⬆ Наверх](#top)**
 
 94. ### <a name="94"></a> Wie testet man Komponenten, Props und Events?
 
-# Wie testet man Komponenten, Props und Events in React?
+### Komponenten, Props und Events testen (React + RTL + Jest)
 
-Beim Testen von React-Komponenten geht es darum zu prüfen, ob:
+#### **1) Komponenten-Render**
 
-1. Die **Komponente korrekt rendert**
-2. **Props richtig verwendet** werden
-3. **Benutzerinteraktionen (Events)** korrekt funktionieren
-
-Dafür nutzt man typischerweise:
-
-- **React Testing Library** (RTL)
-- **Jest** als Test-Runner
-
----
-
-## ✅ 1. Komponente rendern und Inhalt testen
+* Ziel: Render funktioniert, relevantes UI ist sichtbar.
 
 ```jsx
-import { render, screen } from '@testing-library/react';
-import Greeting from './Greeting';
+// Counter.jsx
+import { useState } from "react";
+export function Counter({ initial = 0 }) {
+  const [count, setCount] = useState(initial);
+  return (
+    <div>
+      <h1 aria-label="count">{count}</h1>
+      <button onClick={() => setCount(c => c + 1)}>+1</button>
+    </div>
+  );
+}
+```
 
-test('zeigt Begrüßung an', () => {
-  render(<Greeting name="Sergii" />);
-  expect(screen.getByText(/Hallo, Sergii/i)).toBeInTheDocument();
+```jsx
+// Counter.test.jsx
+import { render, screen } from "@testing-library/react";
+import { Counter } from "./Counter.jsx";
+
+test("rendert Überschrift und Button", () => {
+  render(<Counter />);
+  expect(screen.getByRole("heading", { name: /0/i })).toBeInTheDocument(); // via Rolle
+  expect(screen.getByRole("button", { name: "+1" })).toBeInTheDocument();
 });
 ```
 
----
+#### **2) Props testen**
 
-## ✅ 2. Props testen
-
-Du testest **indirekt**, ob Props korrekt verwendet wurden –  
-z. B. durch gerendeten Text oder Verhalten.
+* Ziel: Ausgabe/Verhalten entspricht übergebenen Props (Text, Attribute, ARIA, initialer State).
 
 ```jsx
-function Title({ text }) {
-  return <h1>{text}</h1>;
+import { render, screen } from "@testing-library/react";
+import { Counter } from "./Counter.jsx";
+
+test("nutzt initial-Prop für Startwert", () => {
+  render(<Counter initial={5} />);
+  expect(screen.getByLabelText("count")).toHaveTextContent("5");
+});
+```
+
+Weitere Prop-Beispiele:
+
+```jsx
+// Button.jsx
+export function Button({ label, disabled }) {
+  return <button disabled={disabled}>{label}</button>;
 }
 
-// Test
-test('zeigt den Titel-Prop korrekt an', () => {
-  render(<Title text="Dashboard" />);
-  expect(screen.getByText('Dashboard')).toBeInTheDocument();
+// Button.test.jsx
+import { render, screen } from "@testing-library/react";
+import { Button } from "./Button.jsx";
+
+test("zeigt Label und disabled-Attribut", () => {
+  render(<Button label="Speichern" disabled />);
+  expect(screen.getByRole("button", { name: "Speichern" })).toBeDisabled();
 });
 ```
 
----
+#### **3) Events & Callback-Props**
 
-## ✅ 3. Events testen (z. B. Button-Klick)
+* Ziel: Nutzerinteraktionen (Click, Tastatur, Eingabe) und aufgerufene Callback-Props.
+* Empfehlung: **@testing-library/user-event** (realistischere Interaktionen als `fireEvent`).
 
 ```jsx
-function Button({ onClick }) {
-  return <button onClick={onClick}>Klick mich</button>;
+// Toggle.jsx
+export function Toggle({ onChange }) {
+  return (
+    <label>
+      <input type="checkbox" onChange={(e) => onChange(e.target.checked)} />
+      Aktiv
+    </label>
+  );
 }
+```
 
-// Test
-import userEvent from '@testing-library/user-event';
+```jsx
+// Toggle.test.jsx (Jest/Vitest: jest.fn() bzw. vi.fn())
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { Toggle } from "./Toggle.jsx";
 
-test('ruft onClick beim Klicken auf', async () => {
-  const handleClick = jest.fn();
-  render(<Button onClick={handleClick} />);
-
-  await userEvent.click(screen.getByText('Klick mich'));
-  expect(handleClick).toHaveBeenCalledTimes(1);
+test("ruft onChange mit richtigem Wert auf", async () => {
+  const onChange = jest.fn();
+  render(<Toggle onChange={onChange} />);
+  await userEvent.click(screen.getByRole("checkbox"));
+  expect(onChange).toHaveBeenCalledWith(true);
 });
 ```
 
+**Formulare/Controlled Components:**
+
+```jsx
+// Search.jsx
+import { useState } from "react";
+export function Search({ onSubmit }) {
+  const [q, setQ] = useState("");
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(q); }}>
+      <label htmlFor="q">Suche</label>
+      <input id="q" value={q} onChange={(e) => setQ(e.target.value)} />
+      <button type="submit">Suchen</button>
+    </form>
+  );
+}
+```
+
+```jsx
+// Search.test.jsx
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { Search } from "./Search.jsx";
+
+test("übermittelt eingegebenen Wert", async () => {
+  const onSubmit = jest.fn();
+  render(<Search onSubmit={onSubmit} />);
+  await userEvent.type(screen.getByLabelText("Suche"), "react testing");
+  await userEvent.click(screen.getByRole("button", { name: /suchen/i }));
+  expect(onSubmit).toHaveBeenCalledWith("react testing");
+});
+```
+
+#### **4) Asynchrone Effekte & `findBy*`**
+
+* Ziel: Auf UI warten, das nach einem Effekt/Fetch erscheint.
+
+```jsx
+// Greeting.jsx
+import { useEffect, useState } from "react";
+export function Greeting({ load }) {
+  const [text, setText] = useState("Lädt...");
+  useEffect(() => { load().then((t) => setText(t)); }, [load]);
+  return <p>{text}</p>;
+}
+```
+
+```jsx
+// Greeting.test.jsx
+import { render, screen } from "@testing-library/react";
+import { Greeting } from "./Greeting.jsx";
+
+test("wartet auf geladenen Text", async () => {
+  const load = jest.fn().mockResolvedValue("Hallo Sergii!");
+  render(<Greeting load={load} />);
+  expect(await screen.findByText("Hallo Sergii!")).toBeInTheDocument(); // wartet async
+});
+```
+
+#### **5) Best Practices (kurz)**
+
+* Teste **sichtbares Verhalten**, nicht Implementierungsdetails (keine internen States mocken).
+* Nutze **Rollen/Label** statt `getByTestId`, wo möglich (Barrierefreiheit).
+* **user-event** statt `fireEvent` für realistische Interaktionen.
+* Für HTTP: **MSW** zum Mocken statt globaler Fetch-Mocks.
+* Kleine, fokussierte Tests; sprechende Queries.
+
 ---
 
-## 🛠 Tools & Methoden (RTL)
+### **Zusammenfassung**
 
-| Methode                   | Beschreibung                                  |
-|---------------------------|-----------------------------------------------|
-| `render()`                | Rendert die Komponente für den Test           |
-| `screen.getByText()`      | Findet Elemente am Bildschirm                 |
-| `userEvent.click()`       | Simuliert Benutzeraktionen                    |
-| `jest.fn()`               | Erstellt Mockfunktionen für Eventhandler      |
-| `toBeInTheDocument()`     | Prüft, ob ein Element im DOM enthalten ist    |
+* **Komponenten**: mit RTL `render` + DOM-Queries prüfen.
+* **Props**: übergeben und UI/Attribute/ARIA validieren.
+* **Events**: mit `user-event` Interaktionen auslösen; Callback-Props mit `jest.fn()`/`vi.fn()` verifizieren.
+* **Async**: `findBy*` nutzen, auf UI-Ergebnis warten.
 
----
+**Quellen:**
 
-## 📝 Zusammenfassung
-
-| Was wird getestet?      | Wie?                            |
-|-------------------------|---------------------------------|
-| Komponenteninhalte      | `screen.getByText`, `render()`  |
-| Props                   | Text oder Verhalten überprüfen  |
-| Events (z. B. Klicks)   | `userEvent`, `jest.fn()`        |
-
----
-
-## 🔗 Quellen
-
-- [React Testing Library – Intro](https://testing-library.com/docs/react-testing-library/intro/)  
-- [Jest – Mock Functions](https://jestjs.io/docs/mock-functions)  
-- [React Docs – Testing UI](https://react.dev/learn/testing)
+* React Docs – Testing: [https://react.dev/learn/testing](https://react.dev/learn/testing)
+* RTL – Intro & Queries: [https://testing-library.com/docs/react-testing-library/intro](https://testing-library.com/docs/react-testing-library/intro)
+* MDN (RU) – События / Формы / Доступность: [https://developer.mozilla.org/ru/](https://developer.mozilla.org/ru/)
 
   **[⬆ Наверх](#top)**
 
 95. ### <a name="95"></a> Wie testet man benutzerdefinierte Hooks?
 
-# Wie testet man benutzerdefinierte Hooks in React?
+### Benutzerdefinierte Hooks testen (Strategien + Beispiele)
 
-Benutzerdefinierte Hooks (`useXXX`) enthalten wiederverwendbare Logik.  
-Um sie zu testen, verwendet man:
+#### **Strategie**
 
-- ✅ **`@testing-library/react-hooks`** (älter, eingestellt)  
-- ✅ **`@testing-library/react` + eigene Testkomponente**  
-- ✅ **`@testing-library/react-hooks/dom`** (aus `@tanstack/react-hooks-testing-library`)
-
-> Der moderne Weg ist: **React-Hooks innerhalb eines Testkomponenten-Kontextes rendern**.
+* **Indirekt (empfohlen):** Komponente testen, die den Hook nutzt ⇒ realistisch und weniger an Implementierungsdetails gebunden. ([testing-library.com][1])
+* **Direkt:** Hook isoliert mit `renderHook` testen (React Testing Library). Nutze `act` für State-Updates und `waitFor`/`findBy*` für Async. ([testing-library.com][1])
 
 ---
 
-## 📦 Beispiel: Eigener Hook
+### **1) Reiner Logik-Hook (synchron) mit `renderHook`**
 
-```jsx
+```js
 // useCounter.js
-import { useState } from 'react';
+import { useState, useCallback } from "react";
 
 export function useCounter(initial = 0) {
   const [count, setCount] = useState(initial);
-  const increment = () => setCount((c) => c + 1);
-  return { count, increment };
+  const inc = useCallback(() => setCount(c => c + 1), []);
+  const reset = useCallback(() => setCount(initial), [initial]);
+  return { count, inc, reset };
 }
 ```
 
+```js
+// useCounter.test.js
+import { renderHook, act } from "@testing-library/react";
+import { useCounter } from "./useCounter.js";
+
+test("incrementiert und resetet korrekt", () => {
+  const { result } = renderHook(() => useCounter(5));
+  act(() => result.current.inc());
+  expect(result.current.count).toBe(6);
+  act(() => result.current.reset());
+  expect(result.current.count).toBe(5);
+});
+```
+
+`renderHook` ist Teil der RTL-API; `act` bündelt ausstehende Updates vor Assertions. ([testing-library.com][1])
+
 ---
 
-## ✅ Variante 1: Test mit Testkomponente (Standard mit RTL)
+### **2) Datenabholender Hook (asynchron) mit MSW**
 
-```jsx
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { useCounter } from './useCounter';
+```js
+// useUser.js
+import { useEffect, useState } from "react";
 
-function TestComponent() {
-  const { count, increment } = useCounter();
-  return (
-    <>
-      <p>Count: {count}</p>
-      <button onClick={increment}>+</button>
-    </>
-  );
+export function useUser(id) {
+  const [state, setState] = useState({ data: null, error: null, loading: true });
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/users/${id}`)
+      .then(r => r.json())
+      .then(data => !cancelled && setState({ data, error: null, loading: false }))
+      .catch(err => !cancelled && setState({ data: null, error: err, loading: false }));
+    return () => { cancelled = true; };
+  }, [id]);
+
+  return state;
 }
+```
 
-test('useCounter erhöht den Wert', async () => {
-  render(<TestComponent />);
-  const button = screen.getByText('+');
+```js
+// useUser.test.js  (vereinfachte MSW-Nutzung)
+import { renderHook, waitFor } from "@testing-library/react";
+import { setupServer } from "msw/node";
+import { rest } from "msw";
+import { useUser } from "./useUser.js";
 
-  await userEvent.click(button);
-  expect(screen.getByText('Count: 1')).toBeInTheDocument();
+const server = setupServer(
+  rest.get("/api/users/:id", (req, res, ctx) =>
+    res(ctx.json({ id: req.params.id, name: "Sergii" }))
+  )
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+test("liefert Daten und beendet Loading", async () => {
+  const { result } = renderHook(() => useUser(1));
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(result.current.data).toEqual({ id: "1", name: "Sergii" });
+  expect(result.current.error).toBeNull();
 });
 ```
 
+MSW mockt HTTP realistisch auf Netzwerkebene; mit RTL wartest du per `waitFor` auf das UI/Ergebnis. ([Chip Cullen][2])
+
 ---
 
-## ✅ Variante 2: `@testing-library/react-hooks` (wenn nötig)
+### **3) Hook mit Context/Providern: `wrapper` nutzen**
 
-```bash
-npm install --save-dev @testing-library/react-hooks
+```js
+// useAuth.js
+import { createContext, useContext } from "react";
+const AuthContext = createContext(null);
+export function AuthProvider({ children, user }) {
+  return <AuthContext.Provider value={user}>{children}</AuthContext.Provider>;
+}
+export function useAuth() {
+  const user = useContext(AuthContext);
+  if (!user) throw new Error("No auth");
+  return user;
+}
 ```
 
 ```jsx
-import { renderHook, act } from '@testing-library/react-hooks';
-import { useCounter } from './useCounter';
+// useAuth.test.jsx
+import { renderHook } from "@testing-library/react";
+import { AuthProvider, useAuth } from "./useAuth.jsx";
 
-test('useCounter funktioniert korrekt', () => {
-  const { result } = renderHook(() => useCounter(0));
-
-  expect(result.current.count).toBe(0);
-
-  act(() => {
-    result.current.increment();
-  });
-
-  expect(result.current.count).toBe(1);
+test("liest Nutzer aus Context via wrapper", () => {
+  const wrapper = ({ children }) => <AuthProvider user={{ id: 1 }}>{children}</AuthProvider>;
+  const { result } = renderHook(() => useAuth(), { wrapper });
+  expect(result.current).toEqual({ id: 1 });
 });
 ```
 
-> ⚠️ Diese Variante wird **nicht mehr aktiv gepflegt**.
+`renderHook` unterstützt einen `wrapper`, um Provider/Router/QueryClient einzubinden. ([testing-library.com][1])
 
 ---
 
-## 📝 Zusammenfassung
+### **Best Practices (kurz)**
 
-| Methode                            | Vorteil                          |
-|------------------------------------|----------------------------------|
-| ✅ Eigene Test-Komponente           | Kompatibel mit `@testing-library/react` |
-| ⚠️ `@testing-library/react-hooks`   | Für reine Hook-Tests (älter)     |
+* Wenn möglich, **indirekt über Komponenten testen**; `renderHook` vor allem für Bibliotheks-Hooks bzw. komplexe Logik. ([testing-library.com][1])
+* **Keine Implementierungsdetails mocken**; teste beobachtbares Verhalten. Nutze DOM-Queries/Benutzerfluss in Komponententests. ([testing-library.com][1])
+* Für User-Interaktionen **`@testing-library/user-event`** statt `fireEvent`. ([testing-library.com][3])
+* Für asynchrone Updates `act`/`waitFor`/`findBy*` verwenden. ([react.dev][4])
 
 ---
 
-## 🔗 Quellen
+### **Zusammenfassung**
 
-- [React Testing Library – Hooks testen](https://testing-library.com/docs/example-react-hooks)  
-- [React-Hooks-Test-Bibliothek – TanStack](https://github.com/TanStack/testing-react-hooks)  
-- [React Docs – eigene Hooks schreiben](https://react.dev/learn/reusing-logic-with-custom-hooks)
+* **Zwei Wege:** indirekt über Komponenten (bevorzugt) oder direkt mit `renderHook`.
+* **Async:** mit MSW HTTP mocken, mit `waitFor`/`findBy*` auf Ergebnisse warten.
+* **Context:** `wrapper` im `renderHook` für Provider nutzen.
+
+**Quellen / Weiterlesen:**
+
+* React Testing Library API (`renderHook`, `wrapper`): ([testing-library.com][1])
+* React Docs – `act`: ([react.dev][4])
+* MDN (RU) – основы/тестирование клиентского JS: ([MDN Web Docs][5])
+* Testing Library – `user-event`:
+
+[1]: https://testing-library.com/docs/react-testing-library/api/ "API | Testing Library"
+[2]: https://chipcullen.com/mocking-fetch-requests-in-react-testing-library-tests/?utm_source=chatgpt.com "How to mock fetch requests in React Testing Librarty tests"
+[3]: https://testing-library.com/docs/user-event/intro/?utm_source=chatgpt.com "Introduction"
+[4]: https://react.dev/reference/react/act?utm_source=chatgpt.com "React"
+[5]: https://developer.mozilla.org/ru/docs/Web/JavaScript?utm_source=chatgpt.com "JavaScript | MDN - Mozilla"
 
   **[⬆ Наверх](#top)**
 
@@ -5165,54 +5190,38 @@ test('useCounter funktioniert korrekt', () => {
 
 101. ### <a name="101"></a> Wie funktioniert Routing in React mit react-router-dom?
 
-# Wie funktioniert Routing in React mit `react-router-dom`?
+### Routing in React mit **react-router-dom**
 
-`react-router-dom` ist die Standard-Bibliothek für **Client-seitiges Routing** in React.  
-Sie ermöglicht die Navigation zwischen Seiten **ohne Neuladen** der Website.
+#### **Grundprinzip**
 
----
+* Routing in React ist **Client-Side-Routing**: kein vollständiges Reload der Seite, sondern UI-Austausch basierend auf der URL.
+* `react-router-dom` stellt Komponenten und Hooks bereit, um Pfade mit React-Komponenten zu verbinden.
+* Kernkomponenten:
 
-## 📦 Installation
-
-```bash
-npm install react-router-dom
-```
-
----
-
-## 🧱 Grundkonzepte
-
-| Komponente          | Zweck                                          |
-|---------------------|-------------------------------------------------|
-| `<BrowserRouter>`   | Wurzel-Router, verwendet HTML5 History API     |
-| `<Routes>`          | Container für alle Routen                      |
-| `<Route>`           | Definiert eine einzelne Route                  |
-| `<Link>`            | Navigation ohne Seiten-Reload                  |
-| `useNavigate()`     | Programmatische Navigation                     |
-| `useParams()`       | Zugriff auf URL-Parameter                      |
+  * `<BrowserRouter>` – stellt den Router-Context bereit.
+  * `<Routes>` – Container für definierte Routen.
+  * `<Route>` – verbindet Pfad (`path`) mit UI (`element`).
+  * `<Link>` / `<NavLink>` – Navigation ohne Page-Reload.
+  * `useNavigate` – Navigation programmatisch.
+  * `useParams` – Zugriff auf URL-Parameter.
+  * `useLocation` – Zugriff auf aktuelle URL.
 
 ---
 
-## ✅ Beispiel: Basis-Routing
+### **1) Basisrouting**
 
 ```jsx
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+// App.jsx
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { Home } from "./Home.jsx";
+import { About } from "./About.jsx";
 
-function Home() {
-  return <h2>Startseite</h2>;
-}
-
-function About() {
-  return <h2>Über uns</h2>;
-}
-
-function App() {
+export default function App() {
   return (
     <BrowserRouter>
       <nav>
-        <Link to="/">Start</Link> | <Link to="/about">Über</Link>
+        <Link to="/">Start</Link> | <Link to="/about">Über uns</Link>
       </nav>
-
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -5224,347 +5233,349 @@ function App() {
 
 ---
 
-## 📌 Dynamische Routen mit Parametern
+### **2) Dynamische Routen + useParams**
 
 ```jsx
-// URL: /user/123
+// User.jsx
+import { useParams } from "react-router-dom";
 
-function UserPage() {
+export function User() {
   const { id } = useParams();
-  return <p>User ID: {id}</p>;
+  return <h2>User ID: {id}</h2>;
 }
 
+// App.jsx
+<Route path="/user/:id" element={<User />} />
+```
+
+Aufruf `http://localhost:3000/user/42` → zeigt `User ID: 42`.
+
+---
+
+### **3) Programmatische Navigation**
+
+```jsx
+// Login.jsx
+import { useNavigate } from "react-router-dom";
+
+export function Login() {
+  const navigate = useNavigate();
+  function handleLogin() {
+    // ... Auth-Logik
+    navigate("/dashboard");
+  }
+  return <button onClick={handleLogin}>Einloggen</button>;
+}
+```
+
+---
+
+### **4) Verschachtelte Routen**
+
+```jsx
+// Dashboard.jsx
+import { Outlet, Link } from "react-router-dom";
+
+export function Dashboard() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <Link to="stats">Statistiken</Link>
+      <Outlet /> {/* zeigt verschachtelte Route */}
+    </div>
+  );
+}
+
+// App.jsx
 <Routes>
-  <Route path="/user/:id" element={<UserPage />} />
+  <Route path="/dashboard" element={<Dashboard />}>
+    <Route path="stats" element={<h2>Stats-Seite</h2>} />
+  </Route>
 </Routes>
 ```
 
 ---
 
-## 🚀 Navigation per Code (z. B. nach Login)
+### **5) Fehlerseite / Catch-All**
 
 ```jsx
-import { useNavigate } from 'react-router-dom';
-
-function LoginButton() {
-  const navigate = useNavigate();
-
-  const handleLogin = () => {
-    // ...Login-Logik
-    navigate('/dashboard'); // Weiterleitung
-  };
-
-  return <button onClick={handleLogin}>Login</button>;
-}
+<Route path="*" element={<h2>Seite nicht gefunden</h2>} />
 ```
 
 ---
 
-## 🔁 Weiterleitungen
+### **Zusammenfassung**
 
-```jsx
-import { Navigate } from 'react-router-dom';
+* `react-router-dom` implementiert **Client-Side-Routing**.
+* Wichtigste Bausteine: `<BrowserRouter>`, `<Routes>`, `<Route>`.
+* **Navigation:** `<Link>`/`useNavigate`.
+* **Dynamische Daten:** `useParams`, `useLocation`.
+* **Strukturierung:** verschachtelte Routen mit `<Outlet>`.
 
-<Route path="/alt" element={<Navigate to="/neu" />} />
-```
+📖 Quellen:
 
----
-
-## 📝 Zusammenfassung
-
-- Routing wird mit `BrowserRouter`, `Routes` und `Route` umgesetzt
-- Navigation per `<Link>` oder `useNavigate()`
-- Dynamische Parameter via `:id` und `useParams()`
-- Kein Seitenreload nötig → **Single Page Application (SPA)**
+* [React Router – Doku](https://reactrouter.com/en/main)
+* [React Docs: Adding React Router](https://react.dev/learn/adding-react-router)
 
 ---
-
-## 🔗 Quellen
-
-- [React Router Doku](https://reactrouter.com/en/main/start/tutorial)  
-- [MDN – Client-Side Routing](https://developer.mozilla.org/en-US/docs/Glossary/SPA)
 
   **[⬆ Наверх](#top)**
 
 102. ### <a name="102"></a> Was sind die Unterschiede zwischen react-router v5 und v6?
 
-# Was sind die Unterschiede zwischen `react-router-dom` v5 und v6?
+### Unterschiede zwischen **react-router v5** und **v6**
 
-`react-router-dom` v6 ist eine **komplett überarbeitete Version** mit  
-neuem Syntax, klarerer Struktur und vereinfachter Logik.  
-Hier sind die wichtigsten Unterschiede zwischen v5 und v6:
+#### 1) **`<Switch>` → `<Routes>`** (Best-Match statt Reihenfolge)
 
----
-
-## 🔄 1. `<Switch>` → **`<Routes>`**
-
-- **v5:** `<Switch>` rendert die erste passende Route  
-- **v6:** `<Routes>` ersetzt `<Switch>` und **rendert nur genau eine Route**
+* v5: `<Switch>` rendert die **erste** passende Route.
+* v6: `<Routes>` wählt anhand **bester Übereinstimmung**; verschachtelte/relative Routen sind der Standard. ([React Router][1])
 
 ```jsx
 // v5
-<Switch>
-  <Route path="/about" component={About} />
-</Switch>
+import { BrowserRouter, Switch, Route } from "react-router-dom";
+<BrowserRouter>
+  <Switch>
+    <Route exact path="/" component={Home} />
+    <Route path="/users/:id" component={User} />
+  </Switch>
+</BrowserRouter>
 
 // v6
-<Routes>
-  <Route path="/about" element={<About />} />
-</Routes>
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+<BrowserRouter>
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/users/:id" element={<User />} />
+  </Routes>
+</BrowserRouter>
 ```
 
----
+#### 2) **`element` statt `component`/`render`**
 
-## ⚛️ 2. `component` vs `element`
+* v5: `<Route component={Home} />` oder `render`.
+* v6: `<Route element={<Home/>} />` – klarere Props und bessere Typisierung. ([React Router][1])
 
-- **v5:** `component={MyComponent}`
-- **v6:** `element={<MyComponent />}` (JSX wird erwartet)
+#### 3) **Navigation: `useNavigate` statt `useHistory`**
+
+* v5: `useHistory().push|replace|go`.
+* v6: `useNavigate()`; `navigate("/x", { replace: true, state })`. ([React Router][1])
 
 ```jsx
 // v5
-<Route path="/home" component={Home} />
+import { useHistory } from "react-router-dom";
+const history = useHistory();
+history.replace("/dashboard");
 
 // v6
-<Route path="/home" element={<Home />} />
+import { useNavigate } from "react-router-dom";
+const navigate = useNavigate();
+navigate("/dashboard", { replace: true });
 ```
 
----
+#### 4) **Redirect: `<Redirect>` → `<Navigate>`**
 
-## 🧭 3. `Redirect` → **`<Navigate />`**
-
-- **v5:** `<Redirect to="/login" />`
-- **v6:** `<Navigate to="/login" />`
-
-```jsx
-// v6 Beispiel
-<Route path="*" element={<Navigate to="/" />} />
-```
-
----
-
-## 🧬 4. Verschachtelte Routen (Nested Routes)
-
-- **v6** nutzt **nested `<Route>`** mit `outlet`-Konzept
+* v5: `<Redirect to="/login" />` (oft in `<Switch>`).
+* v6: `<Navigate to="/login" replace />`. ([React Router][1])
 
 ```jsx
 // v6
-<Routes>
-  <Route path="/dashboard" element={<Dashboard />}>
-    <Route path="profile" element={<Profile />} />
-    <Route path="settings" element={<Settings />} />
-  </Route>
-</Routes>
+import { Navigate } from "react-router-dom";
+<Route path="/" element={<Navigate to="/login" replace />} />
 ```
+
+#### 5) **`exact` entfällt**
+
+* v5: häufig `exact` nötig.
+* v6: **exaktes Matching standardmäßig**, `NavLink exact` wurde zu `end`. ([React Router][1])
+
+#### 6) **Relative & verschachtelte Routen + `<Outlet>`**
+
+* v6: Routen/Links sind **relativ**; echte **Nesting-Struktur** an einer Stelle definierbar. ([React Router][1])
 
 ```jsx
-// Dashboard.jsx
-import { Outlet } from 'react-router-dom';
-export default function Dashboard() {
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      <Outlet />
-    </div>
-  );
-}
+import { Route } from "react-router-dom";
+<Route path="/dashboard" element={<Dashboard />}>
+  <Route path="stats" element={<Stats />} />
+</Route>
 ```
 
----
+#### 7) **Hooks & API-Änderungen**
 
-## ⚠️ 5. `exact` ist **nicht mehr nötig**
+* `useRouteMatch` → `useMatch`, `activeClassName/activeStyle` in `NavLink` entfernt; State an `<Link>` separat per `state` übergeben. ([React Router][1])
 
-- **v6 matcht automatisch exakt**
-- In v5 war `exact` notwendig, um Überlappung zu vermeiden
+#### 8) **Data APIs (ab v6.4+)** – optionaler neuer Modus
+
+* **Loader/Action**-basierter Datenfluss (`createBrowserRouter`, `RouterProvider`), deklaratives Laden/Mutieren mit Revalidierung. (Neu in v6, existiert nicht in v5.) ([React Router][2])
 
 ```jsx
-// v5
-<Route exact path="/" component={Home} />
-
-// v6
-<Route path="/" element={<Home />} /> // exact implizit
+// v6.4+ Data Router
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+const router = createBrowserRouter([{ path: "/", element: <Home/>, loader: loadHome }]);
+<RouterProvider router={router} />;
 ```
 
 ---
 
-## ✅ 6. Neue Features in v6
+### Zusammenfassung
 
-| Feature                | Beschreibung                                    |
-|------------------------|-------------------------------------------------|
-| `<Outlet />`           | Für Nested Routing                             |
-| `useRoutes()`          | Routing mit Objekt-Definition                   |
-| `createBrowserRouter`  | Für Data-Routing mit `react-router v6.4+`       |
-| `Loader`, `Action`     | Neue API für Datenladen direkt in Route-Objekten|
+* **Routes/element** ersetzen **Switch/component/render**; Matching ist **exakt per Default**.
+* **useNavigate/Navigate** statt **useHistory/Redirect**.
+* **Relative & verschachtelte Routen** mit `<Outlet>`; mehrere API-Bereinigungen.
+* **Data Router (v6.4+)** bringt Loader/Actions für deklaratives Datenladen/-schreiben.
 
----
+**Quellen:**
 
-## 📝 Zusammenfassung
+* React Router – *Upgrading from v5*: ([React Router][1])
+* React Router – *Modes/Data (Loader/Action)*: ([React Router][2])
+* React Router – *Data Loading* (Loader): ([React Router][3])
+* React Docs – *Adding React Router*: ([React Router][4])
 
-| Unterschied         | v5                        | v6                             |
-|---------------------|---------------------------|--------------------------------|
-| Routencontainer     | `<Switch>`                | `<Routes>`                     |
-| Komponenten         | `component`/`render`      | `element={<... />}`            |
-| Weiterleitung       | `<Redirect>`              | `<Navigate>`                   |
-| Nested Routes       | Manuell / kompliziert     | Mit `<Outlet>` einfach         |
-| `exact`             | Manuell nötig             | Automatisch exakt              |
-
----
-
-## 🔗 Quellen
-
-- [React Router v6 Doku](https://reactrouter.com/en/main)  
-- [Migration von v5 zu v6](https://reactrouter.com/en/main/start/overview#migrating-from-v5)
+[1]: https://reactrouter.com/6.30.1/upgrading/v5 "Upgrading from v5 v6.30.1 | React Router"
+[2]: https://reactrouter.com/start/modes?utm_source=chatgpt.com "Picking a Mode"
+[3]: https://reactrouter.com/start/framework/data-loading?utm_source=chatgpt.com "Data Loading"
+[4]: https://reactrouter.com/?utm_source=chatgpt.com "React Router Official Documentation"
 
   **[⬆ Наверх](#top)**
 
 103. ### <a name="103"></a> Was sind Route, Link, Navigate, Outlet?
 
-# Was sind `Route`, `Link`, `Navigate`, `Outlet` in React Router?
+### **Route, Link, Navigate, Outlet in react-router-dom**
 
-Diese Komponenten stammen aus **`react-router-dom`** und bilden das Grundgerüst  
-für Navigation, Seitenwechsel und Seitenstruktur in React-Anwendungen.
+#### **1) `<Route>`**
 
----
-
-## 🔁 `Route`
-
-Definiert, **welche Komponente bei welcher URL angezeigt wird**.
+* Verbindet **URL-Pfad** mit einem React-Element.
+* Wird innerhalb von `<Routes>` verwendet.
+* Unterstützt statische und dynamische Pfade (`/user/:id`).
 
 ```jsx
-<Route path="/about" element={<About />} />
-```
-
-- Wird innerhalb von `<Routes>` verwendet
-- `path` = URL-Pfad
-- `element` = JSX-Komponente, die gerendert wird
-
----
-
-## 🔗 `Link`
-
-Erstellt **einen Link**, der beim Klicken die URL **ändert**,  
-ohne die Seite neu zu laden (SPA-Verhalten).
-
-```jsx
-<Link to="/about">Über uns</Link>
-```
-
-- Vergleichbar mit `<a href="..." />`, aber **Client-seitig**
-- Nutzt History API intern
-- Vorteil: Schnelle Navigation ohne Reload
-
----
-
-## 🚀 `Navigate`
-
-Ersetzt `<Redirect>` (aus v5).  
-Wird verwendet, um **programmatisch weiterzuleiten**.
-
-```jsx
-<Route path="*" element={<Navigate to="/" />} />
-```
-
-Oder innerhalb einer Komponente:
-
-```jsx
-if (!isLoggedIn) {
-  return <Navigate to="/login" />;
-}
-```
-
-- Automatische Weiterleitung (z. B. nach Login, Fehler, Logout)
-
----
-
-## 🧩 `Outlet`
-
-Wird verwendet, um **geschachtelte Routen** (Nested Routes) einzufügen.
-
-```jsx
-// App.jsx
+import { Routes, Route } from "react-router-dom";
 <Routes>
-  <Route path="/dashboard" element={<Dashboard />}>
-    <Route path="profile" element={<Profile />} />
-  </Route>
+  <Route path="/" element={<Home />} />
+  <Route path="/user/:id" element={<User />} />
 </Routes>
 ```
 
+---
+
+#### **2) `<Link>`**
+
+* Erzeugt eine **Navigation ohne Page-Reload** (Client-Side Navigation).
+* Ersetzt `<a href="...">`, um Single Page Application Verhalten zu erhalten.
+
 ```jsx
-// Dashboard.jsx
-import { Outlet } from 'react-router-dom';
+import { Link } from "react-router-dom";
+<nav>
+  <Link to="/">Startseite</Link>
+  <Link to="/about">Über uns</Link>
+</nav>
+```
+
+---
+
+#### **3) `<Navigate>`**
+
+* Dient zum **Weiterleiten/Redirecten**.
+* Typisch für Login-Weiterleitungen oder geschützte Routen.
+
+```jsx
+import { Navigate } from "react-router-dom";
+function ProtectedRoute({ user }) {
+  if (!user) return <Navigate to="/login" replace />;
+  return <Dashboard />;
+}
+```
+
+---
+
+#### **4) `<Outlet>`**
+
+* Platzhalter für **verschachtelte Routen**.
+* Zeigt die **Child-Komponente** einer Route an.
+
+```jsx
+import { Routes, Route, Outlet, Link } from "react-router-dom";
 
 function Dashboard() {
   return (
     <div>
       <h1>Dashboard</h1>
-      <Outlet /> {/* Hier erscheint <Profile /> */}
+      <Link to="stats">Stats</Link>
+      <Outlet /> {/* Child-Route wird hier angezeigt */}
     </div>
   );
 }
+
+<Routes>
+  <Route path="/dashboard" element={<Dashboard />}>
+    <Route path="stats" element={<h2>Statistiken</h2>} />
+  </Route>
+</Routes>
 ```
 
 ---
 
-## 📝 Zusammenfassung
+### **Zusammenfassung**
 
-| Element      | Funktion                                      |
-|--------------|-----------------------------------------------|
-| `Route`      | Definiert, welche Komponente bei welcher URL |
-| `Link`       | Navigation per Klick ohne Seitenreload        |
-| `Navigate`   | Programmgesteuerte Weiterleitung               |
-| `Outlet`     | Platzhalter für verschachtelte Routen         |
+* **Route**: definiert, welche Komponente bei einem Pfad angezeigt wird.
+* **Link**: ermöglicht Navigation ohne Seitenreload.
+* **Navigate**: leitet programmatisch/automatisch weiter.
+* **Outlet**: zeigt Inhalte von verschachtelten Routen an.
+
+📖 Quellen:
+
+* [React Router – Route](https://reactrouter.com/en/main/components/route)
+* [React Router – Link](https://reactrouter.com/en/main/components/link)
+* [React Router – Navigate](https://reactrouter.com/en/main/components/navigate)
+* [React Router – Outlet](https://reactrouter.com/en/main/components/outlet)
 
 ---
-
-## 🔗 Quellen
-
-- [React Router – Startseite](https://reactrouter.com/en/main/start/tutorial)  
-- [React Router – API Referenz](https://reactrouter.com/en/main/components/route)
-
   **[⬆ Наверх](#top)**
 
 104. ### <a name="104"></a> Wie erstellt man Nested Routes?
 
-# Wie erstellt man Nested Routes in React Router (v6)?
+### Nested Routes in **react-router-dom v6**
 
-**Nested Routes** (geschachtelte Routen) ermöglichen es,  
-eine **Hauptkomponente mit untergeordnetem Inhalt** anzuzeigen,  
-z. B. ein Dashboard mit Tabs wie „Profil“, „Einstellungen“ usw.
+#### **Grundidee**
 
----
-
-## 🧱 Grundprinzip
-
-- Verwende `<Route>` innerhalb eines anderen `<Route>`
-- Platziere `<Outlet />` dort, wo die **Kind-Komponenten** erscheinen sollen
+* Verschachtelte Routen = Hierarchie von Routen (Eltern ↔ Kind).
+* Eltern-Route definiert **Layout** oder Container.
+* Kind-Routen werden mit `<Outlet>` an der Stelle gerendert, wo der Eltern-Content Platz lässt.
 
 ---
 
-## ✅ Beispiel
-
-### 🔧 Struktur
-
-```
-/dashboard
-/dashboard/profile
-/dashboard/settings
-```
-
----
-
-### 1️⃣ Routen in `App.jsx`
+### **1) Basisstruktur**
 
 ```jsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import Settings from './pages/Settings';
+// App.jsx
+import { BrowserRouter, Routes, Route, Link, Outlet } from "react-router-dom";
 
-function App() {
+function Layout() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <nav>
+        <Link to="overview">Übersicht</Link> |{" "}
+        <Link to="settings">Einstellungen</Link>
+      </nav>
+      <Outlet /> {/* Kind-Route wird hier angezeigt */}
+    </div>
+  );
+}
+
+function Overview() {
+  return <h2>Übersichtsseite</h2>;
+}
+
+function Settings() {
+  return <h2>Einstellungen</h2>;
+}
+
+export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/dashboard" element={<Dashboard />}>
-          <Route path="profile" element={<Profile />} />
+        <Route path="/dashboard" element={<Layout />}>
+          <Route path="overview" element={<Overview />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
@@ -5573,178 +5584,167 @@ function App() {
 }
 ```
 
+👉 Aufruf:
+
+* `/dashboard/overview` → rendert `<Layout>` + `<Overview>`
+* `/dashboard/settings` → rendert `<Layout>` + `<Settings>`
+
 ---
 
-### 2️⃣ `Dashboard.jsx` – mit `<Outlet />`
+### **2) Index-Routen**
+
+* Default-Child, wenn kein weiterer Pfad angegeben ist.
 
 ```jsx
-import { Outlet, Link } from 'react-router-dom';
-
-function Dashboard() {
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      <nav>
-        <Link to="profile">Profil</Link> |{' '}
-        <Link to="settings">Einstellungen</Link>
-      </nav>
-      <hr />
-      <Outlet /> {/* ← hier erscheinen verschachtelte Komponenten */}
-    </div>
-  );
-}
-
-export default Dashboard;
+<Route path="/dashboard" element={<Layout />}>
+  <Route index element={<h2>Willkommen im Dashboard</h2>} />
+  <Route path="overview" element={<Overview />} />
+</Route>
 ```
+
+👉 `/dashboard` zeigt den Index-Content an.
 
 ---
 
-### 3️⃣ Profile.jsx / Settings.jsx
+### **3) Mehrstufiges Nesting**
+
+* Kinder können selbst wieder Eltern sein → beliebige Tiefe möglich.
 
 ```jsx
-function Profile() {
-  return <p>👤 Benutzerprofil</p>;
-}
-
-function Settings() {
-  return <p>⚙️ Einstellungen</p>;
-}
+<Route path="/dashboard" element={<Layout />}>
+  <Route path="settings" element={<Settings />}>
+    <Route path="profile" element={<h3>Profil-Einstellungen</h3>} />
+    <Route path="security" element={<h3>Sicherheits-Einstellungen</h3>} />
+  </Route>
+</Route>
 ```
 
----
-
-## 📝 Zusammenfassung
-
-| Schritt       | Was passiert?                             |
-|---------------|--------------------------------------------|
-| `Route`-Verschachtelung | Unterseiten innerhalb eines Hauptlayouts |
-| `<Outlet />`   | Platzhalter für die aktive Kind-Komponente  |
-| `Link`         | Navigation innerhalb der Unterrouten        |
+👉 `/dashboard/settings/profile`
 
 ---
 
-## 🔗 Quellen
+### **Zusammenfassung**
 
-- [React Router – Nested Routes](https://reactrouter.com/en/main/start/tutorial#nested-routes)  
-- [React Docs – Routing](https://react.dev/learn/start-a-new-react-project#routing)
+* **`<Route>` in Route verschachteln.**
+* **`<Outlet>`** = Platzhalter im Parent.
+* **Index-Route** = Default-Child.
+* Mehrstufig möglich durch erneutes Nesting.
+
+📖 Quellen:
+
+* [React Router – Nested Routes](https://reactrouter.com/en/main/start/tutorial#nested-routes)
+* [React Docs: Routing mit Outlet](https://react.dev/learn/adding-react-router#nested-routes)
+
+---
 
   **[⬆ Наверх](#top)**
 
 105. ### <a name="105"></a> Wie implementiert man Redirects?
 
-# Wie implementiert man Redirects in React Router v6?
+### Redirects in **react-router-dom v6**
 
-Ein **Redirect** (Weiterleitung) bedeutet, dass ein Benutzer  
-automatisch von einer Route zu einer anderen Route umgeleitet wird.
+#### **1) Mit `<Navigate>`**
 
-In **React Router v6** nutzt man dafür die Komponente **`<Navigate />`**.
-
----
-
-## ✅ 1. Statischer Redirect über Route
+* Wird als **Element** in einer Route oder direkt im JSX gerendert.
+* Ersetzt `<Redirect>` aus v5.
+* Props: `to` (Ziel), `replace` (verhindert neuen History-Eintrag), `state` (extra Daten).
 
 ```jsx
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from "react-router-dom";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/start" element={<Navigate to="/" />} />
+      <Route path="/old" element={<Navigate to="/new" replace />} />
+      <Route path="/new" element={<NewPage />} />
     </Routes>
   );
 }
 ```
 
-📌 `/start` → `/` automatisch weitergeleitet
+👉 Aufruf `/old` → Redirect nach `/new`.
 
 ---
 
-## ✅ 2. Wildcard-Redirect (404-Fallback)
+#### **2) Innerhalb von Komponenten**
+
+* Nützlich bei **Auth-Checks** oder **Bedingungen**.
 
 ```jsx
-<Route path="*" element={<Navigate to="/" />} />
+import { Navigate } from "react-router-dom";
+
+function ProtectedRoute({ user }) {
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: "/dashboard" }} />;
+  }
+  return <Dashboard />;
+}
 ```
 
-📌 Alle unbekannten Pfade leiten zur Startseite um
-
 ---
 
-## ✅ 3. Programmgesteuerter Redirect (z. B. nach Login)
+#### **3) Programmatisch mit `useNavigate`**
+
+* Ideal für Weiterleitungen nach einem Event (z. B. Login).
 
 ```jsx
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-function LoginForm() {
+function Login() {
   const navigate = useNavigate();
 
   function handleLogin() {
-    // ...Login-Logik
-    navigate('/dashboard'); // Weiterleitung nach Login
+    // ... Auth-Logik
+    navigate("/dashboard", { replace: true });
   }
 
-  return <button onClick={handleLogin}>Login</button>;
+  return <button onClick={handleLogin}>Einloggen</button>;
 }
 ```
 
 ---
 
-## 🔄 4. Bedingter Redirect
+### **Zusammenfassung**
 
-```jsx
-function ProtectedPage({ isLoggedIn }) {
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
-  }
+* **`<Navigate>`**: deklarative Redirects in Routen/JSX.
+* **`useNavigate`**: programmatische Redirects in Events/Logik.
+* **`replace`**: verhindert zusätzliche History-Einträge.
 
-  return <p>Willkommen im geschützten Bereich</p>;
-}
-```
+📖 Quellen:
 
-- `replace` verhindert, dass die Weiterleitung in den Verlauf kommt (`history.back` geht nicht zurück)
+* [React Router – Navigate](https://reactrouter.com/en/main/components/navigate)
+* [React Router – useNavigate](https://reactrouter.com/en/main/hooks/use-navigate)
 
 ---
-
-## 📝 Zusammenfassung
-
-| Typ                          | Methode                      |
-|------------------------------|-------------------------------|
-| Statische Weiterleitung      | `<Route path="..." element={<Navigate to="..." />} />` |
-| Fallback (404)               | `<Route path="*" element={<Navigate to="/" />} />` |
-| Logikbasiert (z. B. Login)   | `useNavigate()` Hook         |
-| Bedingt in Komponente        | `{ isLoggedIn ? ... : <Navigate /> }` |
-
----
-
-## 🔗 Quellen
-
-- [React Router – `<Navigate />`](https://reactrouter.com/en/main/components/navigate)  
-- [React Router – useNavigate Hook](https://reactrouter.com/en/main/hooks/use-navigate)
 
   **[⬆ Наверх](#top)**
 
 106. ### <a name="106"></a> Wie funktioniert programmgesteuerte Navigation (useNavigate)?
 
-# Wie funktioniert programmgesteuerte Navigation mit `useNavigate`?
+### Programmgesteuerte Navigation mit **`useNavigate`**
 
-Mit dem **Hook `useNavigate()`** aus `react-router-dom` kannst du  
-**per Code** (statt durch Klick auf einen Link) zwischen Routen navigieren.
+#### **Grundidee**
+
+* `useNavigate` ist ein Hook aus **react-router-dom v6**.
+* Er ersetzt `useHistory` aus v5.
+* Liefert eine Funktion `navigate`, mit der man **per Code** zu einer Route wechseln kann.
+* Typische Anwendungsfälle: **Login-Weiterleitung, Logout, Form-Submit, Guarded Routes**.
 
 ---
 
-## ✅ Verwendung
+### **1) Basisbeispiel**
 
 ```jsx
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-function LoginButton() {
+export function Login() {
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    // ✅ Login-Logik
-    // 🔄 Navigation nach erfolgreichem Login
-    navigate('/dashboard');
-  };
+  function handleLogin() {
+    // … Authentifizierung erfolgreich
+    navigate("/dashboard"); // zur Dashboard-Seite wechseln
+  }
 
   return <button onClick={handleLogin}>Login</button>;
 }
@@ -5752,56 +5752,68 @@ function LoginButton() {
 
 ---
 
-## 📌 Optionen
-
-```js
-navigate('/ziel', {
-  replace: true,   // ersetzt aktuellen Eintrag im Verlauf (kein Zurück möglich)
-  state: { userId: 123 }, // optionaler Zustand, über `location.state` abrufbar
-});
-```
-
----
-
-## 📥 Weitergabe von State
+### **2) Mit Optionen (`replace`, `state`)**
 
 ```jsx
-navigate('/profile', { state: { userName: 'Sergii' } });
+function Logout() {
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    // Session löschen
+    navigate("/login", { replace: true, state: { message: "Bitte erneut einloggen" } });
+  }
+
+  return <button onClick={handleLogout}>Logout</button>;
+}
 ```
+
+* `replace: true` → ersetzt aktuellen History-Eintrag (kein "Zurück"-Button möglich).
+* `state` → Daten an nächste Route übergeben (`useLocation()` abrufbar).
+
+---
+
+### **3) Relative Navigation**
 
 ```jsx
-// Ziel-Komponente
-import { useLocation } from 'react-router-dom';
+function UserMenu() {
+  const navigate = useNavigate();
 
-const location = useLocation();
-console.log(location.state.userName); // "Sergii"
+  return (
+    <button onClick={() => navigate("settings")}>
+      Zu den Einstellungen
+    </button>
+  );
+}
 ```
+
+👉 Wenn UserMenu unter `/dashboard` eingebettet ist → Navigiert zu `/dashboard/settings`.
 
 ---
 
-## 🔁 Dynamische Navigation mit Parametern
+### **4) Zurück / Vorwärts**
 
 ```jsx
-navigate(`/user/${userId}`);
+function BackButton() {
+  const navigate = useNavigate();
+  return <button onClick={() => navigate(-1)}>Zurück</button>; // -1 = history.back()
+}
 ```
 
 ---
 
-## 📝 Zusammenfassung
+### **Zusammenfassung**
 
-| Funktion             | Beschreibung                         |
-|----------------------|--------------------------------------|
-| `useNavigate()`      | Hook zum Navigieren per Code         |
-| `navigate('/pfad')`  | Navigation zur Zielroute             |
-| `replace: true`      | Ersetzt History-Eintrag (kein Zurück)|
-| `state: {...}`       | Übergibt Daten an Zielkomponente     |
+* `useNavigate()` gibt eine Funktion zurück, die Navigation **per Code** ermöglicht.
+* **Syntax:** `navigate(path, { replace, state })`.
+* Unterstützt **absolute/relative Pfade** und **numerische Werte** für History.
+* Nützlich für Auth-Redirects, After-Submit, Guards.
+
+📖 Quellen:
+
+* [React Router – useNavigate](https://reactrouter.com/en/main/hooks/use-navigate)
+* [React Docs: Routing](https://react.dev/learn/adding-react-router)
 
 ---
-
-## 🔗 Quellen
-
-- [React Router – useNavigate](https://reactrouter.com/en/main/hooks/use-navigate)  
-- [React Router – useLocation](https://reactrouter.com/en/main/hooks/use-location)
 
   **[⬆ Наверх](#top)**
 
@@ -5831,104 +5843,307 @@ navigate(`/user/${userId}`);
 
 111. ### <a name="111"></a> Was ist Redux und wie funktioniert es?
 
-# Was ist Redux und wie funktioniert es?
+### Redux – Was es ist und wie es funktioniert
 
-**Redux** ist eine **State-Management-Bibliothek**,  
-die hilft, **globalen Zustand zentral** zu verwalten – besonders in größeren React-Apps.  
-Sie basiert auf einem **Single Source of Truth** (ein globales Store-Objekt)  
-und nutzt ein **unidirektionales Datenflussmodell**.
+#### **Definition**
 
----
-
-## 🎯 Wann ist Redux nützlich?
-
-- Viele Komponenten müssen denselben Zustand verwenden oder verändern
-- Du willst Zustand **vorhersagbar, nachvollziehbar und testbar** halten
-- Du brauchst eine **klare Trennung von Logik und UI**
+* **Redux** ist eine **State-Management-Bibliothek** für JavaScript-Apps, oft mit React genutzt.
+* Grundidee: Es gibt **eine zentrale State-Quelle (Store)**, auf die alle Komponenten zugreifen können.
+* Änderungen passieren nur über **Actions** und **Reducer** ⇒ Vorhersagbarkeit & Nachvollziehbarkeit.
 
 ---
 
-## 🧠 Grundkonzepte
+#### **Kernprinzipien**
 
-| Begriff        | Beschreibung                                                                 |
-|----------------|-------------------------------------------------------------------------------|
-| `Store`        | Zentrale Datenquelle (globaler Zustand)                                      |
-| `Action`       | Ein einfaches Objekt, das **beschreibt, was passieren soll**                 |
-| `Reducer`      | Eine reine Funktion, die **neuen Zustand basierend auf Action erstellt**     |
-| `Dispatch()`   | Methode, um eine Action an den Store zu senden                               |
-| `Selector`     | Liest bestimmte Teile des States aus                                         |
+1. **Single Source of Truth**
 
----
+   * Gesamter globaler State liegt in einem einzigen **Store**.
 
-## ⚙️ Beispiel: Zähler mit Redux Toolkit
+2. **State ist read-only**
 
-### 🔧 Setup
+   * State wird nicht direkt verändert, sondern über **Actions** beschrieben.
 
-```bash
-npm install @reduxjs/toolkit react-redux
-```
+3. **Änderungen durch pure Reducer**
+
+   * Reducer sind **pure functions**, die alten State + Action → neuen State berechnen.
 
 ---
 
-### 1️⃣ Store & Reducer
+#### **Ablauf**
+
+1. Komponente löst eine **Action** aus (z. B. `{ type: "INCREMENT" }`).
+2. Diese Action geht an den **Reducer**.
+3. Der Reducer berechnet den **neuen State** und speichert ihn im Store.
+4. Komponenten, die mit dem Store verbunden sind, werden automatisch **neu gerendert**.
+
+---
+
+#### **Codebeispiel**
 
 ```js
 // store.js
-import { configureStore, createSlice } from '@reduxjs/toolkit';
+import { createStore } from "redux";
 
-const counterSlice = createSlice({
-  name: 'counter',
-  initialState: { value: 0 },
-  reducers: {
-    increment(state) {
-      state.value += 1;
-    },
-    decrement(state) {
-      state.value -= 1;
-    },
-  },
-});
+// Reducer (pure function)
+function counterReducer(state = { value: 0 }, action) {
+  switch (action.type) {
+    case "INCREMENT":
+      return { value: state.value + 1 };
+    case "DECREMENT":
+      return { value: state.value - 1 };
+    default:
+      return state;
+  }
+}
 
-export const { increment, decrement } = counterSlice.actions;
-
-export const store = configureStore({
-  reducer: { counter: counterSlice.reducer },
-});
+// Store erstellen
+export const store = createStore(counterReducer);
 ```
-
----
-
-### 2️⃣ Bereitstellen des Stores
-
-```jsx
-// main.jsx
-import { Provider } from 'react-redux';
-import { store } from './store';
-import App from './App';
-
-<Provider store={store}>
-  <App />
-</Provider>
-```
-
----
-
-### 3️⃣ Verwenden in einer Komponente
 
 ```jsx
 // Counter.jsx
-import { useSelector, useDispatch } from 'react-redux';
-import { increment, decrement } from './store';
+import { useSelector, useDispatch } from "react-redux";
+import { Provider } from "react-redux";
+import { store } from "./store.js";
 
 function Counter() {
+  const count = useSelector(state => state.value);
+  const dispatch = useDispatch();
+
+  return (
+    <div>
+      <p>Zähler: {count}</p>
+      <button onClick={() => dispatch({ type: "INCREMENT" })}>+1</button>
+      <button onClick={() => dispatch({ type: "DECREMENT" })}>-1</button>
+    </div>
+  );
+}
+
+// App.jsx
+export default function App() {
+  return (
+    <Provider store={store}>
+      <Counter />
+    </Provider>
+  );
+}
+```
+
+---
+
+#### **Zusammenfassung**
+
+* Redux = zentrales **State-Management** mit klarem Datenfluss.
+* Drei Prinzipien: **ein Store**, **State nur über Actions veränderbar**, **Reducer als pure functions**.
+* Vorteile: **Vorhersagbarkeit, Debugging, Skalierbarkeit**.
+
+📖 Quellen:
+
+* [Redux Docs – Einführung](https://redux.js.org/introduction/getting-started)
+* [React Redux](https://react-redux.js.org/)
+* [MDN – State Management](https://developer.mozilla.org/ru/docs/Glossary/State_management)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+112. ### <a name="112"></a> Was sind Actions, Reducer und Store?
+
+### Actions, Reducer und Store in **Redux**
+
+#### **1) Actions**
+
+* **Plain JavaScript Objects**, die beschreiben, **was passieren soll**.
+* Müssen ein `type`-Feld haben (string, eindeutig).
+* Können zusätzliche Daten enthalten (`payload`).
+
+```js
+// Beispiel-Action
+{ type: "INCREMENT" }
+{ type: "ADD_TODO", payload: { id: 1, text: "React lernen" } }
+```
+
+---
+
+#### **2) Reducer**
+
+* **Pure Function**: `(state, action) → newState`.
+* Entscheidet anhand des `action.type`, wie der **neue State** aussieht.
+* Darf State nicht direkt mutieren, sondern muss **immutabel** arbeiten.
+
+```js
+// reducer.js
+function counterReducer(state = { value: 0 }, action) {
+  switch (action.type) {
+    case "INCREMENT":
+      return { value: state.value + 1 };
+    case "DECREMENT":
+      return { value: state.value - 1 };
+    default:
+      return state;
+  }
+}
+```
+
+---
+
+#### **3) Store**
+
+* Der **zentrale Container** für den State.
+* Enthält Methoden:
+
+  * `getState()` – aktuellen State lesen
+  * `dispatch(action)` – Action an Reducer senden
+  * `subscribe(listener)` – auf Änderungen reagieren
+
+```js
+import { createStore } from "redux";
+import counterReducer from "./reducer.js";
+
+// Store erstellen
+const store = createStore(counterReducer);
+
+// State auslesen
+console.log(store.getState()); // { value: 0 }
+
+// Action dispatchen
+store.dispatch({ type: "INCREMENT" });
+console.log(store.getState()); // { value: 1 }
+```
+
+---
+
+### **Zusammenfassung**
+
+* **Actions**: Beschreiben *was* passiert (Objekte).
+* **Reducer**: Reine Funktionen, berechnen den *neuen State* basierend auf Actions.
+* **Store**: Hält den State, verwaltet den Datenfluss (`getState`, `dispatch`, `subscribe`).
+
+📖 Quellen:
+
+* [Redux Docs – Core Concepts](https://redux.js.org/introduction/core-concepts)
+* [React Redux Docs](https://react-redux.js.org/introduction/quick-start)
+
+---
+
+  **[⬆ Наверх](#top)**
+
+113. ### <a name="113"></a> Wie funktioniert Redux Toolkit (createSlice, configureStore, createAsyncThunk)?
+
+### Redux Toolkit (RTK) – moderne Art, Redux zu nutzen
+
+Redux Toolkit ist die **offizielle, empfohlene Methode**, Redux-Code zu schreiben.
+Es reduziert Boilerplate und vereinfacht die Arbeit mit Actions, Reducern und Async-Logik.
+
+---
+
+## **1) `createSlice`**
+
+* Bündelt **State**, **Reducer** und automatisch generierte **Actions** in einem "Slice".
+* Spart das manuelle Erstellen von Action-Objekten und Action-Creators.
+
+```js
+// counterSlice.js
+import { createSlice } from "@reduxjs/toolkit";
+
+const counterSlice = createSlice({
+  name: "counter",
+  initialState: { value: 0 },
+  reducers: {
+    increment: (state) => { state.value += 1 },   // erlaubt direkte Mutation (immer noch immutable dank Immer)
+    decrement: (state) => { state.value -= 1 },
+    addBy: (state, action) => { state.value += action.payload }
+  }
+});
+
+export const { increment, decrement, addBy } = counterSlice.actions;
+export default counterSlice.reducer;
+```
+
+👉 Generiert automatisch:
+
+* Reducer-Funktion (`counterSlice.reducer`)
+* Action Creators (`increment()`, `decrement()`, `addBy(5)`)
+
+---
+
+## **2) `configureStore`**
+
+* Erstellt den zentralen Store.
+* Integriert automatisch **Redux DevTools** und Middleware (z. B. Thunk).
+
+```js
+// store.js
+import { configureStore } from "@reduxjs/toolkit";
+import counterReducer from "./counterSlice.js";
+
+export const store = configureStore({
+  reducer: {
+    counter: counterReducer
+  }
+});
+```
+
+---
+
+## **3) `createAsyncThunk`**
+
+* Für **asynchrone Logik** (z. B. API-Aufrufe).
+* Generiert automatisch Pending/ Fulfilled/ Rejected-Actions.
+
+```js
+// usersSlice.js
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+
+// Async-Action
+export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
+  const res = await fetch("https://jsonplaceholder.typicode.com/users");
+  return res.json();
+});
+
+const usersSlice = createSlice({
+  name: "users",
+  initialState: { list: [], status: "idle", error: null },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUsers.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.list = action.payload;
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      });
+  }
+});
+
+export default usersSlice.reducer;
+```
+
+---
+
+## **4) Nutzung in Komponenten**
+
+```jsx
+// Counter.jsx
+import { useSelector, useDispatch } from "react-redux";
+import { increment, addBy } from "./counterSlice.js";
+import { fetchUsers } from "./usersSlice.js";
+
+export function Counter() {
   const count = useSelector((state) => state.counter.value);
   const dispatch = useDispatch();
 
   return (
     <div>
       <p>Zähler: {count}</p>
-      <button onClick={() => dispatch(increment())}>+</button>
-      <button onClick={() => dispatch(decrement())}>–</button>
+      <button onClick={() => dispatch(increment())}>+1</button>
+      <button onClick={() => dispatch(addBy(5))}>+5</button>
+      <button onClick={() => dispatch(fetchUsers())}>Load Users</button>
     </div>
   );
 }
@@ -5936,786 +6151,463 @@ function Counter() {
 
 ---
 
-## 🔁 Datenfluss
+### **Zusammenfassung**
 
-```text
-UI → dispatch(action) → reducer → neuer state → UI-Update
-```
+* **`createSlice`**: Definiert State + Reducer + Actions in einer kompakten Form.
+* **`configureStore`**: Vereinfacht Store-Setup mit DevTools + Middleware.
+* **`createAsyncThunk`**: Standardweg für asynchrone Logik, generiert automatisch Pending/Fulfilled/Rejected-Actions.
+* RTK macht Redux-Code **kürzer, lesbarer und weniger fehleranfällig**.
 
----
+📖 Quellen:
 
-## 📝 Zusammenfassung
-
-| Begriff       | Funktion                              |
-|---------------|----------------------------------------|
-| `Store`       | Zentrale Datenhaltung                  |
-| `Action`      | Ereignisbeschreibung                   |
-| `Reducer`     | Verändert Zustand basierend auf Action |
-| `dispatch()`  | Sendet Action an Reducer               |
-| `useSelector` | Liest Daten aus dem Store              |
-| `useDispatch` | Ruft Aktionen auf                      |
+* [Redux Toolkit – Getting Started](https://redux-toolkit.js.org/introduction/getting-started)
+* [Redux Toolkit – createSlice](https://redux-toolkit.js.org/api/createSlice)
+* [Redux Toolkit – createAsyncThunk](https://redux-toolkit.js.org/api/createAsyncThunk)
 
 ---
-
-## 🔗 Quellen
-
-- [Redux Toolkit – Offizielle Doku](https://redux-toolkit.js.org)  
-- [React Redux – Einstieg](https://react-redux.js.org/introduction/getting-started)
-
-  **[⬆ Наверх](#top)**
-
-112. ### <a name="112"></a> Was sind Actions, Reducer und Store?
-
-# Was sind Actions, Reducer und Store in Redux?
-
-Diese drei Konzepte bilden das **Herzstück von Redux**.  
-Sie sorgen für einen **vorhersagbaren Datenfluss** und eine **klare Trennung der Logik**.
-
----
-
-## 🟩 1. **Store**
-
-Der **Store** ist die **zentrale Datenquelle** deiner Anwendung.  
-Er enthält den **globalen Zustand** (State) und stellt Methoden bereit, um:
-
-- den Zustand zu lesen (`getState`)
-- Änderungen auszulösen (`dispatch`)
-- auf Änderungen zu reagieren (`subscribe`)
-
-### Beispiel:
-
-```js
-import { configureStore } from '@reduxjs/toolkit';
-import counterReducer from './counterSlice';
-
-const store = configureStore({
-  reducer: {
-    counter: counterReducer,
-  },
-});
-```
-
----
-
-## 🟨 2. **Action**
-
-Eine **Action** ist ein **JavaScript-Objekt**, das beschreibt, **was passiert ist**.  
-Sie hat mindestens ein `type`-Feld.
-
-### Beispiel:
-
-```js
-const incrementAction = { type: 'counter/increment' };
-```
-
-Mit Redux Toolkit:
-
-```js
-dispatch(increment()); // automatisch erzeugte Action
-```
-
----
-
-## 🟥 3. **Reducer**
-
-Ein **Reducer** ist eine **reine Funktion**, die den neuen Zustand berechnet  
-auf Basis des aktuellen Zustands + Action.
-
-### Beispiel (klassisch):
-
-```js
-function counterReducer(state = { value: 0 }, action) {
-  switch (action.type) {
-    case 'counter/increment':
-      return { value: state.value + 1 };
-    default:
-      return state;
-  }
-}
-```
-
-### Beispiel mit Redux Toolkit:
-
-```js
-const counterSlice = createSlice({
-  name: 'counter',
-  initialState: { value: 0 },
-  reducers: {
-    increment(state) {
-      state.value += 1; // dank Immer.js erlaubt
-    },
-  },
-});
-```
-
----
-
-## 🔁 Zusammenwirken der drei
-
-```text
-UI → dispatch(Action) → Reducer → Neuer State → Store → UI-Update
-```
-
----
-
-## 📝 Zusammenfassung
-
-| Begriff     | Funktion                                      |
-|-------------|-----------------------------------------------|
-| **Store**   | Hält den globalen Zustand                     |
-| **Action**  | Beschreibt, was passiert ist (`{ type: ... }`)|
-| **Reducer** | Erzeugt neuen Zustand basierend auf Action    |
-
----
-
-## 🔗 Quellen
-
-- [Redux Grundlagen (offiziell)](https://redux.js.org/tutorials/fundamentals/part-3-state-actions-reducers)  
-- [Redux Toolkit Docs](https://redux-toolkit.js.org/introduction/getting-started)
-
-  **[⬆ Наверх](#top)**
-
-113. ### <a name="113"></a> Wie funktioniert Redux Toolkit (createSlice, configureStore, createAsyncThunk)?
-
-# Wie funktioniert Redux Toolkit (`createSlice`, `configureStore`, `createAsyncThunk`)?
-
-**Redux Toolkit** ist die offizielle, empfohlene Methode zum Schreiben von Redux-Code.  
-Es reduziert Boilerplate-Code und bietet moderne, einfache APIs für `Store`, `Reducer`, `Async-Logik`.
-
----
-
-## 📦 Installation
-
-```bash
-npm install @reduxjs/toolkit react-redux
-```
-
----
-
-## 🔧 1. `createSlice` – Reducer + Actions in einem
-
-```js
-import { createSlice } from '@reduxjs/toolkit';
-
-const counterSlice = createSlice({
-  name: 'counter',
-  initialState: { value: 0 },
-  reducers: {
-    increment(state) {
-      state.value += 1;
-    },
-    decrement(state) {
-      state.value -= 1;
-    },
-  },
-});
-
-export const { increment, decrement } = counterSlice.actions;
-export default counterSlice.reducer;
-```
-
-✅ Vorteile:
-- automatische Action-Erstellung (`increment`, `decrement`)
-- automatische Action-Typen (`counter/increment`)
-
----
-
-## 🏪 2. `configureStore` – Store erstellen
-
-```js
-import { configureStore } from '@reduxjs/toolkit';
-import counterReducer from './counterSlice';
-
-export const store = configureStore({
-  reducer: {
-    counter: counterReducer,
-  },
-});
-```
-
-- akzeptiert ein **Reducer-Objekt**
-- aktiviert automatisch Redux DevTools & Middleware
-
----
-
-## 🔁 3. `createAsyncThunk` – Asynchrone Logik wie API-Fetch
-
-```js
-import { createAsyncThunk } from '@reduxjs/toolkit';
-
-export const fetchUsers = createAsyncThunk(
-  'users/fetchUsers',
-  async () => {
-    const response = await fetch('https://jsonplaceholder.typicode.com/users');
-    return await response.json();
-  }
-);
-```
-
-➡ Wird automatisch in `pending`, `fulfilled`, `rejected` unterteilt.
-
----
-
-### In Kombination mit `extraReducers`:
-
-```js
-const usersSlice = createSlice({
-  name: 'users',
-  initialState: { list: [], loading: false },
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchUsers.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(fetchUsers.fulfilled, (state, action) => {
-        state.loading = false;
-        state.list = action.payload;
-      })
-      .addCase(fetchUsers.rejected, (state) => {
-        state.loading = false;
-      });
-  },
-});
-```
-
----
-
-## 🧠 Verwendung im React-Komponenten
-
-```jsx
-import { useSelector, useDispatch } from 'react-redux';
-import { increment } from './counterSlice';
-
-function Counter() {
-  const value = useSelector((state) => state.counter.value);
-  const dispatch = useDispatch();
-
-  return (
-    <>
-      <p>Zähler: {value}</p>
-      <button onClick={() => dispatch(increment())}>+</button>
-    </>
-  );
-}
-```
-
----
-
-## 📝 Zusammenfassung
-
-| Funktion              | Aufgabe                                  |
-|-----------------------|-------------------------------------------|
-| `createSlice`         | erstellt Reducer + Actions automatisch    |
-| `configureStore`      | erzeugt den Store + Middleware             |
-| `createAsyncThunk`    | einfache Handhabung asynchroner Logik     |
-| `extraReducers`       | Reaktion auf externe Actions (z. B. Thunks) |
-
----
-
-## 🔗 Quellen
-
-- [Redux Toolkit – Einstieg](https://redux-toolkit.js.org/introduction/getting-started)  
-- [createSlice Doku](https://redux-toolkit.js.org/api/createSlice)  
-- [createAsyncThunk Doku](https://redux-toolkit.js.org/api/createAsyncThunk)
 
   **[⬆ Наверх](#top)**
 
 114. ### <a name="114"></a> Was ist RTK Query?
 
-# Was ist RTK Query?
+### RTK Query – was es ist und wie es funktioniert
 
-**RTK Query** ist eine leistungsstarke Erweiterung von Redux Toolkit,  
-die **API-Daten abrufen, cachen, synchronisieren und verwalten** kann –  
-ohne manuell Thunks, Reducer oder Actions zu schreiben.
+#### **Definition**
 
-✅ **Ziel**: API-Zugriff mit minimalem Code, integriert in den Redux Store.
-
----
-
-## 🎯 Vorteile
-
-- 🚀 Automatisches Caching, Refetching, Invalidierung
-- 🧼 Weniger Boilerplate als `createAsyncThunk`
-- 🔄 Automatische Lade- und Fehlerzustände (`isLoading`, `error`, etc.)
-- 🧠 Integriert sich direkt in den Redux-Store
+* **RTK Query** ist ein offizielles Zusatzmodul von **Redux Toolkit**.
+* Es bietet ein **integriertes Data-Fetching und Caching-System** für API-Anfragen.
+* Ziel: Weniger Boilerplate bei Server-Requests und State-Handling (Loading, Error, Cache).
 
 ---
 
-## 📦 Installation
+#### **Kernfeatures**
 
-```bash
-npm install @reduxjs/toolkit react-redux
-```
+* Automatisches **Caching & Refetching** von Daten.
+* Generiert automatisch **Hooks** für Queries (GET) und Mutations (POST/PUT/DELETE).
+* Integriert sich nahtlos in Redux Toolkit (`configureStore`).
+* Spart den Einsatz von zusätzlichen Libraries wie Axios + Redux Thunk + eigene Loading/Error-States.
 
 ---
 
-## ✅ Beispiel: API-Daten mit RTK Query laden
-
-### 1️⃣ API-Slice erstellen
+#### **1) API-Slice erstellen**
 
 ```js
 // services/api.js
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const api = createApi({
-  reducerPath: 'api', // automatisch im Store
-  baseQuery: fetchBaseQuery({ baseUrl: 'https://jsonplaceholder.typicode.com/' }),
+  reducerPath: "api", // wird automatisch im Store registriert
+  baseQuery: fetchBaseQuery({ baseUrl: "https://jsonplaceholder.typicode.com" }),
   endpoints: (builder) => ({
     getUsers: builder.query({
-      query: () => 'users',
+      query: () => "/users"
     }),
-  }),
+    addUser: builder.mutation({
+      query: (newUser) => ({
+        url: "/users",
+        method: "POST",
+        body: newUser
+      })
+    })
+  })
 });
 
-export const { useGetUsersQuery } = api;
+export const { useGetUsersQuery, useAddUserMutation } = api;
 ```
 
 ---
 
-### 2️⃣ Store konfigurieren
+#### **2) Store einrichten**
 
 ```js
 // store.js
-import { configureStore } from '@reduxjs/toolkit';
-import { api } from './services/api';
+import { configureStore } from "@reduxjs/toolkit";
+import { api } from "./services/api.js";
 
 export const store = configureStore({
   reducer: {
-    [api.reducerPath]: api.reducer,
+    [api.reducerPath]: api.reducer
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(api.middleware),
+    getDefaultMiddleware().concat(api.middleware)
 });
 ```
 
 ---
 
-### 3️⃣ Verwendung in einer Komponente
+#### **3) Nutzung in Komponenten**
 
 ```jsx
-import { useGetUsersQuery } from './services/api';
+// Users.jsx
+import { useGetUsersQuery, useAddUserMutation } from "./services/api.js";
 
-function UserList() {
-  const { data: users, error, isLoading } = useGetUsersQuery();
+export function Users() {
+  const { data, error, isLoading } = useGetUsersQuery();
+  const [addUser] = useAddUserMutation();
 
   if (isLoading) return <p>Lädt...</p>;
-  if (error) return <p>Fehler beim Laden</p>;
+  if (error) return <p>Fehler: {error.message}</p>;
 
   return (
-    <ul>
-      {users.map((u) => (
-        <li key={u.id}>{u.name}</li>
-      ))}
-    </ul>
+    <div>
+      <ul>
+        {data.map((user) => (
+          <li key={user.id}>{user.name}</li>
+        ))}
+      </ul>
+      <button onClick={() => addUser({ name: "Sergii" })}>Neuer User</button>
+    </div>
   );
 }
 ```
 
 ---
 
-## 🧠 Caching & Refetching
+### **Zusammenfassung**
 
-- RTK Query cached Daten automatisch
-- Man kann Daten **invalidieren**, **refetchen**, **polling** aktivieren usw.
+* **RTK Query** = Data-Fetching- und Cache-Lösung für Redux Toolkit.
+* Stellt automatisch **Hooks** (`useGetXQuery`, `useAddXMutation`) bereit.
+* Handhabt **Loading, Error, Refetch, Cache** automatisch.
+* Vereinfacht API-Integration erheblich.
 
-```js
-getUsers: builder.query({
-  query: () => 'users',
-  keepUnusedDataFor: 60, // Sekunden
-});
-```
+📖 Quellen:
 
----
-
-## 📝 Zusammenfassung
-
-| Feature             | Beschreibung                                         |
-|---------------------|------------------------------------------------------|
-| `createApi`         | Erstellt API-Slice                                   |
-| `fetchBaseQuery`    | Basiert auf `fetch()`                                |
-| `useXYZQuery()`     | Auto-generierter React-Hook                          |
-| `api.middleware`    | Automatische Integration in Redux-Middleware         |
-| Vorteile            | Weniger Code, Caching, Refetching, isLoading, error |
+* [Redux Toolkit – RTK Query Overview](https://redux-toolkit.js.org/rtk-query/overview)
+* [Redux Toolkit – API Reference](https://redux-toolkit.js.org/rtk-query/api/createApi)
 
 ---
-
-## 🔗 Quellen
-
-- [RTK Query – Offizielle Docs](https://redux-toolkit.js.org/rtk-query/overview)  
-- [API Service mit RTK Query](https://redux-toolkit.js.org/rtk-query/usage)
 
   **[⬆ Наверх](#top)**
 
 115. ### <a name="115"></a> Was ist der Unterschied zwischen Redux und der Context-API?
 
-# Was ist der Unterschied zwischen Redux und der Context-API?
+### Unterschied zwischen **Redux** und **React Context API**
 
-Sowohl **Redux** als auch die **React Context-API** ermöglichen es,  
-**globalen Zustand** in einer Anwendung zu teilen.  
-Aber sie unterscheiden sich in **Funktion**, **Skalierbarkeit** und **Zweck**.
+#### **1) Zweck**
 
----
+* **Context API**:
 
-## 🔍 Vergleich Redux vs Context-API
+  * React-eigene Lösung, um **Props-Drilling** zu vermeiden.
+  * Gut für **einfaches, globales Teilen von Daten** (z. B. Theme, Auth-Status, Sprache).
 
-| Kriterium               | **Redux**                                     | **Context-API**                             |
-|-------------------------|-----------------------------------------------|---------------------------------------------|
-| 📦 Zweck                | Globales **State-Management mit Logik**       | **Einfaches Teilen** von Daten              |
-| 🧠 Zustand              | komplexer, strukturiert (Slices, Reducer)     | einfacher Zustand (z. B. useState)          |
-| ⚙ Middleware            | Ja (z. B. Logging, Async mit Thunks)          | Nein                                        |
-| 🔁 Updates              | selektiv durch `useSelector`                  | **Alle** Children werden neu gerendert      |
-| 🚀 Performance          | effizient durch Trennung von Logik & UI       | kann bei großen Apps Performance-Probleme bringen |
-| 🧰 Tooling              | Redux DevTools, RTK, RTK Query                | Keine integrierten Tools                    |
-| 📚 Boilerplate          | mehr (aber reduziert durch RTK)               | sehr wenig                                  |
-| 🔄 Asynchronität        | `createAsyncThunk`, Middleware                 | manuell über Hooks                          |
-| 👨‍👩‍👧‍👦 Zielgruppe        | mittlere bis große Anwendungen                | kleine bis mittlere Komponentenkommunikation |
+* **Redux**:
+
+  * Vollwertige **State-Management-Bibliothek**.
+  * Geeignet für **komplexe, veränderliche globale States** mit klarer Struktur (Actions, Reducer, Middleware).
 
 ---
 
-## 📌 Wann Context-API verwenden?
+#### **2) Datenfluss & Architektur**
 
-- Themen wie: **Theme, Sprache, Auth-Status**
-- Wenn **wenige Werte** in **vielen Komponenten** gebraucht werden
-- **Kein komplexes State-Handling** nötig
+* **Context API**:
 
----
+  * Basiert auf **Provider/Consumer**-Pattern.
+  * Kein eingebautes Konzept von Actions oder Reducern – reine Werteweitergabe.
 
-## 📌 Wann Redux verwenden?
+* **Redux**:
 
-- **Viele voneinander abhängige Komponenten**
-- Komplexe Logik: **API-Calls, Caching, Optimierung**
-- Zustandslogik soll **testbar, strukturiert und erweiterbar** sein
-- Zusammenarbeit im Team / skalierbare App
+  * Strenger **unidirektionaler Datenfluss**: Action → Reducer → Store → UI.
+  * Ermöglicht **Zeitreisen (DevTools), Middleware (z. B. Logging, Async)**.
 
 ---
 
-## 📝 Zusammenfassung
+#### **3) Skalierung**
 
-| React Context            | Gut für **einfache Datenweitergabe** in der App  
-| Redux (+RTK)             | Ideal für **komplexes, strukturiertes State-Management**
+* **Context API**:
 
-> Die Context-API ist **kein Ersatz**, sondern eine **Alternative für bestimmte Fälle**.
+  * Einfach, aber bei **häufigen State-Änderungen** oder **großen Apps** kann es Performance-Probleme geben (Re-Renders aller Consumer).
+  * Keine integrierte Debugging- oder DevTools-Unterstützung.
+
+* **Redux**:
+
+  * Entwickelt für **größere Anwendungen** mit vielen State-Änderungen.
+  * Performance-optimiert, integrierte **Redux DevTools**, bessere Testbarkeit.
 
 ---
 
-## 🔗 Quellen
+#### **4) Beispiel**
 
-- [React Docs – Context API](https://react.dev/learn/passing-data-deeply-with-context)  
-- [Redux Toolkit Docs](https://redux-toolkit.js.org)  
-- [Vergleich Redux vs Context (Blog)](https://kentcdodds.com/blog/application-state-management-with-react)
+**Context API** (Theme):
+
+```jsx
+const ThemeContext = React.createContext("light");
+
+function App() {
+  return (
+    <ThemeContext.Provider value="dark">
+      <Toolbar />
+    </ThemeContext.Provider>
+  );
+}
+```
+
+**Redux** (Counter):
+
+```js
+// reducer.js
+function counterReducer(state = { value: 0 }, action) {
+  switch (action.type) {
+    case "INCREMENT": return { value: state.value + 1 };
+    default: return state;
+  }
+}
+```
+
+---
+
+### **Zusammenfassung**
+
+* **Context API**: Einfach, ideal für **statische oder selten wechselnde Daten**.
+* **Redux**: Komplexer, ideal für **große Apps mit viel dynamischem State, Middleware, Debugging**.
+* Man kann beide auch **kombinieren** (z. B. Redux im Store, Context für UI-Settings).
+
+📖 Quellen:
+
+* [React Docs – Context](https://react.dev/reference/react/Context)
+* [Redux Docs – Core Concepts](https://redux.js.org/introduction/core-concepts)
+
+---
 
   **[⬆ Наверх](#top)**
 
 116. ### <a name="116"></a> Was ist connect() in Redux?
 
-# Was ist `connect()` in Redux?
+### `connect()` in Redux
 
-`connect()` ist eine **höherwertige Funktion (Higher-Order Component)**  
-aus der Bibliothek **`react-redux`**, die verwendet wurde,  
-um **Klassen- oder Funktionskomponenten** mit dem Redux-Store zu verbinden  
-(vor Hooks wie `useSelector`, `useDispatch`).
+#### **Definition**
 
----
-
-## 📌 Zweck von `connect()`
-
-- Zugriff auf den globalen Redux-State
-- Dispatchen von Actions aus der Komponente
-- Verbindung von **React-Komponenten mit dem Redux-Store**
+* `connect()` ist eine **Higher-Order-Component (HOC)** aus der Bibliothek **react-redux** (klassisches API).
+* Sie verbindet eine React-Komponente mit dem **Redux-Store**, sodass die Komponente State lesen und Actions dispatchen kann.
+* Heute wird es oft durch die Hooks **`useSelector`** und **`useDispatch`** ersetzt, bleibt aber in Legacy-Code weit verbreitet.
 
 ---
 
-## ✅ Syntax
+#### **Syntax**
 
 ```js
 connect(mapStateToProps, mapDispatchToProps)(Component)
 ```
 
-| Argument              | Bedeutung                                                 |
-|------------------------|------------------------------------------------------------|
-| `mapStateToProps`      | Welche Teile des States als Props in die Komponente kommen |
-| `mapDispatchToProps`   | Welche Actions als Props verfügbar gemacht werden sollen   |
+* **`mapStateToProps(state)`** → bestimmt, welche Teile des Redux-States als Props in die Komponente gehen.
+* **`mapDispatchToProps(dispatch)`** → bestimmt, welche Actions als Props verfügbar sind.
 
 ---
 
-## 🧱 Beispiel
-
-### 1️⃣ Redux: Actions & Reducer
-
-```js
-// counterSlice.js (klassisch ohne Toolkit)
-const initialState = { value: 0 };
-
-export function counterReducer(state = initialState, action) {
-  switch (action.type) {
-    case 'INCREMENT':
-      return { value: state.value + 1 };
-    default:
-      return state;
-  }
-}
-
-export const increment = () => ({ type: 'INCREMENT' });
-```
-
----
-
-### 2️⃣ Komponente mit `connect()`
+#### **Beispiel**
 
 ```jsx
-import React from 'react';
-import { connect } from 'react-redux';
-import { increment } from './counterSlice';
+// Counter.jsx
+import React from "react";
+import { connect } from "react-redux";
 
-function Counter({ value, increment }) {
+function Counter({ count, increment }) {
   return (
     <div>
-      <p>Wert: {value}</p>
-      <button onClick={increment}>+</button>
+      <p>Zähler: {count}</p>
+      <button onClick={increment}>+1</button>
     </div>
   );
 }
 
+// State → Props
 const mapStateToProps = (state) => ({
-  value: state.counter.value,
+  count: state.value
 });
 
-export default connect(mapStateToProps, { increment })(Counter);
+// Dispatch → Props
+const mapDispatchToProps = (dispatch) => ({
+  increment: () => dispatch({ type: "INCREMENT" })
+});
+
+// Komponente mit Store verbinden
+export default connect(mapStateToProps, mapDispatchToProps)(Counter);
 ```
 
----
+👉 Ergebnis:
 
-## 🚫 Heute: lieber Hooks verwenden
-
-Statt `connect()` → moderner Ansatz:
-
-```jsx
-import { useSelector, useDispatch } from 'react-redux';
-
-function Counter() {
-  const value = useSelector((state) => state.counter.value);
-  const dispatch = useDispatch();
-
-  return <button onClick={() => dispatch({ type: 'INCREMENT' })}>+</button>;
-}
-```
+* `count` und `increment` werden als Props an `Counter` übergeben.
+* Beim Klick wird `dispatch({ type: "INCREMENT" })` ausgeführt.
 
 ---
 
-## 📝 Zusammenfassung
+#### **Zusammenfassung**
 
-| `connect()`                   | Alte Methode zur Verbindung mit Redux-Store (HOC)       |
-|------------------------------|----------------------------------------------------------|
-| `mapStateToProps`            | Wählt Teile des States aus                              |
-| `mapDispatchToProps`         | Bindet Action Creators an Props                         |
-| ❗ Empfehlung heute           | Lieber `useSelector`, `useDispatch` (funktionale Hooks) |
+* `connect()` = HOC, das React-Komponenten mit Redux verbindet.
+* Nutzt `mapStateToProps` und `mapDispatchToProps`, um State und Actions als Props bereitzustellen.
+* Heute meist durch **Hooks (`useSelector`, `useDispatch`)** ersetzt, aber in älterem Code noch sehr wichtig.
+
+📖 Quellen:
+
+* [React Redux – connect()](https://react-redux.js.org/api/connect)
+* [Redux Docs – React Integration](https://redux.js.org/introduction/using-react-redux)
 
 ---
-
-## 🔗 Quellen
-
-- [react-redux – `connect()` Doku](https://react-redux.js.org/api/connect)  
-- [React Redux – Hooks vs connect](https://react-redux.js.org/api/hooks)
 
   **[⬆ Наверх](#top)**
 
 117. ### <a name="117"></a> Was sind Middleware in Redux (z. B. redux-thunk, redux-logger)?
 
-# Was sind Middleware in Redux (z. B. `redux-thunk`, `redux-logger`)?
+### Middleware in Redux
 
-**Middleware** in Redux sind **Funktionen**, die sich **zwischen `dispatch()` und dem Reducer** schalten.  
-Sie ermöglichen erweiterte Funktionen wie:
+#### **Definition**
 
-- asynchrone Aktionen (z. B. API-Calls)
-- Logging
-- Caching
-- Fehlerbehandlung
+* **Middleware** sind **Funktionen**, die zwischen `dispatch(action)` und dem Moment laufen, in dem die Action den **Reducer** erreicht.
+* Sie ermöglichen es, den **Datenfluss in Redux zu erweitern oder zu verändern**.
+* Typische Anwendungsfälle: **Asynchronität, Logging, API-Calls, Fehlerbehandlung**.
 
 ---
 
-## 🔧 Wie funktioniert Middleware?
+#### **Funktionsweise**
 
-```text
-dispatch(action) → middleware → reducer → new state
-```
-
-Middleware haben Zugriff auf:
-
-- `dispatch`
-- `getState`
-- `next` (weiterführender Aufruf)
-- `action`
-
----
-
-## ✅ Beispiel: Eigene Middleware
+Middleware ist eine Funktion mit der Signatur:
 
 ```js
-const loggerMiddleware = (store) => (next) => (action) => {
-  console.log('Action:', action);
-  const result = next(action); // zum nächsten Middleware/Reducer
-  console.log('Neuer State:', store.getState());
-  return result;
+const middleware = store => next => action => {
+  // Vor der Weitergabe: z. B. loggen, async-Logik, abfangen
+  console.log("Action:", action);
+
+  // Action weiterreichen
+  return next(action);
 };
 ```
 
+* **`store`**: Zugriff auf `dispatch` und `getState`.
+* **`next`**: leitet die Action an die nächste Middleware oder den Reducer weiter.
+* **`action`**: die aktuelle Action.
+
 ---
 
-## 🧰 Gängige Middleware
+#### **Beispiele**
 
-### 1️⃣ `redux-thunk`
+**1) redux-thunk (Async-Logik)**
 
-Ermöglicht es, **Funktionen statt Objekte** zu dispatchen (für Async-Logik).
-
-```bash
-npm install redux-thunk
-```
+* Erlaubt es, **Funktionen** statt reiner Objekte zu dispatchen.
+* Ideal für API-Calls oder komplexe Logik.
 
 ```js
-const fetchData = () => async (dispatch) => {
-  dispatch({ type: 'FETCH_START' });
-  const res = await fetch('/api');
-  const data = await res.json();
-  dispatch({ type: 'FETCH_SUCCESS', payload: data });
+// Thunk-Action Creator
+export const fetchUsers = () => async (dispatch) => {
+  dispatch({ type: "users/loading" });
+  try {
+    const res = await fetch("/api/users");
+    const data = await res.json();
+    dispatch({ type: "users/success", payload: data });
+  } catch (err) {
+    dispatch({ type: "users/error", payload: err.message });
+  }
 };
 ```
 
-> Wird automatisch von **Redux Toolkit** mitgeliefert
+👉 Ohne Thunk wären nur **synchron Actions** möglich.
 
 ---
 
-### 2️⃣ `redux-logger`
+**2) redux-logger (Logging)**
 
-Protokolliert alle Aktionen und State-Änderungen in der Konsole (Debugging).
-
-```bash
-npm install redux-logger
-```
+* Middleware, die automatisch **Actions und State-Änderungen** in der Konsole loggt.
 
 ```js
-import logger from 'redux-logger';
+import { createStore, applyMiddleware } from "redux";
+import logger from "redux-logger";
+import thunk from "redux-thunk";
 
-const store = configureStore({
-  reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(logger),
-});
+const store = createStore(rootReducer, applyMiddleware(thunk, logger));
 ```
 
----
-
-### 3️⃣ Eigene Middleware integrieren
-
-```js
-const store = configureStore({
-  reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(myMiddleware),
-});
-```
+👉 Praktisch beim Debuggen, zeigt alte State → Action → neuer State.
 
 ---
 
-## 📝 Zusammenfassung
+#### **Zusammenfassung**
 
-| Middleware       | Zweck                                    |
-|------------------|-------------------------------------------|
-| `redux-thunk`    | Asynchrone Logik (API, Delay, etc.)       |
-| `redux-logger`   | Logging von Aktionen & Zuständen          |
-| Eigene Middleware| Erweiterung von Dispatch-Logik            |
+* **Middleware = Erweiterung des Dispatch-Prozesses.**
+* Standard-Usecases: **Async (`redux-thunk`)**, **Logging (`redux-logger`)**, **Fehler-Handling**, **Analytics**.
+* Mit Redux Toolkit (`configureStore`) lassen sich Middleware einfach hinzufügen.
 
-> Middleware = **flexible Erweiterung** der Redux-Funktionalität.
+📖 Quellen:
+
+* [Redux Docs – Middleware](https://redux.js.org/understanding/history-and-design/middleware)
+* [Redux Thunk](https://github.com/reduxjs/redux-thunk)
+* [Redux Logger](https://github.com/LogRocket/redux-logger)
 
 ---
-
-## 🔗 Quellen
-
-- [Redux – Middleware Doku](https://redux.js.org/tutorials/fundamentals/part-4-store#middleware)  
-- [redux-logger auf GitHub](https://github.com/LogRocket/redux-logger)  
-- [redux-thunk – GitHub](https://github.com/reduxjs/redux-thunk)
 
   **[⬆ Наверх](#top)**
 
 118. ### <a name="118"></a> Was ist createSelector und wie funktioniert Reselect?
 
-# Was ist `createSelector` und wie funktioniert `reselect`?
+### **Reselect & createSelector in Redux**
 
-**`reselect`** ist eine Bibliothek für **selektives, memoisiertes Selektieren von Zustand** in Redux.  
-Das zentrale Feature ist **`createSelector()`**, mit dem du komplexe Ableitungen aus dem Store berechnen kannst –  
-**nur wenn sich relevante Teile des Zustands geändert haben**.
+#### **Problemstellung**
 
----
-
-## 🎯 Ziel
-
-- Performance optimieren
-- unnötige Berechnungen und Re-Renders vermeiden
-- komplexe Daten aus Store ableiten (z. B. Filter, Map, Reduce)
+* In Redux braucht man oft **abgeleitete Daten** aus dem Store (z. B. Filter, Berechnungen).
+* Ohne Optimierung wird bei jedem `mapStateToProps` oder `useSelector` **alles neu berechnet**, auch wenn sich relevante Teile nicht geändert haben → unnötige Re-Renders.
 
 ---
 
-## 🔧 Installation
+#### **Reselect**
 
-```bash
-npm install reselect
-```
+* **Reselect** ist eine Bibliothek für **Memoization von Selektoren**.
+* Ein *Selector* ist eine Funktion, die Daten aus dem Redux-Store auswählt.
+* Vorteil: Selektoren werden **nur neu berechnet**, wenn sich die relevanten Input-Werte ändern.
 
 ---
 
-## ✅ Einfaches Beispiel mit `createSelector`
+#### **`createSelector`**
+
+* Zentrale Funktion von Reselect.
+* Syntax:
 
 ```js
-import { createSelector } from 'reselect';
+createSelector(inputSelectors..., resultFunc)
+```
 
-// Basis-Selector: roher Zugriff auf State
+* **inputSelectors**: Funktionen, die Teilbereiche des States zurückgeben.
+* **resultFunc**: wird nur ausgeführt, wenn sich einer der Input-Werte ändert.
+
+---
+
+#### **Beispiel**
+
+```js
+// state.todos = [{id:1, text:"React lernen", completed:false}, ...]
+
+// 1. Input-Selectoren
 const selectTodos = (state) => state.todos;
+const selectFilter = (state) => state.filter;
 
-// Memoisierter Selector: nur wenn todos sich ändern
-export const selectCompletedTodos = createSelector(
-  [selectTodos],
-  (todos) => todos.filter((todo) => todo.completed)
+// 2. Memoized Selector mit Reselect
+import { createSelector } from "reselect";
+
+export const selectVisibleTodos = createSelector(
+  [selectTodos, selectFilter],
+  (todos, filter) => {
+    console.log("Selector neu berechnet!");
+    switch (filter) {
+      case "completed":
+        return todos.filter((t) => t.completed);
+      case "active":
+        return todos.filter((t) => !t.completed);
+      default:
+        return todos;
+    }
+  }
 );
 ```
 
-📌 `selectCompletedTodos(state)` gibt **nur neue Werte zurück**,  
-wenn sich die ursprünglichen `todos` verändert haben.
+👉 `selectVisibleTodos(state)` berechnet nur dann neu, wenn sich `state.todos` oder `state.filter` ändern.
+👉 Verhindert Performance-Probleme bei großen States.
 
 ---
 
-## 🧠 Beispiel im Redux Toolkit Setup
-
-```js
-// store.js
-const initialState = {
-  todos: [
-    { id: 1, text: 'Lernen', completed: true },
-    { id: 2, text: 'Coden', completed: false },
-  ],
-};
-
-// selectors.js
-import { createSelector } from 'reselect';
-
-const selectTodos = (state) => state.todos;
-
-export const selectIncompleteTodos = createSelector(
-  [selectTodos],
-  (todos) => todos.filter((t) => !t.completed)
-);
-```
-
----
-
-## 🧪 Verwendung im Component
+#### **Nutzung in Komponenten**
 
 ```jsx
-import { useSelector } from 'react-redux';
-import { selectIncompleteTodos } from './selectors';
+import { useSelector } from "react-redux";
+import { selectVisibleTodos } from "./selectors.js";
 
 function TodoList() {
-  const todos = useSelector(selectIncompleteTodos);
-
+  const todos = useSelector(selectVisibleTodos);
   return (
     <ul>
       {todos.map((t) => (
@@ -6728,87 +6620,99 @@ function TodoList() {
 
 ---
 
-## 📌 Vorteile von `createSelector`
+### **Zusammenfassung**
 
-- **Memoisierung**: Caches das Ergebnis bis sich Input-Selektoren ändern
-- **Komposition**: Selektoren können andere Selektoren nutzen
-- **Performance**: Weniger Re-Render und Berechnungen
+* **Reselect**: Library für **Memoization von Selektoren**.
+* **`createSelector`**: erstellt Selektoren, die nur bei relevanten State-Änderungen neu berechnen.
+* Vorteil: **Performance** und **Vermeidung unnötiger Re-Renders**.
 
----
+📖 Quellen:
 
-## 📝 Zusammenfassung
-
-| Begriff           | Beschreibung                                              |
-|-------------------|-----------------------------------------------------------|
-| `createSelector`  | Memoisierter Selektor für abgeleiteten Zustand            |
-| `reselect`        | Bibliothek für performantes Selektieren aus dem Redux-Store |
-| Vorteile          | Wiederverwendbar, performant, selektiv                    |
+* [Reselect Docs](https://github.com/reduxjs/reselect)
+* [Redux Docs – Reselect](https://redux.js.org/usage/deriving-data-selectors#creating-memoized-selectors-with-reselect)
 
 ---
-
-## 🔗 Quellen
-
-- [Reselect – GitHub](https://github.com/reduxjs/reselect)  
-- [Redux Docs: Computing Derived Data](https://redux.js.org/usage/deriving-data-selectors)
 
   **[⬆ Наверх](#top)**
 
 119. ### <a name="119"></a> Wie verbindet man Redux mit React über Hooks (useSelector, useDispatch)?
 
-# Wie verbindet man Redux mit React über Hooks (`useSelector`, `useDispatch`)?
+### React + Redux via Hooks: **`useSelector`** und **`useDispatch`**
 
-Statt der alten `connect()`-Funktion nutzt man in modernen React-Apps  
-die **React-Redux Hooks** `useSelector` und `useDispatch`,  
-um Komponenten einfach mit dem Redux-Store zu verbinden.
-
----
-
-## 🧠 `useSelector`
-
-Wird verwendet, um **Daten aus dem Redux-Store** auszulesen.
+#### **1) Store bereitstellen (`<Provider>`)**
 
 ```jsx
-import { useSelector } from 'react-redux';
+// main.jsx
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { Provider } from "react-redux";
+import { store } from "./store.js";
+import App from "./App.jsx";
 
-const count = useSelector((state) => state.counter.value);
+createRoot(document.getElementById("root")).render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
 ```
 
-- Zugriff auf beliebige Teile des States
-- Automatisch neu gerendert bei Änderung
+```js
+// store.js (RTK empfohlen)
+import { configureStore, createSlice } from "@reduxjs/toolkit";
 
----
+const counterSlice = createSlice({
+  name: "counter",
+  initialState: { value: 0 },
+  reducers: {
+    increment: (state) => { state.value += 1; },
+    addBy: (state, action) => { state.value += action.payload; }
+  }
+});
 
-## ⚙️ `useDispatch`
+export const { increment, addBy } = counterSlice.actions;
 
-Gibt die `dispatch`-Funktion zurück, um **Actions zu senden**.
-
-```jsx
-import { useDispatch } from 'react-redux';
-import { increment } from './counterSlice';
-
-const dispatch = useDispatch();
-dispatch(increment());
+export const store = configureStore({
+  reducer: { counter: counterSlice.reducer }
+});
 ```
 
-- Ideal in Event-Handlern (`onClick`, `onSubmit`, etc.)
+---
+
+#### **2) Globalen State lesen: `useSelector`**
+
+* Liest Daten **reaktiv** aus dem Store (re-rendert bei Änderungen des ausgewählten Teilzustands).
+* Selektor sollte **so klein wie möglich** sein.
+
+```jsx
+// CounterView.jsx
+import { useSelector } from "react-redux";
+
+export function CounterView() {
+  const value = useSelector((state) => state.counter.value);
+  return <p>Wert: {value}</p>;
+}
+```
+
+> Tipp: Für komplexe Ableitungen **memoisierte Selektoren** (Reselect `createSelector`) nutzen.
 
 ---
 
-## ✅ Beispiel: Counter-Komponente
+#### **3) Aktionen auslösen: `useDispatch`**
+
+* Gibt die `dispatch`-Funktion zurück, um Actions zu senden (sync oder async).
 
 ```jsx
-import { useSelector, useDispatch } from 'react-redux';
-import { increment, decrement } from './counterSlice';
+// CounterControls.jsx
+import { useDispatch } from "react-redux";
+import { increment, addBy } from "./store.js";
 
-function Counter() {
-  const count = useSelector((state) => state.counter.value);
+export function CounterControls() {
   const dispatch = useDispatch();
 
   return (
     <div>
-      <p>Wert: {count}</p>
-      <button onClick={() => dispatch(increment())}>+</button>
-      <button onClick={() => dispatch(decrement())}>–</button>
+      <button onClick={() => dispatch(increment())}>+1</button>
+      <button onClick={() => dispatch(addBy(5))}>+5</button>
     </div>
   );
 }
@@ -6816,31 +6720,52 @@ function Counter() {
 
 ---
 
-## 🔄 Vergleich: `connect()` vs Hooks
+#### **4) Async-Dispatch (Thunk/RTK)**
 
-| Alt (connect)                     | Modern (Hooks)              |
-|----------------------------------|-----------------------------|
-| `mapStateToProps()`              | `useSelector()`             |
-| `mapDispatchToProps()`           | `useDispatch()`             |
-| Mehr Boilerplate                 | Weniger Code, klarer Stil   |
+```js
+// thunks.js
+export const fetchAndAdd = () => async (dispatch) => {
+  const res = await fetch("/api/value");
+  const { delta } = await res.json();
+  dispatch(addBy(delta));
+};
+```
+
+```jsx
+// AsyncButton.jsx
+import { useDispatch } from "react-redux";
+import { fetchAndAdd } from "./thunks.js";
+
+export function AsyncButton() {
+  const dispatch = useDispatch();
+  return <button onClick={() => dispatch(fetchAndAdd())}>Server +</button>;
+}
+```
 
 ---
 
-## 📝 Zusammenfassung
+#### **5) Performance-Hinweise (kurz)**
 
-| Hook             | Zweck                                     |
-|------------------|--------------------------------------------|
-| `useSelector`    | Daten aus Redux-Store lesen                |
-| `useDispatch`    | Aktionen an den Store senden (dispatch)   |
-| Vorteil          | weniger Code, bessere Lesbarkeit, Flexibilität |
+* Selektiere **kleine Slices**: `useSelector(s => s.counter.value)` statt ganzen State.
+* Für berechnete Werte **Reselect** verwenden.
+* Bei Bedarf `useSelector(selector, shallowEqual)` für flache Vergleichsoptimierung.
+* In großen Apps: **RTK**-Struktur + Feature-Slices.
 
 ---
 
-## 🔗 Quellen
+### **Zusammenfassung**
 
-- [React Redux – `useSelector`](https://react-redux.js.org/api/hooks#useselector)  
-- [React Redux – `useDispatch`](https://react-redux.js.org/api/hooks#usedispatch)  
-- [Redux Toolkit – Einstieg](https://redux-toolkit.js.org/introduction/getting-started)
+* `<Provider store>` stellt React den Redux-Store bereit.
+* **`useSelector`** liest reaktiv Teilzustände aus dem Store.
+* **`useDispatch`** sendet Actions (auch Thunks) an den Store.
+* Für Performance: kleine Selektoren, Reselect, RTK-Struktur.
+
+**Quellen / Weiterlesen:**
+
+* React Redux Hooks: [https://react-redux.js.org/api/hooks](https://react-redux.js.org/api/hooks)
+* Redux Toolkit: [https://redux-toolkit.js.org/introduction/getting-started](https://redux-toolkit.js.org/introduction/getting-started)
+* React Docs (State-Management-Übersicht): [https://react.dev/learn/scaling-up-with-reducer-and-context](https://react.dev/learn/scaling-up-with-reducer-and-context)
+* MDN (RU) – State-Management-Grundlagen: [https://developer.mozilla.org/ru/docs/Glossary/State_management](https://developer.mozilla.org/ru/docs/Glossary/State_management)
 
   **[⬆ Наверх](#top)**
 
@@ -6912,542 +6837,517 @@ function Counter() {
 
 131. ### <a name="131"></a> Was ist Code-Splitting?
 
-# Was ist Code-Splitting?
+### **Code-Splitting in React**
 
-**Code-Splitting** ist eine Technik, mit der du **JavaScript-Bundles in kleinere Teile aufteilst**,  
-damit der Browser **nicht alles auf einmal laden muss**, sondern nur das, was wirklich gebraucht wird.
+#### **Definition**
 
-Ziel:  
-🚀 **Ladezeit reduzieren**  
-📦 **Initiales Bundle kleiner halten**  
-📈 **Performance verbessern**
+* **Code-Splitting** bedeutet, den JavaScript-Code einer App in **kleinere Bundles** aufzuteilen.
+* Statt beim Start die **gesamte App** zu laden, werden nur die **nötigen Teile** geladen.
+* Ziel: **Performance** verbessern (schnelleres Initial-Loading, geringere Bundle-Größe).
 
 ---
 
-## 📦 Warum ist das wichtig?
+#### **Warum wichtig?**
 
-Ohne Code-Splitting wird deine gesamte Anwendung als ein einziges großes JS-Bundle geladen.  
-Das verlangsamt die erste Ladezeit („Initial Load“) – besonders bei großen Apps.
-
----
-
-## 🚀 Wie funktioniert Code-Splitting in React?
-
-React verwendet **`React.lazy()`** in Kombination mit **`Suspense`** für dynamisches Laden von Komponenten.
+* Große SPAs enthalten oft viele Seiten/Features, die nicht sofort gebraucht werden.
+* Ohne Code-Splitting: Alles wird im Haupt-Bundle gebündelt → lange Ladezeit.
+* Mit Code-Splitting: **Lazy Loading** von Routen, Komponenten oder Libraries.
 
 ---
 
-## ✅ Beispiel mit `React.lazy()` und `Suspense`
+#### **1) React.lazy + Suspense**
+
+* Standardmethode in React für **komponentenbasiertes Code-Splitting**.
 
 ```jsx
-import React, { Suspense } from 'react';
+import React, { Suspense, lazy } from "react";
 
-// Komponente wird nur bei Bedarf geladen
-const LazyComponent = React.lazy(() => import('./MyComponent'));
+const About = lazy(() => import("./About.jsx")); // Lazy Load
 
 function App() {
   return (
     <div>
-      <h1>Meine App</h1>
-      <Suspense fallback={<p>Lade...</p>}>
-        <LazyComponent />
+      <Suspense fallback={<p>Lädt...</p>}>
+        <About /> {/* wird nur geladen, wenn benötigt */}
       </Suspense>
     </div>
   );
 }
 ```
 
-📌 Nur wenn `LazyComponent` wirklich gerendert wird, lädt React den zugehörigen Code.
+👉 `About.jsx` wird erst geladen, wenn die Komponente gerendert wird.
 
 ---
 
-## 🧩 Dynamisches Routing mit Code-Splitting
-
-In Kombination mit `react-router-dom`:
+#### **2) Routing mit Code-Splitting**
 
 ```jsx
-const Home = React.lazy(() => import('./pages/Home'));
-const About = React.lazy(() => import('./pages/About'));
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Suspense, lazy } from "react";
 
-<Routes>
-  <Route path="/" element={
-    <Suspense fallback={<p>Lade Startseite...</p>}>
-      <Home />
-    </Suspense>
-  } />
-  <Route path="/about" element={
-    <Suspense fallback={<p>Lade Info...</p>}>
-      <About />
-    </Suspense>
-  } />
-</Routes>
+const Home = lazy(() => import("./Home.jsx"));
+const Dashboard = lazy(() => import("./Dashboard.jsx"));
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Suspense fallback={<h2>Lädt...</h2>}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+}
 ```
 
 ---
 
-## 📁 Webpack & Vite
+#### **3) Dynamisches Import()**
 
-Code-Splitting wird meist vom **Bundler** übernommen:
-- `webpack`: automatisch bei `import()`
-- `vite`: unterstützt dynamisches Importieren nativ
+* Basis für Code-Splitting (funktioniert ohne React).
+* Webpack/Vite erzeugt automatisch **separate Bundles**.
 
----
-
-## 📝 Zusammenfassung
-
-| Begriff          | Beschreibung                                |
-|------------------|---------------------------------------------|
-| `React.lazy()`   | dynamisches Laden von Komponenten           |
-| `Suspense`       | zeigt Fallback während des Ladens           |
-| Vorteil          | schnelleres Initial-Loading                 |
-| Einsatzbereiche  | große Seiten, Routen, selten genutzte Features |
+```js
+// Beispiel
+button.addEventListener("click", async () => {
+  const { calculate } = await import("./math.js");
+  console.log(calculate(2, 3));
+});
+```
 
 ---
 
-## 🔗 Quellen
+#### **Tools/Build**
 
-- [React – Code-Splitting](https://react.dev/learn/code-splitting)  
-- [MDN – Code Splitting](https://developer.mozilla.org/en-US/docs/Glossary/Code_splitting)
+* In React-Apps meist via **Webpack** oder **Vite** konfiguriert (automatisch mit `import()`).
+* **Bundle Analyzer** hilft, große Pakete zu identifizieren.
+
+---
+
+### **Zusammenfassung**
+
+* Code-Splitting = **Aufteilen des Bundles**, um Ladezeiten zu optimieren.
+* React bietet **React.lazy + Suspense** für Komponenten und **Lazy Routing**.
+* Build-Tools wie Webpack/Vite nutzen `import()` für dynamisches Laden.
+
+📖 Quellen:
+
+* [React Docs – Code-Splitting](https://react.dev/reference/react/lazy)
+* [MDN – import()](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Operators/import)
+* [Webpack – Code Splitting](https://webpack.js.org/guides/code-splitting/)
+
+---
 
   **[⬆ Наверх](#top)**
 
 132. ### <a name="132"></a> Wie funktionieren React.lazy und Suspense?
 
-# Wie funktionieren `React.lazy` und `Suspense`?
+### **React.lazy & Suspense**
 
-Mit `React.lazy()` und `Suspense` kannst du **Komponenten dynamisch (on-demand) laden**,  
-anstatt sie beim Initial-Load in das Hauptbundle einzuschließen.
+#### **React.lazy**
 
-➡️ Das nennt man **Code-Splitting auf Komponentenebene**.
-
----
-
-## 🧩 `React.lazy()`
-
-Mit `React.lazy()` definierst du eine **dynamisch importierte Komponente**.
-
-```jsx
-const LazyComponent = React.lazy(() => import('./MyComponent'));
-```
-
-📌 Der Code von `MyComponent` wird **erst geladen**, wenn sie **wirklich gerendert** wird.
+* `React.lazy()` ermöglicht **Lazy Loading von Komponenten**.
+* Statt die Komponente direkt zu importieren, wird sie nur geladen, wenn sie wirklich gebraucht wird.
+* Syntax: `const Component = React.lazy(() => import("./Component.jsx"));`
+* Funktioniert nur für **Default Exports**.
 
 ---
 
-## ⏳ `Suspense`
+#### **Suspense**
 
-Da das Laden asynchron ist, brauchst du `Suspense`,  
-um einen **Fallback (z. B. Ladeanzeige)** zu zeigen, während die Komponente lädt.
+* `Suspense` ist ein **Wrapper**, der angibt, was angezeigt wird, solange eine Lazy-Komponente noch geladen wird.
+* Muss die Lazy-Komponenten umschließen.
+* Prop: `fallback` → UI während des Ladens.
+
+---
+
+#### **Beispiel**
 
 ```jsx
-import React, { Suspense } from 'react';
+import React, { lazy, Suspense } from "react";
 
-function App() {
+// Lazy Loading
+const About = lazy(() => import("./About.jsx"));
+const Dashboard = lazy(() => import("./Dashboard.jsx"));
+
+export default function App() {
   return (
     <div>
       <h1>Meine App</h1>
-      <Suspense fallback={<p>Lädt…</p>}>
-        <LazyComponent />
+      <Suspense fallback={<p>Lädt...</p>}>
+        <About />
+        <Dashboard />
       </Suspense>
     </div>
   );
 }
 ```
 
-- `fallback` zeigt die UI während des Ladevorgangs
-- Der Fallback kann beliebig sein: Spinner, Skeleton, Text, etc.
+👉 `About` und `Dashboard` werden erst dann geladen, wenn sie gerendert werden.
 
 ---
 
-## 📂 Beispiel mit mehreren Lazy-Komponenten
+#### **Lazy Loading mit Routing**
 
 ```jsx
-const Home = React.lazy(() => import('./pages/Home'));
-const About = React.lazy(() => import('./pages/About'));
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Suspense, lazy } from "react";
 
-function App() {
+const Home = lazy(() => import("./Home.jsx"));
+const Profile = lazy(() => import("./Profile.jsx"));
+
+export default function App() {
   return (
-    <Suspense fallback={<p>Lade Seite…</p>}>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-      </Routes>
-    </Suspense>
+    <BrowserRouter>
+      <Suspense fallback={<h2>Seite lädt...</h2>}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
   );
 }
 ```
 
 ---
 
-## 📌 Einschränkungen
+### **Zusammenfassung**
 
-- `React.lazy()` funktioniert **nur für Default-Exports**  
-- Bei Fehlern beim Laden solltest du **Error Boundaries** verwenden  
-- Suspense funktioniert aktuell **nicht für Datenfetching ohne weitere Libs** (außer mit `React 18` + Server Components oder Libs wie `React Query`, `Relay`)
+* **`React.lazy`**: Definiert Komponenten, die erst bei Bedarf geladen werden (Lazy Loading).
+* **`Suspense`**: Zeigt ein **Fallback-UI**, bis die Lazy-Komponente fertig geladen ist.
+* Vorteil: **Code-Splitting** und bessere Performance.
 
----
+📖 Quellen:
 
-## 📝 Zusammenfassung
-
-| Methode             | Beschreibung                                |
-|---------------------|---------------------------------------------|
-| `React.lazy()`      | dynamisches Importieren einer Komponente    |
-| `Suspense`          | zeigt Fallback während Ladevorgang          |
-| Vorteil             | schnelleres Initial-Loading, besseres UX    |
+* [React Docs – `React.lazy`](https://react.dev/reference/react/lazy)
+* [React Docs – `Suspense`](https://react.dev/reference/react/Suspense)
 
 ---
-
-## 🔗 Quellen
-
-- [React.dev – Code-Splitting](https://react.dev/learn/code-splitting)  
-- [React.dev – `React.lazy`](https://react.dev/reference/react/lazy)  
-- [React.dev – `Suspense`](https://react.dev/reference/react/Suspense)
 
   **[⬆ Наверх](#top)**
 
 133. ### <a name="133"></a> Was ist Tree Shaking?
 
-# Was ist Tree Shaking?
+### **Tree Shaking in React/JavaScript**
 
-**Tree Shaking** ist ein Optimierungsverfahren beim **JavaScript-Bundling**,  
-das **nicht verwendeten (toten) Code automatisch entfernt**  
-→ dadurch wird das finale Bundle kleiner und die Ladezeit schneller.
+#### **Definition**
 
----
-
-## 🧠 Wie funktioniert Tree Shaking?
-
-Tree Shaking analysiert den **Modul-Import-Baum** (Import-Tree)  
-und entfernt **unbenutzte Exporte** aus ES6+ Modulen.
-
-➡️ Voraussetzung: Der Code muss **modular** und **statisch analysierbar** sein (ES Modules).
+* **Tree Shaking** = Prozess beim Bundling (z. B. mit Webpack, Rollup, Vite), bei dem **ungenutzter Code automatisch entfernt** wird.
+* Ziel: **kleinere Bundle-Größe** → bessere Performance.
+* Funktioniert durch **statische Analyse** von ES6 **`import`/`export`**.
 
 ---
 
-## ✅ Beispiel
+#### **Wie es funktioniert**
+
+* Bundler untersucht, welche **Exporte wirklich importiert/genutzt** werden.
+* Alles, was **nicht verwendet** wird, wird aus dem finalen Bundle entfernt.
+* Voraussetzung:
+
+  * ES Modules (`import`/`export`), **keine CommonJS (`require`)**.
+  * Code muss **side-effect-free** sein oder in `package.json` `"sideEffects": false` deklarieren.
+
+---
+
+#### **Beispiel**
 
 ```js
 // utils.js
-export function used() {
-  console.log('wird verwendet');
-}
+export function add(a, b) { return a + b; }
+export function subtract(a, b) { return a - b; }
 
-export function unused() {
-  console.log('wird nie verwendet');
-}
+// app.js
+import { add } from "./utils.js";
 
-// main.js
-import { used } from './utils.js';
-
-used();
+console.log(add(2, 3));
 ```
 
-➡️ Beim Bundling (z. B. mit `webpack`, `vite`) wird `unused()` **eliminiert**,  
-weil sie **nirgendwo verwendet wird**.
+👉 Ergebnis-Bundle enthält nur `add`, **`subtract` wird entfernt**.
 
 ---
 
-## 📦 Voraussetzung für Tree Shaking
+#### **React-spezifisch**
 
-| Anforderung             | Erklärung                              |
-|--------------------------|-----------------------------------------|
-| ✅ ES Modules (`import`) | Kein `require()` oder CommonJS          |
-| ✅ statische Imports     | keine dynamischen `import(expr)`        |
-| ✅ kein Side-Effect      | Modul darf keine Seiteneffekte enthalten |
+* Hilft, nur die tatsächlich genutzten **Komponenten, Hooks oder Funktionen** ins Bundle zu packen.
+* Wichtig beim Import von **Utility-Bibliotheken** wie lodash, date-fns, Material UI.
 
----
-
-## 📁 `package.json` mit `"sideEffects": false`
-
-Damit der Bundler weiß, dass ein Modul **keine Nebenwirkungen hat**:
-
-```json
-{
-  "name": "mein-paket",
-  "sideEffects": false
-}
-```
-
-➡️ Dadurch kann Tree Shaking aggressiver arbeiten.
+  * Statt `import _ from "lodash";` besser: `import debounce from "lodash/debounce";`
 
 ---
 
-## 🚫 Was wird *nicht* entfernt?
+#### **Zusammenfassung**
 
-- Dynamisch importierter Code
-- Code mit Seiteneffekten (`console.log`, DOM-Zugriff)
-- Nicht als Modul geschriebene Dateien (CommonJS)
+* **Tree Shaking** entfernt ungenutzten Code beim Bundling.
+* Nutzt **statische ES6-Imports/Exports**.
+* Führt zu **kleineren, schnelleren Bundles**.
 
----
+📖 Quellen:
 
-## 📝 Zusammenfassung
-
-| Begriff        | Bedeutung                                  |
-|----------------|---------------------------------------------|
-| Tree Shaking   | Entfernt ungenutzten Code aus Bundles       |
-| Voraussetzung  | ES Module, statische Imports, keine Side-Effects |
-| Tools          | Webpack, Rollup, Vite, esbuild              |
+* [MDN – Tree shaking](https://developer.mozilla.org/ru/docs/Glossary/Tree_shaking)
+* [Webpack – Tree Shaking](https://webpack.js.org/guides/tree-shaking/)
+* [Rollup – Tree Shaking](https://rollupjs.org/introduction/#tree-shaking)
 
 ---
-
-## 🔗 Quellen
-
-- [MDN – Tree Shaking](https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking)  
-- [webpack – Tree Shaking](https://webpack.js.org/guides/tree-shaking/)  
-- [Rollup – Tree Shaking](https://rollupjs.org/guide/en/#tree-shaking)
 
   **[⬆ Наверх](#top)**
 
 134. ### <a name="134"></a> Was ist Server-Side Rendering (SSR) und Hydration?
 
-# Was ist Server-Side Rendering (SSR) und Hydration?
+### **Server-Side Rendering (SSR) und Hydration**
 
-**Server-Side Rendering (SSR)** ist eine Technik, bei der **React-Komponenten auf dem Server in HTML umgewandelt**  
-und an den Browser gesendet werden – **bevor** JavaScript im Browser ausgeführt wird.
+#### **Server-Side Rendering (SSR)**
 
-**Hydration** bedeutet, dass React im Browser den **interaktiven Zustand** (Events, State etc.)  
-auf das **vom Server gelieferte HTML** anwendet.
+* Bei **SSR** wird die React-App bereits **auf dem Server in HTML gerendert** und an den Browser geschickt.
+* Vorteil:
 
----
+  * **Schnellere First Paint** (User sieht sofort Inhalt, auch ohne JS).
+  * **SEO-freundlich**, da Suchmaschinen HTML direkt lesen können.
+* Nachteil:
 
-## 📦 Warum SSR verwenden?
+  * Mehr Serverlast, komplexere Infrastruktur.
 
-| Vorteil                             | Beschreibung                                           |
-|-------------------------------------|--------------------------------------------------------|
-| ⏱ Schnellere erste Ladezeit         | HTML ist sofort da, auch ohne JS                      |
-| 🔍 Bessere SEO                      | Crawler sehen direkt fertiges HTML                    |
-| 📡 Besser bei langsamen Verbindungen | Seite funktioniert teilweise, auch ohne JS sofort     |
+**Beispiel (Next.js – SSR-Page):**
 
----
-
-## 🔁 SSR Ablauf (vereinfacht)
-
-```text
-1. Client sendet Anfrage an Server
-2. Server rendert React-Komponenten → HTML
-3. HTML wird an Browser gesendet
-4. Browser zeigt HTML
-5. React wird im Hintergrund geladen → Hydration
-6. Seite wird interaktiv
-```
-
----
-
-## 🔧 Beispiel mit Next.js (SSR + Hydration)
-
-```js
+```jsx
 // pages/index.jsx
-export default function Home({ name }) {
-  return <h1>Hallo {name}</h1>;
+export async function getServerSideProps() {
+  const res = await fetch("https://api.example.com/data");
+  const data = await res.json();
+  return { props: { data } };
 }
 
-export async function getServerSideProps() {
-  return { props: { name: 'Sergii' } };
+export default function Home({ data }) {
+  return <h1>{data.title}</h1>;
 }
 ```
 
-➡️ `getServerSideProps()` rendert die Seite **bei jeder Anfrage auf dem Server**.
+---
+
+#### **Hydration**
+
+* Prozess, bei dem **React im Browser das bereits gerenderte HTML übernimmt** und interaktiv macht.
+* Der Server liefert statisches HTML → React fügt **Event-Handler & State-Management** hinzu.
+* Ohne Hydration wäre die Seite nur „totes“ HTML.
+
+**Hydration im Browser (React 18):**
+
+```jsx
+import { createRoot, hydrateRoot } from "react-dom/client";
+import App from "./App.jsx";
+
+// hydrateRoot übernimmt vom Server gerendertes HTML
+hydrateRoot(document.getElementById("root"), <App />);
+```
 
 ---
 
-## 💧 Was ist Hydration?
+#### **Zusammenhang**
 
-Nach dem Server-Render muss React im Browser:
-
-- das **gerenderte HTML übernehmen**
-- es mit **Event-Handlern und State** verbinden
-
-➡️ Dieser Vorgang heißt **Hydration** und geschieht automatisch bei z. B. Next.js oder Remix.
+1. Server rendert React-Komponenten zu HTML → schickt HTML an den Client.
+2. Browser zeigt sofort Inhalt (SEO + schnelle Ladezeit).
+3. React **hydriert**: bindet Event-Handler an vorhandenes DOM → Seite wird interaktiv.
 
 ---
 
-## 🧠 Vergleich: CSR vs SSR
+### **Zusammenfassung**
 
-| Merkmal              | Client-Side Rendering (CSR)          | Server-Side Rendering (SSR)              |
-|----------------------|--------------------------------------|------------------------------------------|
-| Initiales HTML       | Leeres `div#root`                    | Vollständiges HTML                       |
-| Ladegeschwindigkeit  | Langsamer Start                      | Schneller First Paint                    |
-| SEO                  | Eingeschränkt                        | Sehr gut                                 |
-| Umsetzung            | CRA, Vite                            | Next.js, Remix                           |
+* **SSR**: Rendern von React-Komponenten zu HTML auf dem Server → schneller, SEO-freundlich.
+* **Hydration**: Reaktivieren der serverseitig gerenderten HTML-Struktur durch React im Client.
+* Typisch umgesetzt mit Frameworks wie **Next.js** oder **Remix**.
 
----
+📖 Quellen:
 
-## 📝 Zusammenfassung
-
-| Begriff       | Bedeutung                                                                |
-|---------------|---------------------------------------------------------------------------|
-| SSR           | React rendert HTML auf dem Server → schneller Start + bessere SEO        |
-| Hydration     | React macht servergerendertes HTML im Browser interaktiv                 |
-| Tools         | `Next.js`, `Remix`, `express + react-dom/server`                         |
+* [React Docs – Hydration](https://react.dev/reference/react-dom/client/hydrateRoot)
+* [Next.js Docs – SSR](https://nextjs.org/docs/basic-features/pages#server-side-rendering)
+* [MDN – Server-Side Rendering](https://developer.mozilla.org/ru/docs/Glossary/Server-side_rendering)
 
 ---
-
-## 🔗 Quellen
-
-- [React – Rendering on the Server](https://react.dev/learn/rendering-on-the-server)  
-- [Next.js – SSR](https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering)  
-- [MDN – Hydration](https://developer.mozilla.org/en-US/docs/Glossary/Hydration)
 
   **[⬆ Наверх](#top)**
 
 135. ### <a name="135"></a> Wie geht man mit Hydration-Fehlern bei SSR um?
 
-# Wie geht man mit Hydration-Fehlern bei SSR um?
+### **Hydration-Fehler bei SSR: Ursachen & Lösungen**
 
-**Hydration-Fehler** entstehen, wenn der HTML-Code vom Server  
-nicht exakt mit dem initialen React-Render im Browser übereinstimmt.
+#### **Typische Ursachen**
 
-➡️ React zeigt dann Warnungen wie:
-
-```text
-Warning: Text content did not match.
-Server: "A" | Client: "B"
-```
+* **Nicht-deterministisches Rendering**: `Date.now()`, `Math.random()`, `new Date().toLocaleString()` → Server/Client unterscheiden sich.
+* **Zugriff auf Browser-APIs beim Rendern**: `window`, `document` auf dem Server.
+* **Instabile IDs**: selbst generierte IDs unterscheiden sich auf Server/Client.
+* **Falscher Einstiegspunkt**: `createRoot` statt **`hydrateRoot`**. ([react.dev][1])
 
 ---
 
-## 🔍 Ursachen von Hydration-Problemen
+#### **Grundregeln zur Vermeidung**
 
-| Ursache                                  | Beschreibung                                              |
-|------------------------------------------|-----------------------------------------------------------|
-| 🕓 Unterschiedlicher Zustand (z. B. Datum, Zufallszahl) | Server & Client generieren unterschiedliche Inhalte        |
-| 🧠 Zugriff auf `window`, `document`       | Nur im Browser verfügbar → auf dem Server Fehler          |
-| 🧭 Unterschiedliches Rendering je nach Umgebung | z. B. Sprache, Zeit, Browser                              |
+1. **Gleiches Markup auf Server & Client erzeugen**
+
+   * Keine zufälligen/zeitabhängigen Werte im Render-Pfad.
+   * Falls nötig: Platzhalter rendern und später im Client aktualisieren.
+
+   ```jsx
+   // Uhrzeit nur clientseitig aktualisieren
+   import { useEffect, useState } from "react";
+
+   export function Time() {
+     const [time, setTime] = useState("—"); // stabil auf Server & initialem Client-Render
+     useEffect(() => {
+       setTime(new Date().toLocaleTimeString());
+     }, []);
+     return <span>{time}</span>;
+   }
+   ```
+
+   ([MDN Web Docs][2])
+
+2. **SSR-sichere IDs verwenden: `useId()`**
+
+   * Generiert **konsistente** IDs auf Server und Client.
+
+   ```jsx
+   import { useId } from "react";
+   export function Field() {
+     const id = useId();
+     return (
+       <>
+         <label htmlFor={id}>Name</label>
+         <input id={id} />
+       </>
+     );
+   }
+   ```
+
+   ([react.dev][3])
+
+3. **Hydrieren, nicht neu mounten**
+
+   * Im Client **`hydrateRoot`** statt `createRoot` nutzen.
+
+   ```jsx
+   import { hydrateRoot } from "react-dom/client";
+   import App from "./App.jsx";
+   hydrateRoot(document.getElementById("root"), <App />);
+   ```
+
+   ([react.dev][1])
+
+4. **Browser-API-Zugriffe verschieben**
+
+   * Zugriff auf `window`/`document` nur in Effekten:
+
+   ```jsx
+   import { useEffect, useState } from "react";
+   export function WidthInfo() {
+     const [w, setW] = useState(null);
+     useEffect(() => setW(window.innerWidth), []);
+     return <p>Breite: {w ?? "—"}</p>;
+   }
+   ```
+
+   ([MDN Web Docs][2])
+
+5. **Bekannte, bewusst unterschiedliche Inhalte dämpfen**
+
+   * Für seltene Sonderfälle: `suppressHydrationWarning` **sparsam** einsetzen.
+
+   ```jsx
+   <span suppressHydrationWarning>{/* server: "—", client: "12:34" */}</span>
+   ```
+
+   > Escape-Hatch, nur eine Ebene tief wirksam. ([legacy.reactjs.org][4])
+
+6. **Suspense gezielt nutzen**
+
+   * Datenabhängige UI in **Suspense-Boundaries** kapseln; React hydriert priorisiert entlang der Interaktionspfade.
+
+   ```jsx
+   import { Suspense } from "react";
+   <Suspense fallback={<p>Lädt…</p>}>
+     <Comments /> 
+   </Suspense>
+   ```
+
+   ([react.dev][1])
 
 ---
 
-## ✅ Best Practices zur Vermeidung
+#### **Debug-Checkliste**
 
-### 1️⃣ **Nur im Browser ausführen** (`useEffect`)
-
-```jsx
-import { useEffect, useState } from 'react';
-
-function ClientOnlyDate() {
-  const [now, setNow] = useState(null);
-
-  useEffect(() => {
-    setNow(new Date().toLocaleTimeString());
-  }, []);
-
-  return <p>Uhrzeit: {now ?? 'Lädt...'}</p>;
-}
-```
-
-> ✅ Wird **nicht** beim Server-Render ausgeführt → keine Hydration-Probleme
+* **Warnung lesen**: Welche Stelle mismatched?
+* **Server vs. Client-Markup vergleichen** (View Source vs. DevTools Elements).
+* **Zeit/Zufall/Locale** im Renderpfad? → in `useEffect`.
+* **IDs stabil?** → `useId()`.
+* **Start-API korrekt?** → `hydrateRoot` verwenden. ([react.dev][1])
 
 ---
 
-### 2️⃣ **`typeof window !== 'undefined'` prüfen**
+### **Zusammenfassung**
 
-```js
-if (typeof window !== 'undefined') {
-  const width = window.innerWidth;
-}
-```
+* Hydration-Fehler entstehen, wenn **Initial-HTML (Server)** ≠ **erster Client-Render** ist.
+* Lösung: deterministisch rendern, Browser-APIs in Effekte verlagern, **`useId()`**, **`hydrateRoot`**, im Ausnahmefall `suppressHydrationWarning`.
+* SSR korrekt einbinden und bei dynamischen Teilen mit **Effekten/Suspense** arbeiten.
 
----
+**Quellen:**
 
-### 3️⃣ **Client-Only-Komponenten auslagern**
+* React – **`hydrateRoot`**: react.dev/reference/react-dom/client/hydrateRoot ([react.dev][1])
+* React – **`useId`**: react.dev/reference/react/useId ([react.dev][3])
+* React – **`createRoot` (Hinweis zu SSR)**: react.dev/reference/react-dom/client/createRoot ([react.dev][5])
+* React (Legacy) – **`suppressHydrationWarning`**: legacy.reactjs.org/docs/dom-elements.html ([legacy.reactjs.org][4])
+* MDN – **SSR (Glossar)**: developer.mozilla.org » Glossary » SSR ([MDN Web Docs][2])
 
-In Next.js:
-
-```jsx
-'use client';
-
-import dynamic from 'next/dynamic';
-
-const NoSSRComponent = dynamic(() => import('./ClientComponent'), {
-  ssr: false,
-});
-```
-
-➡️ Die Komponente wird **nur im Browser** geladen und gerendert.
-
----
-
-### 4️⃣ **Gleiches HTML auf Server und Client erzeugen**
-
-- Keine `Math.random()`, `Date.now()`, `Intl`, etc. im JSX während SSR
-- Vermeide bedingtes Rendering auf Basis von Umgebungen
-
----
-
-## 🧪 Hydration-Fehler erkennen
-
-- **Entwicklermodus** zeigt Warnungen in der Konsole
-- Tools wie **React DevTools** und **Lighthouse** können helfen
-
----
-
-## 📝 Zusammenfassung
-
-| Problem                   | Unterschied zwischen Server-HTML und Client-Render         |
-|---------------------------|------------------------------------------------------------|
-| Ursachen                  | Zustand, Zeit, Zufall, Browser-APIs                        |
-| Lösung                    | `useEffect`, `typeof window`, `dynamic(ssr: false)`        |
-| Ziel                      | Server-HTML = Client-HTML vor Hydration                    |
-
----
-
-## 🔗 Quellen
-
-- [React – Hydration Errors](https://react.dev/reference/react-dom/client/hydrateRoot#hydration-errors)  
-- [Next.js – Avoiding Hydration Mismatches](https://nextjs.org/docs/messages/react-hydration-error)  
-- [MDN – Hydration](https://developer.mozilla.org/en-US/docs/Glossary/Hydration)
+[1]: https://react.dev/reference/react-dom/client/hydrateRoot?utm_source=chatgpt.com "hydrateRoot"
+[2]: https://developer.mozilla.org/en-US/docs/Glossary/SSR?utm_source=chatgpt.com "Server-side rendering (SSR) - Glossary - MDN"
+[3]: https://react.dev/reference/react/useId?utm_source=chatgpt.com "useId"
+[4]: https://legacy.reactjs.org/docs/dom-elements.html?utm_source=chatgpt.com "DOM Elements"
+[5]: https://react.dev/reference/react-dom/client/createRoot?utm_source=chatgpt.com "createRoot"
 
   **[⬆ Наверх](#top)**
 
 136. ### <a name="136"></a> Was bedeutet Virtualisierung (z. B. mit react-window)?
 
-# Was bedeutet Virtualisierung (z. B. mit `react-window`)?
+### **Virtualisierung in React (z. B. mit `react-window`)**
 
-**Virtualisierung** ist eine Technik zur **leistungsoptimierten Darstellung großer Listen**,  
-indem **nur die sichtbaren Elemente** im DOM gerendert werden –  
-statt Tausende gleichzeitig.
+#### **Definition**
 
-📦 Bekannte Libraries:  
-- `react-window` (leicht & schnell)  
-- `react-virtualized` (umfangreicher)
+* **Virtualisierung** bedeutet, dass bei langen Listen oder Tabellen **nur die aktuell sichtbaren Elemente** im DOM gerendert werden.
+* Unsichtbare Elemente werden nicht gerendert → **deutlich bessere Performance** bei großen Datenmengen.
+* Typische Libraries: **`react-window`**, **`react-virtualized`**.
 
 ---
 
-## 🧠 Warum Virtualisierung?
+#### **Problem ohne Virtualisierung**
 
-| Problem bei großen Listen       | Lösung durch Virtualisierung             |
-|----------------------------------|------------------------------------------|
-| 🚫 Langsames Rendering (1000+ DOM-Elemente) | ✅ Nur sichtbarer Bereich wird gerendert |
-| 📉 Hoher Speicherverbrauch       | ✅ Geringe DOM-Last                       |
-| 😵 Unnötige Repaints/Updates     | ✅ Bessere Performance                    |
+* 10 000 Listeneinträge → alle werden ins DOM geschrieben.
+* Folgen: langsamer Render, hoher Speicherverbrauch, Scroll-Ruckler.
 
 ---
 
-## ✅ Beispiel mit `react-window`
+#### **Lösung mit Virtualisierung**
 
-### 1️⃣ Installation
-
-```bash
-npm install react-window
-```
+* Nur die **sichtbaren Elemente + kleiner Buffer** werden gerendert.
+* Beim Scrollen rendert React die **nächsten Elemente nach**, alte verschwinden wieder.
 
 ---
 
-### 2️⃣ Code-Beispiel
+#### **Beispiel mit `react-window`**
 
 ```jsx
-import { FixedSizeList as List } from 'react-window';
+import { FixedSizeList as List } from "react-window";
 
 const Row = ({ index, style }) => (
-  <div style={style}>Zeile #{index}</div>
+  <div style={style}>Eintrag #{index}</div>
 );
 
-function VirtualizedList() {
+export default function App() {
   return (
     <List
-      height={300}        // sichtbare Höhe
-      itemCount={1000}    // Anzahl der Elemente
-      itemSize={35}       // Höhe jedes Eintrags (px)
-      width="100%"        // Breite
+      height={200}     // sichtbare Höhe (px)
+      itemCount={1000} // Anzahl Elemente
+      itemSize={35}    // Höhe pro Element
+      width={300}      // Breite
     >
       {Row}
     </List>
@@ -7455,219 +7355,270 @@ function VirtualizedList() {
 }
 ```
 
-➡️ Nur die Elemente im sichtbaren Bereich (z. B. 10–20 Zeilen)  
-werden tatsächlich ins DOM gerendert.
+👉 Obwohl `itemCount={1000}`, werden nur so viele Items gerendert, wie in `height / itemSize` passen (z. B. 200/35 ≈ 6 Items).
 
 ---
 
-## 📌 Unterschied: Pagination vs. Virtualisierung
+#### **Zusätzliche Features**
 
-| Technik          | Beschreibung                              |
-|------------------|-------------------------------------------|
-| Pagination       | Seite für Seite, Daten werden nachgeladen |
-| Virtualisierung  | Alles im Speicher, aber nur sichtbarer Teil im DOM |
-
----
-
-## 📈 Vorteile
-
-- 🚀 Schnelles Scrollen auch bei 10.000+ Einträgen
-- 📦 Sehr kleine DOM-Größe
-- 🔄 Reduziert Re-Renders und Speicherverbrauch
+* **DynamicSizeList** → Elemente mit variabler Höhe.
+* **Windowing in Tabellen** (z. B. `react-virtualized`).
+* **Infinite Loading** (Daten beim Scroll nachladen).
 
 ---
 
-## 📝 Zusammenfassung
+### **Zusammenfassung**
 
-| Begriff           | Erklärung                                               |
-|-------------------|----------------------------------------------------------|
-| Virtualisierung   | Rendert nur sichtbare UI-Elemente                        |
-| `react-window`    | Minimalistische Library für Listen-/Grid-Virtualisierung |
-| Einsatzbereich    | Große Tabellen, Listen, Menüs                            |
+* Virtualisierung = **Rendern nur sichtbarer UI-Elemente** statt ganzer Listen/Tabellen.
+* Vorteil: **Performance**, weniger DOM-Nodes, flüssiges Scrolling.
+* `react-window` ist eine schlanke Library dafür, `react-virtualized` bietet mehr Features.
+
+📖 Quellen:
+
+* [react-window GitHub](https://github.com/bvaughn/react-window)
+* [React Docs – Rendering Lists](https://react.dev/learn/rendering-lists)
+* [MDN – Virtualization (Glossary)](https://developer.mozilla.org/ru/docs/Glossary/Virtualization)
 
 ---
-
-## 🔗 Quellen
-
-- [react-window – GitHub](https://github.com/bvaughn/react-window)  
-- [react-window – Doku & Beispiele](https://react-window.vercel.app/)  
-- [Artikel: Virtualisierung erklärt](https://blog.logrocket.com/using-react-window-for-efficient-list-rendering/)
 
   **[⬆ Наверх](#top)**
 
 137. ### <a name="137"></a> Wie verhindert man unnötige Re-Renders?
 
-# Wie verhindert man unnötige Re-Renders in React?
+### **Strategien gegen unnötige Re-Renders in React**
 
-**Unnötige Re-Renders** entstehen, wenn eine Komponente erneut rendert,  
-obwohl sich ihr sichtbarer Output nicht geändert hat.  
-Das kann zu **Performance-Problemen** führen – besonders bei großen Apps.
+#### **1) Komponenten memoisieren**
 
----
-
-## ✅ Techniken zur Optimierung
-
-### 1️⃣ `React.memo` (für Funktionskomponenten)
-
-Verhindert Re-Render, wenn Props **gleich bleiben**.
+* **`React.memo`** verhindert Re-Render, wenn sich Props **shallow** nicht ändern.
+* Für teure Berechnungen: zusätzlich **`useMemo`**.
 
 ```jsx
-const MyComponent = React.memo(function MyComponent({ name }) {
-  return <p>{name}</p>;
+// Child.jsx
+import React from "react";
+export const Child = React.memo(function Child({ value }) {
+  console.log("render child");
+  return <div>{value}</div>;
 });
 ```
 
-➡️ Vergleich erfolgt **flach (shallow)** – bei komplexen Objekten ggf. manuell optimieren.
+📖 React.memo: [react.dev/reference/react/memo](https://react.dev/reference/react/memo)
 
 ---
 
-### 2️⃣ `useMemo` (für berechnete Werte)
+#### **2) Stabile Callback-Referenzen**
 
-Memoisiert einen Rückgabewert, wenn sich Abhängigkeiten **nicht geändert** haben.
+* **Inline-Funktionen** erzeugen bei jedem Render neue Referenzen → Child rendert neu.
+* **`useCallback`** macht Handler-Referenzen stabil.
 
 ```jsx
-const expensiveValue = useMemo(() => computeHeavy(a, b), [a, b]);
-```
+// Parent.jsx
+import { useState, useCallback } from "react";
+import { Child } from "./Child.jsx";
 
-➡️ Ideal für teure Berechnungen (Filter, Sortierung usw.)
-
----
-
-### 3️⃣ `useCallback` (für stabile Funktions-Referenzen)
-
-Verhindert, dass Funktionen bei jedem Render neu erzeugt werden.
-
-```jsx
-const handleClick = useCallback(() => {
-  doSomething();
-}, []);
-```
-
-➡️ Nützlich, wenn Props als Callback an `React.memo`-Komponenten übergeben werden.
-
----
-
-### 4️⃣ `shouldComponentUpdate` (bei Klassenkomponenten)
-
-Steuert manuell, ob ein Re-Render nötig ist.
-
-```js
-shouldComponentUpdate(nextProps, nextState) {
-  return nextProps.value !== this.props.value;
+export default function Parent() {
+  const [count, setCount] = useState(0);
+  const inc = useCallback(() => setCount(c => c + 1), []); // stabile Referenz
+  return (
+    <>
+      <button onClick={inc}>+1</button>
+      <Child value={count} />
+    </>
+  );
 }
 ```
 
-➡️ Alternative: `PureComponent`, das das automatisch macht (flacher Vergleich).
+📖 useCallback: [react.dev/reference/react/useCallback](https://react.dev/reference/react/useCallback)
 
 ---
 
-### 5️⃣ Selektives `useSelector` in Redux
+#### **3) Teure Berechnungen memoisieren**
 
-Vermeide globale Re-Renders durch präzise Selektoren:
+* Nur neu berechnen, wenn **Dependencies** sich ändern.
 
 ```jsx
-const value = useSelector((state) => state.counter.value);
+import { useMemo } from "react";
+function List({ items, q }) {
+  const filtered = useMemo(
+    () => items.filter(i => i.includes(q)),
+    [items, q]
+  );
+  return <ul>{filtered.map(i => <li key={i}>{i}</li>)}</ul>;
+}
 ```
 
-➡️ Keine Abhängigkeit von globalem State, wenn nicht nötig.
+📖 useMemo: [react.dev/reference/react/useMemo](https://react.dev/reference/react/useMemo)
 
 ---
 
-### 6️⃣ Komponentenaufteilung (Component Splitting)
+#### **4) State nahe am Nutzer der Daten platzieren**
 
-Teile große Komponenten in kleinere auf,  
-damit nur betroffene Teile neu gerendert werden.
+* **State colocation**: Globaler/zu hoher State bewirkt Re-Renders in zu vielen Komponenten.
+* Hebe State **nur so weit hoch**, wie nötig; nutze **Context sparsam**.
+  📖 State & Skalierung: [react.dev/learn/scaling-up-with-reducer-and-context](https://react.dev/learn/scaling-up-with-reducer-and-context)
 
 ---
 
-### 7️⃣ Props vermeiden, die sich ständig ändern
+#### **5) Context korrekt verwenden**
 
-Beispiel:
+* **Context-Value stabil halten** (nicht bei jedem Render neues Objekt/Funktion).
 
 ```jsx
-// Schlechter Stil: erzeugt neues Objekt bei jedem Render
-<Component config={{ a: 1 }} />
+import { createContext, useMemo } from "react";
+export const AuthCtx = createContext(null);
 
-// Besser: config als useMemo oder aus dem State
+function AuthProvider({ user, login, logout, children }) {
+  const value = useMemo(() => ({ user, login, logout }), [user, login, logout]);
+  return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
+}
+```
+
+📖 Context: [react.dev/reference/react/Context](https://react.dev/reference/react/Context)
+
+---
+
+#### **6) Listen: stabile Keys & Item-Komponenten memoisieren**
+
+* **Stabile `key`** (keine Indizes bei veränderlichen Listen).
+* Item als **`React.memo`** + Props minimal halten.
+
+```jsx
+const Row = React.memo(function Row({ item }) {
+  return <li>{item.name}</li>;
+});
+function List({ items }) {
+  return <ul>{items.map(it => <Row key={it.id} item={it} />)}</ul>;
+}
+```
+
+📖 Listen & Keys: [react.dev/learn/rendering-lists](https://react.dev/learn/rendering-lists)
+
+---
+
+#### **7) Redux/State-Manager optimieren**
+
+* **`useSelector`**: nur **kleine Slices** selektieren; optional `shallowEqual`.
+* **Reselect `createSelector`**: abgeleitete Daten **memoisieren**.
+
+```js
+// selector.js
+import { createSelector } from "reselect";
+const selectTodos = s => s.todos;
+const selectFilter = s => s.filter;
+export const selectVisible = createSelector(
+  [selectTodos, selectFilter],
+  (todos, f) => (f === "done" ? todos.filter(t => t.done) : todos)
+);
+```
+
+```jsx
+import { useSelector } from "react-redux";
+import { selectVisible } from "./selector.js";
+const todos = useSelector(selectVisible);
+```
+
+📖 Reselect: [redux.js.org/usage/deriving-data-selectors](https://redux.js.org/usage/deriving-data-selectors) • React-Redux Hooks: [react-redux.js.org/api/hooks](https://react-redux.js.org/api/hooks)
+
+---
+
+#### **8) Vermeide unnötige Re-Renders durch Prop-Identität**
+
+* **Objekte/Arrays** nicht ad hoc erstellen → mit `useMemo` stabilisieren.
+
+```jsx
+const options = useMemo(() => ({ dense: true }), []); // statt {} inline
+<Child options={options} />
 ```
 
 ---
 
-## 📝 Zusammenfassung
+#### **9) Virtualisierung für große Listen**
 
-| Technik          | Zweck                                               |
-|------------------|------------------------------------------------------|
-| `React.memo`     | Memoisiert Funktionskomponenten                     |
-| `useMemo`        | Memoisiert Rückgabewerte von Funktionen             |
-| `useCallback`    | Verhindert neue Funktionsreferenzen                 |
-| `shouldComponentUpdate` | Kontrolle über Updates in Klassen             |
-| Genaue `useSelector`    | Vermeidet unnötige Redux-abhängige Re-Renders |
+* Render nur sichtbarer Items (z. B. **`react-window`**) → weniger DOM & weniger Updates.
+  📖 react-window: [github.com/bvaughn/react-window](https://github.com/bvaughn/react-window)
 
 ---
 
-## 🔗 Quellen
+#### **10) Sonstiges**
 
-- [React Docs – Optimizing Performance](https://react.dev/learn/optimizing-performance)  
-- [React.memo – Referenz](https://react.dev/reference/react/memo)  
-- [useMemo – Referenz](https://react.dev/reference/react/useMemo)  
-- [useCallback – Referenz](https://react.dev/reference/react/useCallback)
+* **Keine unnötigen Re-Renders forcieren**: State nur setzen, wenn sich Werte wirklich ändern.
+* **Event-Handler entkoppeln** (nicht in Props neue Lambdas, wenn vermeidbar).
+* **Production-Build** nutzen (Entwicklungsmodus rendert strenger).
+  📖 Performance-Optimierung: [react.dev/learn/escape-hatches#optimizing-performance](https://react.dev/learn/escape-hatches#optimizing-performance)
+
+---
+
+### **Zusammenfassung**
+
+* **Memoisierung** (React.memo, useMemo, useCallback) + **stabile Referenzen**.
+* **State colocation** & **sparsame Context-Nutzung**.
+* **Reselect** bei globalem State, **stabile Keys** in Listen, **Virtualisierung** für große Datenmengen.
+* Nur notwendige Props/States ändern; Produktionsbuild verwenden.
+
+**Quellen:**
+
+* React Docs: `memo`, `useMemo`, `useCallback`, Context, Listen/Keys, Performance – [react.dev](https://react.dev/)
+* Reselect/Selectoren – [redux.js.org](https://redux.js.org/usage/deriving-data-selectors)
+* MDN (RU) – Производительность веб-приложений: [developer.mozilla.org/ru/](https://developer.mozilla.org/ru/)
 
   **[⬆ Наверх](#top)**
 
 138. ### <a name="138"></a> Was ist React Transition Group?
 
-# Was ist React Transition Group?
+### **React Transition Group**
 
-**React Transition Group** ist eine React-Bibliothek für **einfache Animationen und Übergänge**,  
-z. B. beim Einblenden, Ausblenden oder Ändern von Komponenten im DOM.
+#### **Definition**
 
-➡️ Sie steuert **den Zeitpunkt**, wann eine Komponente in den DOM eingefügt oder entfernt wird  
-und bietet dafür passende CSS-Klassen.
-
----
-
-## 📦 Installation
-
-```bash
-npm install react-transition-group
-```
+* **React Transition Group** ist eine kleine Zusatzbibliothek für React, die **Animationen und Transitionen beim Mounten, Unmounten oder Ändern von Komponenten** ermöglicht.
+* Sie selbst enthält **keine Animations-Implementierung**, sondern stellt nur **Lifecycle-Hooks und Klassen** bereit, um CSS-Transitions oder JS-Animationen auszuführen.
 
 ---
 
-## 📚 Wichtige Komponenten
+#### **Kernkomponenten**
 
-| Komponente         | Zweck                                         |
-|--------------------|-----------------------------------------------|
-| `<Transition>`     | Kontrolle über Mount/Unmount mit Übergang     |
-| `<CSSTransition>`  | Wie `<Transition>`, aber mit CSS-Klassen      |
-| `<SwitchTransition>` | Übergang zwischen zwei exklusiven Komponenten |
-| `<TransitionGroup>` | Sammlung mehrerer animierter Komponenten     |
+1. **`<Transition>`**
+
+   * Kontrolliert Mount/Unmount einer einzelnen Komponente.
+   * Zustände: `entering`, `entered`, `exiting`, `exited`.
+
+2. **`<CSSTransition>`**
+
+   * Wie `<Transition>`, aber mit automatischem Hinzufügen/Entfernen von **CSS-Klassen**.
+   * Erwartet vordefinierte CSS-Klassen wie `.fade-enter`, `.fade-enter-active`.
+
+3. **`<TransitionGroup>`**
+
+   * Container für eine **Liste von Transition-Komponenten** (z. B. animierte Listen-Elemente).
 
 ---
 
-## ✅ Beispiel mit `CSSTransition`
+#### **Beispiel mit `<CSSTransition>`**
 
 ```jsx
-import { CSSTransition } from 'react-transition-group';
-import './styles.css';
+// App.jsx
+import { CSSTransition } from "react-transition-group";
+import { useState } from "react";
+import "./styles.css";
 
-function Example({ show }) {
+export default function App() {
+  const [visible, setVisible] = useState(false);
+
   return (
-    <CSSTransition
-      in={show}
-      timeout={300}
-      classNames="fade"
-      unmountOnExit
-    >
-      <div className="box">Ich werde animiert!</div>
-    </CSSTransition>
+    <div>
+      <button onClick={() => setVisible(v => !v)}>Toggle</button>
+      <CSSTransition
+        in={visible}
+        timeout={300}
+        classNames="fade"
+        unmountOnExit
+      >
+        <div className="box">Hallo!</div>
+      </CSSTransition>
+    </div>
   );
 }
 ```
 
----
-
-## 🎨 CSS für Animation
+**CSS (`styles.css`)**
 
 ```css
 .fade-enter {
@@ -7677,7 +7628,6 @@ function Example({ show }) {
   opacity: 1;
   transition: opacity 300ms;
 }
-
 .fade-exit {
   opacity: 1;
 }
@@ -7687,198 +7637,212 @@ function Example({ show }) {
 }
 ```
 
----
-
-## 🧠 Warum `Transition Group`?
-
-- Nutzt **kein JavaScript-Animationstool**, sondern **CSS-Animationen**
-- Arbeitet direkt mit dem React-Lifecycle (`mount`, `unmount`)
-- Kompatibel mit Conditional Rendering (`{show && <Component />}`)
+👉 Wenn `visible` wechselt, wird die Box mit sanftem Fade-In/Fade-Out animiert.
 
 ---
 
-## 📝 Zusammenfassung
+#### **Mit `<TransitionGroup>` (Listenanimation)**
 
-| Begriff              | Beschreibung                              |
-|----------------------|-------------------------------------------|
-| `React Transition Group` | Animation von Komponenten über Lebenszyklus |
-| `CSSTransition`      | Automatisiert Klassenwechsel für CSS-Animation |
-| Vorteil              | Leichtgewichtig, flexibel, kein Fremdanimationstool nötig |
+```jsx
+import { TransitionGroup, CSSTransition } from "react-transition-group";
+
+function TodoList({ items }) {
+  return (
+    <TransitionGroup component="ul">
+      {items.map(item => (
+        <CSSTransition key={item.id} timeout={300} classNames="fade">
+          <li>{item.text}</li>
+        </CSSTransition>
+      ))}
+    </TransitionGroup>
+  );
+}
+```
+
+👉 Elemente erscheinen/verschwinden mit Transitionen, wenn Items zur Liste hinzugefügt oder entfernt werden.
 
 ---
 
-## 🔗 Quellen
+### **Zusammenfassung**
 
-- [React Transition Group – Doku](https://reactcommunity.org/react-transition-group/)  
-- [Beispiel: CSSTransition](https://reactcommunity.org/react-transition-group/css-transition)
+* **React Transition Group** = Bibliothek für **Animations-Lifecycle beim Mount/Unmount**.
+* Hauptkomponenten: **`Transition`**, **`CSSTransition`**, **`TransitionGroup`**.
+* Nutzt CSS-Klassen oder JS-Hooks für flexible Animationen.
+* Besonders nützlich für **Einstiegs-/Ausstiegsanimationen** von Komponenten und Listen.
+
+📖 Quellen:
+
+* [React Transition Group – GitHub](https://github.com/reactjs/react-transition-group)
+* [CSSTransition API](https://reactcommunity.org/react-transition-group/css-transition)
+
+---
 
   **[⬆ Наверх](#top)**
 
 139. ### <a name="139"></a> Was ist React Strict Mode und welche Vorteile bietet er?
 
-# Was ist React Strict Mode und welche Vorteile bietet er?
+### **React Strict Mode**
 
-**`React.StrictMode`** ist eine Wrapper-Komponente von React,  
-die **zusätzliche Prüfungen und Warnungen** im Entwicklungsmodus aktiviert.  
-➡️ Ziel: **Fehler frühzeitig erkennen** und **zukünftige Probleme vermeiden**.
+#### **Definition**
 
-📌 Wichtig: Strict Mode **hat keine Auswirkungen im Produktions-Build**.
+* **`<React.StrictMode>`** ist eine Wrapper-Komponente von React, die beim Entwickeln zusätzliche **Checks und Warnungen** aktiviert.
+* Er hat **keine Auswirkung auf das Produktions-Build**, sondern nur in **Development Mode**.
 
 ---
 
-## 🧱 Verwendung
+#### **Wichtige Funktionen**
+
+1. **Doppelte Ausführung bestimmter Methoden**
+
+   * Lifecycle-Methoden, `useEffect`-Cleanup + Initial-Run werden **zweimal aufgerufen**, um **Nebenwirkungen sichtbar** zu machen.
+   * Ziel: Probleme frühzeitig erkennen.
+
+2. **Warnungen für unsichere Patterns**
+
+   * Veraltete Lifecycle-Methoden (z. B. `componentWillMount`).
+   * Legacy-APIs, die in zukünftigen Versionen entfernt werden.
+
+3. **Highlighting von Nebenwirkungen**
+
+   * Zeigt an, wenn Code **nicht pure** ist (z. B. doppeltes Setzen von State im Render-Prozess).
+
+4. **Vorbereitung auf zukünftige Features**
+
+   * Hilft, Apps kompatibel mit **Concurrent Rendering** und anderen neuen React-Features zu halten.
+
+---
+
+#### **Beispiel**
 
 ```jsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.jsx";
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
 );
 ```
 
----
-
-## ✅ Vorteile und Prüfungen
-
-| Prüfung / Verhalten                      | Beschreibung                                         |
-|------------------------------------------|------------------------------------------------------|
-| 🔁 Doppelte Aufrufe von Lifecycles        | z. B. `useEffect`, `constructor` → zur Fehlererkennung |
-| ⚠️ Veraltete Methoden erkennen            | z. B. `componentWillMount` (nicht mehr empfohlen)    |
-| 🧵 Unerwünschte Side-Effects aufdecken    | durch mehrfaches Mounten/Unmounten simuliert        |
-| 🚨 Warnungen bei Legacy-API-Nutzung       | z. B. `findDOMNode()`, veraltete Context-API         |
-| 🚧 Vorbereitung auf zukünftige Features   | z. B. automatische Batching oder Concurrent Mode     |
+👉 Hierdurch laufen im Dev-Modus zusätzliche Checks, aber im Production-Build bleibt nur `<App />`.
 
 ---
 
-## 🧪 Beispiel: doppeltes `useEffect`
+#### **Vorteile**
 
-```jsx
-useEffect(() => {
-  console.log('läuft');
-}, []);
-```
-
-➡️ Im Strict Mode erscheint `läuft` **zweimal in der Konsole** – aber nur im Dev-Modus.  
-Das ist **beabsichtigt**, um **unsichere Nebeneffekte aufzudecken**.
+* Frühzeitige Erkennung von **fehleranfälligen Code-Stellen**.
+* Bereitet auf **zukünftige React-Versionen** vor.
+* Verbessert **Code-Qualität** durch Warnungen über unsichere Patterns.
 
 ---
 
-## 📝 Zusammenfassung
+### **Zusammenfassung**
 
-| Merkmal            | Beschreibung                                           |
-|--------------------|--------------------------------------------------------|
-| `StrictMode`       | React-Tool zur Entwicklungssicherheit                  |
-| Nur Dev-Modus      | Keine Auswirkungen auf Produktion                      |
-| Vorteile           | Warnungen, doppelte Checks, frühe Fehlererkennung      |
+* **Strict Mode** = Entwicklungswerkzeug, aktiviert zusätzliche Checks & Warnungen.
+* Hilft, **Nebenwirkungen, veraltete APIs und unsichere Patterns** zu erkennen.
+* Hat **keinen Einfluss** auf Performance oder Verhalten in Produktion.
+
+📖 Quellen:
+
+* [React Docs – Strict Mode](https://react.dev/reference/react/StrictMode)
+* [MDN – Entwicklungsmodi](https://developer.mozilla.org/ru/docs/Learn/Tools_and_testing/Understanding_client-side_tools/Development_and_production)
 
 ---
-
-## 🔗 Quellen
-
-- [React – Strict Mode](https://react.dev/reference/react/StrictMode)  
-- [React – Stricter Effects](https://react.dev/learn/strict-mode#ensuring-reusable-state)
 
   **[⬆ Наверх](#top)**
 
 140. ### <a name="140"></a> Was ist Concurrent Mode und welche Probleme löst er?
 
-# Was ist Concurrent Mode und welche Probleme löst er?
+### **Concurrent Mode in React**
 
-**Concurrent Mode** (in React 18 als **Concurrent Features** bezeichnet) ist ein moderner Render-Modus,  
-der React erlaubt, **Rendering-Aufgaben zu unterbrechen, zu pausieren und fortzusetzen**,  
-um eine **reaktionsschnellere und flüssigere Benutzeroberfläche** zu ermöglichen.
+#### **Definition**
 
-➡️ Ziel: **Asynchrones, prioritätsbasiertes und unterbrechbares Rendering**.
-
----
-
-## 🧠 Probleme im traditionellen Modus
-
-| Problem                          | Erklärung                                                  |
-|----------------------------------|-------------------------------------------------------------|
-| 😵 Blockierendes Rendering        | Langsame Komponenten blockieren die ganze UI               |
-| 🕓 Lange Ladezeiten bei Übergängen | Kein Feedback für Nutzer bei langsamer Datenverarbeitung   |
-| 😡 Kein Abbruch laufender Updates | Bei schnellen Änderungen wird trotzdem alles gerendert     |
+* **Concurrent Mode** (seit React 18: Teil von **Concurrent Rendering**) ist ein Rendering-Modus, der React erlaubt, **Rendering-Aufgaben zu unterbrechen, zu priorisieren und wieder aufzunehmen**, anstatt sie blockierend auszuführen.
+* Dadurch bleibt die UI **responsiv**, auch wenn große Updates oder viele State-Änderungen passieren.
 
 ---
 
-## ✅ Vorteile von Concurrent Mode
+#### **Probleme im alten (synchronen) Modus**
 
-| Feature                     | Beschreibung                                                   |
-|-----------------------------|----------------------------------------------------------------|
-| 🧵 Unterbrechbares Rendering | React kann rendering pausieren und später fortsetzen          |
-| 🗂 Priorisierung             | Wichtige Updates (z. B. Eingaben) können vorgezogen werden     |
-| 🪄 Automatisches Batching   | Mehrere `setState` Calls werden automatisch zusammengefasst    |
-| 🌀 Übergänge (`startTransition`) | Übergänge erscheinen flüssiger, weniger „UI-Freeze“         |
-| 🧪 Verbesserung für SSR + Streaming | Bessere Unterstützung für `Suspense` & Server Components |
+* Vor React 18: **Rendering war synchron und blockierend**.
+* Wenn eine Komponente viel rendern musste, war die **UI eingefroren** → Buttons reagierten erst nach Abschluss des Renderings.
+* Keine Möglichkeit, Updates nach **Priorität** (z. B. User-Eingaben vor Hintergrund-Rendering) zu behandeln.
 
 ---
 
-## ⚙️ Aktivierung (React 18+)
+#### **Lösungen durch Concurrent Mode**
 
-Concurrent Mode ist **automatisch verfügbar** in React 18,  
-wenn du **`createRoot()`** verwendest (statt `ReactDOM.render`):
+1. **Interruptible Rendering**
+
+   * Lange Render-Aufgaben können unterbrochen werden, um **wichtigere Tasks** (z. B. Eingabe des Users) sofort auszuführen.
+
+2. **Priorisierung von Updates**
+
+   * React entscheidet: User-Interaktionen → hoch priorisiert, Hintergrund-Tasks → niedriger.
+
+3. **Start/Stop/Resume**
+
+   * React kann Rendering **pausieren und später fortsetzen**, ohne UI-Fehler.
+
+4. **Bessere User Experience**
+
+   * UI bleibt **reaktiv**, auch bei Daten-Fetching, komplexem State oder Animationen.
+
+---
+
+#### **Beispiel: Transition Updates (React 18)**
 
 ```jsx
-import ReactDOM from 'react-dom/client';
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
-```
+import { useState, useTransition } from "react";
 
----
+export default function Search() {
+  const [query, setQuery] = useState("");
+  const [list, setList] = useState([]);
+  const [isPending, startTransition] = useTransition();
 
-## 🧭 Beispiel mit `startTransition`
+  function handleChange(e) {
+    const q = e.target.value;
+    setQuery(q);
 
-```jsx
-import { useState, startTransition } from 'react';
-
-function Search({ items }) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-
-  const handleChange = (e) => {
-    const value = e.target.value;
-    setQuery(value);
-
+    // teures Update → als Übergangs-Update markieren
     startTransition(() => {
-      const filtered = items.filter((item) => item.includes(value));
-      setResults(filtered);
+      const results = Array(20000)
+        .fill()
+        .map((_, i) => q + i);
+      setList(results);
     });
-  };
+  }
 
   return (
     <>
       <input value={query} onChange={handleChange} />
-      <ul>{results.map((r) => <li key={r}>{r}</li>)}</ul>
+      {isPending && <p>Loading…</p>}
+      <ul>{list.map((item, i) => <li key={i}>{item}</li>)}</ul>
     </>
   );
 }
 ```
 
-➡️ `startTransition` markiert den Filtervorgang als **niedrige Priorität**,  
-damit Eingaben ohne Verzögerung verarbeitet werden.
+👉 Hier bleibt das **Input reaktiv**, auch wenn das Rendering der Liste viel Zeit kostet.
 
 ---
 
-## 📝 Zusammenfassung
+#### **Zusammenfassung**
 
-| Begriff           | Beschreibung                                                         |
-|-------------------|----------------------------------------------------------------------|
-| Concurrent Mode   | Neuer React-Modus mit unterbrechbarem, priorisiertem Rendering       |
-| Vorteile          | Bessere UX, kein UI-Freeze, schnellere Reaktion auf Nutzeraktionen   |
-| Tools             | `createRoot`, `startTransition`, `Suspense`, automatische Batching   |
+* **Concurrent Mode = interruptibles, priorisiertes Rendering.**
+* Löst Probleme von **blockierendem synchronem Rendering**.
+* Vorteile: **bessere Performance, reaktive UI, User-Eingaben bleiben flüssig**.
+* Eingeführt in **React 18** (Features wie `useTransition`, `startTransition`).
+
+📖 Quellen:
+
+* [React Docs – Concurrent Rendering](https://react.dev/learn/synchronizing-with-effects#concurrent-rendering)
+* [React Docs – startTransition](https://react.dev/reference/react/startTransition)
+* [MDN – Rendering Performance](https://developer.mozilla.org/ru/docs/Web/Performance)
 
 ---
-
-## 🔗 Quellen
-
-- [React – Concurrent Mode](https://react.dev/learn/synchronizing-with-effects#concurrent-rendering)  
-- [React 18 – Neue Features](https://reactjs.org/blog/2022/03/29/react-v18.html)  
-- [startTransition – API](https://react.dev/reference/react/startTransition)
 
   **[⬆ Наверх](#top)**  
 
