@@ -4053,279 +4053,5170 @@ logCoordinates(10, 20)
 
   **[⬆ Наверх](#top)**
 
-45. ### <a name="45"></a> 
+45. ### <a name="45"></a> Wie typisiert man Arrow Functions?
 
+### Arrow Functions in TypeScript typisieren
 
+Arrow Functions werden in TypeScript genauso typisiert wie normale Funktionen – nur mit der **Lambda-Syntax**.
+
+---
+
+### 1. Parameter- und Rückgabetyp explizit
+
+```ts
+export const add = (a: number, b: number): number => {
+  return a + b
+}
+```
+
+---
+
+### 2. Typinferenz (Compiler erkennt den Rückgabewert selbst)
+
+```ts
+export const double = (x: number) => x * 2
+// Rückgabewert: number (inferred)
+```
+
+---
+
+### 3. Funktions-Typ mit Type Alias
+
+```ts
+type Comparator = (a: number, b: number) => number
+
+export const compare: Comparator = (a, b) => a - b
+```
+
+---
+
+### 4. Funktions-Typ mit Interface
+
+```ts
+interface Logger {
+  (msg: string): void
+}
+
+export const log: Logger = (message) => console.log(message)
+```
+
+---
+
+### 5. Arrow Function mit Generics
+
+```ts
+export const identity = <T>(value: T): T => value
+
+const s = identity("Sergii") // string
+const n = identity(42)       // number
+```
+
+---
+
+### 6. React-Event-Handler (sehr häufig)
+
+```ts
+import type { ChangeEvent } from "react"
+
+export const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  console.log(e.currentTarget.value)
+}
+```
+
+---
+
+### Zusammenfassung
+
+* Arrow Functions typisiert man mit `(param: Typ): RückgabeTyp => {}`.
+* Rückgabetyp kann oft **inferred** werden.
+* Für Wiederverwendbarkeit: **Type Alias** oder **Interface** für Funktionssignaturen.
+* Generics ermöglichen flexible Arrow Functions.
+* In React wichtig: Eventtypen (`ChangeEvent<HTMLInputElement>` usw.).
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Functions](https://www.typescriptlang.org/docs/handbook/2/functions.html)
+* [React TypeScript Cheatsheet – Event Handling](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/event_handling/)
 
   **[⬆ Наверх](#top)**
 
-46. ### <a name="46"></a> 
+46. ### <a name="46"></a> Was sind Funktionsüberladungen?
 
+### Funktionsüberladungen (Function Overloads) in TypeScript
 
+**Definition:**
+Funktionsüberladungen erlauben es, für **eine Funktion mehrere Signaturen** zu definieren.
+Der Aufrufer sieht unterschiedliche Signaturen, aber die **Implementierung existiert nur einmal**.
+→ Damit kann eine Funktion verschiedene **Argumenttypen** und **Rückgabewerte** unterstützen.
+
+---
+
+### Beispiel 1 – String vs. Number
+
+```ts
+// Überladungen (Signaturen)
+function reverse(value: string): string
+function reverse(value: number): number
+
+// Implementierung (gemeinsam)
+function reverse(value: string | number): string | number {
+  if (typeof value === "string") {
+    return value.split("").reverse().join("")
+  }
+  return Number(value.toString().split("").reverse().join(""))
+}
+
+reverse("Sergii") // string → "iigreS"
+reverse(12345)    // number → 54321
+```
+
+---
+
+### Beispiel 2 – Mehrere Argumenttypen
+
+```ts
+function getLength(value: string): number
+function getLength(value: any[]): number
+
+function getLength(value: string | any[]): number {
+  return value.length
+}
+
+getLength("Hallo")   // 5
+getLength([1, 2, 3]) // 3
+```
+
+---
+
+### Beispiel 3 – Unterschiedliche Rückgabewerte
+
+```ts
+function combine(a: number, b: number): number
+function combine(a: string, b: string): string
+
+function combine(a: number | string, b: number | string): number | string {
+  if (typeof a === "string" && typeof b === "string") {
+    return a + b // string
+  }
+  if (typeof a === "number" && typeof b === "number") {
+    return a + b // number
+  }
+  throw new Error("Ungültige Argumente")
+}
+```
+
+---
+
+### Regeln für Overloads
+
+* **Signaturen oben**, **Implementierung unten**.
+* Implementierung muss alle Fälle abdecken.
+* TypeScript wählt anhand der Argumente die passende Signatur.
+
+---
+
+### Zusammenfassung
+
+* **Funktionsüberladungen** = mehrere Signaturen für eine Funktion.
+* Nützlich für Funktionen, die mit verschiedenen Eingabetypen arbeiten.
+* Syntax: `function name(param: Typ): RückgabeTyp` (mehrfach), dann eine gemeinsame Implementierung.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Function Overloads](https://www.typescriptlang.org/docs/handbook/2/functions.html#function-overloads)
+* [React TS Cheatsheet – Functions](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example#function-overloads)
 
   **[⬆ Наверх](#top)**
 
-47. ### <a name="47"></a> 
+47. ### <a name="47"></a> Was sind Generics?
 
+### Generics in TypeScript
 
+**Definition:**
+**Generics** sind Platzhalter für Typen, die es ermöglichen, **flexiblen, wiederverwendbaren und typsicheren Code** zu schreiben.
+Man definiert einen Typ erst **zur Nutzung**, nicht beim Schreiben der Funktion oder Klasse.
+
+---
+
+### Beispiel 1 – Generische Funktion
+
+```ts
+function identity<T>(value: T): T {
+  return value
+}
+
+const num = identity(42)         // T = number
+const str = identity("Sergii")   // T = string
+```
+
+👉 Der Typ `T` wird automatisch **inferred**.
+
+---
+
+### Beispiel 2 – Generisches Array
+
+```ts
+function getFirst<T>(arr: T[]): T {
+  return arr[0]
+}
+
+getFirst([1, 2, 3])      // number
+getFirst(["a", "b", "c"]) // string
+```
+
+---
+
+### Beispiel 3 – Generics mit Einschränkungen (`extends`)
+
+```ts
+interface HasLength {
+  length: number
+}
+
+function logLength<T extends HasLength>(item: T): void {
+  console.log(item.length)
+}
+
+logLength("Hallo")       // string (hat length)
+logLength([1, 2, 3])     // Array (hat length)
+```
+
+---
+
+### Beispiel 4 – Mehrere Typ-Parameter
+
+```ts
+function pair<K, V>(key: K, value: V): [K, V] {
+  return [key, value]
+}
+
+const entry = pair("id", 123) // [string, number]
+```
+
+---
+
+### Beispiel 5 – Generics in Klassen
+
+```ts
+class Box<T> {
+  content: T
+  constructor(value: T) {
+    this.content = value
+  }
+}
+
+const stringBox = new Box("Text") // T = string
+const numBox = new Box(99)        // T = number
+```
+
+---
+
+### Beispiel 6 – Generics in React (häufig)
+
+```tsx
+import { useState } from "react"
+
+const [count, setCount] = useState<number>(0)
+```
+
+👉 `useState<number>` ist ein generischer Hook.
+
+---
+
+### Zusammenfassung
+
+* **Generics** = Typparameter (`<T>`) für wiederverwendbaren, typsicheren Code.
+* Vorteile: Flexibilität + Typprüfung gleichzeitig.
+* Einsatz: Funktionen, Klassen, Interfaces, React-Hooks.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* [React TypeScript Cheatsheet – Generics](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/hooks/#generic-hooks)
 
   **[⬆ Наверх](#top)**
 
-48. ### <a name="48"></a> 
+48. ### <a name="48"></a> Wie erstellt man eine generische Funktion?
 
+### Generische Funktion in TypeScript erstellen
 
+**Definition:**
+Eine **generische Funktion** nutzt Typparameter (`<T>`), um flexibel mit unterschiedlichen Typen zu arbeiten, ohne die Typ-Sicherheit zu verlieren.
+
+---
+
+### 1. Syntax – einfaches Beispiel
+
+```ts
+export function identity<T>(value: T): T {
+  return value
+}
+
+const num = identity(42)        // T = number
+const str = identity("Sergii")  // T = string
+```
+
+👉 `T` ist ein Platzhalter, der beim Aufruf ersetzt wird.
+
+---
+
+### 2. Mit Arrays
+
+```ts
+export function firstElement<T>(arr: T[]): T {
+  return arr[0]
+}
+
+const n = firstElement([1, 2, 3])     // number
+const s = firstElement(["a", "b", "c"]) // string
+```
+
+---
+
+### 3. Mehrere Typparameter
+
+```ts
+export function pair<K, V>(key: K, value: V): [K, V] {
+  return [key, value]
+}
+
+const entry = pair("id", 123) // [string, number]
+```
+
+---
+
+### 4. Einschränkungen mit `extends`
+
+```ts
+interface HasLength {
+  length: number
+}
+
+export function logLength<T extends HasLength>(item: T): void {
+  console.log(item.length)
+}
+
+logLength("Hallo")   // string ✅
+logLength([1, 2, 3]) // number[] ✅
+```
+
+---
+
+### 5. Default-Typen
+
+```ts
+export function toArray<T = string>(value: T): T[] {
+  return [value]
+}
+
+const a = toArray("hi")   // string[]
+const b = toArray(42)     // number[]
+const c = toArray()       // string[] (Default)
+```
+
+---
+
+### Zusammenfassung
+
+* Generische Funktionen nutzt man mit `<T>` oder mehreren Parametern (`<K, V>`).
+* Vorteil: **flexibel + typsicher**.
+* Erweiterbar mit `extends` (Constraints) oder Defaults.
+* Typische Einsatzgebiete: Utility-Funktionen, Datenstrukturen, React-Hooks.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* [React TypeScript Cheatsheet – Generics](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/hooks/#generic-hooks)
 
   **[⬆ Наверх](#top)**
 
-49. ### <a name="49"></a> 
+49. ### <a name="49"></a> Was sind Generic Constraints (extends)?
 
+### Generic Constraints (`extends`) in TypeScript
 
+**Definition:**
+Mit **Generic Constraints** (`extends`) kann man den **Gültigkeitsbereich** eines Generics einschränken.
+👉 Ohne Constraint: `T` kann *alles* sein.
+👉 Mit Constraint: `T` muss bestimmte Eigenschaften haben oder von einem Typ erben.
+
+---
+
+### 1. Einfaches Constraint
+
+```ts
+function logLength<T extends { length: number }>(item: T): void {
+  console.log(item.length)
+}
+
+logLength("Hallo")       // string ✅
+logLength([1, 2, 3])     // number[] ✅
+// logLength(123)        // ❌ Fehler: number hat kein length
+```
+
+➡️ `T` muss ein Objekt mit `length: number` sein.
+
+---
+
+### 2. Constraint auf Interface
+
+```ts
+interface User {
+  id: number
+  name: string
+}
+
+function getName<T extends User>(obj: T): string {
+  return obj.name
+}
+
+getName({ id: 1, name: "Sergii" }) // ✅
+```
+
+➡️ `T` muss mindestens die Struktur von `User` haben.
+
+---
+
+### 3. Constraint auf Union-Typ
+
+```ts
+type Role = "admin" | "user" | "guest"
+
+function setRole<T extends Role>(role: T) {
+  console.log(`Neue Rolle: ${role}`)
+}
+
+setRole("admin") // ✅
+setRole("root")  // ❌ Fehler
+```
+
+---
+
+### 4. Mehrere Constraints (`extends` + `extends`)
+
+```ts
+function merge<T extends object, U extends object>(a: T, b: U): T & U {
+  return { ...a, ...b }
+}
+
+const obj = merge({ id: 1 }, { role: "admin" })
+// Typ: { id: number } & { role: string }
+```
+
+---
+
+### 5. Generics mit `keyof` Constraint
+
+```ts
+function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
+  return obj[key]
+}
+
+const user = { id: 1, name: "Sergii" }
+getProperty(user, "name") // string
+// getProperty(user, "age") ❌ Fehler
+```
+
+➡️ `K` darf nur ein Schlüssel von `T` sein.
+
+---
+
+### Zusammenfassung
+
+* **Generic Constraints (`extends`)** = Eingrenzung, welche Typen ein Generic akzeptieren darf.
+* Ermöglicht: Zugriff auf Eigenschaften, sichere Schlüsselprüfung, Wiederverwendbarkeit.
+* Typische Muster: `extends {}`, `extends Interface`, `extends keyof T`.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Generic Constraints](https://www.typescriptlang.org/docs/handbook/2/generics.html#generic-constraints)
+* [React TypeScript Cheatsheet – Generics](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/hooks/#generic-hooks)
 
   **[⬆ Наверх](#top)**
 
-50. ### <a name="50"></a> 
+50. ### <a name="50"></a> Wie funktioniert T extends keyof U?
 
+### `T extends keyof U` in TypeScript
 
+**Definition:**
+`T extends keyof U` bedeutet:
+👉 `T` darf nur Werte annehmen, die **ein Schlüssel von `U`** sind.
+So lassen sich Generics auf gültige Property-Namen einschränken.
+
+---
+
+### Beispiel 1 – Grundprinzip
+
+```ts
+interface User {
+  id: number
+  name: string
+  isAdmin: boolean
+}
+
+function getProperty<T extends keyof User>(obj: User, key: T): User[T] {
+  return obj[key]
+}
+
+const u: User = { id: 1, name: "Sergii", isAdmin: true }
+
+getProperty(u, "name")    // ✅ string
+getProperty(u, "isAdmin") // ✅ boolean
+// getProperty(u, "age")  // ❌ Fehler: "age" ist kein Schlüssel von User
+```
+
+---
+
+### Beispiel 2 – Generische Objektfunktion
+
+```ts
+function pluck<T, K extends keyof T>(obj: T, keys: K[]): T[K][] {
+  return keys.map(key => obj[key])
+}
+
+const user = { id: 1, name: "Sergii", active: true }
+
+const values = pluck(user, ["id", "name"])
+// Typ: (string | number)[]
+```
+
+---
+
+### Beispiel 3 – Rückgabewerte typisieren
+
+```ts
+type Person = { name: string; age: number }
+
+function pickValue<T extends keyof Person>(key: T): Person[T] {
+  const dummy: Person = { name: "Anna", age: 25 }
+  return dummy[key]
+}
+
+const age = pickValue("age")   // number
+const name = pickValue("name") // string
+```
+
+---
+
+### Beispiel 4 – Kombination mit `Record`
+
+```ts
+function mapObject<T, K extends keyof T>(obj: T, keys: K[]): Record<K, T[K]> {
+  const result = {} as Record<K, T[K]>
+  keys.forEach(k => {
+    result[k] = obj[k]
+  })
+  return result
+}
+
+const person = { id: 1, name: "Tom", active: true }
+const subset = mapObject(person, ["id", "active"])
+// Typ: { id: number; active: boolean }
+```
+
+---
+
+### Zusammenfassung
+
+* `keyof U` = Union aller Schlüssel von `U`.
+* `T extends keyof U` = `T` darf nur einer dieser Schlüssel sein.
+* Einsatz: **Property-Zugriffe, `pluck`/`getProperty`-Utilities, sichere Schlüssel-Prüfungen.**
+
+🔗 Quellen:
+
+* [TypeScript Handbook – keyof and Lookup Types](https://www.typescriptlang.org/docs/handbook/2/keyof-types.html)
+* [TypeScript Generics – Constraints](https://www.typescriptlang.org/docs/handbook/2/generics.html#generic-constraints)
 
   **[⬆ Наверх](#top)**  
 
-51. ### <a name="51"></a> 
+51. ### <a name="51"></a> Was sind Utility Types (Partial, Pick, Omit, Record usw.)?
 
+### Utility Types in TypeScript
 
+**Definition:**
+Utility Types sind vordefinierte Generics, die bestehende Typen **transformieren oder anpassen**.
+Sie sparen Boilerplate und erhöhen die Typ-Sicherheit.
+
+---
+
+## 🔑 Die wichtigsten Utility Types
+
+### 1. **`Partial<T>`**
+
+Macht alle Eigenschaften von `T` optional.
+
+```ts
+interface User {
+  id: number
+  name: string
+}
+
+type PartialUser = Partial<User>
+// { id?: number; name?: string }
+```
+
+---
+
+### 2. **`Required<T>`**
+
+Macht alle Eigenschaften von `T` verpflichtend.
+
+```ts
+interface User {
+  id?: number
+  name?: string
+}
+
+type RequiredUser = Required<User>
+// { id: number; name: string }
+```
+
+---
+
+### 3. **`Readonly<T>`**
+
+Macht alle Eigenschaften von `T` schreibgeschützt.
+
+```ts
+interface User {
+  id: number
+  name: string
+}
+
+type ReadonlyUser = Readonly<User>
+// { readonly id: number; readonly name: string }
+```
+
+---
+
+### 4. **`Pick<T, K>`**
+
+Wählt bestimmte Eigenschaften aus `T`.
+
+```ts
+interface User {
+  id: number
+  name: string
+  email: string
+}
+
+type UserPreview = Pick<User, "id" | "name">
+// { id: number; name: string }
+```
+
+---
+
+### 5. **`Omit<T, K>`**
+
+Entfernt bestimmte Eigenschaften aus `T`.
+
+```ts
+type UserWithoutEmail = Omit<User, "email">
+// { id: number; name: string }
+```
+
+---
+
+### 6. **`Record<K, T>`**
+
+Erzeugt ein Objekt mit Schlüsseln vom Typ `K` und Werten vom Typ `T`.
+
+```ts
+type Role = "admin" | "user" | "guest"
+
+type RolePermissions = Record<Role, boolean>
+// { admin: boolean; user: boolean; guest: boolean }
+```
+
+---
+
+### 7. **`Exclude<T, U>`**
+
+Entfernt aus `T` alle Typen, die auch in `U` enthalten sind.
+
+```ts
+type Status = "success" | "error" | "loading"
+type WithoutLoading = Exclude<Status, "loading">
+// "success" | "error"
+```
+
+---
+
+### 8. **`Extract<T, U>`**
+
+Beinhaltet nur die Typen, die in beiden enthalten sind.
+
+```ts
+type A = "a" | "b" | "c"
+type B = "b" | "c" | "d"
+
+type Common = Extract<A, B> // "b" | "c"
+```
+
+---
+
+### 9. **`NonNullable<T>`**
+
+Entfernt `null` und `undefined`.
+
+```ts
+type Value = string | null | undefined
+type SafeValue = NonNullable<Value>
+// string
+```
+
+---
+
+### 10. **`ReturnType<T>`**
+
+Ermittelt den Rückgabetyp einer Funktion.
+
+```ts
+function getUser() {
+  return { id: 1, name: "Sergii" }
+}
+
+type User = ReturnType<typeof getUser>
+// { id: number; name: string }
+```
+
+---
+
+### 11. **`Parameters<T>`**
+
+Ermittelt die Parametertypen einer Funktion als Tupel.
+
+```ts
+function login(user: string, password: string) {}
+
+type LoginParams = Parameters<typeof login>
+// [user: string, password: string]
+```
+
+---
+
+### Zusammenfassung
+
+* **Utility Types** = vordefinierte Generics für schnelle Typtransformation.
+* Häufige Kandidaten: `Partial`, `Required`, `Readonly`, `Pick`, `Omit`, `Record`.
+* Weitere mächtige Tools: `Exclude`, `Extract`, `NonNullable`, `ReturnType`, `Parameters`.
+* Typischer Einsatz: **Modelle anpassen, DTOs, React-Props, API-Typisierung.**
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* [React TS Cheatsheet – Utility Types](https://react-typescript-cheatsheet.netlify.app/docs/advanced/utility_types/)
 
   **[⬆ Наверх](#top)**
 
-52. ### <a name="52"></a> 
+52. ### <a name="52"></a> Was ist der Unterschied zwischen Partial<T> und Required<T>?
 
+### Unterschied zwischen `Partial<T>` und `Required<T>` in TypeScript
 
+---
 
-  **[⬆ Наверх](#top)**
+### **1. `Partial<T>`**
 
-53. ### <a name="53"></a> 
+* Macht **alle Properties** eines Typs **optional** (`?`).
+* Typische Nutzung: bei **Update-Objekten** (z. B. nur einige Felder eines Users ändern).
 
+```ts
+interface User {
+  id: number
+  name: string
+  email: string
+}
 
+type PartialUser = Partial<User>
+// { id?: number; name?: string; email?: string }
 
-  **[⬆ Наверх](#top)**
+const updateUser: PartialUser = { name: "Sergii" } // ✅ nur name
+```
 
-54. ### <a name="54"></a> 
+---
 
+### **2. `Required<T>`**
 
+* Macht **alle Properties** eines Typs **pflichtig** (auch solche, die ursprünglich optional waren).
+* Typische Nutzung: wenn du sicherstellen willst, dass **komplette Daten** übergeben werden.
 
-  **[⬆ Наверх](#top)**
+```ts
+interface User {
+  id?: number
+  name?: string
+  email?: string
+}
 
-55. ### <a name="55"></a> 
+type RequiredUser = Required<User>
+// { id: number; name: string; email: string }
 
+const fullUser: RequiredUser = {
+  id: 1,
+  name: "Sergii",
+  email: "sergii@mail.com"
+} // ✅ alles Pflicht
+```
 
+---
 
-  **[⬆ Наверх](#top)**
+### **Vergleichstabelle**
 
-56. ### <a name="56"></a> 
+| Utility Type  | Wirkung                              | Beispiel                         |
+| ------------- | ------------------------------------ | -------------------------------- |
+| `Partial<T>`  | Alle Properties werden **optional**  | `{ id?: number; name?: string }` |
+| `Required<T>` | Alle Properties werden **pflichtig** | `{ id: number; name: string }`   |
 
+---
 
+### Zusammenfassung
 
-  **[⬆ Наверх](#top)**
+* **`Partial<T>`** = macht alle Felder **optional** → nützlich für Updates oder Teilobjekte.
+* **`Required<T>`** = macht alle Felder **zwingend** → nützlich für Validierung oder vollständige Daten.
 
-57. ### <a name="57"></a> 
+🔗 Quellen:
 
-
-
-  **[⬆ Наверх](#top)**
-
-58. ### <a name="58"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-59. ### <a name="59"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-60. ### <a name="60"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-61. ### <a name="61"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-62. ### <a name="62"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-63. ### <a name="63"></a> 
-
-
+* [TypeScript Handbook – Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
 
   **[⬆ Наверх](#top)**
 
-64. ### <a name="64"></a> 
+53. ### <a name="53"></a> Wie funktioniert Readonly<T>?
 
+### `Readonly<T>` in TypeScript
 
+**Definition:**
+Der Utility Type **`Readonly<T>`** macht **alle Eigenschaften** eines Typs **schreibgeschützt** (`readonly`).
+Das bedeutet: einmal gesetzte Werte können nicht mehr verändert werden.
 
-  **[⬆ Наверх](#top)**
+---
 
-65. ### <a name="65"></a> 
+### Beispiel 1 – Einfaches Interface
 
+```ts
+interface User {
+  id: number
+  name: string
+}
 
+type ReadonlyUser = Readonly<User>
+// { readonly id: number; readonly name: string }
 
-  **[⬆ Наверх](#top)**
+const u: ReadonlyUser = { id: 1, name: "Sergii" }
 
-66. ### <a name="66"></a> 
+u.name = "Anna" // ❌ Fehler: name ist readonly
+```
 
+---
 
+### Beispiel 2 – Readonly Arrays
 
-  **[⬆ Наверх](#top)**
+```ts
+const numbers: Readonly<number[]> = [1, 2, 3]
 
-67. ### <a name="67"></a> 
+numbers.push(4)   // ❌ Fehler: push existiert nicht
+numbers[0] = 99   // ❌ Fehler
+```
 
+Alternative:
 
+```ts
+const tuple: Readonly<[number, number]> = [10, 20]
+```
 
-  **[⬆ Наверх](#top)**
+---
 
-68. ### <a name="68"></a> 
+### Beispiel 3 – In Kombination mit `Partial`
 
+```ts
+interface Config {
+  host: string
+  port: number
+}
 
+type ImmutableConfig = Readonly<Partial<Config>>
+// { readonly host?: string; readonly port?: number }
+```
 
-  **[⬆ Наверх](#top)**
+---
 
-69. ### <a name="69"></a> 
+### Beispiel 4 – Praktisch in React (Props)
 
+```tsx
+type ButtonProps = Readonly<{
+  label: string
+  onClick: () => void
+}>
 
+// Props sind automatisch readonly → Schutz vor Änderungen
+const Button = (props: ButtonProps) => {
+  // props.label = "Neu" ❌ nicht erlaubt
+  return <button onClick={props.onClick}>{props.label}</button>
+}
+```
 
-  **[⬆ Наверх](#top)**
+---
 
-70. ### <a name="70"></a> 
+### Zusammenfassung
 
+* **`Readonly<T>`** → macht alle Felder **immutable** (nur lesbar).
+* Nützlich für: **Props in React**, Konfigurationen, sichere Datenmodelle.
+* Kombination mit anderen Utility Types (`Partial`, `Pick`, etc.) sehr mächtig.
 
+🔗 Quellen:
 
-  **[⬆ Наверх](#top)**
-
-71. ### <a name="71"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-72. ### <a name="72"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-73. ### <a name="73"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-74. ### <a name="74"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-75. ### <a name="75"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-76. ### <a name="76"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-77. ### <a name="77"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-78. ### <a name="78"></a> 
-
-
-
-  **[⬆ Наверх](#top)**
-
-79. ### <a name="79"></a> 
-
-
+* [TypeScript Handbook – Readonly](https://www.typescriptlang.org/docs/handbook/utility-types.html#readonlytype)
+* [React TS Cheatsheet – Props Readonly](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/#readonly-and-const)
 
   **[⬆ Наверх](#top)**
 
-80. ### <a name="80"></a> 
+54. ### <a name="54"></a> Wie funktionieren Pick<T, K> und Omit<T, K>?
 
+### `Pick<T, K>` und `Omit<T, K>` in TypeScript
 
+Beide sind **Utility Types**, die auf bestehenden Typen basieren.
+👉 `Pick` = bestimmte Properties auswählen
+👉 `Omit` = bestimmte Properties ausschließen
+
+---
+
+### **1. Pick<T, K>**
+
+* Baut aus Typ `T` einen neuen Typ mit **nur den ausgewählten Keys `K`**.
+
+```ts
+interface User {
+  id: number
+  name: string
+  email: string
+  isAdmin: boolean
+}
+
+type UserPreview = Pick<User, "id" | "name">
+// { id: number; name: string }
+
+const preview: UserPreview = { id: 1, name: "Sergii" }
+```
+
+---
+
+### **2. Omit<T, K>**
+
+* Baut aus Typ `T` einen neuen Typ mit **allen Properties außer `K`**.
+
+```ts
+type UserWithoutEmail = Omit<User, "email" | "isAdmin">
+// { id: number; name: string }
+
+const simpleUser: UserWithoutEmail = { id: 2, name: "Anna" }
+```
+
+---
+
+### **3. Vergleich**
+
+```ts
+// Pick -> nur bestimmte Eigenschaften
+type OnlyName = Pick<User, "name">
+// { name: string }
+
+// Omit -> bestimmte Eigenschaften entfernen
+type WithoutName = Omit<User, "name">
+// { id: number; email: string; isAdmin: boolean }
+```
+
+---
+
+### **4. Typische Einsatzgebiete**
+
+* **Pick**: DTOs, kurze Vorschau-Typen (z. B. für UI).
+* **Omit**: Typen für "Create" oder "Update", wenn bestimmte Felder nicht erlaubt sind.
+
+```ts
+// Beispiel: API CreateUser ohne id und isAdmin
+type CreateUserDto = Omit<User, "id" | "isAdmin">
+```
+
+---
+
+### Zusammenfassung
+
+* **`Pick<T, K>`** → erstellt neuen Typ mit **nur K** aus T.
+* **`Omit<T, K>`** → erstellt neuen Typ mit **allen außer K**.
+* Sehr nützlich für **DTOs, API-Modelle, React-Props**.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* [React TS Cheatsheet – Utility Types](https://react-typescript-cheatsheet.netlify.app/docs/advanced/utility_types/)
+
+  **[⬆ Наверх](#top)**
+
+55. ### <a name="55"></a> Was macht Record<K, T>?
+
+### `Record<K, T>` in TypeScript
+
+**Definition:**
+`Record<K, T>` erstellt einen **Objekttyp**, bei dem:
+
+* alle Schlüssel (`K`) denselben Typ haben,
+* und die Werte vom Typ `T` sind.
+
+Es ist eine **kurze Schreibweise** für Objekte mit einheitlichen Keys/Werten.
+
+---
+
+### Beispiel 1 – Einfache Verwendung
+
+```ts
+type Role = "admin" | "user" | "guest"
+
+type RolePermissions = Record<Role, boolean>
+// { admin: boolean; user: boolean; guest: boolean }
+
+const permissions: RolePermissions = {
+  admin: true,
+  user: false,
+  guest: false
+}
+```
+
+---
+
+### Beispiel 2 – Index als Zahl
+
+```ts
+type ScoreBoard = Record<number, string>
+
+const scores: ScoreBoard = {
+  1: "Anna",
+  2: "Sergii"
+}
+```
+
+---
+
+### Beispiel 3 – Mit komplexen Werten
+
+```ts
+interface User {
+  id: number
+  name: string
+}
+
+type UserDictionary = Record<string, User>
+
+const users: UserDictionary = {
+  a1: { id: 1, name: "Anna" },
+  b2: { id: 2, name: "Sergii" }
+}
+```
+
+---
+
+### Beispiel 4 – Kombination mit `keyof`
+
+```ts
+interface Config {
+  host: string
+  port: number
+}
+
+type ConfigMap = Record<keyof Config, string>
+// { host: string; port: string }
+```
+
+---
+
+### Vergleich zu **Index Signatures**
+
+```ts
+// Mit Index Signature
+type Dict = { [key: string]: number }
+
+// Mit Record
+type Dict2 = Record<string, number>
+```
+
+👉 Beide ähnlich – aber `Record` ist **kürzer** und wird oft bevorzugt.
+
+---
+
+### Zusammenfassung
+
+* **`Record<K, T>`** = Objekt mit Schlüsseln aus `K` und Werten vom Typ `T`.
+* Kurzform für Dictionaries und Maps.
+* Praktisch für **Mappings, Lookups, Konfigurationen**.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Record](https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type)
+* [React TS Cheatsheet – Record](https://react-typescript-cheatsheet.netlify.app/docs/advanced/utility_types/)
+
+  **[⬆ Наверх](#top)**
+
+56. ### <a name="56"></a> Was macht ReturnType<T>?
+
+### `ReturnType<T>` in TypeScript
+
+**Definition:**
+Der Utility Type **`ReturnType<T>`** extrahiert den **Rückgabewert-Typ** einer Funktion.
+👉 `T` muss dabei eine **Funktionssignatur** oder der Typ einer Funktion sein.
+
+---
+
+### Beispiel 1 – Einfache Funktion
+
+```ts
+function getUser() {
+  return { id: 1, name: "Sergii" }
+}
+
+type User = ReturnType<typeof getUser>
+// { id: number; name: string }
+
+const u: User = { id: 2, name: "Anna" }
+```
+
+---
+
+### Beispiel 2 – Mit Arrow Function
+
+```ts
+const add = (a: number, b: number) => a + b
+
+type SumReturn = ReturnType<typeof add>
+// number
+```
+
+---
+
+### Beispiel 3 – Async Funktionen
+
+```ts
+async function fetchData() {
+  return { ok: true, data: [1, 2, 3] }
+}
+
+type FetchResult = ReturnType<typeof fetchData>
+// Promise<{ ok: boolean; data: number[] }>
+```
+
+---
+
+### Beispiel 4 – In Kombination mit `InstanceType`
+
+```ts
+class Person {
+  constructor(public name: string) {}
+}
+
+function createPerson() {
+  return new Person("Sergii")
+}
+
+type PersonReturn = ReturnType<typeof createPerson>
+// Person
+```
+
+---
+
+### Typischer Nutzen
+
+* Vermeidung von **doppelter Typdefinition**.
+* Rückgabewerte **automatisch ableiten**.
+* Besonders nützlich bei **Utility-Funktionen**, **Hooks** in React oder **Factory Functions**.
+
+---
+
+### Zusammenfassung
+
+* **`ReturnType<T>`** = extrahiert den Rückgabewert einer Funktion.
+* Spart Boilerplate und verhindert Inkonsistenzen.
+* Funktioniert mit normalen, Arrow- und async-Funktionen.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – ReturnType](https://www.typescriptlang.org/docs/handbook/utility-types.html#returntypetype)
+* [React TS Cheatsheet – Utility Types](https://react-typescript-cheatsheet.netlify.app/docs/advanced/utility_types/)
+
+  **[⬆ Наверх](#top)**
+
+57. ### <a name="57"></a> Was macht Parameters<T>?
+
+### `Parameters<T>` in TypeScript
+
+**Definition:**
+Der Utility Type **`Parameters<T>`** extrahiert die **Parametertypen** einer Funktion als **Tupel**.
+👉 `T` muss eine Funktion oder Funktionssignatur sein.
+
+---
+
+### Beispiel 1 – Normale Funktion
+
+```ts
+function login(user: string, password: string) {}
+
+type LoginParams = Parameters<typeof login>
+// [user: string, password: string]
+
+const args: LoginParams = ["Sergii", "1234"]
+login(...args) // ✅ korrekt
+```
+
+---
+
+### Beispiel 2 – Arrow Function
+
+```ts
+const add = (a: number, b: number) => a + b
+
+type AddParams = Parameters<typeof add>
+// [a: number, b: number]
+```
+
+---
+
+### Beispiel 3 – Optional & Default Parameter
+
+```ts
+function greet(name: string, title?: string) {}
+
+type GreetParams = Parameters<typeof greet>
+// [name: string, title?: string | undefined]
+```
+
+---
+
+### Beispiel 4 – Async Funktion
+
+```ts
+async function fetchData(url: string, retries: number) {
+  return `Fetch: ${url} (${retries})`
+}
+
+type FetchParams = Parameters<typeof fetchData>
+// [url: string, retries: number]
+```
+
+---
+
+### Beispiel 5 – Generisch kombinieren
+
+```ts
+function callFn<T extends (...args: any[]) => any>(fn: T, ...args: Parameters<T>): ReturnType<T> {
+  return fn(...args)
+}
+
+function multiply(x: number, y: number) {
+  return x * y
+}
+
+const result = callFn(multiply, 3, 4) // number
+```
+
+---
+
+### Zusammenfassung
+
+* **`Parameters<T>`** = extrahiert Parametertypen als **Tupel**.
+* Nützlich für **Wrapper-Funktionen**, **Middleware**, **Decorator-Pattern**.
+* Oft in Kombination mit **`ReturnType<T>`**.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Parameters](https://www.typescriptlang.org/docs/handbook/utility-types.html#parameterstype)
+* [React TS Cheatsheet – Utility Types](https://react-typescript-cheatsheet.netlify.app/docs/advanced/utility_types/)
+
+  **[⬆ Наверх](#top)**
+
+58. ### <a name="58"></a> Was macht ConstructorParameters<T>?
+
+### `ConstructorParameters<T>` in TypeScript
+
+**Definition:**
+Der Utility Type **`ConstructorParameters<T>`** extrahiert die **Parameter-Typen eines Konstruktors** als **Tupel**.
+👉 `T` muss ein Konstruktor-Typ (z. B. eine Klasse oder `new (...args) => any`) sein.
+
+---
+
+### Beispiel 1 – Einfache Klasse
+
+```ts
+class User {
+  constructor(public id: number, public name: string) {}
+}
+
+type UserArgs = ConstructorParameters<typeof User>
+// [id: number, name: string]
+
+const args: UserArgs = [1, "Sergii"]
+const u = new User(...args) // ✅
+```
+
+---
+
+### Beispiel 2 – Mit optionalen Parametern
+
+```ts
+class Book {
+  constructor(public title: string, public pages?: number) {}
+}
+
+type BookArgs = ConstructorParameters<typeof Book>
+// [title: string, pages?: number | undefined]
+
+const args: BookArgs = ["TS Handbook"]
+const b = new Book(...args)
+```
+
+---
+
+### Beispiel 3 – Factory Function mit ConstructorParameters
+
+```ts
+function createInstance<T extends new (...args: any) => any>(
+  Ctor: T,
+  ...args: ConstructorParameters<T>
+): InstanceType<T> {
+  return new Ctor(...args)
+}
+
+class Car {
+  constructor(public brand: string, public year: number) {}
+}
+
+const myCar = createInstance(Car, "BMW", 2025) // Car
+```
+
+---
+
+### Beispiel 4 – Mit eingebauten Klassen
+
+```ts
+type DateArgs = ConstructorParameters<typeof Date>
+// [value?: string | number | Date]
+
+const d = new Date(...(["2025-01-01"] as DateArgs))
+```
+
+---
+
+### Zusammenfassung
+
+* **`ConstructorParameters<T>`** = extrahiert **Konstruktor-Argumente** als Tupel.
+* Einsatz: Factories, Wrapper, Dependency Injection.
+* Nützlich in Kombination mit **`InstanceType<T>`**.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – ConstructorParameters](https://www.typescriptlang.org/docs/handbook/utility-types.html#constructorparameterstype)
+* [TypeScript Handbook – InstanceType](https://www.typescriptlang.org/docs/handbook/utility-types.html#instancetypetype)
+
+  **[⬆ Наверх](#top)**
+
+59. ### <a name="59"></a> Wie funktionieren Extract und Exclude?
+
+### `Extract<T, U>` und `Exclude<T, U>` in TypeScript
+
+Beide Utility Types arbeiten mit **Union Types** und helfen, Typen zu filtern.
+
+---
+
+## **1. `Exclude<T, U>`**
+
+Entfernt aus `T` alle Typen, die auch in `U` enthalten sind.
+👉 „Alles außer“
+
+```ts
+type Status = "success" | "error" | "loading"
+
+type WithoutLoading = Exclude<Status, "loading">
+// "success" | "error"
+```
+
+**Beispiel mit mehreren:**
+
+```ts
+type Letters = "a" | "b" | "c" | "d"
+
+type WithoutBC = Exclude<Letters, "b" | "c">
+// "a" | "d"
+```
+
+---
+
+## **2. `Extract<T, U>`**
+
+Behält nur die Typen aus `T`, die auch in `U` vorkommen.
+👉 „Schnittmenge“
+
+```ts
+type Status = "success" | "error" | "loading"
+
+type OnlyError = Extract<Status, "error" | "fatal">
+// "error"
+```
+
+**Beispiel mit mehreren:**
+
+```ts
+type Letters = "a" | "b" | "c" | "d"
+
+type OnlyBC = Extract<Letters, "b" | "c" | "z">
+// "b" | "c"
+```
+
+---
+
+## **Vergleichsübersicht**
+
+| Utility Type    | Bedeutung                            | Beispiel     |                  |             |
+| --------------- | ------------------------------------ | ------------ | ---------------- | ----------- |
+| `Exclude<T, U>` | Entfernt Typen von `U` aus `T`       | `Exclude<"a" | "b", "b">`→`"a"` |             |
+| `Extract<T, U>` | Behalte nur gemeinsame Typen mit `U` | `Extract<"a" | "b", "b"         | "c">`→`"b"` |
+
+---
+
+## **Praktische Anwendung**
+
+* **`Exclude`**: Bestimmte Werte/Typszenarien ausschließen.
+
+  ```ts
+  type EventType = "click" | "change" | "hover"
+  type NonInteractive = Exclude<EventType, "click">
+  // "change" | "hover"
+  ```
+* **`Extract`**: Nur erlaubte Schnittmenge behalten.
+
+  ```ts
+  type AllEvents = "click" | "change" | "hover"
+  type UiEvents = "click" | "hover"
+
+  type Allowed = Extract<AllEvents, UiEvents>
+  // "click" | "hover"
+  ```
+
+---
+
+### Zusammenfassung
+
+* **`Exclude<T, U>`** = entfernt Typen von `U` aus `T`.
+* **`Extract<T, U>`** = behält nur gemeinsame Typen zwischen `T` und `U`.
+* Einsatz: Union-Typen filtern, APIs einschränken, erlaubte/unerlaubte Werte modellieren.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+
+  **[⬆ Наверх](#top)**
+
+60. ### <a name="60"></a> Was macht NonNullable<T>?
+
+### `NonNullable<T>` in TypeScript
+
+**Definition:**
+Der Utility Type **`NonNullable<T>`** entfernt **`null`** und **`undefined`** aus einem Typ.
+👉 Praktisch, wenn man einen Typ sicher ohne diese beiden Werte verwenden möchte.
+
+---
+
+### Beispiel 1 – Einfacher Typ
+
+```ts
+type Value = string | null | undefined
+
+type SafeValue = NonNullable<Value>
+// string
+```
+
+---
+
+### Beispiel 2 – Mit Union Types
+
+```ts
+type Status = "success" | "error" | null | undefined
+
+type CleanStatus = NonNullable<Status>
+// "success" | "error"
+```
+
+---
+
+### Beispiel 3 – In Funktionen
+
+```ts
+function printName(name: NonNullable<string | null | undefined>) {
+  console.log(name.toUpperCase())
+}
+
+printName("Sergii")   // ✅
+printName(null)       // ❌ Fehler
+```
+
+---
+
+### Beispiel 4 – In Kombination mit `strictNullChecks`
+
+```ts
+interface User {
+  id: number
+  email?: string | null
+}
+
+type SafeEmail = NonNullable<User["email"]>
+// string
+```
+
+---
+
+### Zusammenfassung
+
+* **`NonNullable<T>`** = entfernt `null` und `undefined` aus Typ `T`.
+* Typische Nutzung: Eingaben absichern, optionale Properties bereinigen, Union Types aufräumen.
+* Besonders nützlich in Projekten mit **`strictNullChecks`**.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – NonNullable](https://www.typescriptlang.org/docs/handbook/utility-types.html#nonnullabletype)
+
+  **[⬆ Наверх](#top)**
+
+61. ### <a name="61"></a> Wie deklariert man eine Klasse in TypeScript?
+
+### Klassen in TypeScript deklarieren
+
+In TypeScript funktionieren Klassen wie in JavaScript, können aber zusätzlich **Typen, Sichtbarkeiten und Interfaces** nutzen.
+
+---
+
+### 1. Basis-Syntax
+
+```ts
+export class Person {
+  name: string
+  age: number
+
+  constructor(name: string, age: number) {
+    this.name = name
+    this.age = age
+  }
+
+  greet(): void {
+    console.log(`Hallo, ich heiße ${this.name}`)
+  }
+}
+
+const p = new Person("Sergii", 34)
+p.greet() // Hallo, ich heiße Sergii
+```
+
+---
+
+### 2. Sichtbarkeitsmodifikatoren
+
+* **`public`** (Standard) → überall sichtbar
+* **`private`** → nur in der Klasse sichtbar
+* **`protected`** → in der Klasse und Subklassen sichtbar
+* **`readonly`** → Wert nur im Konstruktor setzbar
+
+```ts
+class User {
+  readonly id: number
+  private password: string
+  protected role: string
+  public name: string
+
+  constructor(id: number, name: string, password: string, role: string) {
+    this.id = id
+    this.name = name
+    this.password = password
+    this.role = role
+  }
+}
+```
+
+---
+
+### 3. Verkürzte Schreibweise im Konstruktor
+
+```ts
+class Car {
+  constructor(public brand: string, private year: number) {}
+}
+
+const c = new Car("BMW", 2025)
+console.log(c.brand) // BMW
+// console.log(c.year) ❌ Fehler: private
+```
+
+---
+
+### 4. Vererbung (`extends`)
+
+```ts
+class Animal {
+  move() {
+    console.log("Bewegt sich")
+  }
+}
+
+class Dog extends Animal {
+  bark() {
+    console.log("Wuff!")
+  }
+}
+
+const d = new Dog()
+d.move() // von Animal
+d.bark() // von Dog
+```
+
+---
+
+### 5. Abstrakte Klassen
+
+```ts
+abstract class Shape {
+  abstract area(): number
+}
+
+class Square extends Shape {
+  constructor(public side: number) {
+    super()
+  }
+
+  area(): number {
+    return this.side * this.side
+  }
+}
+```
+
+---
+
+### 6. Klassen + Interfaces
+
+```ts
+interface Flyable {
+  fly(): void
+}
+
+class Bird implements Flyable {
+  fly() {
+    console.log("Der Vogel fliegt")
+  }
+}
+```
+
+---
+
+### Zusammenfassung
+
+* Klassen werden mit `class` deklariert.
+* **Features in TS:** Typisierung, Sichtbarkeitsmodifikatoren, `readonly`.
+* Unterstützt: **Vererbung**, **abstrakte Klassen**, **Interfaces**.
+* Vorteile: bessere Struktur und Typsicherheit gegenüber reinem JS.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Classes](https://www.typescriptlang.org/docs/handbook/2/classes.html)
+* [MDN – Classes in JS](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Classes)
+
+  **[⬆ Наверх](#top)**
+
+62. ### <a name="62"></a> Was sind Zugriffsmodifikatoren (public, private, protected)?
+
+### Zugriffsmodifikatoren in TypeScript (`public`, `private`, `protected`)
+
+TypeScript erweitert JavaScript-Klassen um **Zugriffsmodifikatoren**, die steuern, **wo Eigenschaften und Methoden sichtbar sind**.
+
+---
+
+### 1. **public** (Standard)
+
+* Zugriff von überall: innerhalb der Klasse, in Subklassen, von außen.
+* Ist der **Default**, auch wenn man nichts angibt.
+
+```ts
+class User {
+  public name: string
+  constructor(name: string) {
+    this.name = name
+  }
+}
+
+const u = new User("Sergii")
+console.log(u.name) // ✅ erlaubt
+```
+
+---
+
+### 2. **private**
+
+* Zugriff nur innerhalb der **gleichen Klasse**.
+* Nicht von Subklassen oder von außen sichtbar.
+
+```ts
+class Account {
+  private balance: number
+  constructor(balance: number) {
+    this.balance = balance
+  }
+
+  deposit(amount: number) {
+    this.balance += amount
+  }
+}
+
+const acc = new Account(100)
+// acc.balance // ❌ Fehler: private
+acc.deposit(50) // ✅ erlaubt
+```
+
+---
+
+### 3. **protected**
+
+* Zugriff in der Klasse **und in Subklassen**.
+* Nicht von außen sichtbar.
+
+```ts
+class Animal {
+  protected move() {
+    console.log("Bewegt sich")
+  }
+}
+
+class Dog extends Animal {
+  bark() {
+    this.move() // ✅ erlaubt, da protected
+    console.log("Wuff!")
+  }
+}
+
+const d = new Dog()
+// d.move() ❌ Fehler
+d.bark() // ✅ erlaubt
+```
+
+---
+
+### 4. **readonly** (Sonderfall)
+
+* Kein Zugriffsmodifikator, aber oft in Kombination genutzt.
+* Wert darf **nur im Konstruktor oder bei Deklaration gesetzt** werden.
+
+```ts
+class Config {
+  readonly version: string = "1.0"
+}
+
+const c = new Config()
+// c.version = "2.0" ❌ Fehler
+```
+
+---
+
+### Vergleichstabelle
+
+| Modifikator | Zugriff in Klasse | Zugriff in Subklasse | Zugriff von außen |
+| ----------- | ----------------- | -------------------- | ----------------- |
+| `public`    | ✅                 | ✅                    | ✅                 |
+| `protected` | ✅                 | ✅                    | ❌                 |
+| `private`   | ✅                 | ❌                    | ❌                 |
+
+---
+
+### Zusammenfassung
+
+* **public** = überall sichtbar (Default).
+* **private** = nur in der Klasse.
+* **protected** = in Klasse + Subklassen.
+* **readonly** = Wert nicht änderbar (Ergänzung).
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Classes](https://www.typescriptlang.org/docs/handbook/2/classes.html#public-private-and-protected-modifiers)
+
+  **[⬆ Наверх](#top)**
+
+63. ### <a name="63"></a> Was sind readonly-Eigenschaften in Klassen?
+
+### `readonly` Eigenschaften in TypeScript-Klassen
+
+**Definition:**
+Eine **`readonly`-Eigenschaft** in einer Klasse kann **nur einmal** gesetzt werden:
+
+* bei der **Deklaration**, oder
+* im **Konstruktor**.
+
+Danach ist sie **unveränderlich** (immutable).
+
+---
+
+### Beispiel 1 – `readonly` bei Deklaration
+
+```ts
+class Config {
+  readonly version: string = "1.0"
+}
+
+const c = new Config()
+// c.version = "2.0" ❌ Fehler: version ist readonly
+```
+
+---
+
+### Beispiel 2 – `readonly` im Konstruktor
+
+```ts
+class User {
+  readonly id: number
+  name: string
+
+  constructor(id: number, name: string) {
+    this.id = id   // ✅ erlaubt
+    this.name = name
+  }
+}
+
+const u = new User(1, "Sergii")
+u.name = "Anna"   // ✅ veränderbar
+// u.id = 2       // ❌ Fehler: readonly
+```
+
+---
+
+### Beispiel 3 – Kombination mit Modifikatoren
+
+```ts
+class Token {
+  private readonly secret: string
+
+  constructor(secret: string) {
+    this.secret = secret
+  }
+
+  getSecret(): string {
+    return this.secret // ✅ nur lesbar
+  }
+}
+```
+
+---
+
+### Beispiel 4 – `readonly` Arrays (nicht tief eingefroren!)
+
+```ts
+class Data {
+  readonly items: string[] = ["a", "b"]
+}
+
+const d = new Data()
+d.items.push("c")    // ✅ erlaubt, weil Array selbst mutable
+// d.items = []       // ❌ Fehler: Referenz ist readonly
+```
+
+👉 Für wirklich **immutable Arrays** → `ReadonlyArray<T>`.
+
+---
+
+### Zusammenfassung
+
+* **`readonly`** = Eigenschaft ist nach Zuweisung nicht mehr überschreibbar.
+* Initialisierung: in **Deklaration** oder im **Konstruktor**.
+* Kombinierbar mit `public`, `private`, `protected`.
+* Wichtig: bei Arrays/Objekten schützt es nur die **Referenz**, nicht den Inhalt.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Classes: readonly](https://www.typescriptlang.org/docs/handbook/2/classes.html#readonly)
+* [MDN – const vs. readonly (Unterschied)](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#readonly-properties)
+
+  **[⬆ Наверх](#top)**
+
+64. ### <a name="64"></a> Wie deklariert man statische Eigenschaften und Methoden?
+
+### Statische Eigenschaften und Methoden in TypeScript
+
+**Definition:**
+Mit dem Schlüsselwort **`static`** deklariert man **Eigenschaften oder Methoden**, die **zur Klasse selbst gehören**, nicht zu deren Instanzen.
+👉 Zugriff erfolgt über den **Klassennamen**, nicht über `this`.
+
+---
+
+### 1. Statische Eigenschaft
+
+```ts
+class Config {
+  static readonly version: string = "1.0"
+}
+
+console.log(Config.version) // ✅ Zugriff über Klasse
+// new Config().version ❌ Fehler
+```
+
+---
+
+### 2. Statische Methode
+
+```ts
+class MathUtils {
+  static add(a: number, b: number): number {
+    return a + b
+  }
+}
+
+console.log(MathUtils.add(2, 3)) // 5
+```
+
+---
+
+### 3. Kombination von static + private
+
+```ts
+class Counter {
+  private static count = 0
+
+  static increment(): number {
+    return ++this.count
+  }
+}
+
+console.log(Counter.increment()) // 1
+console.log(Counter.increment()) // 2
+```
+
+---
+
+### 4. Zugriff aus Instanzmethoden (z. B. Singleton-Pattern)
+
+```ts
+class Database {
+  private static instance: Database
+
+  private constructor() {}
+
+  static getInstance(): Database {
+    if (!Database.instance) {
+      Database.instance = new Database()
+    }
+    return Database.instance
+  }
+}
+
+const db1 = Database.getInstance()
+const db2 = Database.getInstance()
+
+console.log(db1 === db2) // true
+```
+
+---
+
+### 5. Einschränkung: kein Zugriff über `this` in Instanzmethoden
+
+```ts
+class Example {
+  static x = 10
+
+  logX() {
+    // console.log(this.x) ❌ Fehler
+    console.log(Example.x) // ✅
+  }
+}
+```
+
+---
+
+### Zusammenfassung
+
+* **`static`** → gehört zur Klasse, nicht zur Instanz.
+* Zugriff: **`Klassenname.member`**.
+* Typische Nutzung: **Hilfsfunktionen, Konstanten, Singleton-Pattern, Counter, Factories**.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Classes: static](https://www.typescriptlang.org/docs/handbook/2/classes.html#static-members)
+* [MDN – static keyword (JS)](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Classes/static)
+
+  **[⬆ Наверх](#top)**
+
+65. ### <a name="65"></a> Was ist der Unterschied zwischen einer abstrakten und einer normalen Klasse?
+
+### Unterschied: Abstrakte Klasse vs. Normale Klasse in TypeScript
+
+---
+
+### **1. Normale Klasse**
+
+* Kann **direkt instanziiert** werden (`new`).
+* Enthält **komplette Implementierungen** von Eigenschaften und Methoden.
+
+```ts
+class Person {
+  constructor(public name: string) {}
+
+  greet(): void {
+    console.log(`Hallo, ich heiße ${this.name}`)
+  }
+}
+
+const p = new Person("Sergii") // ✅ erlaubt
+p.greet() // Hallo, ich heiße Sergii
+```
+
+---
+
+### **2. Abstrakte Klasse**
+
+* Kann **nicht direkt instanziiert** werden (`new` ist verboten).
+* Kann **abstrakte Methoden** enthalten → nur **Signatur**, keine Implementierung.
+* Dient als **Basisklasse** für Spezialisierungen.
+
+```ts
+abstract class Animal {
+  constructor(public name: string) {}
+
+  abstract makeSound(): void // nur Signatur
+
+  move(): void {
+    console.log(`${this.name} bewegt sich`)
+  }
+}
+
+class Dog extends Animal {
+  makeSound(): void {
+    console.log("Wuff!")
+  }
+}
+
+const d = new Dog("Bello") // ✅ erlaubt
+d.makeSound() // Wuff!
+
+// const a = new Animal("X") ❌ Fehler: abstrakte Klasse
+```
+
+---
+
+### **3. Typische Nutzung von abstrakten Klassen**
+
+* Gemeinsame **Grundlogik** in der Basisklasse.
+* Unterschiedliche Subklassen müssen **abstrakte Methoden implementieren**.
+* Beispiel: **Template Method Pattern**, **Basis-Modelle** in OOP.
+
+---
+
+### **Vergleichstabelle**
+
+| Merkmal            | Normale Klasse    | Abstrakte Klasse                          |
+| ------------------ | ----------------- | ----------------------------------------- |
+| Instanziierung     | ✅ möglich (`new`) | ❌ nicht möglich                           |
+| Abstrakte Methoden | ❌ nicht erlaubt   | ✅ erlaubt (Signatur ohne Body)            |
+| Implementierung    | ✅ vollständig     | ✅ teilweise + abstrakte Methoden          |
+| Einsatz            | konkrete Objekte  | Basis für Spezialisierungen (Polymorphie) |
+
+---
+
+### Zusammenfassung
+
+* **Normale Klasse** = vollständige Implementierung, direkt instanziierbar.
+* **Abstrakte Klasse** = kann nicht instanziiert werden, enthält evtl. abstrakte Methoden, zwingt Subklassen zur Implementierung.
+* Einsatz: **OOP-Design, Polymorphismus, Code-Wiederverwendung**.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Classes: abstract](https://www.typescriptlang.org/docs/handbook/2/classes.html#abstract-classes)
+* [MDN – Classes](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Classes)
+
+  **[⬆ Наверх](#top)**
+
+66. ### <a name="66"></a> Kann man Interfaces mit Klassen implementieren?
+
+### Interfaces mit Klassen implementieren
+
+**Antwort:**
+Ja ✅ — eine Klasse kann ein oder mehrere **Interfaces implementieren**, indem sie deren Struktur erfüllt.
+👉 Interfaces definieren nur die **Form** (keine Implementierung).
+👉 Klassen müssen dann **alle Eigenschaften und Methoden** implementieren.
+
+---
+
+### Beispiel 1 – Einfaches Interface
+
+```ts
+interface Greetable {
+  name: string
+  greet(): void
+}
+
+class Person implements Greetable {
+  constructor(public name: string) {}
+
+  greet(): void {
+    console.log(`Hallo, ich heiße ${this.name}`)
+  }
+}
+
+const p = new Person("Sergii")
+p.greet() // Hallo, ich heiße Sergii
+```
+
+---
+
+### Beispiel 2 – Mehrere Interfaces
+
+```ts
+interface CanRun {
+  run(): void
+}
+
+interface CanJump {
+  jump(): void
+}
+
+class Athlete implements CanRun, CanJump {
+  run(): void {
+    console.log("Ich laufe")
+  }
+  jump(): void {
+    console.log("Ich springe")
+  }
+}
+```
+
+---
+
+### Beispiel 3 – Interface als Vertrag für Klassen
+
+```ts
+interface Repository<T> {
+  getAll(): T[]
+  add(item: T): void
+}
+
+class UserRepository implements Repository<string> {
+  private users: string[] = []
+
+  getAll(): string[] {
+    return this.users
+  }
+
+  add(user: string): void {
+    this.users.push(user)
+  }
+}
+```
+
+---
+
+### Regeln
+
+* `implements` = **Interface einhalten**.
+* Anders als `extends` → keine Vererbung von Implementierung, nur von **Struktur**.
+* Klassen können **mehrere Interfaces** implementieren, aber nur **eine Klasse** erweitern.
+
+---
+
+### Zusammenfassung
+
+* **Interfaces + Klassen** = Vertrag + konkrete Umsetzung.
+* Syntax: `class X implements InterfaceA, InterfaceB`.
+* Typisch für: Architektur, Code-Wiederverwendung, Polymorphismus.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Classes: implements](https://www.typescriptlang.org/docs/handbook/2/classes.html#implements-clauses)
+
+  **[⬆ Наверх](#top)**
+
+67. ### <a name="67"></a> Was ist der Unterschied zwischen implements und extends?
+
+### Unterschied: `implements` vs. `extends` in TypeScript
+
+---
+
+### **1. `extends`**
+
+* Wird für **Vererbung** genutzt.
+* Eine Klasse kann **nur eine andere Klasse** erweitern.
+* Subklasse erbt **Eigenschaften + Methoden** der Superklasse.
+
+```ts
+class Animal {
+  move() {
+    console.log("Bewegt sich")
+  }
+}
+
+class Dog extends Animal {
+  bark() {
+    console.log("Wuff!")
+  }
+}
+
+const d = new Dog()
+d.move() // von Animal
+d.bark() // von Dog
+```
+
+---
+
+### **2. `implements`**
+
+* Wird genutzt, um eine Klasse an ein **Interface** (oder mehrere) zu binden.
+* Klasse muss alle **Properties und Methoden-Signaturen** des Interfaces implementieren.
+* Interfaces geben nur die **Struktur** vor, keine Logik.
+
+```ts
+interface Flyable {
+  fly(): void
+}
+
+class Bird implements Flyable {
+  fly() {
+    console.log("Der Vogel fliegt")
+  }
+}
+```
+
+---
+
+### **3. Kombination**
+
+Eine Klasse kann **gleichzeitig** eine Klasse erweitern und Interfaces implementieren.
+
+```ts
+interface Swimmable {
+  swim(): void
+}
+
+class Animal {
+  eat() {
+    console.log("Frisst")
+  }
+}
+
+class Fish extends Animal implements Swimmable {
+  swim() {
+    console.log("Schwimmt")
+  }
+}
+```
+
+---
+
+### **Vergleichstabelle**
+
+| Merkmal         | `extends`                        | `implements`                            |
+| --------------- | -------------------------------- | --------------------------------------- |
+| Zweck           | Vererbung (Code wiederverwenden) | Vertrag erfüllen (Struktur einhalten)   |
+| Quelle          | Klasse oder abstrakte Klasse     | Interface(s)                            |
+| Mehrfachnutzung | Nur **eine** Superklasse möglich | Mehrere Interfaces gleichzeitig möglich |
+| Enthält Logik   | ✅ Ja                             | ❌ Nur Signaturen                        |
+
+---
+
+### Zusammenfassung
+
+* **`extends`** = Vererbung: Klasse erbt Implementierungen.
+* **`implements`** = Vertrag: Klasse muss Interface erfüllen.
+* Kombination möglich: `class X extends Y implements Z`.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Classes](https://www.typescriptlang.org/docs/handbook/2/classes.html)
+* [TypeScript Handbook – Interfaces](https://www.typescriptlang.org/docs/handbook/2/objects.html)
+
+  **[⬆ Наверх](#top)**
+
+68. ### <a name="68"></a> Was ist this und wie typisiert man es?
+
+### `this` in TypeScript
+
+**Definition:**
+`this` verweist im Kontext einer Funktion oder Methode auf das **aktuelle Objekt**, in dem die Funktion ausgeführt wird.
+In TypeScript kann man `this` **explizit typisieren**, um Typ-Sicherheit zu gewährleisten.
+
+---
+
+## 1. `this` in Klassen
+
+Automatisch auf die **Instanz** der Klasse gebunden.
+
+```ts
+class User {
+  name: string
+  constructor(name: string) {
+    this.name = name
+  }
+
+  greet(): void {
+    console.log(`Hallo, ich bin ${this.name}`)
+  }
+}
+
+const u = new User("Sergii")
+u.greet() // Hallo, ich bin Sergii
+```
+
+👉 Hier ist `this: User`.
+
+---
+
+## 2. `this` als expliziter Typ in Funktionen
+
+Man kann `this` als **ersten Pseudoparameter** typisieren.
+
+> Wichtig: Dieser Parameter existiert nur für die Typprüfung, nicht im Runtime-Code!
+
+```ts
+interface User {
+  name: string
+}
+
+function greet(this: User, greeting: string) {
+  console.log(`${greeting}, ich bin ${this.name}`)
+}
+
+const u: User = { name: "Anna" }
+greet.call(u, "Hallo") // Hallo, ich bin Anna
+```
+
+👉 Ohne `this: User` würde `this.name` einen Fehler auslösen.
+
+---
+
+## 3. Arrow Functions und `this`
+
+Arrow Functions **binden kein eigenes `this`**, sondern übernehmen es aus dem umgebenden Kontext.
+
+```ts
+class Counter {
+  count = 0
+
+  // normales this -> muss gebunden werden
+  incNormal() {
+    setTimeout(function () {
+      // console.log(this.count) ❌ Fehler
+    }, 1000)
+  }
+
+  // Arrow Function -> this bleibt auf Instanz gebunden
+  incArrow() {
+    setTimeout(() => {
+      this.count++  // ✅ korrekt
+      console.log(this.count)
+    }, 1000)
+  }
+}
+```
+
+---
+
+## 4. `this` als Rückgabewert (Fluent API)
+
+Man kann `this` typisieren, damit Methoden **Method Chaining** unterstützen.
+
+```ts
+class Builder {
+  private content: string = ""
+
+  add(text: string): this {
+    this.content += text
+    return this // Typ = Builder
+  }
+
+  print(): void {
+    console.log(this.content)
+  }
+}
+
+new Builder().add("Hallo ").add("Welt!").print()
+```
+
+---
+
+## 5. Typische Nutzung in Generics (`this` Types)
+
+TypeScript erlaubt **polymorphe this-Typen** für bessere Rückgabetypen.
+
+```ts
+class Base {
+  withBase(): this {
+    return this
+  }
+}
+
+class Sub extends Base {
+  withSub(): this {
+    return this
+  }
+}
+
+const obj = new Sub().withBase().withSub() // ✅ Sub
+```
+
+---
+
+### Zusammenfassung
+
+* `this` = aktuelles Objekt im Kontext.
+* Typisierbar: `function fn(this: Typ, ...)`.
+* In **Klassen** automatisch Instanz-Typ.
+* **Arrow Functions** → übernehmen `this` vom äußeren Kontext.
+* Unterstützt **Method Chaining** via `this`-Rückgabetyp.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – this parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#this-parameters)
+* [MDN – this (JavaScript)](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Operators/this)
+
+  **[⬆ Наверх](#top)**
+
+69. ### <a name="69"></a> Kann man generische Klassen erstellen?
+
+### Generische Klassen in TypeScript
+
+**Antwort:**
+Ja ✅ — Klassen können wie Funktionen **Generics** verwenden.
+👉 Damit können Klassen flexibel mit unterschiedlichen Typen arbeiten, ohne die Typ-Sicherheit zu verlieren.
+
+---
+
+## 1. Einfache generische Klasse
+
+```ts
+class Box<T> {
+  private content: T
+
+  constructor(value: T) {
+    this.content = value
+  }
+
+  getContent(): T {
+    return this.content
+  }
+}
+
+const stringBox = new Box("Hallo") // Box<string>
+const numBox = new Box(42)         // Box<number>
+
+console.log(stringBox.getContent()) // Hallo
+console.log(numBox.getContent())    // 42
+```
+
+---
+
+## 2. Generische Klasse mit mehreren Typ-Parametern
+
+```ts
+class Pair<K, V> {
+  constructor(public key: K, public value: V) {}
+}
+
+const entry = new Pair("id", 123) // Pair<string, number>
+```
+
+---
+
+## 3. Mit `extends` (Constraints)
+
+```ts
+interface Identifiable {
+  id: number
+}
+
+class Repository<T extends Identifiable> {
+  private items: T[] = []
+
+  add(item: T) {
+    this.items.push(item)
+  }
+
+  getById(id: number): T | undefined {
+    return this.items.find(item => item.id === id)
+  }
+}
+
+const repo = new Repository<{ id: number; name: string }>()
+repo.add({ id: 1, name: "Sergii" })
+console.log(repo.getById(1)) // { id: 1, name: "Sergii" }
+```
+
+---
+
+## 4. Generische Klassen + Interfaces
+
+```ts
+interface Storage<T> {
+  add(item: T): void
+  getAll(): T[]
+}
+
+class MemoryStorage<T> implements Storage<T> {
+  private items: T[] = []
+
+  add(item: T): void {
+    this.items.push(item)
+  }
+
+  getAll(): T[] {
+    return this.items
+  }
+}
+
+const store = new MemoryStorage<string>()
+store.add("Hello")
+store.add("World")
+console.log(store.getAll()) // ["Hello", "World"]
+```
+
+---
+
+### Zusammenfassung
+
+* **Generische Klassen** = Klassen mit Typparametern (`class MyClass<T> {}`).
+* Erlauben **flexible, typsichere Datenstrukturen** (z. B. Box, Repository, Storage).
+* Unterstützen mehrere Typparameter (`<K, V>`), Constraints (`extends`) und Implementierungen von Interfaces.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html#generic-classes)
+
+  **[⬆ Наверх](#top)**
+
+70. ### <a name="70"></a> Wie erstellt man ein React-Projekt mit TypeScript?
+
+### Schnellstart: React + TypeScript
+
+#### **Option A – Vite (empfohlen, schnell & leicht)**
+
+```bash
+# Node 18+ empfohlen
+npm create vite@latest my-app -- --template react-ts
+cd my-app
+npm install
+npm run dev
+```
+
+**Beispiel-Komponente**
+
+```js
+// src/components/Hello.tsx
+import { useState } from "react"
+
+export function Hello({ name }: { name: string }) {
+  const [count, setCount] = useState<number>(0)
+  return (
+    <button onClick={() => setCount((c) => c + 1)}>
+      Hallo {name}! Klicks: {count}
+    </button>
+  )
+}
+```
+
+**Pfadalias (optional)**
+
+```js
+// tsconfig.json (Auszug)
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
+    "strict": true,
+    "jsx": "react-jsx"
+  }
+}
+```
+
+```js
+// vite.config.ts (Auszug)
+import { defineConfig } from "vite"
+import react from "@vitejs/plugin-react"
+import path from "node:path"
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: { alias: { "@": path.resolve(__dirname, "src") } }
+})
+```
+
+---
+
+#### **Option B – Next.js (SSR/SSG, Full-stack)**
+
+```bash
+npx create-next-app@latest my-app --ts
+cd my-app
+npm run dev
+```
+
+**Client-Komponente**
+
+```js
+// app/page.tsx (Next.js App Router)
+export default function Page() {
+  return <h1>Hallo Next.js + TypeScript</h1>
+}
+```
+
+---
+
+### Typische TS/React-Patterns
+
+**Props & Events**
+
+```js
+// src/components/Input.tsx
+import type { ChangeEvent } from "react"
+
+export function Input({ onChange }: { onChange: (v: string) => void }) {
+  const handle = (e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)
+  return <input onChange={handle} />
+}
+```
+
+**Generische Utility-Komponente**
+
+```js
+// src/components/List.tsx
+export function List<T>({ items, render }: { items: T[]; render: (x: T) => JSX.Element }) {
+  return <ul>{items.map(render)}</ul>
+}
+```
+
+---
+
+### Qualität & DX (optional, kurz)
+
+* **ESLint/Prettier**
+
+  ```bash
+  npm i -D eslint @typescript-eslint/{parser,eslint-plugin} prettier
+  ```
+* **Strict** aktiv lassen (`"strict": true`) für bessere Typprüfung.
+* **Testing**: Vitest + React Testing Library in Vite-Projekten.
+
+---
+
+### Zusammenfassung
+
+* **Vite + `react-ts`** für SPA: schnell, minimal.
+* **Next.js + `--ts`** für SSR/SSG/Full-stack.
+* Aktiviere **`strict`** & nutze **`jsx: "react-jsx"`**.
+* Typisiere Props/Events explizit; nutze Generics bei Wiederverwendung.
+
+**Quellen:**
+
+* [React Offizielle Doku – Einstieg](https://react.dev/learn)
+* [TypeScript – React mit TS (JSX/TSX)](https://www.typescriptlang.org/docs/handbook/jsx.html)
+* [React + TypeScript Cheatsheet – Setup](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup)
+* [Vite – React TS Template](https://vitejs.dev/guide/)
+* [Next.js – TypeScript](https://nextjs.org/docs/basic-features/typescript)
+
+  **[⬆ Наверх](#top)**
+
+71. ### <a name="71"></a> Wie typisiert man eine React-Komponente (FC)?
+
+### Typisierung von React-Komponenten in TypeScript
+
+---
+
+## **1. Funktionale Komponente mit Props**
+
+```tsx
+type HelloProps = {
+  name: string
+  age?: number // optional
+}
+
+export function Hello({ name, age }: HelloProps) {
+  return <h1>Hallo {name}, Alter: {age}</h1>
+}
+```
+
+👉 Standard: Props mit einem **Type** oder **Interface** typisieren.
+
+---
+
+## **2. Mit `React.FC` (funktioniert, wird aber weniger empfohlen)**
+
+```tsx
+import type { FC } from "react"
+
+type HelloProps = {
+  name: string
+}
+
+export const Hello: FC<HelloProps> = ({ name, children }) => (
+  <div>
+    <h1>Hallo {name}</h1>
+    {children} {/* children automatisch typisiert */}
+  </div>
+)
+```
+
+⚠️ Nachteile von `React.FC`:
+
+* `children` wird **immer erlaubt** (auch wenn nicht erwünscht).
+* Manche HOCs/Generics funktionieren schlechter.
+
+---
+
+## **3. Mit Generics (z. B. List-Komponente)**
+
+```tsx
+type ListProps<T> = {
+  items: T[]
+  render: (item: T) => JSX.Element
+}
+
+export function List<T>({ items, render }: ListProps<T>) {
+  return <ul>{items.map(render)}</ul>
+}
+
+// Verwendung:
+<List items={["A", "B", "C"]} render={(item) => <li>{item}</li>} />
+```
+
+---
+
+## **4. Event-Handler in Props**
+
+```tsx
+import type { MouseEventHandler } from "react"
+
+type ButtonProps = {
+  label: string
+  onClick: MouseEventHandler<HTMLButtonElement>
+}
+
+export function Button({ label, onClick }: ButtonProps) {
+  return <button onClick={onClick}>{label}</button>
+}
+```
+
+---
+
+## **5. Default Props (via Default-Parameter)**
+
+```tsx
+type TitleProps = {
+  text?: string
+}
+
+export function Title({ text = "Standardtitel" }: TitleProps) {
+  return <h2>{text}</h2>
+}
+```
+
+---
+
+## Zusammenfassung
+
+* **Empfohlen:** Props über **Type oder Interface** definieren und direkt in der Funktion nutzen.
+* **`React.FC`** möglich, aber Nachteile (immer `children`).
+* Für wiederverwendbare Komponenten → **Generics** verwenden.
+* Events immer mit **React-Eventtypen** (`MouseEvent`, `ChangeEvent`, …) typisieren.
+
+🔗 Quellen:
+
+* [React TypeScript Cheatsheet – Function Components](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/function_components/)
+* [React Docs](https://react.dev/)
+* [TypeScript Handbook – Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+
+  **[⬆ Наверх](#top)**
+
+72. ### <a name="72"></a> Was ist React.FC und wann sollte man es vermeiden?
+
+### `React.FC` in TypeScript
+
+---
+
+## **1. Definition**
+
+`React.FC` (Function Component) ist ein vordefinierter Typ in `@types/react`, um **funktionale Komponenten** zu typisieren:
+
+```tsx
+import type { FC } from "react"
+
+type HelloProps = { name: string }
+
+export const Hello: FC<HelloProps> = ({ name }) => <h1>Hallo {name}</h1>
+```
+
+---
+
+## **2. Vorteile von `React.FC`**
+
+* Bietet **automatische Typisierung von `children`**.
+* Klare Signatur: `const Comp: FC<Props>`.
+* Einfacher für Einsteiger.
+
+---
+
+## **3. Nachteile von `React.FC` (Gründe zum Vermeiden)**
+
+1. **`children` ist immer erlaubt**, auch wenn man es gar nicht will.
+
+   ```tsx
+   type Props = { name: string }
+   const A: FC<Props> = ({ name, children }) => <>{name}{children}</>
+   <A name="Sergii">❌ children wird automatisch zugelassen</A>
+   ```
+
+2. **Keine Unterstützung für `defaultProps`/`propTypes`** (deprecated Pattern).
+
+3. **Generics schwieriger einzusetzen** (z. B. `FC<ListProps<T>>`).
+
+4. **Nicht nötig**, weil Typisierung ohne `React.FC` präziser und flexibler ist.
+
+---
+
+## **4. Empfohlene Alternative (ohne React.FC)**
+
+```tsx
+type HelloProps = { name: string }
+
+export function Hello({ name }: HelloProps) {
+  return <h1>Hallo {name}</h1>
+}
+```
+
+👉 Props direkt typisieren → mehr Kontrolle, keine unnötigen `children`.
+
+---
+
+## **5. Wann `React.FC` verwenden?**
+
+* Kleine Projekte oder **schneller Prototyping-Code**.
+* Wenn man **immer `children`** benötigt (z. B. Layout-Komponenten).
+* Aber: In größeren Projekten wird **Vermeidung empfohlen** → klarere Typen, weniger Fehler.
+
+---
+
+### Zusammenfassung
+
+* **`React.FC`** = Typalias für Function Components, inkl. implizitem `children`.
+* **Problem:** macht `children` immer verfügbar, erschwert Generics.
+* **Empfehlung:** Props **direkt typisieren** (statt `React.FC`).
+* Nutzen: nur, wenn man absichtlich `children` erzwingen will.
+
+🔗 Quellen:
+
+* [React TypeScript Cheatsheet – Function Components](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/function_components/)
+* [React Docs](https://react.dev/)
+
+  **[⬆ Наверх](#top)**
+
+73. ### <a name="73"></a> Wie typisiert man Props in einer React-Komponente?
+
+### Props in React-Komponenten typisieren (TypeScript)
+
+---
+
+## **1. Mit `type`**
+
+```tsx
+type GreetingProps = {
+  name: string
+  age?: number // optional
+}
+
+export function Greeting({ name, age }: GreetingProps) {
+  return <h1>Hallo {name}, Alter: {age}</h1>
+}
+```
+
+👉 Empfehlung: `type` für Props, da es auch Unions, Utility Types usw. unterstützt.
+
+---
+
+## **2. Mit `interface`**
+
+```tsx
+interface ButtonProps {
+  label: string
+  onClick: () => void
+}
+
+export function Button({ label, onClick }: ButtonProps) {
+  return <button onClick={onClick}>{label}</button>
+}
+```
+
+👉 Vorteil: `interface` lässt sich **erweitern** (`extends`).
+
+---
+
+## **3. Mit `children`**
+
+```tsx
+type CardProps = {
+  title: string
+  children: React.ReactNode
+}
+
+export function Card({ title, children }: CardProps) {
+  return (
+    <div>
+      <h2>{title}</h2>
+      <div>{children}</div>
+    </div>
+  )
+}
+```
+
+---
+
+## **4. Mit Events**
+
+```tsx
+import type { MouseEvent } from "react"
+
+type ButtonProps = {
+  onClick: (e: MouseEvent<HTMLButtonElement>) => void
+}
+
+export function Button({ onClick }: ButtonProps) {
+  return <button onClick={onClick}>Klick mich</button>
+}
+```
+
+---
+
+## **5. Mit Generics (z. B. Listen-Komponente)**
+
+```tsx
+type ListProps<T> = {
+  items: T[]
+  render: (item: T) => JSX.Element
+}
+
+export function List<T>({ items, render }: ListProps<T>) {
+  return <ul>{items.map(render)}</ul>
+}
+
+// Nutzung
+<List items={["A", "B", "C"]} render={(i) => <li>{i}</li>} />
+```
+
+---
+
+## Zusammenfassung
+
+* **Props** typisiert man über `type` oder `interface`.
+* **Optional** mit `?`, **children** mit `React.ReactNode`.
+* Events strikt mit **React-Eventtypen** (`MouseEvent`, `ChangeEvent`, …).
+* Für wiederverwendbare Komponenten → **Generics**.
+
+🔗 Quellen:
+
+* [React TypeScript Cheatsheet – Props](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/)
+* [React Docs – Passing Props](https://react.dev/learn/passing-props-to-a-component)
+
+  **[⬆ Наверх](#top)**
+
+74. ### <a name="74"></a> Wie typisiert man optionale Props?
+
+### Optionale Props in React mit TypeScript
+
+---
+
+## **1. Mit `?` (Standardmethode)**
+
+```tsx
+type GreetingProps = {
+  name: string
+  age?: number // optional
+}
+
+export function Greeting({ name, age }: GreetingProps) {
+  return <h1>Hallo {name}, Alter: {age ?? "unbekannt"}</h1>
+}
+```
+
+👉 `age` ist automatisch `number | undefined`.
+
+---
+
+## **2. Mit Default-Wert im Destructuring**
+
+```tsx
+type TitleProps = {
+  text?: string
+}
+
+export function Title({ text = "Standardtitel" }: TitleProps) {
+  return <h2>{text}</h2>
+}
+```
+
+👉 So wird `text` im Body **immer ein `string`**.
+
+---
+
+## **3. In Kombination mit `React.ReactNode` (children optional)**
+
+```tsx
+type CardProps = {
+  title: string
+  children?: React.ReactNode
+}
+
+export function Card({ title, children }: CardProps) {
+  return (
+    <div>
+      <h2>{title}</h2>
+      {children && <div>{children}</div>}
+    </div>
+  )
+}
+```
+
+---
+
+## **4. Utility Types für optionale Props (`Partial`)**
+
+```tsx
+type User = { id: number; name: string; email: string }
+
+type OptionalUserProps = Partial<User>
+// alle Props jetzt optional
+```
+
+---
+
+### Zusammenfassung
+
+* Optionale Props mit **`?`** markieren.
+* Optional + Default-Wert → verhindert `undefined` im Body.
+* `children` oft als optionales `React.ReactNode`.
+* Utility Type **`Partial<T>`** macht alle Props optional.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Optional Properties](https://www.typescriptlang.org/docs/handbook/2/objects.html#optional-properties)
+* [React TS Cheatsheet – Props](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/)
+
+  **[⬆ Наверх](#top)**
+
+75. ### <a name="75"></a> Wie deklariert man Default Props in TypeScript?
+
+### Default Props in React + TypeScript
+
+In modernen React-Projekten mit TypeScript setzt man **Default-Werte direkt im Funktionsparameter**.
+👉 Die alte Lösung mit `Component.defaultProps` ist **deprecated**.
+
+---
+
+## **1. Default Props über Destructuring**
+
+```tsx
+type GreetingProps = {
+  name: string
+  age?: number
+}
+
+export function Greeting({ name, age = 18 }: GreetingProps) {
+  return <h1>Hallo {name}, Alter: {age}</h1>
+}
+
+// Verwendung:
+<Greeting name="Sergii" />       // Alter: 18
+<Greeting name="Anna" age={25} /> // Alter: 25
+```
+
+➡️ `age` ist im Body immer `number`, kein `undefined`.
+
+---
+
+## **2. Default Props bei `children`**
+
+```tsx
+type CardProps = {
+  title?: string
+  children?: React.ReactNode
+}
+
+export function Card({ title = "Ohne Titel", children }: CardProps) {
+  return (
+    <div>
+      <h2>{title}</h2>
+      {children}
+    </div>
+  )
+}
+```
+
+---
+
+## **3. Mit `Partial<T>` für flexible Defaults**
+
+```tsx
+type ButtonProps = {
+  label: string
+  size?: "small" | "medium" | "large"
+}
+
+const defaultProps: Partial<ButtonProps> = {
+  size: "medium"
+}
+
+export function Button({ label, size = defaultProps.size }: ButtonProps) {
+  return <button>{`${label} (${size})`}</button>
+}
+```
+
+---
+
+## **4. Generische Komponente mit Defaults**
+
+```tsx
+type ListProps<T> = {
+  items?: T[]
+  render: (item: T) => JSX.Element
+}
+
+export function List<T>({ items = [], render }: ListProps<T>) {
+  return <ul>{items.map(render)}</ul>
+}
+```
+
+---
+
+### Zusammenfassung
+
+* **Empfohlene Methode**: Default-Werte direkt beim **Destructuring** setzen.
+* Props bleiben **optional** (`?`), aber im Funktionskörper ist der Typ **bereinigt**.
+* `defaultProps` (alte Syntax) → vermeiden.
+
+🔗 Quellen:
+
+* [React TS Cheatsheet – Props mit Defaults](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/#default-props)
+* [React Docs – Passing Props](https://react.dev/learn/passing-props-to-a-component)
+
+  **[⬆ Наверх](#top)**
+
+76. ### <a name="76"></a> Wie typisiert man children in React-Komponenten?
+
+### `children` in React-Komponenten typisieren
+
+---
+
+## **1. Mit `React.ReactNode` (Standard)**
+
+```tsx
+type CardProps = {
+  children: React.ReactNode
+}
+
+export function Card({ children }: CardProps) {
+  return <div className="card">{children}</div>
+}
+
+// Nutzung:
+<Card>
+  <h2>Hallo</h2>
+  <p>Inhalt</p>
+</Card>
+```
+
+👉 `React.ReactNode` erlaubt: JSX, Strings, Zahlen, Arrays, `null`, `undefined`.
+
+---
+
+## **2. Mit `ReactElement` (nur JSX erlaubt)**
+
+```tsx
+import type { ReactElement } from "react"
+
+type WrapperProps = {
+  children: ReactElement
+}
+
+export function Wrapper({ children }: WrapperProps) {
+  return <section>{children}</section>
+}
+
+// <Wrapper><h1>✅ nur ein Element</h1></Wrapper>
+// <Wrapper>Text ❌ Fehler</Wrapper>
+```
+
+---
+
+## **3. Array von React-Elementen**
+
+```tsx
+import type { ReactElement } from "react"
+
+type ListProps = {
+  children: ReactElement[]
+}
+
+export function List({ children }: ListProps) {
+  return <ul>{children}</ul>
+}
+
+// <List><li>A</li><li>B</li></List> ✅
+```
+
+---
+
+## **4. Funktion als Children (Render Prop)**
+
+```tsx
+type RenderPropProps = {
+  children: (count: number) => React.ReactNode
+}
+
+export function Counter({ children }: RenderPropProps) {
+  return <div>{children(5)}</div>
+}
+
+// <Counter>{(n) => <span>Zahl: {n}</span>}</Counter>
+```
+
+---
+
+## **5. Optionales `children`**
+
+```tsx
+type ContainerProps = {
+  children?: React.ReactNode
+}
+
+export function Container({ children }: ContainerProps) {
+  return <main>{children ?? "Kein Inhalt"}</main>
+}
+```
+
+---
+
+### Zusammenfassung
+
+* **`React.ReactNode`** → flexibel, Standard für `children`.
+* **`ReactElement`** → nur gültige JSX-Elemente (kein Text, kein Array).
+* **Arrays** explizit als `ReactElement[]`.
+* **Render Props** typisieren mit Funktionssignatur.
+* `children` optional machen mit `?`.
+
+🔗 Quellen:
+
+* [React TypeScript Cheatsheet – Children](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/#children)
+* [React Docs – Passing Children](https://react.dev/learn/passing-props-to-a-component#passing-jsx-as-children)
+
+  **[⬆ Наверх](#top)**
+
+77. ### <a name="77"></a> Was ist der Unterschied zwischen ReactNode, JSX.Element und ReactElement?
+
+### Unterschied: `ReactNode` vs. `JSX.Element` vs. `ReactElement`
+
+Diese drei Typen werden in React/TypeScript oft verwechselt, haben aber **verschiedene Bedeutungen**.
+
+---
+
+## **1. `ReactNode`**
+
+👉 Der **allgemeinste Typ** für Inhalte, die in JSX gerendert werden können.
+Enthält:
+
+* `string`, `number`, `boolean` (teilweise),
+* `null`, `undefined`,
+* `JSX.Element`, `ReactElement`,
+* Arrays dieser Typen.
+
+```tsx
+type ExampleProps = {
+  children: React.ReactNode
+}
+
+export function Example({ children }: ExampleProps) {
+  return <div>{children}</div>
+}
+
+// ✅ erlaubt:
+<Example>Hallo</Example>
+<Example>{123}</Example>
+<Example><span>Text</span></Example>
+<Example>{["A", "B", <b key="x">C</b>]}</Example>
+```
+
+---
+
+## **2. `JSX.Element`**
+
+👉 Typ, den der **JSX-Compiler** (`<div>...</div>`) zurückgibt.
+
+* Wird von `React.createElement` erzeugt.
+* Ist **genauer** als `ReactNode`.
+* Entspricht in der Praxis **einem einzelnen React-Element**.
+
+```tsx
+const el: JSX.Element = <h1>Hello</h1>
+// el = React.createElement("h1", null, "Hello")
+```
+
+---
+
+## **3. `ReactElement`**
+
+👉 Generischer Typ für ein Element, erzeugt durch `React.createElement`.
+
+```tsx
+const el: React.ReactElement = <button>Klick</button>
+```
+
+* Kann generisch spezifiziert werden:
+
+```tsx
+const el: React.ReactElement<{ onClick: () => void }> = (
+  <button onClick={() => {}}>Klick</button>
+)
+```
+
+* Typisch in **Bibliotheken und Low-Level-APIs**, seltener in App-Code.
+
+---
+
+## **Vergleichstabelle**
+
+| Typ            | Beschreibung                                   | Beispiel-Einsatz             |
+| -------------- | ---------------------------------------------- | ---------------------------- |
+| `ReactNode`    | **Alles**, was in JSX gerendert werden kann    | Props: `children: ReactNode` |
+| `JSX.Element`  | Ergebnis von JSX-Ausdrücken (`<div>...</div>`) | Rückgabewert von Komponenten |
+| `ReactElement` | Konkretes React-Element (mit Props & Type)     | Low-Level-APIs, Tests, Libs  |
+
+---
+
+## **4. Typische Verwendung**
+
+* **`ReactNode`** → für `children` (flexibel).
+* **`JSX.Element`** → für Rückgabewerte von Komponenten.
+* **`ReactElement`** → für präzise Typisierung einzelner Elemente.
+
+---
+
+### Zusammenfassung
+
+* **`ReactNode`** = Union aller renderbaren Typen → am breitesten.
+* **`JSX.Element`** = konkretes JSX-Ergebnis → Standard für `return` einer Komponente.
+* **`ReactElement`** = generischer Typ eines React-Elements, inkl. Props.
+
+🔗 Quellen:
+
+* [React TypeScript Cheatsheet – JSX, ReactNode, ReactElement](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/jsx)
+* [React Docs – JSX](https://react.dev/learn/writing-markup-with-jsx)
+
+  **[⬆ Наверх](#top)**
+
+78. ### <a name="78"></a> Wie typisiert man Events (z. B. onClick, onChange)?
+
+### Events in React mit TypeScript typisieren
+
+React liefert für jedes DOM-Element eigene **Event-Typen**.
+👉 Diese sind in `@types/react` vordefiniert und basieren auf **`SyntheticEvent`**.
+
+---
+
+## **1. Allgemeiner Typ**
+
+```tsx
+import type { SyntheticEvent } from "react"
+
+function handleEvent(e: SyntheticEvent) {
+  console.log(e.type) // z. B. "click"
+}
+```
+
+👉 Gut für Basisevents, aber unpräzise.
+
+---
+
+## **2. `onClick` – Button Klick**
+
+```tsx
+import type { MouseEvent } from "react"
+
+function handleClick(e: MouseEvent<HTMLButtonElement>) {
+  console.log("Button geklickt:", e.currentTarget)
+}
+
+export function App() {
+  return <button onClick={handleClick}>Klick mich</button>
+}
+```
+
+---
+
+## **3. `onChange` – Input ändern**
+
+```tsx
+import type { ChangeEvent } from "react"
+
+function handleChange(e: ChangeEvent<HTMLInputElement>) {
+  console.log("Wert:", e.target.value)
+}
+
+export function Input() {
+  return <input type="text" onChange={handleChange} />
+}
+```
+
+---
+
+## **4. Formular-Submit**
+
+```tsx
+import type { FormEvent } from "react"
+
+function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  e.preventDefault()
+  console.log("Formular gesendet")
+}
+
+export function Form() {
+  return <form onSubmit={handleSubmit}><button>Senden</button></form>
+}
+```
+
+---
+
+## **5. Weitere Beispiele**
+
+* **Mouse Events**:
+  `MouseEvent<HTMLDivElement>` → `onMouseEnter`, `onMouseLeave`, `onContextMenu`
+* **Keyboard Events**:
+  `KeyboardEvent<HTMLInputElement>` → `onKeyDown`, `onKeyUp`
+* **Focus Events**:
+  `FocusEvent<HTMLInputElement>` → `onFocus`, `onBlur`
+
+```tsx
+import type { KeyboardEvent } from "react"
+
+function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+  if (e.key === "Enter") console.log("Enter gedrückt")
+}
+```
+
+---
+
+## **6. Inline-Handler (kurz)**
+
+```tsx
+export function Btn() {
+  return (
+    <button
+      onClick={(e: React.MouseEvent<HTMLButtonElement>) => console.log(e.currentTarget)}
+    >
+      Klick
+    </button>
+  )
+}
+```
+
+---
+
+### Zusammenfassung
+
+* Basis: `SyntheticEvent`.
+* Genaue Typen: `MouseEvent`, `ChangeEvent`, `KeyboardEvent`, `FormEvent` usw.
+* Generische Signatur: `Event<HTMLTagElement>`.
+* Faustregel: **Immer den passenden DOM-Typ** einsetzen (z. B. `HTMLInputElement`, `HTMLButtonElement`).
+
+🔗 Quellen:
+
+* [React TS Cheatsheet – Events](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/event_handling/)
+* [MDN – DOM Events](https://developer.mozilla.org/ru/docs/Web/Events)
+
+  **[⬆ Наверх](#top)**
+
+79. ### <a name="79"></a> Wie typisiert man Refs in React?
+
+### Refs in React mit TypeScript typisieren
+
+Refs werden in React über **`useRef`** oder **`createRef`** erstellt. Mit TypeScript kann man genau angeben, **auf welchen Typ** sie verweisen.
+
+---
+
+## **1. Ref auf DOM-Element**
+
+```tsx
+import { useRef, useEffect } from "react"
+
+export function InputFocus() {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  return <input ref={inputRef} />
+}
+```
+
+👉 Typ: `HTMLInputElement | null`.
+
+---
+
+## **2. Ref auf andere DOM-Elemente**
+
+* `HTMLDivElement`
+* `HTMLButtonElement`
+* `HTMLTextAreaElement`
+* `HTMLCanvasElement` usw.
+
+```tsx
+const divRef = useRef<HTMLDivElement>(null)
+```
+
+---
+
+## **3. Ref auf einen Wert (Mutable Ref)**
+
+👉 Wenn man kein DOM-Element, sondern **einen beliebigen Wert** speichern will.
+
+```tsx
+const countRef = useRef<number>(0)
+
+function increment() {
+  countRef.current += 1
+}
+```
+
+* Kein `null` nötig → direkt `useRef<number>(0)`
+* Typ: `MutableRefObject<number>`
+
+---
+
+## **4. `createRef` (meist für Klassenkomponenten)**
+
+```tsx
+import { createRef, Component } from "react"
+
+class MyForm extends Component {
+  inputRef = createRef<HTMLInputElement>()
+
+  focusInput = () => {
+    this.inputRef.current?.focus()
+  }
+
+  render() {
+    return <input ref={this.inputRef} />
+  }
+}
+```
+
+---
+
+## **5. Weitergabe von Refs mit `forwardRef`**
+
+```tsx
+import { forwardRef } from "react"
+
+type InputProps = { placeholder?: string }
+
+export const CustomInput = forwardRef<HTMLInputElement, InputProps>(
+  ({ placeholder }, ref) => <input ref={ref} placeholder={placeholder} />
+)
+
+// Nutzung:
+import { useRef } from "react"
+
+export function Form() {
+  const ref = useRef<HTMLInputElement>(null)
+  return <CustomInput ref={ref} placeholder="Name" />
+}
+```
+
+---
+
+## Zusammenfassung
+
+* DOM-Ref: `useRef<HTMLTagElement>(null)`
+* Wert-Ref: `useRef<T>(initialValue)` → `MutableRefObject<T>`
+* `forwardRef` für Weitergabe von Refs typisieren mit `forwardRef<HTMLTag, Props>`.
+* `createRef` → selten, v. a. für Klassenkomponenten.
+
+🔗 Quellen:
+
+* [React TypeScript Cheatsheet – Refs](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/hooks/#useref)
+* [React Docs – Refs](https://react.dev/learn/referencing-values-with-refs)
+
+  **[⬆ Наверх](#top)**
+
+80. ### <a name="80"></a> Wie typisiert man State mit useState?
+
+### State mit `useState` typisieren
+
+React’s **`useState`** ist ein generischer Hook (`useState<S>()`).
+👉 Man kann den Typ explizit angeben oder TypeScript lässt ihn **inferen**.
+
+---
+
+## **1. Einfache Typisierung**
+
+```tsx
+import { useState } from "react"
+
+export function Counter() {
+  const [count, setCount] = useState<number>(0)
+
+  return <button onClick={() => setCount(count + 1)}>{count}</button>
+}
+```
+
+➡️ `count: number`, `setCount: Dispatch<SetStateAction<number>>`
+
+---
+
+## **2. Typ wird automatisch inferred**
+
+```tsx
+const [name, setName] = useState("Sergii")
+// Typ: string (kein <string> nötig)
+```
+
+---
+
+## **3. Union Types**
+
+```tsx
+type Status = "loading" | "success" | "error"
+
+const [status, setStatus] = useState<Status>("loading")
+
+setStatus("success") // ✅
+setStatus("failed")  // ❌ Fehler
+```
+
+---
+
+## **4. Nullbare Werte**
+
+```tsx
+interface User {
+  id: number
+  name: string
+}
+
+const [user, setUser] = useState<User | null>(null)
+
+if (user) {
+  console.log(user.name) // sicher
+}
+```
+
+---
+
+## **5. useState mit Funktion (Lazy Init)**
+
+```tsx
+const [expensive, setExpensive] = useState<number>(() => {
+  return Math.random() * 1000 // nur einmal beim Mount
+})
+```
+
+---
+
+## **6. useState mit Objekt**
+
+```tsx
+type FormState = {
+  username: string
+  age: number
+}
+
+const [form, setForm] = useState<FormState>({ username: "", age: 0 })
+
+setForm(prev => ({ ...prev, username: "Anna" }))
+```
+
+---
+
+### Zusammenfassung
+
+* **`useState<T>()`** → Typ explizit oder inferred.
+* Union-Typen für begrenzte Werte (`"success" | "error"`).
+* Für optionale Werte: `T | null`.
+* Bei Objekten: State-Updates immutabel mit Spread.
+
+🔗 Quellen:
+
+* [React TypeScript Cheatsheet – useState](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/hooks/#usestate)
+* [React Docs – useState](https://react.dev/reference/react/useState)
 
   **[⬆ Наверх](#top)**  
 
-81. ### <a name="81"></a> 
+81. ### <a name="81"></a> Wie typisiert man useReducer?
 
+### `useReducer` in React mit TypeScript typisieren
+
+Der Hook **`useReducer`** ist generisch und erlaubt eine sehr präzise Typisierung von **State** und **Actions**.
+
+---
+
+## **1. Basis-Signatur**
+
+```ts
+const [state, dispatch] = useReducer<Reducer<State, Action>>(reducer, initialState)
+```
+
+oder einfach:
+
+```ts
+const [state, dispatch] = useReducer(reducer, initialState)
+```
+
+👉 TypeScript inferiert die Typen, wenn `reducer` und `initialState` sauber typisiert sind.
+
+---
+
+## **2. Beispiel – Counter**
+
+```tsx
+import { useReducer } from "react"
+
+// State-Typ
+type State = { count: number }
+
+// Action-Typ (Union)
+type Action = { type: "increment" } | { type: "decrement" } | { type: "reset"; payload: number }
+
+// Reducer
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "increment":
+      return { count: state.count + 1 }
+    case "decrement":
+      return { count: state.count - 1 }
+    case "reset":
+      return { count: action.payload }
+    default:
+      return state
+  }
+}
+
+// Nutzung
+export function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 })
+
+  return (
+    <>
+      <p>Count: {state.count}</p>
+      <button onClick={() => dispatch({ type: "increment" })}>+</button>
+      <button onClick={() => dispatch({ type: "decrement" })}>-</button>
+      <button onClick={() => dispatch({ type: "reset", payload: 10 })}>Reset</button>
+    </>
+  )
+}
+```
+
+👉 `dispatch` ist automatisch auf den Typ `Action` eingeschränkt.
+
+---
+
+## **3. Mit Generics (explizit)**
+
+```tsx
+import { useReducer, Reducer } from "react"
+
+type State = { name: string }
+type Action = { type: "setName"; payload: string }
+
+const reducer: Reducer<State, Action> = (state, action) => {
+  switch (action.type) {
+    case "setName":
+      return { ...state, name: action.payload }
+  }
+}
+
+const [state, dispatch] = useReducer(reducer, { name: "Sergii" })
+```
+
+---
+
+## **4. Mit komplexeren Payloads**
+
+```tsx
+type Todo = { id: number; text: string; done: boolean }
+
+type Action =
+  | { type: "add"; payload: string }
+  | { type: "toggle"; payload: number }
+  | { type: "remove"; payload: number }
+```
+
+👉 Payload-Typen sind individuell je Action.
+
+---
+
+## **5. Lazy Initialization (dritter Parameter)**
+
+```tsx
+function init(count: number): State {
+  return { count }
+}
+
+const [state, dispatch] = useReducer(reducer, 5, init)
+// initialisiert mit { count: 5 }
+```
+
+---
+
+### Zusammenfassung
+
+* `useReducer` typisiert man mit **State** und **Action**.
+* Action-Typen meist als **Discriminated Unions**.
+* `dispatch` ist automatisch korrekt typisiert.
+* Option für Lazy Init mit drittem Parameter.
+
+🔗 Quellen:
+
+* [React Docs – useReducer](https://react.dev/reference/react/useReducer)
+* [React TypeScript Cheatsheet – useReducer](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/hooks/#usereducer)
+
+  **[⬆ Наверх](#top)**
+
+82. ### <a name="82"></a> Wie typisiert man useRef mit initial null?
+
+### `useRef` mit initial `null` typisieren
+
+In React ist ein **DOM-Ref** oder ein **nullable Ref** typisch → `T | null`.
+
+---
+
+## **1. Ref auf DOM-Element**
+
+```tsx
+import { useRef, useEffect } from "react"
+
+export function InputFocus() {
+  // HTMLInputElement | null
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  return <input ref={inputRef} />
+}
+```
+
+👉 `inputRef.current` hat den Typ `HTMLInputElement | null`.
+
+---
+
+## **2. Ref auf generische Werte**
+
+```tsx
+const timerRef = useRef<number | null>(null)
+
+function startTimer() {
+  timerRef.current = window.setTimeout(() => {
+    console.log("Timer!")
+  }, 1000)
+}
+
+function clearTimer() {
+  if (timerRef.current !== null) {
+    clearTimeout(timerRef.current)
+  }
+}
+```
+
+---
+
+## **3. Unterschied: `useRef<T>(null)` vs. `useRef<T | null>(null)`**
+
+* **`useRef<T>(null)`** → Fehler, weil `null` nicht `T` ist.
+* **`useRef<T | null>(null)`** → korrekt, `current` kann `null` sein.
+
+---
+
+## **4. Zugriff absichern**
+
+```tsx
+if (inputRef.current) {
+  inputRef.current.value = "Hallo"
+}
+```
+
+oder mit **Optional Chaining**:
+
+```tsx
+inputRef.current?.focus()
+```
+
+---
+
+### Zusammenfassung
+
+* Für DOM-Elemente: `useRef<HTMLDivElement | null>(null)`.
+* Für Werte: `useRef<T | null>(null)`.
+* Immer `| null` hinzufügen, da beim Initialisieren `null` gesetzt wird.
+* Zugriff absichern mit `if` oder `?.`.
+
+🔗 Quellen:
+
+* [React Docs – Refs](https://react.dev/learn/referencing-values-with-refs)
+* [React TS Cheatsheet – useRef](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/hooks/#useref)
+
+  **[⬆ Наверх](#top)**
+
+83. ### <a name="83"></a> Wie typisiert man einen Custom Hook?
+
+### Custom Hook in TypeScript typisieren
+
+---
+
+## 1) Einfacher Hook (Rückgabetyp inferieren lassen)
+
+```js
+import { useEffect, useState } from "react"
+
+export function useOnline() {
+  const [online, setOnline] = useState<boolean>(navigator.onLine)
+
+  useEffect(() => {
+    const on = () => setOnline(true)
+    const off = () => setOnline(false)
+    window.addEventListener("online", on)
+    window.addEventListener("offline", off)
+    return () => {
+      window.removeEventListener("online", on)
+      window.removeEventListener("offline", off)
+    }
+  }, [])
+
+  return online // boolean
+}
+```
+
+---
+
+## 2) Hook mit explizitem Rückgabetyp (Objekt / Tupel)
+
+```js
+import { useCallback, useState } from "react"
+
+type Counter = {
+  count: number
+  inc: () => void
+  dec: () => void
+  reset: () => void
+}
+
+export function useCounter(initial = 0): Counter {
+  const [count, setCount] = useState<number>(initial)
+  const inc = useCallback(() => setCount((c) => c + 1), [])
+  const dec = useCallback(() => setCount((c) => c - 1), [])
+  const reset = useCallback(() => setCount(initial), [initial])
+  return { count, inc, dec, reset }
+}
+```
+
+```js
+// Tupel-Variante
+import { useState } from "react"
+
+export function useToggle(initial = false): [boolean, () => void] {
+  const [on, setOn] = useState<boolean>(initial)
+  return [on, () => setOn((v) => !v)]
+}
+```
+
+---
+
+## 3) Generischer Hook (mit Constraints)
+
+```js
+import { useMemo } from "react"
+
+export function usePick<T extends object, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> {
+  return useMemo(() => {
+    const out = {} as Pick<T, K>
+    for (const k of keys) out[k] = obj[k]
+    return out
+  }, [obj, keys.join("|")])
+}
+
+// Nutzung
+const user = { id: 1, name: "Sergii", admin: true }
+const partial = usePick(user, ["id", "name"]) // Typ: { id: number; name: string }
+```
+
+---
+
+## 4) Hook, der Promise-Status kapselt (Union/Discriminated Union)
+
+```js
+import { useEffect, useState } from "react"
+
+type AsyncState<T> =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: Error }
+
+export function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []) {
+  const [state, setState] = useState<AsyncState<T>>({ status: "idle" })
+
+  useEffect(() => {
+    let alive = true
+    setState({ status: "loading" })
+    fn()
+      .then((data) => alive && setState({ status: "success", data }))
+      .catch((error) => alive && setState({ status: "error", error }))
+    return () => { alive = false }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps)
+
+  return state
+}
+```
+
+---
+
+## 5) Hook mit Ref im Rückgabewert
+
+```js
+import { useEffect, useRef } from "react"
+
+export function useFocus<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null)
+  useEffect(() => { ref.current?.focus() }, [])
+  return ref // RefObject<T | null>
+}
+```
+
+---
+
+## 6) Typ-Tipps
+
+* Parameter und Rückgabewert klar typisieren; bei einfachen Fällen **Inference** nutzen.
+* Für Tupel-Rückgaben **exakten Tupeltyp** angeben (`[T, U]`).
+* Bei generischen Hooks **Constraints** setzen (`<T extends object>`).
+* Für `null`-bare Werte explizit `| null`.
+* Für komplexe Status **discriminated unions** nutzen.
+
+---
+
+### Zusammenfassung
+
+* Custom Hooks sind normale Funktionen: **Parameter- & Rückgabetyp** angeben; bei Bedarf **Generics** und **Unions** einsetzen.
+* Tupel oder Objekt als Rückgabewert klar typisieren.
+* Refs als `RefObject<T | null>`, asynchrone Zustände über **discriminated unions**.
+
+**Quellen:**
+
+* [React Docs – Reusing Logic with Custom Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks)
+* [React TypeScript Cheatsheet – Hooks & Patterns](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/hooks/)
+* [TypeScript Handbook – Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+
+  **[⬆ Наверх](#top)**
+
+84. ### <a name="84"></a> Wie typisiert man Komponenten mit forwardRef?
+
+### Komponenten mit `forwardRef` typisieren (TypeScript + React)
+
+---
+
+## **1. Grundsyntax**
+
+`forwardRef` ist ein **Generic**: `forwardRef<T, P>`
+
+* **`T`** = Typ des Referenz-Elements (z. B. `HTMLInputElement`)
+* **`P`** = Typ der Props
+
+```tsx
+import { forwardRef } from "react"
+
+type InputProps = {
+  label: string
+}
+
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ label, ...props }, ref) => (
+    <label>
+      {label}
+      <input ref={ref} {...props} />
+    </label>
+  )
+)
+
+// Nutzung
+import { useRef } from "react"
+
+export function Form() {
+  const inputRef = useRef<HTMLInputElement>(null)
+  return <Input ref={inputRef} label="Name" />
+}
+```
+
+---
+
+## **2. Mit optionalen Props + `children`**
+
+```tsx
+type ButtonProps = {
+  children: React.ReactNode
+  onClick?: () => void
+}
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ children, onClick }, ref) => (
+    <button ref={ref} onClick={onClick}>
+      {children}
+    </button>
+  )
+)
+```
+
+---
+
+## **3. Generischer Typ in `forwardRef`**
+
+```tsx
+type ListProps<T> = {
+  items: T[]
+  render: (item: T) => JSX.Element
+}
+
+function ListInner<T>(
+  { items, render }: ListProps<T>,
+  ref: React.Ref<HTMLUListElement>
+) {
+  return <ul ref={ref}>{items.map(render)}</ul>
+}
+
+export const List = forwardRef(ListInner) as <T>(
+  props: ListProps<T> & { ref?: React.Ref<HTMLUListElement> }
+) => JSX.Element
+
+// Nutzung
+<List items={[1, 2, 3]} render={(i) => <li>{i}</li>} />
+```
+
+---
+
+## **4. Mit `useImperativeHandle` (Custom Ref API)**
+
+```tsx
+import { forwardRef, useImperativeHandle, useRef } from "react"
+
+type FocusInputHandle = {
+  focus: () => void
+}
+
+export const FocusInput = forwardRef<FocusInputHandle, {}>((_, ref) => {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus(),
+  }))
+
+  return <input ref={inputRef} />
+})
+
+// Nutzung
+export function App() {
+  const ref = useRef<FocusInputHandle>(null)
+  return (
+    <>
+      <FocusInput ref={ref} />
+      <button onClick={() => ref.current?.focus()}>Fokus setzen</button>
+    </>
+  )
+}
+```
+
+---
+
+### Zusammenfassung
+
+* `forwardRef<T, P>` → `T` = Ref-Element-Typ, `P` = Props.
+* Rückgabe: `JSX.Element`.
+* Mit `useImperativeHandle` → eigene Methoden im Ref freigeben.
+* Für Generics → `as`-Casting notwendig.
+
+🔗 Quellen:
+
+* [React Docs – forwardRef](https://react.dev/reference/react/forwardRef)
+* [React TypeScript Cheatsheet – forwardRef](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/forms_and_events/#forwardref-createref)
+
+  **[⬆ Наверх](#top)**
+
+85. ### <a name="85"></a> Wie typisiert man Context (React Context API)?
+
+### React Context API mit TypeScript typisieren
+
+---
+
+## **1. Einfacher Context (nicht nullbar)**
+
+```tsx
+import { createContext, useContext } from "react"
+
+type Theme = "light" | "dark"
+
+const ThemeContext = createContext<Theme>("light")
+
+export function useTheme() {
+  return useContext(ThemeContext)
+}
+
+// Nutzung
+export function App() {
+  return (
+    <ThemeContext.Provider value="dark">
+      <Child />
+    </ThemeContext.Provider>
+  )
+}
+
+function Child() {
+  const theme = useTheme()
+  return <p>Aktuelles Theme: {theme}</p>
+}
+```
+
+👉 Typ des Context-Werts: `Theme`.
+
+---
+
+## **2. Context mit `null` als Default**
+
+⚠️ Häufig: Provider setzt später einen Wert → Default = `null`.
+
+```tsx
+type AuthContextValue = {
+  user: string
+  login: (name: string) => void
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null)
+
+export function useAuth() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error("useAuth muss innerhalb von AuthProvider genutzt werden")
+  return ctx
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const login = (name: string) => console.log("Login:", name)
+  return (
+    <AuthContext.Provider value={{ user: "Sergii", login }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+```
+
+---
+
+## **3. Context mit State (useState + Context)**
+
+```tsx
+import { useState } from "react"
+
+type CounterContextValue = {
+  count: number
+  setCount: React.Dispatch<React.SetStateAction<number>>
+}
+
+const CounterContext = createContext<CounterContextValue | null>(null)
+
+export function CounterProvider({ children }: { children: React.ReactNode }) {
+  const [count, setCount] = useState(0)
+  return (
+    <CounterContext.Provider value={{ count, setCount }}>
+      {children}
+    </CounterContext.Provider>
+  )
+}
+
+export function useCounter() {
+  const ctx = useContext(CounterContext)
+  if (!ctx) throw new Error("useCounter muss in CounterProvider genutzt werden")
+  return ctx
+}
+```
+
+---
+
+## **4. Context mit Generics (z. B. Repository Pattern)**
+
+```tsx
+type RepoContext<T> = {
+  items: T[]
+  add: (item: T) => void
+}
+
+function createRepoContext<T>() {
+  return createContext<RepoContext<T> | null>(null)
+}
+
+const UserRepoContext = createRepoContext<{ id: number; name: string }>()
+```
+
+---
+
+### Zusammenfassung
+
+* Context wird mit `createContext<T>()` erstellt.
+* Default-Wert → entweder **konkreter Wert** oder **`null`**.
+* Mit `null` → immer Custom Hook bauen, der `useContext` kapselt + Fehler wirft.
+* Typisch: `Context + Provider + useXyz-Hook`.
+* Mit Generics → wiederverwendbare Contexts möglich.
+
+🔗 Quellen:
+
+* [React Docs – Context](https://react.dev/reference/react/createContext)
+* [React TypeScript Cheatsheet – Context](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/context/)
+
+  **[⬆ Наверх](#top)**
+
+86. ### <a name="86"></a> Wie typisiert man HOCs (Higher-Order Components)?
+
+### HOCs (Higher-Order Components) typisieren
+
+**Definition:**
+Ein HOC ist eine Funktion, die eine Komponente **entgegennimmt** und eine **neue Komponente zurückgibt**. In TypeScript nutzt man Generics, um die **Props des Wrapped Components** zu erhalten und ggf. **injizierte Props** nach außen zu entfernen.
+
+---
+
+## 1) Basis-HOC (ohne Prop-Änderung)
+
+```js
+import type { ComponentType } from "react"
+
+export function withLogger<P>(Wrapped: ComponentType<P>) {
+  return function ComponentWithLogger(props: P) {
+    console.log("props:", props)
+    return <Wrapped {...props} />
+  }
+}
+```
+
+* `P` repräsentiert die Props des Wrapped Components.
+* Rückgabe akzeptiert **die gleichen Props** wie `Wrapped`.
+
+---
+
+## 2) HOC mit **injizierten Props** (nach außen entfernen)
+
+```js
+import type { ComponentType } from "react"
+
+type Injected = { user: { id: number; name: string } }
+
+export function withUser<P extends Injected>(
+  Wrapped: ComponentType<P>
+) {
+  // nach außen entferne "user", weil HOC ihn liefert
+  type OuterProps = Omit<P, keyof Injected>
+
+  return function WithUser(props: OuterProps) {
+    const injected: Injected = { user: { id: 1, name: "Sergii" } }
+    return <Wrapped {...(props as P)} {...injected} />
+  }
+}
+
+// Nutzung
+type ProfileProps = { user: { id: number; name: string }; editable?: boolean }
+function Profile({ user, editable }: ProfileProps) {
+  return <div>{user.name} {editable ? "(edit)" : ""}</div>
+}
+export const ProfileWithUser = withUser(Profile)
+// <ProfileWithUser editable />  // ✅ user wird vom HOC gesetzt
+```
+
+* **Wichtig:** `P extends Injected` und `OuterProps = Omit<P, keyof Injected>`.
+
+---
+
+## 3) HOC, der Props transformiert (z. B. Loading)
+
+```js
+import type { ComponentType } from "react"
+
+type WithLoadingProps = { loading: boolean }
+
+export function withLoading<P>(
+  Wrapped: ComponentType<P>
+) {
+  return function WithLoading(props: P & WithLoadingProps) {
+    if (props.loading) return <span>Lädt…</span>
+    const { loading, ...rest } = props as WithLoadingProps & P
+    return <Wrapped {...(rest as P)} />
+  }
+}
+```
+
+* HOC **erweitert** die äußeren Props um `loading`.
+
+---
+
+## 4) HOC + `forwardRef` (Ref durchleiten)
+
+```js
+import { forwardRef } from "react"
+import type { ComponentType, Ref } from "react"
+
+export function withRef<P, T>(Wrapped: ComponentType<P & { ref?: Ref<T> }>) {
+  // äußere Props sollen die internen "ref"-Props nicht enthalten
+  type OuterProps = P
+
+  const Component = (props: OuterProps, ref: Ref<T>) => {
+    return <Wrapped {...props} ref={ref} />
+  }
+
+  return forwardRef<T, OuterProps>(Component)
+}
+
+// Beispiel: DOM-Ref auf <input>
+type InputProps = { placeholder?: string }
+const RawInput = (p: InputProps, ref: Ref<HTMLInputElement>) => (
+  <input ref={ref} {...p} />
+)
+const Input = forwardRef<HTMLInputElement, InputProps>(RawInput)
+
+export const InputWithRef = withRef<InputProps, HTMLInputElement>(Input)
+// Nutzung: const r = useRef<HTMLInputElement>(null); <InputWithRef ref={r} />
+```
+
+---
+
+## 5) Statische Eigenschaften „hoisten“
+
+HOCs verlieren i. d. R. **statische Properties** des Wrapped Components.
+→ In Bibliotheken nutzt man oft `hoist-non-react-statics`, um sie zu kopieren.
+*(Tipp fürs Interview erwähnen, Code hier weggelassen.)*
+
+---
+
+## 6) Typ-Tipps & Fallstricke
+
+* Verwende **`ComponentType<P>`** statt `FC<P>`, um auch Klassenkomponenten zu unterstützen.
+* Für injizierte Props immer **`Omit`** nach außen nutzen.
+* Bei Refs: HOC mit **`forwardRef`** typisieren (siehe oben).
+* Bei generischen Wrapped Components ggf. explizit casten (Constraint auf `P` setzen).
+
+---
+
+### Zusammenfassung
+
+* HOCs mit Generics: `function withX<P>(Comp: ComponentType<P>) => (props: P|Omit<P,…>) => JSX.Element`.
+* **Injected Props** nach außen mit `Omit` entfernen.
+* **Refs** via `forwardRef<T, P>` korrekt weiterreichen.
+* Optional: **statische Properties hoisten** (Lib-Nennung reicht im Interview).
+
+**Quellen:**
+
+* [React TypeScript Cheatsheet – HOCs](https://react-typescript-cheatsheet.netlify.app/docs/hoc/react_hoc_docs/)
+* [React Offizielle Doku – HOCs (Konzept)](https://react.dev/learn/reusing-logic-with-custom-hooks)
+* [TypeScript Handbook – Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+
+**Zusammenfassung:**
+HOCs typisiert man generisch über `ComponentType<P>`, entfernt **injizierte Props** per `Omit`, leitet **Refs** mit `forwardRef` durch und achtet bei Bedarf aufs **Hoisten statischer Properties**.
+
+  **[⬆ Наверх](#top)**
+
+87. ### <a name="87"></a> Wie typisiert man asynchrone Funktionen in React-Komponenten?
+
+### Asynchrone Funktionen in React-Komponenten typisieren
+
+---
+
+## 1) Async-Eventhandler: immer `Promise<void>`
+
+```js
+import type { MouseEvent, FormEvent, ChangeEvent } from "react"
+
+export function Actions() {
+  const onClick = async (e: MouseEvent<HTMLButtonElement>): Promise<void> => {
+    e.preventDefault()
+    await fetch("/api/click")
+  }
+
+  const onSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault()
+    // …
+  }
+
+  const onChange = async (e: ChangeEvent<HTMLInputElement>): Promise<void> => {
+    // …
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input onChange={onChange} />
+      <button onClick={onClick}>Senden</button>
+      <button type="submit">Submit</button>
+    </form>
+  )
+}
+```
+
+**Faustregel:** UI-Handler `async` → Rückgabetyp **`Promise<void>`**.
+
+---
+
+## 2) Async mit `useCallback`
+
+```js
+import { useCallback, useState } from "react"
+
+export function Loader() {
+  const [data, setData] = useState<string | null>(null)
+  const [error, setError] = useState<Error | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const load = useCallback(async (): Promise<void> => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/text")
+      const text = await res.text()
+      setData(text)
+    } catch (e) {
+      setError(e as Error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  return <button onClick={load} disabled={loading}>{loading ? "…" : "Laden"}</button>
+}
+```
+
+---
+
+## 3) Async Funktionen mit Rückgabewert
+
+```js
+async function getUser(): Promise<{ id: number; name: string }> {
+  const res = await fetch("/api/user")
+  return res.json()
+}
+
+export function Profile() {
+  // Nutzung: Rückgabetyp ist Promise<{ id; name }>
+  // In Handlern weiterhin Promise<void> zurückgeben:
+  const handle = async (): Promise<void> => {
+    const user = await getUser()
+    console.log(user.name)
+  }
+  return <button onClick={handle}>Profil laden</button>
+}
+```
+
+---
+
+## 4) Async Props (Funktionen als Props)
+
+```js
+type SaveFn = (payload: { id: number }) => Promise<void>
+
+export function SaveButton({ onSave }: { onSave: SaveFn }) {
+  const handle = async (): Promise<void> => {
+    await onSave({ id: 1 })
+  }
+  return <button onClick={handle}>Speichern</button>
+}
+```
+
+---
+
+## 5) Abbrechen mit `AbortController` (typisiert)
+
+```js
+export function Fetcher() {
+  const handle = async (): Promise<void> => {
+    const controller = new AbortController()
+    const id = setTimeout(() => controller.abort(), 3000)
+    try {
+      const res = await fetch("/api/data", { signal: controller.signal })
+      await res.json()
+    } finally {
+      clearTimeout(id)
+    }
+  }
+  return <button onClick={handle}>Fetch (3s Timeout)</button>
+}
+```
+
+---
+
+## 6) Typische Fehler vermeiden
+
+* **Kein ungetyptes `any`**: Ergebnis immer mit **`Promise<T>`** annotieren.
+* **Eventtypen korrekt** (`MouseEvent<HTMLButtonElement>`, `FormEvent<HTMLFormElement>`, …).
+* **State-Typen** präzise halten (`T | null`, Discriminated Unions für Lade/Error-Status).
+* **Handler** sollen keine Werte returnen, die React ignoriert → `Promise<void>`.
+
+---
+
+### Zusammenfassung
+
+* Eventhandler als `async` → **`Promise<void>`** + passender **React-Eventtyp**.
+* Datenfunktionen geben **`Promise<T>`** zurück; Handler nutzen sie und bleiben bei `Promise<void>`.
+* `useCallback` für stabile Referenzen; Fehler/Loading in State modellieren.
+* Abbrechen über **`AbortController`** korrekt typisieren.
+
+**Quellen:**
+
+* [React Docs – Events & Handlers](https://react.dev/learn/responding-to-events)
+* [React TypeScript Cheatsheet – Event Handling & Hooks](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/event_handling/)
+* [TypeScript Docs – Promises & async/await](https://www.typescriptlang.org/docs/handbook/2/functions.html#async-functions)
+* [MDN – AbortController](https://developer.mozilla.org/ru/docs/Web/API/AbortController)
+
+  **[⬆ Наверх](#top)**
+
+88. ### <a name="88"></a> Wie typisiert man Event-Handler in Formularen?
+
+### Event-Handler in Formularen typisieren (React + TypeScript)
+
+React nutzt **synthetische Events** (`SyntheticEvent`) mit spezifischen Subtypen für Formulareingaben.
+👉 Immer den **richtigen DOM-Typ** mitgeben (`HTMLFormElement`, `HTMLInputElement`, `HTMLSelectElement` …).
+
+---
+
+## **1. Formular-Submit (`onSubmit`)**
+
+```tsx
+import type { FormEvent } from "react"
+
+function Form() {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+    e.preventDefault()
+    console.log("Formular gesendet")
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <button type="submit">Senden</button>
+    </form>
+  )
+}
+```
+
+---
+
+## **2. Input-Felder (`onChange`)**
+
+```tsx
+import type { ChangeEvent } from "react"
+
+function TextInput() {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    console.log("Neuer Wert:", e.target.value)
+  }
+
+  return <input type="text" onChange={handleChange} />
+}
+```
+
+---
+
+## **3. Select (`onChange`)**
+
+```tsx
+function SelectBox() {
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+    console.log("Gewählt:", e.target.value)
+  }
+
+  return (
+    <select onChange={handleChange}>
+      <option value="a">A</option>
+      <option value="b">B</option>
+    </select>
+  )
+}
+```
+
+---
+
+## **4. Textarea (`onChange`)**
+
+```tsx
+function TextArea() {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
+    console.log("Text:", e.target.value)
+  }
+
+  return <textarea onChange={handleChange} />
+}
+```
+
+---
+
+## **5. Checkbox & Radio (`onChange`)**
+
+```tsx
+function Checkbox() {
+  const handleCheck = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    console.log("Checked:", e.target.checked)
+  }
+
+  return <input type="checkbox" onChange={handleCheck} />
+}
+```
+
+---
+
+## **6. Generische Variante**
+
+Falls man den Typ nicht kennt:
+
+```tsx
+function GenericHandler() {
+  const handle = (e: React.SyntheticEvent): void => {
+    console.log(e.type)
+  }
+
+  return <form onSubmit={handle}></form>
+}
+```
+
+👉 Besser immer präzise statt `SyntheticEvent`.
+
+---
+
+### Zusammenfassung
+
+* **`FormEvent<HTMLFormElement>`** → für `onSubmit`.
+* **`ChangeEvent<HTMLInputElement>`** → Text, Checkbox, Radio.
+* **`ChangeEvent<HTMLSelectElement>`** → Select.
+* **`ChangeEvent<HTMLTextAreaElement>`** → Textarea.
+* Faustregel: **`ChangeEvent<T>`**, wobei `T` = konkretes HTML-Element.
+
+🔗 Quellen:
+
+* [React TypeScript Cheatsheet – Events](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/event_handling/)
+* [React Docs – Form Handling](https://react.dev/learn/managing-state#updating-state-based-on-input-fields)
+
+  **[⬆ Наверх](#top)**
+
+89. ### <a name="89"></a> Wie typisiert man API-Requests und Responses?
+
+### API-Requests und -Responses typisieren (TypeScript + Fetch/Axios)
+
+---
+
+## 1) DTOs (Request/Response-Modelle) definieren
+
+```js
+// types.ts
+export type CreateUserReq = {
+  name: string
+  email: string
+}
+
+export type User = {
+  id: number
+  name: string
+  email: string
+}
+
+export type ApiError = {
+  status: number
+  message: string
+}
+```
+
+---
+
+## 2) `fetch`-Wrapper mit Generics (`Promise<T>`)
+
+```js
+// api.ts
+export async function apiGet<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, { ...init, method: "GET" })
+  if (!res.ok) {
+    throw { status: res.status, message: res.statusText } // ApiError-ähnlich
+  }
+  const data: unknown = await res.json()
+  return data as T // besser: runtime-validate, siehe unten
+}
+
+export async function apiPost<TReq, TRes>(url: string, body: TReq, init?: RequestInit): Promise<TRes> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+    body: JSON.stringify(body),
+    ...init
+  })
+  if (!res.ok) {
+    throw { status: res.status, message: await res.text() }
+  }
+  const data: unknown = await res.json()
+  return data as TRes
+}
+```
+
+**Verwendung:**
+
+```js
+import { apiGet, apiPost } from "./api.js"
+import type { CreateUserReq, User } from "./types.js"
+
+const user = await apiGet<User>("/api/user/1")
+const created = await apiPost<CreateUserReq, User>("/api/users", { name: "Sergii", email: "s@ex.com" })
+```
+
+---
+
+## 3) Axios mit Generics
+
+```js
+import axios from "axios"
+import type { CreateUserReq, User } from "./types.js"
+
+export async function getUser(id: number) {
+  const res = await axios.get<User>(`/api/users/${id}`)
+  return res.data // User
+}
+
+export async function createUser(dto: CreateUserReq) {
+  const res = await axios.post<User>("/api/users", dto)
+  return res.data // User
+}
+```
+
+---
+
+## 4) Runtime-Validierung (Zod) statt blindem `as`
+
+```js
+import { z } from "zod"
+
+export const UserSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  email: z.string().email()
+})
+export type User = z.infer<typeof UserSchema>
+
+export async function safeGetUser(id: number): Promise<User> {
+  const res = await fetch(`/api/users/${id}`)
+  if (!res.ok) throw new Error("HTTP " + res.status)
+  const json: unknown = await res.json()
+  return UserSchema.parse(json) // ✅ Laufzeit-Check + Typ
+}
+```
+
+---
+
+## 5) API-Status als Discriminated Union (für UI-States)
+
+```js
+export type ApiState<T> =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: string }
+```
+
+```js
+import { useEffect, useState } from "react"
+import type { User } from "./types.js"
+
+export function useUser(id: number) {
+  const [state, setState] = useState<ApiState<User>>({ status: "idle" })
+
+  useEffect(() => {
+    let alive = true
+    setState({ status: "loading" })
+    fetch(`/api/users/${id}`)
+      .then(r => r.json())
+      .then((j: unknown) => {
+        // hier idealerweise Zod-Parse
+        if (alive) setState({ status: "success", data: j as User })
+      })
+      .catch(e => alive && setState({ status: "error", error: String(e) }))
+    return () => { alive = false }
+  }, [id])
+
+  return state
+}
+```
+
+---
+
+## 6) Pagination/Envelope-Typen
+
+```js
+export type Page<T> = {
+  items: T[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+const page = await apiGet<Page<User>>("/api/users?page=1&pageSize=20")
+```
+
+---
+
+## 7) Endpunkt-Map (sicher via `satisfies`)
+
+```js
+export const endpoints = {
+  getUser: { path: (id: number) => `/api/users/${id}`, method: "GET" },
+  createUser: { path: () => "/api/users", method: "POST" }
+} as const satisfies Record<string, { path: (...a: any[]) => string; method: "GET" | "POST" }>
+```
+
+---
+
+## 8) Fehler-Typen & Narrowing
+
+```js
+try {
+  const data = await apiGet<User>("/api/user/1")
+} catch (e) {
+  const err = e as { status?: number; message?: string }
+  console.error(err.status ?? 0, err.message ?? "Unknown")
+}
+```
+
+---
+
+## 9) Request-Bodies typisieren (FormData/Query)
+
+```js
+export type SearchParams = { q: string; limit?: number }
+
+export function toQuery(params: SearchParams): string {
+  const usp = new URLSearchParams()
+  usp.set("q", params.q)
+  if (params.limit != null) usp.set("limit", String(params.limit))
+  return usp.toString()
+}
+```
+
+---
+
+### Zusammenfassung
+
+* **DTOs** für Requests/Responses definieren; **Generics** nutzen (`apiGet<T>`, Axios `<T>`).
+* Responses nie als `any` akzeptieren → **Runtime-Validation** (z. B. **Zod**) ist best practice.
+* UI-Status via **Discriminated Union** modellieren.
+* **Envelope-/Pagination-Typen** standardisieren; **satisfies** für Endpoint-Maps.
+* Fehler konsequent typisieren und per **Narrowing** behandeln.
+
+**Quellen:**
+
+* [TypeScript Docs – Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* [TypeScript Docs – Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* [React TypeScript Cheatsheet – Basic/Typing Functions & Hooks](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/)
+* [MDN – Fetch API](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API)
+* [React Docs](https://react.dev/)
+
+**Zusammenfassung:**
+Typisierte API-Kommunikation = **Generics für Fetch/Axios**, **DTO-Typen**, **Runtime-Validation (Zod)**, **Union-Status** für UI und sauberes **Error-Handling**.
 
 
   **[⬆ Наверх](#top)**
 
-82. ### <a name="82"></a> 
+90. ### <a name="90"></a> Wie typisiert man React-Router-Komponenten?
 
+### React Router mit TypeScript typisieren (v6.4+)
 
+---
 
-  **[⬆ Наверх](#top)**
+## 1) `useParams`
 
-83. ### <a name="83"></a> 
+```js
+import { useParams } from "react-router-dom"
 
+// Generics definieren NUR die Param-Namen, Werte bleiben string | undefined
+type Params = { id: string }
 
+export function UserPage() {
+  const { id } = useParams<Params>() // id: string | undefined
+  if (!id) return <p>Kein ID-Parameter</p>
+  return <h1>User {id}</h1>
+}
+```
 
-  **[⬆ Наверх](#top)**
+**Sicherer mit Assertion/Narrowing:**
 
-84. ### <a name="84"></a> 
+```js
+function assertString(v: unknown): asserts v is string {
+  if (typeof v !== "string") throw new Error("Expected string")
+}
 
+const { id } = useParams<{ id: string }>()
+assertString(id) // ab hier: id: string
+```
 
+---
 
-  **[⬆ Наверх](#top)**
+## 2) `useSearchParams`
 
-85. ### <a name="85"></a> 
+```js
+import { useSearchParams } from "react-router-dom"
 
+export function List() {
+  const [sp, setSp] = useSearchParams()
+  const page = Number(sp.get("page") ?? "1") // page: number
+  // setSp(prev => { prev.set("page", String(page+1)); return prev })
+  return <div>Seite {page}</div>
+}
+```
 
+---
 
-  **[⬆ Наверх](#top)**
+## 3) `useNavigate`
 
-86. ### <a name="86"></a> 
+```js
+import { useNavigate } from "react-router-dom"
 
+export function BackButton() {
+  const navigate = useNavigate()
+  return <button onClick={() => navigate(-1)}>Zurück</button>
+}
+```
 
+---
 
-  **[⬆ Наверх](#top)**
+## 4) Route-Objekte, Loader & Actions (Data Router)
 
-87. ### <a name="87"></a> 
+```js
+import { createBrowserRouter, RouterProvider } from "react-router-dom"
 
+type User = { id: number; name: string }
 
+async function usersLoader(): Promise<User[]> {
+  const res = await fetch("/api/users")
+  return res.json() // besser mit Zod validieren
+}
 
-  **[⬆ Наверх](#top)**
+function Users() {
+  return <UsersList />
+}
 
-88. ### <a name="88"></a> 
+const router = createBrowserRouter([
+  {
+    path: "/users",
+    element: <Users />,
+    loader: usersLoader,
+  }
+])
 
+export default function App() {
+  return <RouterProvider router={router} />
+}
+```
 
+**Loader-Daten konsumieren:**
 
-  **[⬆ Наверх](#top)**
+```js
+import { useLoaderData } from "react-router-dom"
 
-89. ### <a name="89"></a> 
+export function UsersList() {
+  const users = useLoaderData() as User[] // oder: useLoaderData<User[]>()
+  return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>
+}
+```
 
+---
 
+## 5) `useRouteError` (Fehler typisieren)
 
-  **[⬆ Наверх](#top)**
+```js
+import { isRouteErrorResponse, useRouteError } from "react-router-dom"
 
-90. ### <a name="90"></a> 
+export function ErrorBoundary() {
+  const err = useRouteError()
+  if (isRouteErrorResponse(err)) {
+    return <p>HTTP {err.status}: {err.statusText}</p>
+  }
+  return <p>Unbekannter Fehler</p>
+}
+```
 
+---
 
+## 6) `Outlet`-Context typisieren
+
+```js
+import { Outlet, useOutletContext } from "react-router-dom"
+
+type LayoutCtx = { locale: "de" | "en" }
+
+export function Layout() {
+  const ctx: LayoutCtx = { locale: "de" }
+  return <Outlet context={ctx} />
+}
+
+export function Child() {
+  const { locale } = useOutletContext<LayoutCtx>()
+  return <p>Sprache: {locale}</p>
+}
+```
+
+---
+
+## 7) `Link`/`NavLink` (Props sind bereits typisiert)
+
+```js
+import { Link, NavLink } from "react-router-dom"
+
+export function Nav() {
+  return (
+    <nav>
+      <NavLink to="/users">Users</NavLink>
+      <Link to={{ pathname: "/search", search: "?q=ts" }}>Suche</Link>
+    </nav>
+  )
+}
+```
+
+---
+
+## 8) Routen-Definitionen als Typhilfe (optional)
+
+```js
+const routes = {
+  user: (id: string) => `/users/${id}`,
+  search: (q: string) => `/search?q=${encodeURIComponent(q)}`
+} as const
+
+type AppRoutes = typeof routes
+// routes.user("42") // string (typsicher konstruiert)
+```
+
+---
+
+## 9) Zod/Runtime-Validation für Param/Suchwerte (Best Practice)
+
+```js
+import { z } from "zod"
+const PageSchema = z.coerce.number().int().positive().default(1)
+
+const [sp] = useSearchParams()
+const page = PageSchema.parse(sp.get("page")) // number sicher validiert
+```
+
+---
+
+### Zusammenfassung
+
+* `useParams<Params>`: Generics definieren Schlüssel; Werte bleiben `string | undefined` → per Assertion/Narrowing absichern.
+* Data Router: Loader/Action **Rückgabewerte** typisieren und mit `useLoaderData<T>()` konsumieren.
+* `useRouteError`, `useOutletContext<T>()`, `useNavigate`, `useSearchParams` sind bereits TS-typisiert.
+* Für robuste Apps: **Runtime-Validation** (z. B. Zod) bei Params/Query/Loader-Daten.
+
+**Quellen**
+
+* [React Router Docs – TypeScript](https://reactrouter.com/en/main/guides/typescript)
+* [React Offizielle Doku](https://react.dev/)
+* [TypeScript Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* [React TypeScript Cheatsheet – Router](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/react_router/)
+
+**Zusammenfassung**
+React Router in TS: Params `string | undefined`, Loader per `useLoaderData<T>`, Fehler via `useRouteError`, Outlet-Kontext mit `useOutletContext<T>()`, Query über `useSearchParams`; bei Bedarf Zod einsetzen.
 
   **[⬆ Наверх](#top)**  
 
