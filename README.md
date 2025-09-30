@@ -104,6 +104,7 @@
 
 ---
 
+- :memo:&nbsp;&nbsp;[typescript5](./docs/other/typescript5.md)
 - :memo:&nbsp;&nbsp;[TS new](./docs/other/ts-queue.md)
 - :memo:&nbsp;&nbsp;[Вопросы по TypeScript](./docs/other/ts.md)
 
