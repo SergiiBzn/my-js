@@ -1959,141 +1959,2097 @@ function area(shape: Shape): number {
 
   **[⬆ Наверх](#top)**
 
-22. ### <a name="22"></a> 
+22. ### <a name="22"></a> Was sind Type Guards? Gib ein Beispiel.
 
+### Type Guards in TypeScript
 
+**Definition:**
+Ein **Type Guard** ist eine spezielle Bedingung oder Funktion, mit der TypeScript erkennt, welchen konkreten Typ eine Variable in einem Union-Type-Kontext hat.
+→ Er hilft beim **Type Narrowing**, sodass TypeScript innerhalb des Blocks mit dem spezifischen Typ arbeiten kann.
+
+---
+
+### Beispiel 1 – `typeof` als Type Guard
+
+```js
+function printValue(value: string | number) {
+  if (typeof value === "string") {
+    console.log(value.toUpperCase()) // value: string
+  } else {
+    console.log(value.toFixed(2))    // value: number
+  }
+}
+```
+
+---
+
+### Beispiel 2 – `instanceof` als Type Guard
+
+```js
+class Dog {
+  bark() { console.log("Wuff!") }
+}
+class Cat {
+  meow() { console.log("Miau!") }
+}
+
+function makeSound(animal: Dog | Cat) {
+  if (animal instanceof Dog) {
+    animal.bark() // animal: Dog
+  } else {
+    animal.meow() // animal: Cat
+  }
+}
+```
+
+---
+
+### Beispiel 3 – Property Check (`in` Operator)
+
+```js
+type Fish = { swim: () => void }
+type Bird = { fly: () => void }
+
+function move(animal: Fish | Bird) {
+  if ("swim" in animal) {
+    animal.swim() // animal: Fish
+  } else {
+    animal.fly()  // animal: Bird
+  }
+}
+```
+
+---
+
+### Beispiel 4 – Benutzerdefinierter Type Guard (`is`-Syntax)
+
+```js
+type Car = { drive: () => void }
+type Boat = { sail: () => void }
+
+function isCar(vehicle: Car | Boat): vehicle is Car {
+  return (vehicle as Car).drive !== undefined
+}
+
+function useVehicle(vehicle: Car | Boat) {
+  if (isCar(vehicle)) {
+    vehicle.drive() // Typ: Car
+  } else {
+    vehicle.sail()  // Typ: Boat
+  }
+}
+```
+
+---
+
+### Zusammenfassung
+
+* **Type Guards** = Bedingungen/Funktionen, die Typen präzisieren.
+* Varianten:
+
+  * `typeof` (für primitive Typen)
+  * `instanceof` (für Klassen)
+  * `in` Operator (für Properties)
+  * benutzerdefinierte Type Guards (`is`-Syntax)
+* Zweck: **sicheres Type Narrowing** in Union Types.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+* [React TS Cheatsheet – Type Guards](https://react-typescript-cheatsheet.netlify.app/docs/basic/troubleshooting/types/#type-guards)
 
   **[⬆ Наверх](#top)**
 
-23. ### <a name="23"></a> 
+23. ### <a name="23"></a> Wie funktioniert der Operator in bei der Typprüfung?
 
+### Der `in`-Operator bei der Typprüfung in TypeScript
 
+**Definition:**
+Der **`in`-Operator** prüft, ob ein bestimmtes Property in einem Objekt existiert.
+In TypeScript wird er als **Type Guard** genutzt, um zwischen verschiedenen Typen in einer Union zu unterscheiden.
+
+---
+
+### Beispiel 1 – Unterschiedliche Objekt-Typen
+
+```js
+type Dog = { bark: () => void }
+type Cat = { meow: () => void }
+
+function makeSound(animal: Dog | Cat) {
+  if ("bark" in animal) {
+    animal.bark() // animal: Dog
+  } else {
+    animal.meow() // animal: Cat
+  }
+}
+```
+
+➡️ Der `in`-Check sagt TypeScript:
+
+* Wenn `bark` vorhanden ist → Typ ist `Dog`.
+* Ansonsten → Typ ist `Cat`.
+
+---
+
+### Beispiel 2 – Optionale Properties
+
+```js
+interface User {
+  id: number
+  name: string
+  email?: string
+}
+
+function hasEmail(user: User) {
+  if ("email" in user) {
+    console.log("User hat eine Email:", user.email)
+  } else {
+    console.log("Keine Email")
+  }
+}
+```
+
+---
+
+### Beispiel 3 – Discriminated Unions
+
+```js
+type Circle = { kind: "circle"; radius: number }
+type Square = { kind: "square"; side: number }
+
+function area(shape: Circle | Square) {
+  if ("radius" in shape) {
+    return Math.PI * shape.radius ** 2 // Circle
+  } else {
+    return shape.side * shape.side     // Square
+  }
+}
+```
+
+---
+
+### Zusammenfassung
+
+* **`in`-Operator** prüft, ob ein Property existiert.
+* In TypeScript dient er als **Type Guard** für Union Types.
+* Typische Nutzung: Unterscheidung zwischen Objekten mit unterschiedlichen Eigenschaften oder optionalen Feldern.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Narrowing mit `in`](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-the-in-operator)
+* [MDN – in Operator](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Operators/in)
 
   **[⬆ Наверх](#top)**
 
-24. ### <a name="24"></a> 
+24. ### <a name="24"></a> Wie funktioniert typeof in TypeScript?
 
+### `typeof` in TypeScript
 
+**Definition:**
+In TypeScript hat `typeof` **zwei unterschiedliche Einsatzmöglichkeiten**:
+
+1. **Zur Laufzeit** → wie in JavaScript, um den Typ eines Wertes zu prüfen.
+2. **Zur Compile-Zeit** → um den Typ einer Variablen/Funktion zu extrahieren und wiederzuverwenden.
+
+---
+
+## 1. `typeof` zur Laufzeit (Type Guard)
+
+Verhält sich wie in JavaScript, gibt einen **String** mit dem Typ zurück.
+Wird in TypeScript für **Type Narrowing** genutzt.
+
+```js
+function printValue(value: string | number) {
+  if (typeof value === "string") {
+    console.log(value.toUpperCase()) // value: string
+  } else {
+    console.log(value.toFixed(2))    // value: number
+  }
+}
+```
+
+Mögliche Ergebnisse: `"string"`, `"number"`, `"boolean"`, `"object"`, `"function"`, `"undefined"`, `"symbol"`, `"bigint"`.
+
+---
+
+## 2. `typeof` zur Compile-Zeit (Type Query Operator)
+
+Damit kann man den **Typ einer bestehenden Variable/Funktion** für eine Typdefinition wiederverwenden.
+
+```js
+let user = { id: 1, name: "Sergii" }
+
+// Extrahiert den Typ von user
+type User = typeof user
+
+const admin: User = { id: 2, name: "Anna" } // ✅ korrekt
+```
+
+---
+
+## 3. `typeof` für Funktionen
+
+```js
+function add(a: number, b: number) {
+  return a + b
+}
+
+type AddFunction = typeof add
+// AddFunction ist: (a: number, b: number) => number
+```
+
+---
+
+### Zusammenfassung
+
+* **Laufzeit (`typeof` als Operator):** gibt den primitiven JS-Typ zurück, nutzbar als Type Guard.
+* **Compile-Zeit (`typeof` als Type Query):** extrahiert den Typ einer bestehenden Variablen oder Funktion.
+* Vorteil: weniger Code-Duplikation, sicheres Type Narrowing.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – typeof](https://www.typescriptlang.org/docs/handbook/2/typeof-types.html)
+* [TypeScript Handbook – Narrowing mit typeof](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#typeof-type-guards)
 
   **[⬆ Наверх](#top)**
 
-25. ### <a name="25"></a> 
+25. ### <a name="25"></a> Wie funktioniert instanceof?
 
+### `instanceof` in TypeScript
 
+**Definition:**
+Der Operator **`instanceof`** prüft **zur Laufzeit**, ob ein Objekt von einer bestimmten **Klasse oder einem Konstruktor** erstellt wurde.
+In TypeScript wird er als **Type Guard** verwendet, um den Typ innerhalb eines Blocks einzugrenzen (**Type Narrowing**).
+
+---
+
+### Beispiel 1 – Klassenprüfung
+
+```js
+class Dog {
+  bark() { console.log("Wuff!") }
+}
+
+class Cat {
+  meow() { console.log("Miau!") }
+}
+
+function makeSound(animal: Dog | Cat) {
+  if (animal instanceof Dog) {
+    animal.bark() // animal: Dog
+  } else {
+    animal.meow() // animal: Cat
+  }
+}
+```
+
+---
+
+### Beispiel 2 – Mit eingebauten Objekten
+
+```js
+function logDate(date: Date | string) {
+  if (date instanceof Date) {
+    console.log("Datum:", date.toISOString()) // date: Date
+  } else {
+    console.log("String:", date.toUpperCase()) // date: string
+  }
+}
+```
+
+---
+
+### Beispiel 3 – Nicht für primitive Typen
+
+```js
+let value = "Hallo"
+
+console.log(value instanceof String) // ❌ false (Primitives sind keine Instanzen)
+```
+
+👉 Für Primitives verwendet man `typeof`, nicht `instanceof`.
+
+---
+
+### Vergleich zu anderen Type Guards
+
+* **`typeof`** → für primitive Typen (`string`, `number`, `boolean`, …).
+* **`instanceof`** → für Klassen und Objekte, die mit `new` erstellt wurden.
+* **`in`** → für Property-Prüfungen in Objekten.
+
+---
+
+### Zusammenfassung
+
+* **`instanceof`** prüft, ob ein Objekt von einer bestimmten Klasse/Konstruktor stammt.
+* Dient als **Type Guard** in Union Types.
+* Funktioniert nur bei **Objekten/Klassen**, nicht bei Primitives.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Narrowing mit `instanceof`](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#instanceof-narrowing)
+* [MDN – instanceof](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Operators/instanceof)
 
   **[⬆ Наверх](#top)**
 
-26. ### <a name="26"></a> 
+26. ### <a name="26"></a> Was sind Discriminated Unions (diskriminierte Typen)?
 
+### Discriminated Unions (diskriminierte Typen) in TypeScript
 
+**Definition:**
+Ein **Discriminated Union** ist ein **Union Type**, bei dem jede Variante ein gemeinsames, eindeutiges Feld (das sog. **Discriminant**) enthält.
+TypeScript kann dadurch den Typ automatisch unterscheiden (**Type Narrowing**).
+
+---
+
+### Beispiel 1 – Shapes
+
+```js
+interface Circle {
+  kind: "circle"   // Discriminant
+  radius: number
+}
+
+interface Square {
+  kind: "square"   // Discriminant
+  side: number
+}
+
+type Shape = Circle | Square
+
+function area(shape: Shape): number {
+  switch (shape.kind) {
+    case "circle":
+      return Math.PI * shape.radius ** 2
+    case "square":
+      return shape.side * shape.side
+  }
+}
+```
+
+➡️ `kind` diskriminiert zwischen `Circle` und `Square`.
+
+---
+
+### Beispiel 2 – API-Status
+
+```js
+type ApiResponse =
+  | { status: "success"; data: string }
+  | { status: "error"; error: Error }
+  | { status: "loading" }
+
+function handleResponse(res: ApiResponse) {
+  if (res.status === "success") {
+    console.log("Data:", res.data)
+  } else if (res.status === "error") {
+    console.error("Fehler:", res.error.message)
+  } else {
+    console.log("Lädt...")
+  }
+}
+```
+
+---
+
+### Beispiel 3 – Exhaustive Checking mit `never`
+
+```js
+function exhaustiveCheck(x: never): never {
+  throw new Error("Unreachable code")
+}
+
+function handleShape(shape: Shape) {
+  switch (shape.kind) {
+    case "circle": return Math.PI * shape.radius ** 2
+    case "square": return shape.side * shape.side
+    default: return exhaustiveCheck(shape) // ⛔ Compiler-Fehler, falls neuer Typ fehlt
+  }
+}
+```
+
+---
+
+### Vorteile
+
+* Bessere **Typ-Sicherheit** bei Union Types.
+* TypeScript erkennt automatisch, welcher Typ in welchem Zweig vorliegt.
+* Erleichtert **Fehlerprävention** durch Exhaustive Checks.
+
+---
+
+### Zusammenfassung
+
+* **Discriminated Unions** = Union Types mit einem gemeinsamen Feld (`kind`, `status`, etc.).
+* Dienen zur klaren Typunterscheidung.
+* Sehr nützlich in **Switch-Statements** und bei **API-Responses** oder **React-Props**.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Discriminated Unions](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions)
+* [React TS Cheatsheet – Discriminated Unions](https://react-typescript-cheatsheet.netlify.app/docs/advanced/discriminated_unions/)
 
   **[⬆ Наверх](#top)**
 
-27. ### <a name="27"></a> 
+27. ### <a name="27"></a> Was ist der Unterschied zwischen interface und abstract class?
 
+### Unterschied zwischen `interface` und `abstract class` in TypeScript
 
+#### **1. Interface**
+
+* Beschreibt **nur die Struktur** (Vertrag), aber keine Implementierung.
+* Enthält **keinen Code**, nur Signaturen (Properties, Methoden).
+* Eine Klasse kann mehrere Interfaces implementieren.
+
+```js
+interface Flyable {
+  fly(): void
+}
+
+class Bird implements Flyable {
+  fly() {
+    console.log("Der Vogel fliegt 🕊️")
+  }
+}
+```
+
+---
+
+#### **2. Abstract Class**
+
+* Kann sowohl **abstrakte Methoden** (ohne Implementierung) als auch **konkrete Methoden** (mit Code) enthalten.
+* Kann **Felder** und **Konstruktoren** haben.
+* Klassen können nur **eine abstrakte Klasse** erweitern (Einzelvererbung).
+
+```js
+abstract class Animal {
+  constructor(public name: string) {}
+
+  abstract makeSound(): void // muss implementiert werden
+
+  move(): void {
+    console.log(`${this.name} bewegt sich`)
+  }
+}
+
+class Dog extends Animal {
+  makeSound() {
+    console.log("Wuff!")
+  }
+}
+
+const rex = new Dog("Rex")
+rex.makeSound() // Wuff!
+rex.move()      // Rex bewegt sich
+```
+
+---
+
+### **3. Vergleichstabelle**
+
+| Aspekt                 | `interface`                     | `abstract class`                           |
+| ---------------------- | ------------------------------- | ------------------------------------------ |
+| **Implementierung**    | Keine, nur Vertrag              | Kann Code enthalten                        |
+| **Konstruktor**        | ❌ Nein                          | ✅ Ja                                       |
+| **Felder mit Werten**  | ❌ Nein                          | ✅ Ja                                       |
+| **Abstrakte Methoden** | ✅ Nur Signaturen                | ✅ Ja                                       |
+| **Normale Methoden**   | ❌ Nein                          | ✅ Ja                                       |
+| **Mehrfachverwendung** | ✅ Mehrere Interfaces pro Klasse | ❌ Nur eine abstrakte Klasse pro Klasse     |
+| **Verwendung**         | Für reine Strukturdefinition    | Für Basisklassen mit gemeinsamem Verhalten |
+
+---
+
+### **Wann verwenden?**
+
+* **Interface** → wenn du nur einen Vertrag beschreiben willst (z. B. Props, Data Models, API-Schemas).
+* **Abstract Class** → wenn du **gemeinsames Verhalten + Vertrag** für Subklassen definieren willst.
+
+---
+
+### Zusammenfassung
+
+* **`interface`** = reine Struktur, keine Implementierung, unterstützt Mehrfach-Implementierung.
+* **`abstract class`** = Kombination aus Vertrag und (teilweiser) Implementierung, mit Konstruktor und Feldern.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Interfaces](https://www.typescriptlang.org/docs/handbook/2/objects.html)
+* [TypeScript Handbook – Classes](https://www.typescriptlang.org/docs/handbook/2/classes.html#abstract-classes)
 
   **[⬆ Наверх](#top)**
 
-28. ### <a name="28"></a> 
+28. ### <a name="28"></a> Wie implementiert man Funktionsüberladungen (function overloads) in TypeScript?
 
+### Funktionsüberladungen (Function Overloads) in TypeScript
 
+**Definition:**
+Mit **Function Overloads** kann eine Funktion **mehrere Signaturen** haben, aber nur **eine Implementierung**.
+Dadurch können unterschiedliche Argumenttypen oder Rückgabewerte abgebildet werden.
+
+---
+
+### Syntax
+
+1. **Mehrere Signaturen (Overloads)**
+2. **Eine gemeinsame Implementierung**
+
+---
+
+### Beispiel 1 – String vs. Number Eingabe
+
+```js
+// Overload-Signaturen
+function reverse(value: string): string
+function reverse(value: number): number
+
+// Implementierung
+function reverse(value: string | number): string | number {
+  if (typeof value === "string") {
+    return value.split("").reverse().join("")
+  } else {
+    return Number(value.toString().split("").reverse().join(""))
+  }
+}
+
+console.log(reverse("Sergii")) // iigreS
+console.log(reverse(12345))    // 54321
+```
+
+➡️ Der Aufrufer sieht die Überladungen (`string → string`, `number → number`),
+aber die Implementierung deckt beide Fälle ab.
+
+---
+
+### Beispiel 2 – Mehrere Argumenttypen
+
+```js
+function getLength(value: string): number
+function getLength(value: any[]): number
+
+function getLength(value: string | any[]): number {
+  return value.length
+}
+
+console.log(getLength("Hallo"))   // 5
+console.log(getLength([1, 2, 3])) // 3
+```
+
+---
+
+### Beispiel 3 – Optional und Union
+
+```js
+function combine(a: number, b: number): number
+function combine(a: string, b: string): string
+
+function combine(a: number | string, b: number | string): number | string {
+  if (typeof a === "string" && typeof b === "string") {
+    return a + b
+  }
+  if (typeof a === "number" && typeof b === "number") {
+    return a + b
+  }
+  throw new Error("Ungültige Argumente")
+}
+
+console.log(combine(5, 10))      // 15
+console.log(combine("Hi ", "TS")) // Hi TS
+```
+
+---
+
+### Zusammenfassung
+
+* **Function Overloads** = mehrere Signaturen, eine Implementierung.
+* Vorteil: bessere Typ-Sicherheit und IntelliSense.
+* Syntax: **Signaturen oben**, **Implementierung unten**.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Functions (Overloads)](https://www.typescriptlang.org/docs/handbook/2/functions.html#function-overloads)
+* [MDN – Funktionen in JS (Grundlage)](https://developer.mozilla.org/ru/docs/Web/JavaScript/Guide/Functions)
 
   **[⬆ Наверх](#top)**
 
-29. ### <a name="29"></a> 
+29. ### <a name="29"></a> Was sind Index Signatures?
 
+### Index Signatures in TypeScript
 
+**Definition:**
+Eine **Index Signature** erlaubt es, die Typen von Objekten zu beschreiben, deren Schlüssel **nicht im Voraus bekannt** sind.
+Damit sagt man: *„Dieses Objekt kann beliebig viele Properties haben, und ihre Schlüssel/Werte haben einen bestimmten Typ.“*
+
+---
+
+### Beispiel 1 – Einfache Index Signature
+
+```js
+interface StringArray {
+  [index: number]: string
+}
+
+const names: StringArray = ["Anna", "Tom", "Sergii"]
+console.log(names[0]) // Anna
+```
+
+➡️ Jeder numerische Index (`number`) muss einen `string` liefern.
+
+---
+
+### Beispiel 2 – String-Keys
+
+```js
+interface Dictionary {
+  [key: string]: string
+}
+
+const translations: Dictionary = {
+  hello: "Hallo",
+  bye: "Tschüss"
+}
+
+console.log(translations["hello"]) // Hallo
+```
+
+---
+
+### Beispiel 3 – Mischung mit festen Properties
+
+```js
+interface User {
+  id: number
+  name: string
+  [key: string]: string | number // erlaubt zusätzliche Properties
+}
+
+const u: User = {
+  id: 1,
+  name: "Sergii",
+  role: "Admin"
+}
+```
+
+---
+
+### Beispiel 4 – Readonly Index Signature
+
+```js
+interface ReadonlyArrayLike {
+  readonly [index: number]: string
+}
+
+const arr: ReadonlyArrayLike = ["A", "B"]
+// arr[0] = "X" // ❌ Fehler: readonly
+```
+
+---
+
+### Einschränkungen
+
+* Der Werttyp der Index Signature muss **alle festen Properties** abdecken.
+
+  ```js
+  interface Bad {
+    name: string
+    [key: string]: number // ❌ Fehler, da name: string nicht kompatibel
+  }
+  ```
+
+---
+
+### Zusammenfassung
+
+* **Index Signatures** = definieren Typen für unbekannte Schlüssel/Werte.
+* Syntax: `[key: string]: WertTyp` oder `[index: number]: WertTyp`.
+* Einsatz: Dictionaries, flexible Objekte, Maps.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Index Signatures](https://www.typescriptlang.org/docs/handbook/2/objects.html#index-signatures)
+* [React TS Cheatsheet – Index Signatures](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example#index-signatures)
 
   **[⬆ Наверх](#top)**
 
-30. ### <a name="30"></a> 
+30. ### <a name="30"></a> Was ist keyof und wofür wird es verwendet?
 
+### `keyof` in TypeScript
 
+**Definition:**
+Der **`keyof` Operator** erzeugt einen Typ, der alle **Schlüssel** (Property-Namen) eines Objekttyps als **Union Type** enthält.
+
+---
+
+### Beispiel 1 – Einfaches Objekt
+
+```js
+interface User {
+  id: number
+  name: string
+  isAdmin: boolean
+}
+
+type UserKeys = keyof User
+// UserKeys = "id" | "name" | "isAdmin"
+```
+
+➡️ `keyof` extrahiert `"id" | "name" | "isAdmin"` als Union.
+
+---
+
+### Beispiel 2 – Nutzung in Funktionen
+
+```js
+function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
+  return obj[key]
+}
+
+const user: User = { id: 1, name: "Sergii", isAdmin: true }
+
+const name = getProperty(user, "name")   // string
+const admin = getProperty(user, "isAdmin") // boolean
+// getProperty(user, "age") ❌ Fehler: "age" existiert nicht in User
+```
+
+➡️ Vorteil: **sichere Property-Zugriffe** ohne Magic Strings.
+
+---
+
+### Beispiel 3 – Mit `typeof`
+
+```js
+const config = {
+  url: "/api",
+  timeout: 5000
+}
+
+type ConfigKeys = keyof typeof config
+// "url" | "timeout"
+```
+
+---
+
+### Beispiel 4 – Kombination mit Mapped Types
+
+```js
+type ReadonlyUser = {
+  readonly [K in keyof User]: User[K]
+}
+
+// Alle Properties von User werden readonly
+```
+
+---
+
+### Zusammenfassung
+
+* **`keyof`** = erzeugt Union der Schlüssel eines Typs.
+* Verwendung: generische Funktionen, sichere Property-Zugriffe, Mapped Types.
+* Typische Kombination: `keyof`, `typeof`, `in`.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – keyof](https://www.typescriptlang.org/docs/handbook/2/keyof-types.html)
+* [React TS Cheatsheet – keyof usage](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase#keyof-and-typeof)
 
   **[⬆ Наверх](#top)**  
 
-31. ### <a name="31"></a> 
+31. ### <a name="31"></a> Wie funktioniert der Operator as?
 
+### Der `as` Operator in TypeScript
 
+**Definition:**
+Der **`as` Operator** wird für **Type Assertions (Typumwandlungen)** verwendet.
+Damit sagt man dem Compiler: *„Vertraue mir, dieser Wert hat einen bestimmten Typ.“*
+Er ändert nichts am **Laufzeitwert**, sondern nur an der **Typprüfung** von TypeScript.
+
+---
+
+### Beispiel 1 – Einfache Typumwandlung
+
+```js
+let value: unknown = "Hallo TypeScript"
+let strLength: number = (value as string).length
+
+console.log(strLength) // 16
+```
+
+➡️ Der Compiler behandelt `value` innerhalb der Klammern als `string`.
+
+---
+
+### Beispiel 2 – DOM-Manipulation
+
+```js
+const input = document.querySelector("input") as HTMLInputElement
+input.value = "Sergii"
+```
+
+➡️ Ohne `as` kennt TypeScript nur den Typ `Element | null`.
+Mit `as` wird er auf `HTMLInputElement` eingeschränkt.
+
+---
+
+### Beispiel 3 – Union Type Spezifizierung
+
+```js
+type Bird = { fly: () => void }
+type Fish = { swim: () => void }
+
+let pet: Bird | Fish = { swim: () => console.log("Schwimmt") }
+
+;(pet as Fish).swim() // ✅ erlaubt
+```
+
+---
+
+### Beispiel 4 – Doppelte Typumwandlung (Edge Case)
+
+```js
+let num: number = 10
+let str = num as unknown as string // ❌ unsicher, aber manchmal genutzt
+```
+
+---
+
+### Wichtige Hinweise
+
+* `as` ist **keine Typkonvertierung** wie in anderen Sprachen (z. B. `int → string`),
+  sondern nur ein Hinweis für den Compiler.
+* Missbrauch kann zu **Laufzeitfehlern** führen, wenn man falsche Annahmen macht.
+
+---
+
+### Zusammenfassung
+
+* **`as` Operator** = Type Assertion, ändert nur den Typ für den Compiler, nicht den Wert zur Laufzeit.
+* Typische Nutzung: DOM-Elemente, Union Types, `unknown` → spezifischer Typ.
+* Vorsicht: kann Sicherheit unterlaufen, sollte sparsam und bewusst eingesetzt werden.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Type Assertions](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#type-assertions)
+* [MDN – DOM querySelector](https://developer.mozilla.org/ru/docs/Web/API/Document/querySelector)
 
   **[⬆ Наверх](#top)**
 
-32. ### <a name="32"></a> 
+32. ### <a name="32"></a> Was ist der Unterschied zwischen as const und einem normalen const?
 
+### Unterschied zwischen `const` und `as const` in TypeScript
 
+---
+
+#### **1. Normales `const` (JavaScript/TypeScript)**
+
+* Bedeutet, dass die **Variable nicht neu zugewiesen** werden kann.
+* Der Wert selbst bleibt aber oft **mutierbar** (bei Objekten/Arrays).
+* Typ wird **verallgemeinert** (z. B. `string`, `number`).
+
+```js
+const role = "admin"
+// Typ: string (kein Literal), Wert: "admin"
+```
+
+---
+
+#### **2. `as const` (TypeScript)**
+
+* Erzwingt eine **Literal Inferenz**:
+
+  * Der Wert bekommt den **engsten möglichen Typ** (statt `string` → `"admin"`).
+* Macht **alle Properties readonly** (bei Objekten und Arrays).
+
+```js
+const role = "admin" as const
+// Typ: "admin" (Literal), Wert: "admin"
+```
+
+---
+
+### Beispiele
+
+#### **Beispiel 1 – String vs. Literal**
+
+```js
+const status = "success"
+// Typ: string
+
+const status2 = "success" as const
+// Typ: "success" (Literal)
+```
+
+---
+
+#### **Beispiel 2 – Objekte**
+
+```js
+const user = { id: 1, role: "admin" }
+// Typ: { id: number; role: string }
+
+const user2 = { id: 1, role: "admin" } as const
+// Typ: { readonly id: 1; readonly role: "admin" }
+```
+
+---
+
+#### **Beispiel 3 – Arrays**
+
+```js
+const numbers = [1, 2, 3]
+// Typ: number[]
+
+const numbers2 = [1, 2, 3] as const
+// Typ: readonly [1, 2, 3]
+```
+
+---
+
+### **Vergleichstabelle**
+
+| Aspekt           | `const`                              | `as const`                              |
+| ---------------- | ------------------------------------ | --------------------------------------- |
+| Variablenbindung | unveränderlich                       | unveränderlich                          |
+| Typ-Inferenz     | allgemeiner Typ (`string`, `number`) | Literal-Typ (`"admin"`, `1`)            |
+| Objekte/Arrays   | veränderbar                          | `readonly`                              |
+| Einsatzgebiet    | normales JS-Verhalten                | für präzise Typisierung & Immutabilität |
+
+---
+
+### Zusammenfassung
+
+* **`const`** = normale Konstantenbindung, Typ wird verallgemeinert.
+* **`as const`** = engste mögliche Typen (Literal), zusätzlich `readonly`.
+* Nützlich für:
+
+  * **Discriminated Unions**
+  * **Objekte/Arrays als feste Konfigurationen**
+  * **Props in React**
+
+🔗 Quellen:
+
+* [TypeScript Handbook – const assertions](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#literal-inference)
+* [React TS Cheatsheet – as const](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase#literal-types-as-const)
 
   **[⬆ Наверх](#top)**
 
-33. ### <a name="33"></a> 
+33. ### <a name="33"></a> Was macht der Operator satisfies (TS 4.9+)?
 
+### Der `satisfies` Operator in TypeScript (seit 4.9)
 
+**Definition:**
+Der Operator **`satisfies`** prüft, ob ein Wert einen bestimmten Typ erfüllt (**Type Constraint**), **ohne** den engeren Typ des Werts zu verlieren.
+Er ist eine Art *Kompromiss zwischen Type Assertion (`as`) und direkter Typannotation (`: Type`)*.
+
+---
+
+### Beispiel 1 – Normale Typannotation
+
+```ts
+type Role = "admin" | "user" | "guest"
+
+const role: Role = "admin"
+// Typ von role: "admin" | "user" | "guest"
+```
+
+👉 Nach der Annotation verliert `role` den spezifischen Literal-Typ `"admin"` und wird zum Union-Type.
+
+---
+
+### Beispiel 2 – Mit `as` (unsafe)
+
+```ts
+const role = "admin" as Role
+// Typ von role: Role ("admin" | "user" | "guest")
+```
+
+👉 Compiler nimmt an, dass es passt – aber kein echter Check, da `as` nur „erzwingt“.
+
+---
+
+### Beispiel 3 – Mit `satisfies` ✅
+
+```ts
+type Role = "admin" | "user" | "guest"
+
+const role = "admin" satisfies Role
+// Typ von role: "admin" (Literal bleibt erhalten)
+// Compiler prüft: "admin" ist Teil von Role → ✅ korrekt
+```
+
+👉 Vorteil: Wert bleibt **eng getypt** (`"admin"`) und erfüllt trotzdem die Bedingung `Role`.
+
+---
+
+### Beispiel 4 – Praktisch bei Objekten
+
+```ts
+type Config = {
+  url: string
+  method: "GET" | "POST"
+}
+
+const config = {
+  url: "/api",
+  method: "GET"
+} satisfies Config
+
+// Typ von config.method = "GET" (Literal, nicht nur "GET" | "POST")
+```
+
+👉 Mit `: Config` wäre `config.method` nur `"GET" | "POST"`.
+👉 Mit `satisfies` bleibt es `"GET"`.
+
+---
+
+### Beispiel 5 – Exhaustiveness Checks
+
+```ts
+type Status = "success" | "error" | "loading"
+
+const states = ["success", "error", "loading"] satisfies Status[]
+// Typ: ("success" | "error" | "loading")[]
+// Compiler prüft: alle Elemente gehören zu Status
+```
+
+---
+
+### Zusammenfassung
+
+* **`satisfies`** prüft, ob ein Wert zu einem Typ passt, **ohne den präzisen Typ zu verlieren**.
+* Unterschied zu anderen Varianten:
+
+  * `: Type` → Typ wird erweitert/verallgemeinert.
+  * `as Type` → Compiler vertraut blind, keine echte Prüfung.
+  * `satisfies Type` → Typprüfung + Beibehaltung der Literaltypen.
+
+🔗 Quellen:
+
+* [TypeScript 4.9 – satisfies Operator](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator)
+* [React TS Cheatsheet – satisfies](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase#satisfies-operator)
 
   **[⬆ Наверх](#top)**
 
-34. ### <a name="34"></a> 
+34. ### <a name="34"></a> Was sind Assertion Functions?
 
+### Assertion Functions in TypeScript
 
+**Definition:**
+Eine **Assertion Function** ist eine spezielle Funktion, die TypeScript mitteilt:
+*"Wenn diese Funktion erfolgreich zurückkehrt, kannst du davon ausgehen, dass eine bestimmte Bedingung erfüllt ist."*
+→ Sie werden mit dem Rückgabetyp `asserts` deklariert und dienen der **Typprüfung** (Type Narrowing).
+
+---
+
+### Beispiel 1 – Einfache Assertion Function
+
+```ts
+function assertIsString(value: unknown): asserts value is string {
+  if (typeof value !== "string") {
+    throw new Error("Wert ist kein String")
+  }
+}
+
+function printUppercase(value: unknown) {
+  assertIsString(value) 
+  // Ab hier: value hat Typ string
+  console.log(value.toUpperCase())
+}
+```
+
+➡️ Ohne `assertIsString` müsste man jedes Mal manuell prüfen.
+
+---
+
+### Beispiel 2 – Non-Null Assertion
+
+```ts
+function assertNotNull<T>(value: T): asserts value is NonNullable<T> {
+  if (value === null || value === undefined) {
+    throw new Error("Wert darf nicht null oder undefined sein")
+  }
+}
+
+function process(value?: string | null) {
+  assertNotNull(value)
+  // Ab hier: value ist string
+  console.log(value.trim())
+}
+```
+
+---
+
+### Beispiel 3 – Für komplexe Typen
+
+```ts
+type User = { id: number; name: string }
+
+function assertIsUser(obj: any): asserts obj is User {
+  if (typeof obj !== "object" || typeof obj.id !== "number" || typeof obj.name !== "string") {
+    throw new Error("Kein gültiger User")
+  }
+}
+
+const data: unknown = { id: 1, name: "Sergii" }
+
+assertIsUser(data)
+// Ab hier: data hat Typ User
+console.log(data.name.toUpperCase())
+```
+
+---
+
+### Vorteile
+
+* Verhindern unnötige Type Assertions (`as`).
+* Ermöglichen **saubere Typ Narrowing**.
+* Praktisch für **Input-Validierung, API-Responses, Guards in React/Express**.
+
+---
+
+### Zusammenfassung
+
+* **Assertion Functions** = Funktionen mit Rückgabetyp `asserts`, die Typen validieren.
+* Nutzen: automatische Typ-Einschränkung, wenn die Assertion erfolgreich ist.
+* Typische Form: `asserts value is Type`.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Assertion Functions](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#assertion-functions)
+* [React TS Cheatsheet – Type Guards & Assertions](https://react-typescript-cheatsheet.netlify.app/docs/basic/troubleshooting/types/#user-defined-type-guards)
 
   **[⬆ Наверх](#top)**
 
-35. ### <a name="35"></a> 
+35. ### <a name="35"></a> Was ist der Unterschied zwischen struktureller Typisierung (structural typing) und nominaler Typisierung (nominal typing)?
 
+### Unterschied zwischen **struktureller Typisierung** und **nominaler Typisierung**
 
+---
+
+#### **1. Strukturelle Typisierung (Structural Typing)**
+
+* In **TypeScript** verwendet.
+* Zwei Typen sind **kompatibel**, wenn ihre **Struktur** (Shape) gleich ist – unabhängig vom Namen.
+* „Duck Typing“: *Wenn es aussieht wie eine Ente und quakt wie eine Ente, ist es eine Ente.*
+
+**Beispiel:**
+
+```ts
+interface Point {
+  x: number
+  y: number
+}
+
+interface Coordinate {
+  x: number
+  y: number
+}
+
+let p: Point = { x: 10, y: 20 }
+let c: Coordinate = { x: 30, y: 40 }
+
+p = c // ✅ erlaubt, gleiche Struktur
+```
+
+---
+
+#### **2. Nominale Typisierung (Nominal Typing)**
+
+* In Sprachen wie **Java, C#** üblich.
+* Typen sind nur dann kompatibel, wenn sie **explizit denselben Namen** oder dieselbe Vererbung haben.
+* Die Struktur allein reicht nicht.
+
+**Beispiel (in TS simuliert):**
+
+```ts
+type USD = number & { readonly brand: unique symbol }
+type EUR = number & { readonly brand: unique symbol }
+
+let usd: USD = 10 as USD
+let eur: EUR = 20 as EUR
+
+usd = eur // ❌ Fehler, trotz gleicher Struktur (Nominalisierung durch unique symbol)
+```
+
+---
+
+### Vergleich
+
+| Merkmal             | Strukturell (TS)                        | Nominal (Java, C#)      |
+| ------------------- | --------------------------------------- | ----------------------- |
+| Vergleichsgrundlage | Struktur (Properties & Methoden)        | Name/Erklärung des Typs |
+| Flexibilität        | Hoch                                    | Niedrig                 |
+| Fehleranfälligkeit  | Kann ungewollte Kompatibilität zulassen | Strenger, sicherer      |
+| Beispielsprachen    | TypeScript, Go                          | Java, C#, Rust          |
+
+---
+
+### Zusammenfassung
+
+* **Structural Typing (TS):** Kompatibilität hängt nur von der **Form** ab.
+* **Nominal Typing:** Kompatibilität hängt vom **Namen/Erklärung** ab.
+* TypeScript ist **strukturell typisiert**, man kann aber nominale Typisierung mit Tricks (`unique symbol`) erzwingen.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Structural Typing](https://www.typescriptlang.org/docs/handbook/type-compatibility.html)
+* [MDN – TypeScript Type System](https://www.typescriptlang.org/docs/)
 
   **[⬆ Наверх](#top)**
 
-36. ### <a name="36"></a> 
+36. ### <a name="36"></a> Was sind Deklarationsdateien (.d.ts)?
 
+### Deklarationsdateien (`.d.ts`) in TypeScript
 
+**Definition:**
+Eine **Deklarationsdatei** (`.d.ts`) enthält **nur Typinformationen** (Signaturen, Interfaces, Typen), aber **keinen ausführbaren Code**.
+Sie dient dazu, JavaScript-Bibliotheken oder bereits kompilierte TypeScript-Module für den TypeScript-Compiler **typisiert verfügbar** zu machen.
+
+---
+
+### Eigenschaften
+
+* Endung: **`.d.ts`**
+* Enthält keine Implementierungen → nur Typdefinitionen.
+* Wird automatisch von TypeScript verwendet, wenn eine Bibliothek Typen mitliefert.
+* Häufig im Verzeichnis `@types/` (z. B. aus **DefinitelyTyped**).
+
+---
+
+### Beispiel 1 – Eigene Deklarationsdatei
+
+`math.d.ts`:
+
+```ts
+declare module "math-lib" {
+  export function add(a: number, b: number): number
+  export const PI: number
+}
+```
+
+Nutzung:
+
+```ts
+import { add, PI } from "math-lib"
+
+console.log(add(2, 3))  // 5
+console.log(PI)         // number
+```
+
+---
+
+### Beispiel 2 – Globale Deklaration
+
+```ts
+// global.d.ts
+declare global {
+  interface Window {
+    myAppVersion: string
+  }
+}
+```
+
+Nutzung:
+
+```ts
+console.log(window.myAppVersion)
+```
+
+---
+
+### Beispiel 3 – Typen für externe Bibliotheken
+
+Wenn eine JS-Library keine Typen mitliefert:
+
+```bash
+npm install @types/lodash --save-dev
+```
+
+👉 Installiert Deklarationsdateien von **DefinitelyTyped**.
+
+---
+
+### Zusammenfassung
+
+* **`.d.ts` Dateien** = Typdefinitionen ohne Implementierung.
+* Nutzen: Typprüfung und IntelliSense für **JS-Bibliotheken** oder eigene APIs.
+* Typische Orte:
+
+  * Bibliotheken mitgeliefert (`node_modules/@types/`)
+  * Eigene Projekte (`global.d.ts`)
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Declaration Files](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html)
+* [DefinitelyTyped Repository](https://github.com/DefinitelyTyped/DefinitelyTyped)
 
   **[⬆ Наверх](#top)**
 
-37. ### <a name="37"></a> 
+37. ### <a name="37"></a> Wie bindet man eine externe JS-Bibliothek ohne Typen ein?
 
+### Externe JS-Bibliothek **ohne Typen** in TypeScript einbinden
 
+#### 1) Prüfen, ob Typen existieren
+
+```bash
+npm i -D @types/<libname>
+```
+
+Wenn vorhanden → normal importieren. Wenn **nicht** vorhanden, weiter mit 2–5.
+
+---
+
+#### 2) Schneller Start: eigenes **Shims**-Modul (`global.d.ts` oder `types/<lib>.d.ts`)
+
+```ts
+// types/untyped-lib.d.ts
+declare module "untyped-lib" {
+  // minimaler Start – alles als any
+  const api: any
+  export default api
+}
+```
+
+Verwendung:
+
+```js
+import lib from "untyped-lib"
+lib.doSomething() // Typprüfung ausgesetzt (any)
+```
+
+---
+
+#### 3) Besser: **gezielte Typen** statt `any`
+
+```ts
+// types/untyped-lib.d.ts
+declare module "untyped-lib" {
+  export interface Options {
+    retry?: number
+    baseUrl: string
+  }
+  export function createClient(opts: Options): {
+    get(path: string): Promise<string>
+    post<T>(path: string, body: T): Promise<void>
+  }
+}
+```
+
+```js
+import { createClient } from "untyped-lib"
+
+const client = createClient({ baseUrl: "/api", retry: 2 })
+const text = await client.get("/status")
+```
+
+---
+
+#### 4) Globales Script (CDN) typisieren
+
+```ts
+// global.d.ts
+declare global {
+  interface Window {
+    MyLib: {
+      version: string
+      init(config: { key: string }): void
+    }
+  }
+}
+export {} // macht die Datei zum Modul
+```
+
+```js
+// nach <script src=".../mylib.js"></script>
+window.MyLib.init({ key: "abc" })
+```
+
+---
+
+#### 5) Übergangsweise absichern: `unknown` + Laufzeit-Guards (statt `any`)
+
+```js
+import lib from "untyped-lib"
+
+function isClient(x: unknown): x is { get: (p: string) => Promise<string> } {
+  return !!x && typeof (x as any).get === "function"
+}
+
+const client: unknown = lib.createClient?.({ baseUrl: "/api" })
+if (isClient(client)) {
+  const s = await client.get("/health")
+}
+```
+
+---
+
+#### 6) Notfalls (kurzfristig) unterdrücken
+
+```js
+// @ts-ignore: untyped third-party export
+import lib from "untyped-lib"
+```
+
+> Nur punktuell verwenden; besser früh eigene `.d.ts` anlegen.
+
+---
+
+#### 7) tsconfig-Hinweise
+
+* Eigene Typen einbinden: `"typeRoots": ["./types", "./node_modules/@types"]`
+* Keine Fremdtypfehler beim Build: `"skipLibCheck": true` (optional, nicht sicherheitsrelevant)
+
+---
+
+### Zusammenfassung
+
+* Falls keine offiziellen Typen existieren: **eigene `.d.ts`** schreiben.
+* Start mit einfachem `declare module`, dann **gezielt typisieren** (Interfaces/Funktionssignaturen).
+* Für globale Skripte: **`declare global`**.
+* **`unknown` + Type Guards** statt `any` für mehr Sicherheit.
+* `@ts-ignore` nur ausnahmsweise.
+
+🔗 Quellen:
+
+* [TypeScript Docs – Declaration Files](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html)
+* [TypeScript Docs – Modules & `declare module`](https://www.typescriptlang.org/docs/handbook/modules.html)
+* [React TypeScript Cheatsheet – Working with 3rd-Party Libs](https://react-typescript-cheatsheet.netlify.app/docs/basic/troubleshooting/types/#third-party-libraries)
+* [MDN – `window`](https://developer.mozilla.org/ru/docs/Web/API/Window)
 
   **[⬆ Наверх](#top)**
 
-38. ### <a name="38"></a> 
+38. ### <a name="38"></a> Was sind Ambient Declarations (declare)?
 
+### Ambient Declarations (`declare`) in TypeScript
 
+**Definition:**
+Ambient Declarations sind **Typdefinitionen für bereits existierenden Code** (meist JavaScript), damit der TypeScript-Compiler weiß, welche Variablen, Funktionen oder Module es gibt – auch wenn sie **nicht in TypeScript implementiert** sind.
+👉 Sie enthalten **nur Typinformationen**, aber keine Implementierungen.
+
+---
+
+### 1. Globale Variablen deklarieren
+
+```ts
+// global.d.ts
+declare const VERSION: string
+```
+
+Nutzung:
+
+```ts
+console.log(VERSION) // Compiler weiß: VERSION ist string
+```
+
+---
+
+### 2. Funktionen deklarieren
+
+```ts
+declare function logMessage(message: string): void
+
+logMessage("Hallo") // gültig, auch ohne Implementierung in TS
+```
+
+---
+
+### 3. Klassen deklarieren
+
+```ts
+declare class Person {
+  constructor(name: string)
+  greet(): void
+}
+
+let p = new Person("Sergii")
+p.greet()
+```
+
+---
+
+### 4. Module deklarieren
+
+```ts
+// math-lib.d.ts
+declare module "math-lib" {
+  export function add(a: number, b: number): number
+}
+```
+
+Nutzung:
+
+```ts
+import { add } from "math-lib"
+console.log(add(2, 3))
+```
+
+---
+
+### 5. Namespace / Global erweitern
+
+```ts
+declare namespace NodeJS {
+  interface ProcessEnv {
+    NODE_ENV: "development" | "production"
+  }
+}
+```
+
+---
+
+### Wann verwendet?
+
+✅ Typische Einsatzfälle:
+
+* **Externe JS-Bibliotheken ohne Typen** (eigene `.d.ts`).
+* **Globale Variablen/Objekte** (z. B. `window`, `process`).
+* **Erweiterung von bestehenden Typen** (z. B. Express `Request`).
+
+---
+
+### Zusammenfassung
+
+* **Ambient Declarations (`declare`)** = reine Typinfos ohne Code.
+* Nutzen: Beschreiben von vorhandenen Variablen, Funktionen, Klassen oder Modulen.
+* Typische Orte: **`.d.ts`-Dateien**, Third-Party-Libs, globale Variablen.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Declaration Files](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html)
+* [TypeScript Handbook – Ambient Declarations](https://www.typescriptlang.org/docs/handbook/declaration-files/by-example.html)
 
   **[⬆ Наверх](#top)**
 
-39. ### <a name="39"></a> 
+39. ### <a name="39"></a> Was ist strict mode in TypeScript?
 
+### Strict Mode in TypeScript
 
+**Definition:**
+Der **Strict Mode** ist eine Sammlung von Compiler-Optionen in TypeScript, die die **strengste Typprüfung** aktivieren.
+Er wird mit `"strict": true` in der `tsconfig.json` eingeschaltet.
+
+---
+
+### Enthaltene Optionen (ab Werk in `strict` enthalten)
+
+1. **`strictNullChecks`**
+
+   * `null` und `undefined` müssen explizit behandelt werden.
+
+   ```ts
+   let name: string = "Sergii"
+   name = null // ❌ Fehler bei strictNullChecks
+   ```
+
+2. **`noImplicitAny`**
+
+   * Variablen oder Parameter ohne Typ dürfen nicht automatisch `any` sein.
+
+   ```ts
+   function log(msg) { // ❌ Fehler
+     console.log(msg)
+   }
+   ```
+
+3. **`strictBindCallApply`**
+
+   * Typprüfung für Methoden wie `bind`, `call`, `apply`.
+
+4. **`strictFunctionTypes`**
+
+   * Strengere Überprüfung bei Funktionszuweisungen.
+
+5. **`strictPropertyInitialization`**
+
+   * Klassen-Eigenschaften müssen im Konstruktor oder direkt initialisiert werden.
+
+   ```ts
+   class User {
+     name: string // ❌ Fehler ohne Initialisierung
+     constructor(name: string) {
+       this.name = name // ✅
+     }
+   }
+   ```
+
+6. **`alwaysStrict`**
+
+   * Alle Dateien werden im **JavaScript Strict Mode** kompiliert (`"use strict"`).
+
+---
+
+### Vorteile
+
+* Weniger Laufzeitfehler durch strengere Typprüfung.
+* Sicherere und besser wartbare Codebasis.
+* Erhöht Codequalität besonders in großen Projekten.
+
+---
+
+### Zusammenfassung
+
+* **Strict Mode** (`"strict": true`) = aktiviert alle wichtigen Sicherheitsprüfungen des Compilers.
+* Beinhaltet u. a. `strictNullChecks`, `noImplicitAny`, `strictPropertyInitialization`.
+* Ziel: maximale Typ-Sicherheit und Fehlervermeidung.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Strict Mode](https://www.typescriptlang.org/tsconfig#strict)
+* [TSConfig Reference – Strict Options](https://www.typescriptlang.org/tsconfig#strictNullChecks)
 
   **[⬆ Наверх](#top)**
 
-40. ### <a name="40"></a> 
+40. ### <a name="40"></a> Wozu dient strictNullChecks?
 
+### `strictNullChecks` in TypeScript
 
+**Definition:**
+Die Option **`strictNullChecks`** erzwingt, dass `null` und `undefined` **nicht automatisch jedem Typ zugewiesen** werden dürfen.
+👉 Ohne diese Option: `null` und `undefined` sind **Teil aller Typen**.
+👉 Mit dieser Option: sie müssen **explizit** erlaubt werden (`| null`, `| undefined`).
+
+---
+
+### Beispiel 1 – Ohne `strictNullChecks` (unsicher)
+
+```ts
+let name: string = "Sergii"
+name = null       // ✅ erlaubt (unsicher)
+```
+
+---
+
+### Beispiel 2 – Mit `strictNullChecks: true` (sicher)
+
+```ts
+let name: string = "Sergii"
+name = null       // ❌ Fehler: null nicht zuweisbar zu string
+
+let safeName: string | null = "Sergii"
+safeName = null   // ✅ erlaubt
+```
+
+---
+
+### Beispiel 3 – Funktionen
+
+```ts
+function greet(user: string | null) {
+  if (user !== null) {
+    console.log("Hallo", user.toUpperCase())
+  }
+}
+
+greet(null) // ✅ funktioniert, sicher geprüft
+```
+
+---
+
+### Beispiel 4 – Optional Properties
+
+```ts
+interface User {
+  id: number
+  email?: string
+}
+
+function printEmail(user: User) {
+  // user.email: string | undefined
+  if (user.email) {
+    console.log(user.email.toUpperCase())
+  }
+}
+```
+
+---
+
+### Zusammenfassung
+
+* **`strictNullChecks`** verhindert, dass `null` und `undefined` stillschweigend überall zugewiesen werden können.
+* Erzwingt **explizite Behandlung** von `null` und `undefined`.
+* Vorteil: weniger `Cannot read property of undefined`-Fehler zur Laufzeit.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – strictNullChecks](https://www.typescriptlang.org/tsconfig#strictNullChecks)
+* [Everyday Types – null & undefined](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#null-and-undefined)
 
   **[⬆ Наверх](#top)**  
 
-41. ### <a name="41"></a> 
+41. ### <a name="41"></a> Wie typisiert man Parameter und Rückgabewerte von Funktionen?
 
+### Funktionen typisieren: Parameter & Rückgabewerte
 
+#### 1) Basis: Parameter- und Rückgabetyp
+
+```js
+// ESM-Export
+export function add(a: number, b: number): number {
+  return a + b
+}
+```
+
+#### 2) Arrow Functions
+
+```js
+export const toUpper = (s: string): string => s.toUpperCase()
+```
+
+#### 3) Optional-, Default- und Rest-Parameter
+
+```js
+export function greet(name: string, title?: string): string {
+  return title ? `${title} ${name}` : `Hallo ${name}`
+}
+
+export function pow(base: number, exp: number = 2): number {
+  return base ** exp
+}
+
+export function sum(...nums: number[]): number {
+  return nums.reduce((acc, n) => acc + n, 0)
+}
+```
+
+#### 4) Void, Never, Union/Unknown in Signaturen
+
+```js
+export function log(msg: string): void {
+  console.log(msg) // kein Rückgabewert
+}
+
+export function fail(message: string): never {
+  throw new Error(message) // kehrt nie zurück
+}
+
+export function parseJson(json: string): unknown {
+  return JSON.parse(json) // Callsite muss narrowen
+}
+```
+
+#### 5) Funktions-Typen (Alias/Interface)
+
+```js
+export type Comparator<T> = (a: T, b: T) => number
+
+export interface Fetcher {
+  (url: string): Promise<string>
+}
+
+export const byLength: Comparator<string> = (a, b) => a.length - b.length
+```
+
+#### 6) Generische Funktionen
+
+```js
+export function identity<T>(value: T): T {
+  return value
+}
+
+export function pick<T, K extends keyof T>(obj: T, key: K): T[K] {
+  return obj[key]
+}
+```
+
+#### 7) Async/Promise-Rückgaben
+
+```js
+export async function getText(url: string): Promise<string> {
+  const res = await fetch(url)
+  return res.text()
+}
+```
+
+#### 8) Overloads (mehrere Signaturen, eine Implementierung)
+
+```js
+export function len(x: string): number
+export function len<T>(x: T[]): number
+export function len(x: string | unknown[]): number {
+  return (x as any).length
+}
+```
+
+#### 9) Kontext: React-Event-Handler (häufig im Frontend)
+
+```js
+// Beispiel: React + TS (ESM)
+import type { ChangeEvent } from "react"
+
+export const onChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  console.log(e.currentTarget.value)
+}
+```
+
+---
+
+### Zusammenfassung
+
+* Parameter werden nach dem Namen, Rückgabewerte nach dem Parameterblock typisiert: `fn(a: A, b: B): R`.
+* Verwende optionale (`?`), Default- und Rest-Parameter je nach Bedarf.
+* Nutze `void`/`never` zielgerichtet; für unbekannte Rückgaben `unknown` + Narrowing.
+* Funktions-Typen per **Type Alias** oder **Call-Signature in Interfaces**; Generics für Wiederverwendbarkeit.
+* Overloads: mehrere Signaturen, **eine** Implementierung.
+* In React Events streng typisieren (z. B. `ChangeEvent<HTMLInputElement>`).
+
+**Quellen:**
+
+* [TypeScript Docs – Functions](https://www.typescriptlang.org/docs/handbook/2/functions.html)
+* [TypeScript Docs – Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* [React TypeScript Cheatsheet – Event Handling](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/event_handling/)
+* [MDN – Functions (JS-Grundlagen)](https://developer.mozilla.org/ru/docs/Web/JavaScript/Guide/Functions)
+* [React Docs](https://react.dev/)
 
   **[⬆ Наверх](#top)**
 
-42. ### <a name="42"></a> 
+42. ### <a name="42"></a> Was sind optionale Parameter in Funktionen?
 
+### Optionale Parameter in TypeScript-Funktionen
 
+**Definition:**
+Ein **optionaler Parameter** ist ein Funktionsparameter, der beim Aufruf **nicht zwingend angegeben** werden muss.
+Man kennzeichnet ihn mit einem **Fragezeichen (`?`)** nach dem Parameternamen.
+
+---
+
+### Beispiel 1 – Einfacher optionaler Parameter
+
+```ts
+export function greet(name: string, title?: string): string {
+  return title ? `${title} ${name}` : `Hallo ${name}`
+}
+
+greet("Sergii")            // Hallo Sergii
+greet("Sergii", "Herr")    // Herr Sergii
+```
+
+➡️ `title` ist optional (`string | undefined`).
+
+---
+
+### Beispiel 2 – Kombination mit Default-Werten
+
+```ts
+export function pow(base: number, exp: number = 2): number {
+  return base ** exp
+}
+
+pow(3)      // 9
+pow(3, 3)   // 27
+```
+
+➡️ Unterschied: `?` → kann fehlen, `= Default` → hat immer einen Wert.
+
+---
+
+### Beispiel 3 – Mehrere optionale Parameter
+
+```ts
+export function createUser(id: number, name?: string, age?: number) {
+  return { id, name, age }
+}
+
+createUser(1)                // { id: 1 }
+createUser(2, "Anna")        // { id: 2, name: "Anna" }
+createUser(3, "Tom", 25)     // { id: 3, name: "Tom", age: 25 }
+```
+
+---
+
+### Einschränkungen
+
+* Optionale Parameter müssen **am Ende der Parameterliste** stehen.
+* Sie sind implizit `Typ | undefined`.
+
+---
+
+### Zusammenfassung
+
+* **Optionale Parameter** (`param?: Type`) = Argumente, die beim Funktionsaufruf nicht zwingend übergeben werden müssen.
+* Standardmäßig sind sie `Type | undefined`.
+* Typischer Einsatz: flexible APIs, optionale Konfigurationen.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Functions](https://www.typescriptlang.org/docs/handbook/2/functions.html#optional-parameters)
+* [MDN – Functions](https://developer.mozilla.org/ru/docs/Web/JavaScript/Guide/Functions)
 
   **[⬆ Наверх](#top)**
 
-43. ### <a name="43"></a> 
+43. ### <a name="43"></a> Wie deklariert man Standardwerte für Parameter mit Typisierung?
 
+### Standardwerte (Default Parameter) mit Typisierung in TypeScript
 
+**Definition:**
+Ein **Default-Parameter** ist ein Funktionsparameter, der einen **Standardwert** erhält, falls kein Argument übergeben wird.
+In TypeScript wird der Typ entweder automatisch aus dem Standardwert **inferred** oder explizit angegeben.
+
+---
+
+### Beispiel 1 – Automatische Typinferenz
+
+```ts
+export function greet(name: string, title = "Herr"): string {
+  return `${title} ${name}`
+}
+
+greet("Sergii")          // Herr Sergii
+greet("Sergii", "Dr.")   // Dr. Sergii
+```
+
+➡️ `title` wird automatisch als `string` typisiert, weil der Standardwert `"Herr"` ist.
+
+---
+
+### Beispiel 2 – Explizite Typannotation
+
+```ts
+export function pow(base: number, exp: number = 2): number {
+  return base ** exp
+}
+
+pow(3)    // 9
+pow(3, 3) // 27
+```
+
+➡️ `exp: number = 2` → expliziter Typ + Default-Wert.
+
+---
+
+### Beispiel 3 – Union-Typ mit Default
+
+```ts
+type Role = "admin" | "user" | "guest"
+
+export function createUser(name: string, role: Role = "user") {
+  return { name, role }
+}
+
+createUser("Sergii")          // role = "user"
+createUser("Anna", "admin")   // role = "admin"
+```
+
+---
+
+### Beispiel 4 – Kombination mit Optionalem Parameter (selten nötig)
+
+```ts
+export function log(msg?: string, level: "info" | "error" = "info") {
+  console.log(`[${level}]`, msg ?? "leer")
+}
+```
+
+---
+
+### Regeln
+
+* Parameter mit Default-Werten sind **implizit optional**.
+* Sie müssen nicht am Ende der Parameterliste stehen (anders als `?`).
+* Typ wird **vom Wert oder Annotation** bestimmt.
+
+---
+
+### Zusammenfassung
+
+* Default-Parameter = `param: Typ = Wert`.
+* Typ wird entweder **inferred** oder **explizit angegeben**.
+* Vorteil: klare Signaturen, weniger `undefined`.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Functions](https://www.typescriptlang.org/docs/handbook/2/functions.html#optional-parameters)
+* [MDN – Default Parameters](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Functions/Default_parameters)
 
   **[⬆ Наверх](#top)**
 
-44. ### <a name="44"></a> 
+44. ### <a name="44"></a> Was sind Rest-Parameter und wie typisiert man sie?
 
+### Rest-Parameter in TypeScript
 
+**Definition:**
+Rest-Parameter (`...`) erlauben es, **eine variable Anzahl von Argumenten** an eine Funktion zu übergeben.
+Sie werden in TypeScript als **Array eines Typs** typisiert.
+
+---
+
+### Beispiel 1 – Einfache Typisierung
+
+```ts
+export function sum(...numbers: number[]): number {
+  return numbers.reduce((acc, n) => acc + n, 0)
+}
+
+sum(1, 2, 3, 4) // 10
+```
+
+➡️ `numbers: number[]` → alle Argumente müssen `number` sein.
+
+---
+
+### Beispiel 2 – Strings
+
+```ts
+export function concat(...parts: string[]): string {
+  return parts.join(" ")
+}
+
+concat("TypeScript", "macht", "Spaß")
+```
+
+---
+
+### Beispiel 3 – Kombination mit festen Parametern
+
+```ts
+export function greet(greeting: string, ...names: string[]): string {
+  return `${greeting}, ${names.join(" und ")}!`
+}
+
+greet("Hallo", "Sergii", "Anna") // Hallo, Sergii und Anna!
+```
+
+---
+
+### Beispiel 4 – Generics für Rest-Parameter
+
+```ts
+export function first<T>(...items: T[]): T {
+  return items[0]
+}
+
+const num = first(1, 2, 3)         // number
+const str = first("a", "b", "c")   // string
+```
+
+---
+
+### Beispiel 5 – Tupel als Rest-Parameter (variadische Tupel, TS 4.0+)
+
+```ts
+type Point = [number, number]
+
+export function logCoordinates(...coords: Point) {
+  const [x, y] = coords
+  console.log(`X=${x}, Y=${y}`)
+}
+
+logCoordinates(10, 20)
+```
+
+➡️ Rest-Parameter können auch **feste Strukturen** (Tupel) erzwingen.
+
+---
+
+### Zusammenfassung
+
+* **Rest-Parameter** = `...args: Typ[]`.
+* Erfassen variable Argumentlisten als Array.
+* Erweiterbar mit **Generics** und **Tupeln** (seit TS 4.0).
+* Typische Nutzung: Utility-Funktionen, Logging, flexible APIs.
+
+🔗 Quellen:
+
+* [TypeScript Handbook – Functions (Rest Parameters)](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments)
+* [MDN – Rest Parameters](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Functions/rest_parameters)
 
   **[⬆ Наверх](#top)**
 
