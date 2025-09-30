@@ -110,7 +110,7 @@
 
 ---
 
-- :memo:&nbsp;&nbsp;[typescript5](./docs/other/next5.md)
+- :memo:&nbsp;&nbsp;[nextjs5](./docs/other/next5.md)
 
 ---
 
