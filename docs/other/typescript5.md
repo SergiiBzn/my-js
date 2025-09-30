@@ -9220,183 +9220,5106 @@ React Router in TS: Params `string | undefined`, Loader per `useLoaderData<T>`, 
 
   **[⬆ Наверх](#top)**  
 
-91. ### <a name="91"></a> 
+91. ### <a name="91"></a> Wie organisiert man Typen für ein gesamtes Projekt?
 
+### Projektweite Typorganisation (Best Practices)
 
+---
+
+## 1) Ordnerstruktur – **Feature-first & nahe am Code**
+
+```txt
+src/
+  features/
+    users/
+      api/
+        types.ts        // DTOs/Server-Contracts
+        schemas.ts      // Zod-Schemata + z.infer
+      model/
+        types.ts        // Domänen-/ViewModel-Typen
+      ui/
+        UserCard.tsx    // Props lokal in derselben Datei oder ui/types.ts
+  shared/
+    types/              // globale, wiederverwendbare Typen (Utility, IDs)
+      index.ts
+  app/
+    types.ts            // App-weite Basistypen (Route-Maps, Feature-Flags)
+  global.d.ts           // Ambient/Module Augmentation
+```
+
+**Grundsatz:** *Types so nah wie möglich beim Verbrauch* (Komponente/Feature), *global nur wirklich globales*.
+
+---
+
+## 2) **DTOs vs. Domänen-Typen** klar trennen
+
+```js
+// features/users/api/types.ts (Serververtrag)
+export type UserDto = { id: number; first_name: string; email: string }
+
+// features/users/model/types.ts (UI/Domain)
+export type User = { id: number; name: string; email: string }
+```
+
+Mapping getrennt halten, damit API-Änderungen nicht die ganze App brechen.
+
+---
+
+## 3) **Runtime-Validation** + Typableitung (Zod)
+
+```js
+// features/users/api/schemas.ts
+import { z } from "zod"
+
+export const UserSchema = z.object({
+  id: z.number().int().positive(),
+  first_name: z.string(),
+  email: z.string().email()
+})
+export type UserDto = z.infer<typeof UserSchema>
+```
+
+→ Ein Source of Truth für **Laufzeit** und **Compile-Zeit**.
+
+---
+
+## 4) **Barrel Files** (sparsam & gezielt)
+
+```js
+// shared/types/index.ts
+export type Brand<K, T extends string> = K & { readonly __brand: T }
+export type ID = Brand<number, "ID">
+```
+
+In Features lieber direkte Importe vermeiden wie `features/*/index.ts`, um **Zyklen** zu verhindern.
+
+---
+
+## 5) **Utility/Helper-Typen** zentral halten
+
+```js
+// shared/types/result.ts
+export type Result<T, E = Error> =
+  | { ok: true;  value: T }
+  | { ok: false; error: E }
+```
+
+Wiederverwendbare Patterns (Result, Nullable, DeepReadonly, ValueObject-Branding) hier bündeln.
+
+---
+
+## 6) **React-spezifische Typen** nahe an Komponenten
+
+```js
+// features/users/ui/UserCard.tsx
+type UserCardProps = { user: import("../model/types").User; onClick?: () => void }
+export function UserCard({ user }: UserCardProps) { /* … */ }
+```
+
+Props im selben File halten (oder `ui/types.ts`), damit API klar zum UI gehört.
+
+---
+
+## 7) **Strict Mode** aktiv + Linting für Typen
+
+`tsconfig.json`:
+
+```js
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "useUnknownInCatchVariables": true,
+    "moduleResolution": "bundler",
+    "paths": { "@/*": ["src/*"] }
+  }
+}
+```
+
+Ergänze ESLint-Regeln (z. B. `@typescript-eslint/consistent-type-definitions`).
+
+---
+
+## 8) **Globale/ambient** Typen klar kapseln
+
+```js
+// global.d.ts
+declare namespace AppEnv {
+  type Mode = "development" | "production"
+}
+declare global {
+  interface Window { __APP_MODE__: AppEnv.Mode }
+}
+export {}
+```
+
+Nur hier **`declare`**/Module Augmentation; meide Wildwuchs in vielen `.d.ts`.
+
+---
+
+## 9) **API-Layer** generisch & typisiert
+
+```js
+// shared/api/http.ts
+export async function get<T>(url: string, init?: RequestInit): Promise<T> {
+  const r = await fetch(url, init)
+  const json: unknown = await r.json()
+  return json as T // besser: Schema.parse(json)
+}
+```
+
+Verbrauch pro Feature:
+
+```js
+import { UserSchema } from "@/features/users/api/schemas"
+const dto = UserSchema.parse(await get<unknown>("/api/users/1"))
+```
+
+---
+
+## 10) **Namenskonventionen**
+
+* `FooDto` (Server), `Foo` (Domain), `FooInput`/`FooUpdate` (Forms), `FooProps` (React).
+* Für Marken-/Nominaltypen: `Brand<T, Name>` oder `type UserId = Brand<number, "UserId">`.
+
+---
+
+## 11) **Generics, Utility Types und Discriminated Unions** standardisieren
+
+```js
+// shared/types/async.ts
+export type AsyncState<T> =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: string }
+```
+
+Einmal definieren, überall nutzen (Loader, Hooks, Komponenten).
+
+---
+
+## 12) **Exports nur als Typen**, um Bundles sauber zu halten
+
+```js
+// types-only barrel
+export type { User } from "./model/types"
+```
+
+Nutze `import type`/`export type` konsequent.
+
+---
+
+## 13) **Path-Aliases** für klare Imports
+
+```js
+// tsconfig.json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"], "@users/*": ["src/features/users/*"] }
+  }
+}
+```
+
+---
+
+## 14) **Tests**: Typen separat prüfen
+
+* `tsd`/`expect-type` für Typ-Tests.
+* Edge-Cases: `exactOptionalPropertyTypes`, readonly/immutables, Union-Narrowing.
+
+---
+
+## 15) **Dokumentation**
+
+Kurze README je Feature: *Welche Typen sind DTO, welche Domain, welche Props?*
+Ergänze JSDoc an öffentliche Typen/Functions.
+
+---
+
+### Beispiel-Minipaket (Feature „users“)
+
+```js
+// features/users/model/types.ts
+export type User = { id: number; name: string; email: string }
+
+// features/users/ui/types.ts
+export type UserCardProps = { user: User; compact?: boolean }
+
+// features/users/ui/UserCard.tsx
+import type { UserCardProps } from "./types"
+export function UserCard({ user }: UserCardProps) { /* … */ }
+```
+
+---
+
+### Zusammenfassung
+
+* **Feature-first**: Typen nahe am Verbrauch; global nur truly-shared.
+* **Trenne DTO ↔ Domain**, nutze **Zod** (oder ähnliches) für **Runtime-Validation** + `z.infer`.
+* **Strict tsconfig**, klare **Namenskonventionen**, **types-only**-Exporte.
+* **Utility/Async/Result**-Typen zentral; **Unions** für UI-Status.
+* **Path-Aliases** & maßvolle **Barrels** zur Wartbarkeit.
+
+**Quellen:**
+
+* [TypeScript Handbook – Project Config](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html)
+* [TypeScript Docs – Utility Types & Generics](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* [React TypeScript Cheatsheet – Setup & Patterns](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup)
+* [React Offizielle Doku](https://react.dev/)
+
+**Zusammenfassung**
+Organisiere Typen **feature-basiert**, trenne **DTO/Domain**, sichere Daten per **Runtime-Validation**, halte **strict** aktiv, verwende **Utility/Unions** zentral und **types-only Exports** mit sauberen **Aliases**.
 
   **[⬆ Наверх](#top)**
 
-92. ### <a name="92"></a> 
+92. ### <a name="92"></a> Wo speichert man gemeinsame Typen (z. B. User, Product)?
 
+### Gemeinsame Typen sinnvoll ablegen
 
+**Grundsatz:** *So nah wie möglich am Verbrauch, nur wirklich übergreifende Typen zentralisieren.*
+
+---
+
+## 1) Feature-first – bevorzugt
+
+* **Domänen-/UI-Typen** (z. B. `User`, `Product`) leben im jeweiligen Feature.
+* Vorteile: geringe Kopplung, klare Ownership, weniger Konflikte.
+
+```txt
+src/
+  features/
+    users/
+      model/types.ts        // User (Domain)
+      api/schemas.ts        // Zod + z.infer DTOs
+    products/
+      model/types.ts        // Product (Domain)
+```
+
+**Import (types-only):**
+
+```js
+import type { User } from "@/features/users/model/types"
+```
+
+---
+
+## 2) Shared-Layer nur für wirklich gemeinsame Typen
+
+* **Beispiele:** `ID`, `Result<T>`, `Pagination<T>`, Feature-übergreifende Value Objects.
+* Kein “Mülleimer”: keine Feature-spezifischen Typen hier ablegen.
+
+```txt
+src/
+  shared/
+    types/
+      result.ts     // Result<T, E>
+      pagination.ts // Page<T>
+      index.ts
+```
+
+```js
+// shared/types/result.ts
+export type Result<T, E = Error> =
+  | { ok: true; value: T }
+  | { ok: false; error: E }
+```
+
+---
+
+## 3) DTOs vs. Domain trennen
+
+* **API-DTOs** im jeweiligen Feature unter `api/` (plus *Zod* Schemas).
+* **UI/Domain-Typen** unter `model/`.
+
+```js
+// features/users/api/schemas.ts
+import { z } from "zod"
+export const UserDtoSchema = z.object({
+  id: z.number().int(),
+  first_name: z.string(),
+  email: z.string().email()
+})
+export type UserDto = z.infer<typeof UserDtoSchema>
+```
+
+---
+
+## 4) Path-Aliases & Barrel Files (maßvoll)
+
+```js
+// tsconfig.json (Auszug)
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
+    "strict": true
+  }
+}
+```
+
+* **Barrels** (`index.ts`) nur, wenn sie keine **Zyklen** erzeugen.
+* `import type` / `export type` nutzen, um unnötiges Bundling zu vermeiden.
+
+---
+
+## 5) Monorepo / geteilte Nutzung (Front+Back)
+
+* Eigene **`packages/types`** (reines Type/Schema-Paket).
+* Enthält **Schemas + `z.infer`-Typen** für Contracts (ein *Source of Truth*).
+
+```txt
+packages/
+  types/
+    src/
+      user.ts       // Zod + Types
+      product.ts
+```
+
+---
+
+## 6) `global.d.ts` nur für Ambient/Erweiterungen
+
+* **Nur** globale Augmentationen (z. B. `Window`, Env-Variablen), keine normalen Domänen-Typen.
+
+```js
+// global.d.ts
+declare global {
+  interface Window { __APP_MODE__: "development" | "production" }
+}
+export {}
+```
+
+---
+
+### Zusammenfassung
+
+* **Feature-nah** speichern (Domain/Props), **DTOs** im Feature-API-Layer, **wirklich gemeinsame** Utility-Typen nach `shared/types`.
+* **Schemas (Zod)** + `z.infer` als Contract-Quelle; in Monorepos eigenes **types-Paket**.
+* **Path-Aliases**, **types-only Exports**, **keine** wildwüchsigen globalen `.d.ts`.
+
+🔗 Quellen:
+
+* [TypeScript Docs – Project Config (`tsconfig`)](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html)
+* [TypeScript Docs – Modules & `import type`](https://www.typescriptlang.org/docs/handbook/modules.html)
+* [React TypeScript Cheatsheet – Setup & Patterns](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup)
+* [MDN – Module Basics](https://developer.mozilla.org/ru/docs/Web/JavaScript/Guide/Modules)
 
   **[⬆ Наверх](#top)**
 
-93. ### <a name="93"></a> 
+93. ### <a name="93"></a> Wie typisiert man den globalen Store (Redux/RTK)?
 
+### Globalen Store (Redux Toolkit) typisieren
 
+---
+
+## 1) Store & Root-Typen
+
+```js
+// store.ts
+import { configureStore } from "@reduxjs/toolkit"
+import counterReducer from "./features/counter/slice.js"
+
+export const store = configureStore({
+  reducer: {
+    counter: counterReducer,
+  }
+})
+
+// Globale Typen
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch
+```
+
+---
+
+## 2) Typisierte Hooks (`useAppDispatch`, `useAppSelector`)
+
+```js
+// hooks.ts
+import { useDispatch, useSelector, type TypedUseSelectorHook } from "react-redux"
+import type { RootState, AppDispatch } from "./store.js"
+
+export const useAppDispatch = () => useDispatch<AppDispatch>()
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
+```
+
+**Nutzung in Komponenten**
+
+```js
+import { useAppDispatch, useAppSelector } from "@/store/hooks.js"
+import { increment } from "@/features/counter/slice.js"
+
+export function Counter() {
+  const n = useAppSelector(s => s.counter.value)
+  const dispatch = useAppDispatch()
+  return <button onClick={() => dispatch(increment())}>{n}</button>
+}
+```
+
+---
+
+## 3) Slice typisieren
+
+```js
+// features/counter/slice.ts
+import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+
+type CounterState = { value: number }
+const initialState: CounterState = { value: 0 }
+
+const counterSlice = createSlice({
+  name: "counter",
+  initialState,
+  reducers: {
+    increment: (s) => { s.value += 1 },
+    addBy: (s, a: PayloadAction<number>) => { s.value += a.payload },
+  },
+})
+
+export const { increment, addBy } = counterSlice.actions
+export default counterSlice.reducer
+```
+
+---
+
+## 4) `createAsyncThunk` typisieren
+
+```js
+// features/users/thunks.ts
+import { createAsyncThunk } from "@reduxjs/toolkit"
+
+type User = { id: number; name: string }
+type FetchUsersArg = { q?: string }
+
+export const fetchUsers = createAsyncThunk<User[], FetchUsersArg>(
+  "users/fetch",
+  async (arg) => {
+    const res = await fetch(`/api/users?q=${encodeURIComponent(arg.q ?? "")}`)
+    return (await res.json()) as User[]
+  }
+)
+```
+
+**Extra-Argumente/Middleware (optional)**
+
+```js
+// Beispiel: getState/dispatch Typen sind aus RootState/AppDispatch abgeleitet
+createAsyncThunk<User[], void, { state: RootState }>(
+  "x/fetch",
+  async (_, { getState }) => {
+    const token = getState().auth.token
+    // ...
+    return []
+  }
+)
+```
+
+---
+
+## 5) Store-Setup für Tests (PreloadedState)
+
+```js
+// testStore.ts
+import { configureStore, type PreloadedState } from "@reduxjs/toolkit"
+import type { RootState } from "./store.js"
+import counter from "./features/counter/slice.js"
+
+export function setupStore(preloadedState?: PreloadedState<RootState>) {
+  return configureStore({ reducer: { counter }, preloadedState })
+}
+```
+
+---
+
+## 6) Selektoren typisieren
+
+```js
+// features/counter/selectors.ts
+import type { RootState } from "@/store/store.js"
+export const selectCount = (s: RootState) => s.counter.value
+```
+
+---
+
+## 7) Typen exportieren (nur als Typ)
+
+```js
+// index.ts
+export { store } from "./store.js"
+export type { RootState, AppDispatch } from "./store.js"
+```
+
+---
+
+### Zusammenfassung
+
+* `configureStore` erstellen → `RootState = ReturnType<typeof store.getState>`, `AppDispatch = typeof store.dispatch`.
+* Eigene Hooks: `useAppDispatch`, `useAppSelector<RootState>`.
+* Slices mit `PayloadAction<T>` typisieren; `createAsyncThunk<Returned, Arg, { state: RootState }>` für Async.
+* Selektoren mit `RootState` typisieren; Tests via `PreloadedState<RootState>`.
+
+**Quellen:**
+
+* [Redux Toolkit – TypeScript Quick Start](https://redux-toolkit.js.org/tutorials/typescript)
+* [Redux Docs – TypeScript](https://redux.js.org/usage/usage-with-typescript)
+* [React TypeScript Cheatsheet – Redux](https://react-typescript-cheatsheet.netlify.app/docs/basic/redux/)
+
+**Zusammenfassung**
+Store-Typen aus dem echten Store ableiten, **typed Hooks** exportieren, Actions/Thunks/Selektoren strikt mit generischen Signaturen typisieren.
 
   **[⬆ Наверх](#top)**
 
-94. ### <a name="94"></a> 
+94. ### <a name="94"></a> Wie typisiert man Actions und Reducer im Redux Toolkit?
 
+### Actions & Reducer im **Redux Toolkit** typisieren
 
+---
+
+## 1) `createSlice`: State & `PayloadAction<T>`
+
+```js
+import { createSlice } from "@reduxjs/toolkit"
+import type { PayloadAction } from "@reduxjs/toolkit"
+
+type CounterState = { value: number }
+const initialState: CounterState = { value: 0 }
+
+const counterSlice = createSlice({
+  name: "counter",
+  initialState, // → State-Typ wird aus initialState inferred
+  reducers: {
+    increment(state) {
+      state.value += 1
+    },
+    addBy(state, action: PayloadAction<number>) {
+      state.value += action.payload           // payload: number
+    },
+    setLabel(state, action: PayloadAction<{ id: number; text: string }>) {
+      // action.payload: { id: number; text: string }
+    }
+  }
+})
+
+export const { increment, addBy, setLabel } = counterSlice.actions
+export default counterSlice.reducer
+```
+
+*State-Typ:* aus `initialState` abgeleitet (oder explizit als Generics/Annotation angeben).
+*Action-Typ:* pro Reducer via `PayloadAction<Payload>`.
+
+---
+
+## 2) `prepare`-Callback für strengere Payloads
+
+```js
+const todosSlice = createSlice({
+  name: "todos",
+  initialState: [] as { id: string; text: string; done: boolean }[],
+  reducers: {
+    add: {
+      reducer(state, action: PayloadAction<{ id: string; text: string }>) {
+        state.push({ ...action.payload, done: false })
+      },
+      prepare(text: string) {
+        return { payload: { id: crypto.randomUUID(), text } }
+      }
+    }
+  }
+})
+```
+
+→ `prepare` definiert die *exakte* Payload-Form; der Reducer erhält sie typsicher.
+
+---
+
+## 3) Eigene Actions mit `createAction<T>()`
+
+```js
+import { createAction } from "@reduxjs/toolkit"
+
+export const userLoaded = createAction<{ id: number; name: string }>("user/loaded")
+
+// In extraReducers:
+builder.addCase(userLoaded, (state, action) => {
+  // action.payload: { id: number; name: string }
+})
+```
+
+---
+
+## 4) `createAsyncThunk` und `extraReducers` typisieren
+
+```js
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
+import type { PayloadAction } from "@reduxjs/toolkit"
+
+type User = { id: number; name: string }
+
+// Returned = User[], Arg = string (query)
+export const fetchUsers = createAsyncThunk<User[], string>(
+  "users/fetch",
+  async (q) => {
+    const r = await fetch(`/api/users?q=${encodeURIComponent(q)}`)
+    return (await r.json()) as User[]
+  }
+)
+
+type UsersState = { items: User[]; loading: boolean; error?: string }
+const initialUsers: UsersState = { items: [], loading: false }
+
+const usersSlice = createSlice({
+  name: "users",
+  initialState: initialUsers,
+  reducers: {
+    clear(state) { state.items = [] }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUsers.pending, (state) => {
+        state.loading = true
+        state.error = undefined
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.loading = false
+        state.items = action.payload        // payload: User[]
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.error.message  // string | undefined
+      })
+  }
+})
+```
+
+`builder.addCase(thunk.fulfilled, …)` liefert **typsichere Payloads** (Returned-Type vom Thunk).
+
+---
+
+## 5) Matchers und mehrere Actions
+
+```js
+import { isAnyOf } from "@reduxjs/toolkit"
+
+builder.addMatcher(
+  isAnyOf(fetchUsers.pending, /* andere pending Actions */),
+  (state) => { state.loading = true }
+)
+```
+
+→ Matcher signalisieren die Form; die Payload ist je nach Matcher ggf. `unknown` oder eng, abhängig vom Prädikat.
+
+---
+
+## 6) Action-Typen ableiten (falls nötig)
+
+```js
+const a = usersSlice.actions
+type UsersAction = ReturnType<typeof a.clear | typeof fetchUsers.fulfilled>
+```
+
+→ Praktisch für manuelle Typen (Middleware, Tests).
+
+---
+
+## 7) Reducer separat typisieren (selten nötig)
+
+```js
+import type { Reducer } from "@reduxjs/toolkit"
+
+type S = { count: number }
+type A = { type: "inc" } | { type: "add"; payload: number }
+
+const reducer: Reducer<S, A> = (state = { count: 0 }, action) => {
+  switch (action.type) {
+    case "inc":  return { count: state.count + 1 }
+    case "add":  return { count: state.count + action.payload }
+    default:     return state
+  }
+}
+```
+
+→ In RTK meist über `createSlice` einfacher/typsicherer.
+
+---
+
+### Zusammenfassung
+
+* **`PayloadAction<T>`** in `reducers` typisiert die `action.payload`.
+* **`prepare`** erzwingt exakte Payload-Form.
+* **`createAction<T>()`** für stand-alone Actions.
+* **`createAsyncThunk<Returned, Arg>`** + `extraReducers` geben typsichere Payloads für `pending/fulfilled/rejected`.
+* **Matcher** für Gruppen von Actions; **ReturnType** nützlich für Action-Typ-Ableitungen.
+
+**Quellen:**
+
+* [Redux Toolkit – TypeScript Quick Start](https://redux-toolkit.js.org/tutorials/typescript)
+* [Redux – Usage with TypeScript](https://redux.js.org/usage/usage-with-typescript)
+* [TypeScript Handbook – Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* [React TypeScript Cheatsheet – Redux](https://react-typescript-cheatsheet.netlify.app/docs/basic/redux/)
+
+**Zusammenfassung**
+Actions typisiert man mit **`PayloadAction<T>`** (oder `createAction<T>()`), Reducer via **`createSlice`** (State aus `initialState` abgeleitet). Async-Flow über **`createAsyncThunk`** und **`extraReducers`** mit automatisch passender Payload.
 
   **[⬆ Наверх](#top)**
 
-95. ### <a name="95"></a> 
+95. ### <a name="95"></a> Wie typisiert man useSelector und useDispatch?
 
+**useSelector und useDispatch typisieren (Redux Toolkit + TypeScript)**
 
+Damit TypeScript im ganzen Projekt korrekt mit dem Redux-Store arbeitet, werden üblicherweise zwei Hilfstypen erstellt:
+
+1. **RootState** – der kombinierte Zustand des Stores.
+2. **AppDispatch** – der Dispatch-Typ.
+
+Diese Typen werden anschließend in eigenen Hooks genutzt:
+
+```js
+// store.ts
+import { configureStore } from '@reduxjs/toolkit'
+import counterReducer from './counterSlice.js'
+
+export const store = configureStore({
+  reducer: {
+    counter: counterReducer,
+  },
+})
+
+// RootState = abgeleitet aus dem Store-State
+export type RootState = ReturnType<typeof store.getState>
+
+// AppDispatch = Typ der Dispatch-Funktion
+export type AppDispatch = typeof store.dispatch
+```
+
+👉 Danach erstellt man **typed Hooks**:
+
+```js
+// hooks.ts
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
+import type { RootState, AppDispatch } from './store.js'
+
+// Typed Dispatch
+export const useAppDispatch = () => useDispatch<AppDispatch>()
+
+// Typed Selector
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
+```
+
+👉 Beispiel in einer Komponente:
+
+```js
+// Counter.tsx
+import React from 'react'
+import { useAppSelector, useAppDispatch } from './hooks.js'
+import { increment } from './counterSlice.js'
+
+export default function Counter() {
+  const count = useAppSelector(state => state.counter.value) // RootState korrekt typisiert
+  const dispatch = useAppDispatch() // kennt AppDispatch
+
+  return (
+    <div>
+      <p>{count}</p>
+      <button onClick={() => dispatch(increment())}>
+        Increment
+      </button>
+    </div>
+  )
+}
+```
+
+---
+
+**Zusammenfassung**
+
+* `RootState = ReturnType<typeof store.getState>` → Typ für gesamten State.
+* `AppDispatch = typeof store.dispatch` → Typ für Dispatch.
+* Mit **custom Hooks** (`useAppSelector`, `useAppDispatch`) werden Selektoren und Dispatch **typsicher** gemacht.
+
+📚 Quellen:
+
+* [Redux Toolkit – TypeScript Quick Start](https://redux-toolkit.js.org/tutorials/typescript)
+* [React-Redux TypeScript Cheatsheet](https://react-typescript-cheatsheet.netlify.app/docs/react-redux/typed-hooks)
+
+---
 
   **[⬆ Наверх](#top)**
 
-96. ### <a name="96"></a> 
+96. ### <a name="96"></a> Wie typisiert man einen Zustand-Store (Zustand)?
 
+**Zustand Store typisieren (TypeScript)**
 
+Bei [Zustand](https://docs.pmnd.rs/zustand/getting-started/introduction) wird der Zustand typischerweise über ein Interface definiert. Dieses Interface beschreibt die **State-Werte** und **Actions**.
+
+---
+
+### Beispiel: einfacher Counter-Store
+
+```js
+// store.ts
+import { create } from 'zustand'
+
+// 1. State-Interface definieren
+interface CounterState {
+  count: number
+  increment: () => void
+  decrement: () => void
+}
+
+// 2. Store mit generischem Typ anlegen
+export const useCounterStore = create<CounterState>((set) => ({
+  count: 0,
+  increment: () => set((state) => ({ count: state.count + 1 })),
+  decrement: () => set((state) => ({ count: state.count - 1 })),
+}))
+```
+
+---
+
+### Verwendung in einer Komponente
+
+```js
+// Counter.tsx
+import React from 'react'
+import { useCounterStore } from './store.js'
+
+export default function Counter() {
+  const count = useCounterStore((state) => state.count)
+  const increment = useCounterStore((state) => state.increment)
+
+  return (
+    <div>
+      <p>{count}</p>
+      <button onClick={increment}>+1</button>
+    </div>
+  )
+}
+```
+
+---
+
+### Erweiterung: get + set im Store
+
+Wenn man Zugriff auf den kompletten Zustand braucht (z. B. asynchrone Logik), kann man `set` und `get` typisieren:
+
+```js
+interface UserState {
+  user: string | null
+  setUser: (name: string) => void
+  reset: () => void
+}
+
+export const useUserStore = create<UserState>((set, get) => ({
+  user: null,
+  setUser: (name) => set({ user: name }),
+  reset: () => set({ user: null }),
+}))
+```
+
+---
+
+**Zusammenfassung**
+
+* Zustand-Store wird über ein Interface für State + Actions typisiert.
+* `create<StateType>((set, get) => …)` nutzt das Interface als generischen Typ.
+* Dadurch sind sowohl State-Werte als auch Actions in Komponenten **typsicher**.
+
+📚 Quellen:
+
+* [Zustand – TypeScript Usage](https://docs.pmnd.rs/zustand/guides/typescript)
+* [TypeScript Docs: Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
-97. ### <a name="97"></a> 
+97. ### <a name="97"></a> Wie typisiert man Async Thunks?
 
+**Async Thunks typisieren (Redux Toolkit + TypeScript)**
 
+---
+
+### Grundidee: Generics von `createAsyncThunk`
+
+```ts
+createAsyncThunk<Returned, ThunkArg, ThunkApiConfig>(type, payloadCreator)
+```
+
+* **Returned**: Erfolgs‐Payload (was `payloadCreator` zurückgibt).
+* **ThunkArg**: Argument, das beim Dispatch übergeben wird.
+* **ThunkApiConfig**: Optionale Typen für `{ state, dispatch, extra, rejectValue }`.
+
+---
+
+### Basisbeispiel mit erfolgreicher Payload
+
+```js
+// features/users/usersThunks.ts
+import { createAsyncThunk } from '@reduxjs/toolkit'
+
+// API-Modelle
+export type User = { id: string; name: string }
+export type FetchUserArg = { id: string }
+
+// Returned = User, ThunkArg = FetchUserArg
+export const fetchUser = createAsyncThunk<User, FetchUserArg>(
+  'users/fetchUser',
+  async ({ id }) => {
+    const res = await fetch(`/api/users/${id}`)
+    if (!res.ok) throw new Error('Network error')
+    return res.json() // => User
+  }
+)
+```
+
+---
+
+### Mit `rejectWithValue` (typisierte Fehler-Payload)
+
+```js
+// features/users/usersThunks.ts
+import { createAsyncThunk } from '@reduxjs/toolkit'
+
+type User = { id: string; name: string }
+type FetchUserArg = { id: string }
+type ApiError = { code: string; message: string }
+
+// ThunkApiConfig mit rejectValue
+export const fetchUserSafe = createAsyncThunk<
+  User,                      // Returned
+  FetchUserArg,              // ThunkArg
+  { rejectValue: ApiError }  // ThunkApiConfig
+>(
+  'users/fetchUserSafe',
+  async ({ id }, { rejectWithValue }) => {
+    const res = await fetch(`/api/users/${id}`)
+    if (!res.ok) {
+      const err = await res.json()
+      return rejectWithValue(err) // err: ApiError
+    }
+    return res.json()
+  }
+)
+```
+
+---
+
+### Mit `RootState`, `AppDispatch` und `extra`
+
+```js
+// app/store.ts
+import { configureStore } from '@reduxjs/toolkit'
+import usersReducer from '../features/users/usersSlice.js'
+
+export const store = configureStore({
+  reducer: { users: usersReducer },
+  // optional: extra für Services, z. B. API-Client
+  // middleware: (gDM) => gDM({ thunk: { extraArgument: apiClient } }),
+})
+
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch
+```
+
+```js
+// features/users/usersThunks.ts
+import { createAsyncThunk } from '@reduxjs/toolkit'
+import type { RootState, AppDispatch } from '../../app/store.js'
+
+// Returned, Arg, ThunkApiConfig inkl. state/dispatch/extra
+export const fetchMe = createAsyncThunk<
+  { id: string; name: string },                 // Returned
+  void,                                         // Arg
+  { state: RootState; dispatch: AppDispatch }   // ThunkApiConfig
+>(
+  'users/fetchMe',
+  async (_arg, { getState, dispatch }) => {
+    const token = getState().auth.token
+    const res = await fetch('/api/me', { headers: { Authorization: `Bearer ${token}` } })
+    if (!res.ok) throw new Error('Unauthorized')
+    const me = await res.json()
+    // dispatch(...) wäre hier typisiert
+    return me
+  }
+)
+```
+
+---
+
+### Verwendung im Slice (Typen werden automatisch abgeleitet)
+
+```js
+// features/users/usersSlice.ts
+import { createSlice } from '@reduxjs/toolkit'
+import { fetchUserSafe } from './usersThunks.js'
+
+const initialState = { entity: null, loading: false, error: null }
+
+const usersSlice = createSlice({
+  name: 'users',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUserSafe.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchUserSafe.fulfilled, (state, action) => {
+        state.loading = false
+        state.entity = action.payload // payload: User
+      })
+      .addCase(fetchUserSafe.rejected, (state, action) => {
+        state.loading = false
+        // action.payload ist ApiError | undefined (bei rejectWithValue gesetzt)
+        state.error = action.payload ?? { code: 'UNKNOWN', message: action.error.message }
+      })
+  },
+})
+
+export default usersSlice.reducer
+```
+
+---
+
+### Verwendung in Komponenten mit `.unwrap()` (typsicheres Error-Handling)
+
+```js
+// components/ProfileButton.tsx
+import React from 'react'
+import { useAppDispatch } from '../app/hooks.js'
+import { fetchUserSafe } from '../features/users/usersThunks.js'
+
+export default function ProfileButton() {
+  const dispatch = useAppDispatch()
+
+  const onClick = async () => {
+    try {
+      const user = await dispatch(fetchUserSafe({ id: '42' })).unwrap()
+      console.log('OK:', user) // user: User
+    } catch (err) {
+      // err: ApiError (wenn rejectWithValue genutzt), sonst Error
+      console.error('FAILED:', err)
+    }
+  }
+
+  return <button onClick={onClick}>Load Profile</button>
+}
+```
+
+---
+
+**Zusammenfassung**
+
+* `createAsyncThunk<Returned, Arg, { state, dispatch, extra, rejectValue }>()` präzise typisieren.
+* Für Fehlerpfade `rejectWithValue` + eigenes Fehlermodell nutzen.
+* `RootState`/`AppDispatch` im `ThunkApiConfig` verfügbar machen.
+* In Komponenten `.unwrap()` für typsichere Erfolg/Fehler-Zweige.
+
+**Quellen**
+
+* Redux Toolkit: *TypeScript Quick Start* & *createAsyncThunk* (aktuell): [https://redux-toolkit.js.org/tutorials/typescript](https://redux-toolkit.js.org/tutorials/typescript) , [https://redux-toolkit.js.org/api/createAsyncThunk](https://redux-toolkit.js.org/api/createAsyncThunk)
+* TypeScript Generics: [https://www.typescriptlang.org/docs/handbook/2/generics.html](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* MDN (RU) – `fetch`: [https://developer.mozilla.org/ru/docs/Web/API/fetch](https://developer.mozilla.org/ru/docs/Web/API/fetch)
+* React TypeScript Cheatsheet (React-Redux Abschnitt): [https://react-typescript-cheatsheet.netlify.app/docs/react-redux/overview/](https://react-typescript-cheatsheet.netlify.app/docs/react-redux/overview/)
 
   **[⬆ Наверх](#top)**
 
-98. ### <a name="98"></a> 
+98. ### <a name="98"></a> Wie typisiert man Query Hooks in RTK Query?
 
+**RTK Query: Query-Hooks korrekt typisieren**
 
+> Kernidee: Die Typen der Hooks (`useXxxQuery`, `useLazyXxxQuery`) werden **automatisch** aus den generischen Typen der Endpoints abgeleitet: `builder.query<ResultType, QueryArg>()`.
+
+---
+
+### 1) API mit typisierten Endpoints definieren
+
+```js
+// services/api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+// Domänen-Typen
+export type User = { id: string; name: string }
+export type GetUserArg = { id: string }
+
+// ResultType = User, QueryArg = GetUserArg
+export const api = createApi({
+  reducerPath: 'api',
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  endpoints: (build) => ({
+    getUser: build.query<User, GetUserArg>({
+      query: ({ id }) => `/users/${id}`,
+      // optional: transformResponse: (raw: unknown) => raw as User
+    }),
+  }),
+})
+
+// Auto-generierte, TYPISIERTE Hooks
+export const { useGetUserQuery, useLazyGetUserQuery } = api
+```
+
+**Ergebnis:**
+
+* `useGetUserQuery({ id: string })` erwartet genau `GetUserArg` und liefert `data?: User`.
+* `useLazyGetUserQuery()` liefert ein Tupel: `[trigger, { data?: User, ... }]` – beides streng typisiert.
+
+---
+
+### 2) Nutzung der Query-Hooks in Komponenten
+
+```js
+// components/Profile.tsx
+import React from 'react'
+import { useGetUserQuery } from '../services/api.js'
+
+export default function Profile() {
+  // arg ist typsicher: { id: string }
+  const { data, isLoading, isError } = useGetUserQuery({ id: '42' })
+
+  if (isLoading) return <p>Laden…</p>
+  if (isError) return <p>Fehler</p>
+
+  return <div>{data?.name}</div> // data: User | undefined
+}
+```
+
+---
+
+### 3) Bedingtes Laden: `skipToken` statt `skip` (bewahrt Typen)
+
+```js
+// components/MaybeProfile.tsx
+import React from 'react'
+import { skipToken } from '@reduxjs/toolkit/query'
+import { useGetUserQuery } from '../services/api.js'
+
+export default function MaybeProfile({ id }) {
+  // Wenn id nicht vorhanden -> Query wird übersprungen,
+  // *ohne* die Typen zu verlieren.
+  const result = useGetUserQuery(id ? { id } : skipToken)
+
+  // result.data bleibt: User | undefined
+  return <pre>{JSON.stringify(result.data)}</pre>
+}
+```
+
+---
+
+### 4) Selektoren aus Hooks: `selectFromResult` (feingranulare Typen)
+
+```js
+// components/UserName.tsx
+import React from 'react'
+import { useGetUserQuery } from '../services/api.js'
+
+export default function UserName({ id }) {
+  const { name } = useGetUserQuery({ id }, {
+    // name: string | undefined — korrekt abgeleitet aus User
+    selectFromResult: ({ data }) => ({ name: data?.name }),
+  })
+  return <span>{name ?? '—'}</span>
+}
+```
+
+---
+
+### 5) Generics bei `queryFn` / `transformResponse` (falls nötig)
+
+```js
+// services/api-advanced.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+export type Post = { id: number; title: string }
+
+export const api2 = createApi({
+  reducerPath: 'api2',
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  endpoints: (b) => ({
+    //          ResultType  QueryArg
+    getPost: b.query<Post, number>({
+      query: (id) => `/posts/${id}`,
+      transformResponse: (raw) => raw, // raw -> Post (durch Generics erzwungen)
+    }),
+  }),
+})
+```
+
+---
+
+### 6) Fehler-Typen auslesen (Hook-Result)
+
+```js
+// components/Post.tsx
+import React from 'react'
+import { useGetPostQuery } from '../services/api-advanced.js'
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query'
+
+export default function Post({ id }) {
+  const { data, error } = useGetPostQuery(id)
+  // error: FetchBaseQueryError | SerializedError | undefined
+  const fbq = error as FetchBaseQueryError | undefined
+  const status = fbq && 'status' in fbq ? fbq.status : undefined
+
+  return <div>{data?.title ?? `Fehler: ${String(status ?? '')}`}</div>
+}
+```
+
+---
+
+### 7) Prefetch & Caching-Helfer bleiben typisiert
+
+```js
+// components/PrefetchButton.tsx
+import React from 'react'
+import { api } from '../services/api.js'
+
+export default function PrefetchButton() {
+  const prefetchUser = api.usePrefetch('getUser') // Endpoint-Name ist typgeprüft
+  return (
+    <button onMouseEnter={() => prefetchUser({ id: '42' }, { force: false })}>
+      Prefetch User 42
+    </button>
+  )
+}
+```
+
+---
+
+**Zusammenfassung**
+
+* Typen der Query-Hooks werden aus `builder.query<Result, Arg>` **automatisch** abgeleitet.
+* `skipToken` für konditionelles Laden nutzen, ohne Typen zu verlieren.
+* `selectFromResult` für schmale, strikt typisierte Slices aus Hook-Resultaten.
+* Fehlerzugriff via `FetchBaseQueryError | SerializedError`.
+* `useLazyXxxQuery`, `usePrefetch` und Helfer sind endpoint-basiert typisiert.
+
+**Quellen**
+
+* RTK Query – *Usage With TypeScript*: ([redux-toolkit.js.org][1])
+* RTK Query – *Queries* & React-Hooks API: ([redux-toolkit.js.org][2])
+* RTK Query – *Conditional Fetching* (`skipToken`): ([redux-toolkit.js.org][3])
+* React TypeScript Cheatsheets: ([react-typescript-cheatsheet.netlify.app][4])
+* TypeScript Generics (off. Docs): [https://www.typescriptlang.org/docs/handbook/2/generics.html](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+
+[1]: https://redux-toolkit.js.org/rtk-query/usage-with-typescript?utm_source=chatgpt.com "Usage With TypeScript"
+[2]: https://redux-toolkit.js.org/rtk-query/usage/queries?utm_source=chatgpt.com "Queries"
+[3]: https://redux-toolkit.js.org/rtk-query/usage/conditional-fetching?utm_source=chatgpt.com "Conditional Fetching"
+[4]: https://react-typescript-cheatsheet.netlify.app/?utm_source=chatgpt.com "React TypeScript Cheatsheets"
 
   **[⬆ Наверх](#top)**
 
-99. ### <a name="99"></a> 
+99. ### <a name="99"></a> Wie verwendet man Enums für Redux-Actions?
 
+**Enums für Redux-Actions (TypeScript)**
 
+Enums helfen, **Action-Typen typsicher und konsistent** zu definieren. Damit verhindert man Tippfehler bei Strings und erhält Autovervollständigung.
+
+---
+
+### 1) Enum für Action Types definieren
+
+```ts
+// actionTypes.ts
+export enum CounterActionType {
+  INCREMENT = 'counter/increment',
+  DECREMENT = 'counter/decrement',
+  RESET = 'counter/reset',
+}
+```
+
+---
+
+### 2) Action Creator mit Enum nutzen
+
+```ts
+// actions.ts
+import { CounterActionType } from './actionTypes.js'
+
+export const increment = () => ({
+  type: CounterActionType.INCREMENT as const,
+})
+
+export const decrement = () => ({
+  type: CounterActionType.DECREMENT as const,
+})
+
+export const reset = () => ({
+  type: CounterActionType.RESET as const,
+})
+```
+
+---
+
+### 3) Union-Typ für Actions ableiten
+
+```ts
+// types.ts
+import * as actions from './actions.js'
+
+export type CounterAction = 
+  | ReturnType<typeof actions.increment>
+  | ReturnType<typeof actions.decrement>
+  | ReturnType<typeof actions.reset>
+```
+
+---
+
+### 4) Reducer mit Enum typisieren
+
+```ts
+// reducer.ts
+import { CounterActionType } from './actionTypes.js'
+import type { CounterAction } from './types.js'
+
+interface CounterState {
+  value: number
+}
+
+const initialState: CounterState = { value: 0 }
+
+export function counterReducer(
+  state: CounterState = initialState,
+  action: CounterAction
+): CounterState {
+  switch (action.type) {
+    case CounterActionType.INCREMENT:
+      return { value: state.value + 1 }
+    case CounterActionType.DECREMENT:
+      return { value: state.value - 1 }
+    case CounterActionType.RESET:
+      return { value: 0 }
+    default:
+      return state
+  }
+}
+```
+
+---
+
+### 5) Verwendung in Komponenten
+
+```tsx
+// Counter.tsx
+import React from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { increment, decrement, reset } from './actions.js'
+import type { RootState } from './store.js'
+
+export default function Counter() {
+  const count = useSelector((state: RootState) => state.counter.value)
+  const dispatch = useDispatch()
+
+  return (
+    <div>
+      <p>{count}</p>
+      <button onClick={() => dispatch(increment())}>+1</button>
+      <button onClick={() => dispatch(decrement())}>-1</button>
+      <button onClick={() => dispatch(reset())}>Reset</button>
+    </div>
+  )
+}
+```
+
+---
+
+### Hinweis: Redux Toolkit
+
+Wenn du Redux Toolkit benutzt, brauchst du **keine Enums** – Action-Typen werden automatisch erzeugt (`slice.actions`). Enums sind eher für **klassische Redux-Setups** sinnvoll.
+
+---
+
+**Zusammenfassung**
+
+* Mit `enum` werden Action-Typen zentral und typsicher verwaltet.
+* Action Creators + Reducer nutzen Enum-Werte statt String-Literale.
+* Vorteil: Autovervollständigung, weniger Fehler, konsistentes Handling.
+* In Redux Toolkit oft überflüssig, da dort Action-Typen automatisch generiert werden.
+
+📚 Quellen:
+
+* [TypeScript Handbook – Enums](https://www.typescriptlang.org/docs/handbook/enums.html)
+* [Redux Fundamentals: Actions](https://redux.js.org/tutorials/fundamentals/part-2-concepts-data-flow#actions)
+* [Redux Toolkit vs. Vanilla Redux](https://redux-toolkit.js.org/introduction/getting-started)
+
+---
 
   **[⬆ Наверх](#top)**
 
-100. ### <a name="100"></a> 
+100. ### <a name="100"></a> Wie typisiert man Formulare mit React Hook Form?
 
+**Formulare mit React Hook Form typisieren (TypeScript)**
 
+---
+
+### 1) Grundstruktur: `useForm<FormValues>()`
+
+```js
+// Form.tsx
+import React from 'react'
+import { useForm } from 'react-hook-form'
+
+type FormValues = {
+  email: string
+  age: number
+}
+
+export default function BasicForm() {
+  const { register, handleSubmit, formState: { errors } } =
+    useForm<FormValues>({
+      defaultValues: { email: '', age: 18 }, // passt zu FormValues
+    })
+
+  const onSubmit = (data: FormValues) => console.log(data)
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('email', { required: 'E-Mail ist Pflicht' })} />
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <input type="number" {...register('age', { min: { value: 18, message: '≥ 18' } })} />
+      {errors.age && <span>{errors.age.message}</span>}
+
+      <button type="submit">Senden</button>
+    </form>
+  )
+}
+```
+
+*`register('email')`/`errors.email` sind streng an `FormValues` gebunden.* ([react-hook-form.com][1])
+
+---
+
+### 2) Kontrollierte Komponenten: `Controller`
+
+```js
+// WithController.tsx
+import React from 'react'
+import { useForm, Controller } from 'react-hook-form'
+
+type FormValues = { country: string }
+
+export default function WithController() {
+  const { control, handleSubmit } = useForm<FormValues>({ defaultValues: { country: 'DE' } })
+
+  return (
+    <form onSubmit={handleSubmit(console.log)}>
+      <Controller
+        name="country"             // keyof FormValues → typgeprüft
+        control={control}
+        render={({ field }) => (
+          <select {...field}>
+            <option value="DE">Deutschland</option>
+            <option value="AT">Österreich</option>
+          </select>
+        )}
+      />
+      <button type="submit">OK</button>
+    </form>
+  )
+}
+```
+
+*`Controller` hält Typen und verbindet kontrollierte UI-Komponenten (z. B. Select).* ([react-hook-form.com][2])
+
+---
+
+### 3) Schema-Validierung + Typen aus Zod ableiten
+
+```js
+// WithZod.tsx
+import React from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+const schema = z.object({
+  email: z.string().email(),
+  age: z.number().min(18),
+})
+
+type FormValues = z.infer<typeof schema>
+
+export default function WithZod() {
+  const { register, handleSubmit, formState: { errors } } =
+    useForm<FormValues>({ resolver: zodResolver(schema) })
+
+  return (
+    <form onSubmit={handleSubmit(console.log)}>
+      <input {...register('email')} />
+      <span>{errors.email?.message}</span>
+
+      <input type="number" {...register('age', { valueAsNumber: true })} />
+      <span>{errors.age?.message}</span>
+
+      <button type="submit">Save</button>
+    </form>
+  )
+}
+```
+
+*Resolver integriert externe Validatoren; `z.infer` hält Formtypen in Sync.* ([GitHub][3])
+
+---
+
+### 4) Verschachtelte/Mehrteilige Formulare: `FormProvider` + `useFormContext`
+
+```js
+// FormProviderExample.tsx
+import React from 'react'
+import { useForm, FormProvider, useFormContext } from 'react-hook-form'
+
+type FormValues = { user: { name: string; skills: string[] } }
+
+function NameField() {
+  const { register } = useFormContext<FormValues>()
+  return <input {...register('user.name')} placeholder="Name" />
+}
+
+export default function ParentForm() {
+  const methods = useForm<FormValues>({ defaultValues: { user: { name: '', skills: [] } } })
+
+  return (
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(console.log)}>
+        <NameField />
+        <button type="submit">Submit</button>
+      </form>
+    </FormProvider>
+  )
+}
+```
+
+*`FormProvider` stellt getypte Methoden tief verschachtelt bereit.* ([react-hook-form.com][4])
+
+---
+
+### 5) Dynamische Felder: `useFieldArray`
+
+```js
+// FieldArray.tsx
+import React from 'react'
+import { useForm, useFieldArray } from 'react-hook-form'
+
+type FormValues = {
+  users: { name: string }[]
+}
+
+export default function FieldArrayForm() {
+  const { control, register, handleSubmit } = useForm<FormValues>({
+    defaultValues: { users: [{ name: '' }] },
+  })
+
+  const { fields, append, remove } = useFieldArray<FormValues>({
+    control,
+    name: 'users', // keyof FormValues → korrekt typisiert
+  })
+
+  return (
+    <form onSubmit={handleSubmit(console.log)}>
+      {fields.map((f, i) => (
+        <div key={f.id}>
+          <input {...register(`users.${i}.name`)} />
+          <button type="button" onClick={() => remove(i)}>X</button>
+        </div>
+      ))}
+      <button type="button" onClick={() => append({ name: '' })}>Add</button>
+      <button type="submit">Save</button>
+    </form>
+  )
+}
+```
+
+*`useFieldArray` liefert getypte `fields/append/remove`; `name` muss zum Schema passen.* ([react-hook-form.com][5])
+
+---
+
+### 6) Form-Errors sind abgeleitet
+
+```js
+// Errors.tsx
+import React from 'react'
+import { useForm } from 'react-hook-form'
+
+type FormValues = { email: string }
+export default function Errors() {
+  const { register, handleSubmit, formState: { errors, isSubmitting, isValid } } =
+    useForm<FormValues>({ mode: 'onBlur' })
+
+  // errors.email: FieldError | undefined, basierend auf FormValues
+  return (
+    <form onSubmit={handleSubmit(console.log)} noValidate>
+      <input {...register('email', { required: 'Pflichtfeld' })} />
+      <span>{errors.email?.message}</span>
+      <button disabled={!isValid || isSubmitting}>Senden</button>
+    </form>
+  )
+}
+```
+
+*RHFs TS-Support exportiert Typen für Fehler und Feldnamen (z. B. `FieldError`, `Path`).* ([react-hook-form.com][6])
+
+---
+
+**Zusammenfassung**
+
+* `useForm<FormValues>()` ist die Basis; `register`, `errors` etc. werden daraus streng typisiert.
+* Kontrollierte Inputs über `Controller`; verschachtelte Strukturen via `FormProvider`/`useFormContext`.
+* Schema-Validierung mit Zod/Yup: `zodResolver(schema)` + `z.infer<typeof schema>`.
+* Dynamische Listen mit `useFieldArray<FormValues>`, `name` entspricht dem Datenpfad.
+
+**Quellen**
+
+* RHF Docs: `useForm`, `Controller`, `useFieldArray`, `FormProvider`, `useFormContext`, TS-Support, Getting Started. ([react-hook-form.com][7])
+* `react-hook-form/resolvers` (Zod/Yup/Joi …): ([GitHub][3])
+* React TypeScript Cheatsheets – Forms & Events: ([react-typescript-cheatsheet.netlify.app][8])
+* MDN – Client-side Form Validation / Constraint Validation API (RU/EN): ([developer.mozilla.org][9])
+* TypeScript – Generics (für Schema- und Hook-Typen): [https://www.typescriptlang.org/docs/handbook/2/generics.html](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+
+[1]: https://www.react-hook-form.com/api/useform/?utm_source=chatgpt.com "useForm | React Hook Form - Simple React forms validation"
+[2]: https://react-hook-form.com/docs/usecontroller/controller?utm_source=chatgpt.com "Controller"
+[3]: https://github.com/react-hook-form/resolvers?utm_source=chatgpt.com "react-hook-form/resolvers"
+[4]: https://react-hook-form.com/docs/formprovider?utm_source=chatgpt.com "FormProvider"
+[5]: https://react-hook-form.com/docs/usefieldarray?utm_source=chatgpt.com "useFieldArray"
+[6]: https://react-hook-form.com/ts?utm_source=chatgpt.com "Typescript Support"
+[7]: https://react-hook-form.com/docs/useform?utm_source=chatgpt.com "useForm"
+[8]: https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/forms_and_events/?utm_source=chatgpt.com "Forms and Events"
+[9]: https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Form_validation?utm_source=chatgpt.com "Client-side form validation - Learn web development - MDN"
 
   **[⬆ Наверх](#top)**    
 
-101. ### <a name="101"></a> 
+101. ### <a name="101"></a> Wie typisiert man axios-Requests?
 
+**Axios-Requests typisieren (TypeScript)**
 
+---
+
+### 1) Basis: Rückgabe‐ und Body-Typen per Generics
+
+```js
+// api/users.ts
+import axios from 'axios'
+
+// Domänen-Typen
+export type User = { id: string; name: string }
+export type CreateUserBody = { name: string }
+
+// GET: <T> = Datentyp der Response (response.data)
+export async function getUsers() {
+  const { data } = await axios.get<User[]>('/api/users')
+  // data: User[]
+  return data
+}
+
+// POST: <T, R, D> = Data, AxiosResponse, Request-Body
+export async function createUser(body: CreateUserBody) {
+  const { data } = await axios.post<User, import('axios').AxiosResponse<User>, CreateUserBody>(
+    '/api/users',
+    body
+  )
+  // data: User
+  return data
+}
+```
+
+> Axios-Signatur (vereinfacht): `axios.get<T, R = AxiosResponse<T>, D = any>(url, config)` – meist reicht **nur `T`**. ([axios-http.com][1])
+
+---
+
+### 2) Axios-Instanz + Typen konsistent nutzen
+
+```js
+// api/client.ts
+import axios from 'axios'
+
+export const api = axios.create({
+  baseURL: '/api',
+  timeout: 10_000,
+})
+```
+
+```js
+// api/posts.ts
+import { api } from './client.js'
+export type Post = { id: number; title: string }
+
+export async function getPost(id) {
+  const { data } = await api.get<Post>(`/posts/${id}`)
+  return data // Post
+}
+```
+
+> Instanzen kapseln Config/Interceptor; Generics funktionieren identisch. ([axios-http.com][2])
+
+---
+
+### 3) Fehler typisieren: `AxiosError<E>` + Narrowing
+
+```js
+// api/errors.ts
+import axios, { AxiosError } from 'axios'
+
+export type ApiError = { code: string; message: string }
+
+export async function loadSafe() {
+  try {
+    const { data } = await axios.get<{ ok: true }>('/api/safe')
+    return data
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      const e = err as AxiosError<ApiError>
+      // e.response?.data: ApiError | undefined
+      throw new Error(e.response?.data?.message ?? 'Unknown error')
+    }
+    throw err
+  }
+}
+```
+
+> Fehlerstruktur & Handling, inkl. `isAxiosError` und `validateStatus`. ([axios-http.com][3])
+
+---
+
+### 4) Request-Abbruch/Timeout mit `AbortController` (typisiert)
+
+```js
+// api/cancellable.ts
+import axios from 'axios'
+
+export async function fetchWithTimeout(url, ms = 5000) {
+  const controller = new AbortController()
+  const to = setTimeout(() => controller.abort(), ms)
+  try {
+    const res = await axios.get<string>(url, { signal: controller.signal })
+    return res.data
+  } finally {
+    clearTimeout(to)
+  }
+}
+```
+
+> Axios unterstützt `signal` (AbortController); `cancelToken` ist veraltet. ([axios-http.com][4])
+
+---
+
+### 5) Interceptors ohne „any“
+
+```js
+// api/interceptors.ts
+import { api } from './client.js'
+
+api.interceptors.response.use(
+  (res) => res, // behält AxiosResponse<T>
+  (error) => {
+    // hier kann error als AxiosError<unknown> behandelt und veredelt werden
+    return Promise.reject(error)
+  }
+)
+```
+
+> Die generischen Typen der Antwort bleiben über Interceptors erhalten. ([axios-http.com][2])
+
+---
+
+### 6) Runtime-Validierung (optional) mit Zod — Typen bleiben synchron
+
+```js
+// api/validated.ts
+import axios from 'axios'
+import { z } from 'zod'
+
+const UserSchema = z.object({ id: z.string(), name: z.string() })
+type User = z.infer<typeof UserSchema>
+
+export async function getUser(id) {
+  const { data } = await axios.get<User>(`/api/users/${id}`)
+  return UserSchema.parse(data) // Laufzeit-Check + TS-Typ
+}
+```
+
+> TS-Generics sichern statische Typen; Schema validiert zur Laufzeit. (TS: Generics) ([typescriptlang.org][5])
+
+---
+
+### 7) Rückgabewerte der API-Funktionen explizit halten
+
+```js
+// Gute Praxis: explizite Promise-Typen
+export async function login(creds) {
+  const { data } = await axios.post<{ token: string }>('/api/login', creds)
+  return data
+}
+// Aufrufer-Seite: `await login(...)` → { token: string }
+```
+
+> Generics + explizite Rückgabetypen erleichtern Autovervollständigung. (TS: Generics, Cheatsheet) ([typescriptlang.org][5])
+
+---
+
+**Zusammenfassung**
+
+* `axios.get<T>()` → **`T` = `response.data`**; weitere Generics selten nötig.
+* Für POST/PUT kann man zusätzlich **Request-Body `D`** typisieren.
+* Fehlerpfade mit **`AxiosError<E>`** + `isAxiosError` sauber typisieren.
+* **Instanz** + **AbortController** für sauberes API-Design.
+* Optional **Schema-Validierung** (z. B. Zod) zur Laufzeit; Typen via `z.infer`.
+
+**Quellen**
+
+* Axios – API/Instance/Errors/Cancellation: ([axios-http.com][1])
+* TypeScript – Generics: [https://www.typescriptlang.org/docs/handbook/2/generics.html](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* React TypeScript Cheatsheets (Allg. Tipps): ([react-typescript-cheatsheet.netlify.app][6])
+
+[1]: https://axios-http.com/docs/api_intro?utm_source=chatgpt.com "Axios API | Axios Docs"
+[2]: https://axios-http.com/docs/instance?utm_source=chatgpt.com "The Axios Instance | Axios Docs"
+[3]: https://axios-http.com/docs/handling_errors?utm_source=chatgpt.com "Handling Errors | Axios Docs"
+[4]: https://axios-http.com/docs/cancellation?utm_source=chatgpt.com "Cancellation | Axios Docs"
+[5]: https://www.typescriptlang.org/docs/handbook/2/generics.html?utm_source=chatgpt.com "Generics - TypeScript: Documentation"
+[6]: https://react-typescript-cheatsheet.netlify.app/?utm_source=chatgpt.com "React TypeScript Cheatsheets"
 
   **[⬆ Наверх](#top)**
 
-102. ### <a name="102"></a> 
+102. ### <a name="102"></a> Wie typisiert man fetch-Requests mit Generics?
 
+**fetch-Requests mit Generics typisieren (TypeScript)**
 
+---
+
+### 1) Minimaler, generischer JSON-Fetcher
+
+```js
+// api/fetcher.ts
+export async function getJSON<T>(input, init) {
+  const res = await fetch(input, init)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  // Response.json() liefert Promise<any> → wir erzwingen T
+  return res.json() /** @type {Promise<T>} */
+}
+```
+
+*`Response.json()` ist formal `Promise<any>`; wir geben T per Generics vor.* ([developer.mozilla.org][1])
+
+---
+
+### 2) GET/POST mit Request- und Response-Typen
+
+```js
+// api/users.ts
+import { getJSON } from './fetcher.js'
+
+/** @typedef {{ id: string; name: string }} User */
+/** @typedef {{ name: string }} CreateUserBody */
+
+export async function getUser(id) {
+  return getJSON/** @type {<T>(...args: any[]) => Promise<T>} */(`/api/users/${id}`)
+  // Aufrufer: const u = await getUser<User>('42')
+}
+
+export async function postJSON<R, B>(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return /** @type {Promise<R>} */ (res.json())
+}
+
+// Verwendung:
+export async function createUser(body /*: CreateUserBody */) {
+  return postJSON/** @type {<R,B>(u: string, b: B) => Promise<R>} */('/api/users', body)
+  // Aufrufer: const u = await createUser/*<User, CreateUserBody>*/({ name: 'Sergii' })
+}
+```
+
+*POST erfordert `JSON.stringify` und `Content-Type`. `Response.status` prüfen.* ([developer.mozilla.org][2])
+
+---
+
+### 3) Sicherer: erst `unknown`, dann validieren (z. B. Zod)
+
+```js
+// api/validated.ts
+import { z } from 'zod'
+
+const UserSchema = z.object({ id: z.string(), name: z.string() })
+/** @typedef {z.infer<typeof UserSchema>} User */
+
+export async function getUserSafe(id) {
+  const res = await fetch(`/api/users/${id}`)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const data = /** @type {unknown} */ (await res.json())
+  return UserSchema.parse(data) // Runtime-Validierung + TS-Typ
+}
+```
+
+*`json()` → unbekannter Inhalt; Schema hält Typen & Laufzeit in Sync.* ([developer.mozilla.org][1])
+
+---
+
+### 4) Abbrechen/Timeout per `AbortController`
+
+```js
+// api/cancellable.ts
+export async function fetchWithTimeout(url, ms = 8000) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), ms)
+  try {
+    const res = await fetch(url, { signal: controller.signal })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.json()
+  } finally {
+    clearTimeout(timer)
+  }
+}
+```
+
+*`signal` an `fetch` übergeben; `abort()` beendet Request.* ([developer.mozilla.org][3])
+
+---
+
+### 5) Typischer Wrapper mit generischer Fehlerform
+
+```js
+// api/wrapper.ts
+/** @typedef {{ code: string; message: string }} ApiError */
+
+export async function request<R, B = undefined>(url, init) {
+  const res = await fetch(url, init)
+  const text = await res.text()
+  const parsed = text ? JSON.parse(text) : null
+  if (!res.ok) {
+    // parsed kann ApiError sein → eng tippen, wenn bekannt
+    const err = /** @type {ApiError | null} */ (parsed)
+    throw new Error(err?.message ?? `HTTP ${res.status}`)
+  }
+  return /** @type {R} */ (parsed)
+}
+
+// Verwendung:
+export async function putUser(id, body /*: { name: string } */) {
+  return request/** @type {<R,B>(u: string, i: RequestInit) => Promise<R>} */(
+    `/api/users/${id}`,
+    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+  )
+  // Aufrufer: const u = await putUser/*<User, {name:string}>*/('42', { name: 'Max' })
+}
+```
+
+*Text lesen, manuell parsen → differenziertes Fehlerhandling möglich.* ([developer.mozilla.org][4])
+
+---
+
+**Zusammenfassung**
+
+* Generische Helfer: `getJSON<T>()`, `postJSON<R,B>()` → `T/R` = Response, `B` = Body.
+* `Response.json()` ist `any`; sicherer über `unknown` + Schema-Validierung (z. B. Zod).
+* Status prüfen und Fehler modellieren; bei Bedarf `AbortController` für Abbruch/Timeout.
+* Typen zentral kapseln, Aufrufer geben konkrete `<T>` an.
+
+**Quellen**
+
+* MDN – Fetch API (RU/EN), Using Fetch, `Response.json()`, `Response.status`, `RequestInit`. ([developer.mozilla.org][5])
+* MDN – AbortController/`signal`/`abort()`. ([developer.mozilla.org][6])
+* TypeScript – Generics (offizielle Doku). ([typescriptlang.org][7])
+
+[1]: https://developer.mozilla.org/en-US/docs/Web/API/Response/json?utm_source=chatgpt.com "Response: json() method - Web APIs | MDN - Mozilla"
+[2]: https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify?utm_source=chatgpt.com "JSON.stringify() - JavaScript | MDN - Mozilla"
+[3]: https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal?utm_source=chatgpt.com "AbortController: signal property - Web APIs - MDN - Mozilla"
+[4]: https://developer.mozilla.org/en-US/docs/Web/API/Response?utm_source=chatgpt.com "Response - Web APIs | MDN - Mozilla"
+[5]: https://developer.mozilla.org/ru/docs/Web/API/Fetch_API?utm_source=chatgpt.com "Fetch API - Интерфейсы веб API - MDN"
+[6]: https://developer.mozilla.org/en-US/docs/Web/API/AbortController?utm_source=chatgpt.com "AbortController - Web APIs - MDN - Mozilla"
+[7]: https://www.typescriptlang.org/docs/handbook/2/generics.html?utm_source=chatgpt.com "Generics - TypeScript: Documentation"
 
   **[⬆ Наверх](#top)**
 
-103. ### <a name="103"></a> 
+103. ### <a name="103"></a> Wie geht man mit Typen bei API-Fehlern um?
 
+**API-Fehler typsicher behandeln (TypeScript)**
 
+---
+
+### 1) Grundprinzip: **`unknown` statt `any`**, dann Narrowing/Validierung
+
+```js
+// errors.ts
+export type ApiError = {
+  status: number
+  message: string
+  details?: unknown
+}
+
+// Hilfsfunktion für Exhaustiveness
+export function assertNever(x /**: never */) {
+  throw new Error(`Unexpected value: ${String(x)}`)
+}
+```
+
+* Eingehende Fehlerdaten zuerst als `unknown` behandeln und dann per **Type Guards**/**Schema** validieren (z. B. Zod).
+* Exhaustive Checks mit `never` verhindern „vergessene“ Fälle.
+  ↗️ TS-Doku: Type Narrowing, `never`.
+  [TypeScript: Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html) · [TypeScript: never](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#the-never-type)
+
+---
+
+### 2) `fetch`: Fehler-Hülle + Discriminated Union (`Result<T, E>`)
+
+```js
+// http.ts
+export type Ok<T> = { ok: true; data: T }
+export type Err<E> = { ok: false; error: E }
+export type Result<T, E> = Ok<T> | Err<E>
+
+export async function requestJSON<T, E = ApiError>(input, init) {
+  const res = await fetch(input, init)
+  const text = await res.text()
+  const parsed = text ? JSON.parse(text) : null
+
+  if (res.ok) {
+    return { ok: true, data: parsed /** @type {T} */ }
+  }
+
+  const error = /** @type {E} */ ({
+    status: res.status,
+    message: (parsed && parsed.message) ?? `HTTP ${res.status}`,
+    details: parsed,
+  })
+  return { ok: false, error }
+}
+```
+
+```js
+// usage.ts
+import { requestJSON } from './http.js'
+
+/** @typedef {{ id: string; name: string }} User */
+/** @typedef {{ code: string; message: string }} ApiErr */
+
+export async function loadUser(id) {
+  const res = await requestJSON/** @type {<T,E>(u:any,i?:any)=>Promise<{ok:true,data:T}|{ok:false,error:E}>} */(
+    `/api/users/${id}`
+  )
+  if (res.ok) {
+    // res.data: User
+    return res.data
+  }
+  // res.error: ApiErr
+  if ('code' in res.error) {
+    throw new Error(`[${res.error.code}] ${res.error.message}`)
+  }
+  throw new Error(res.error.message)
+}
+```
+
+* `res.ok` diskriminiert den Union-Typ → **typsicheres** Erfolgs-/Fehler-Handling.
+* `fetch`-Basics & `Response.ok/status`.
+  [MDN: Fetch API](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API) · [MDN: Response](https://developer.mozilla.org/ru/docs/Web/API/Response)
+
+---
+
+### 3) **Runtime-Validierung** der Fehlerstruktur (Zod)
+
+```js
+// error-schema.ts
+import { z } from 'zod'
+
+export const ApiErrorSchema = z.object({
+  code: z.string().optional(),
+  message: z.string(),
+  status: z.number().optional(),
+  details: z.unknown().optional(),
+})
+export const parseApiError = (u) => ApiErrorSchema.parse(u)
+```
+
+```js
+// http-validated.ts
+import { parseApiError } from './error-schema.js'
+
+export async function requestSafe(input, init) {
+  const res = await fetch(input, init)
+  const json = (await res.json().catch(() => null))
+  if (res.ok) return json
+  throw new Error(parseApiError(json).message)
+}
+```
+
+* TS-Generics + Schema halten **Typen und Laufzeit** synchron.
+  [TypeScript: Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+
+---
+
+### 4) Axios: `AxiosError<E>` + `isAxiosError`
+
+```js
+// axios-errors.ts
+import axios, { AxiosError } from 'axios'
+
+/** @typedef {{ code?: string; message: string }} ApiErr */
+
+export async function loadSafe() {
+  try {
+    const { data } = await axios.get/** @type {<T>(u:string)=>Promise<import('axios').AxiosResponse<T>>} */('/api/safe')
+    return data
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      const err = /** @type {AxiosError<ApiErr>} */ (e)
+      const msg = err.response?.data?.message ?? err.message
+      throw new Error(msg)
+    }
+    throw e
+  }
+}
+```
+
+* `AxiosError<E>` macht `response.data` im Fehlerfall **typisiert** zugreifbar.
+* Abbruch via `AbortController` (Axios unterstützt `signal`).
+  [Axios: Handling Errors](https://axios-http.com/docs/handling_errors) · [Axios: Cancellation](https://axios-http.com/docs/cancellation)
+
+---
+
+### 5) Redux Toolkit: `rejectWithValue<E>` für **typisierte** Fehler
+
+```js
+// usersThunks.ts
+import { createAsyncThunk } from '@reduxjs/toolkit'
+
+/** @typedef {{ id: string; name: string }} User */
+/** @typedef {{ code: string; message: string }} ApiErr */
+
+export const fetchUser = createAsyncThunk<
+  User,                          // Returned
+  { id: string },                // Arg
+  { rejectValue: ApiErr }        // Fehler-Typ
+>(
+  'users/fetch',
+  async ({ id }, { rejectWithValue }) => {
+    const res = await fetch(`/api/users/${id}`)
+    if (!res.ok) {
+      const err = await res.json().catch(() => null)
+      return rejectWithValue(/** @type {ApiErr} */(err ?? { code: 'UNKNOWN', message: 'Fail' }))
+    }
+    return res.json()
+  }
+)
+```
+
+```js
+// slice.ts
+import { createSlice } from '@reduxjs/toolkit'
+import { fetchUser } from './usersThunks.js'
+
+const slice = createSlice({
+  name: 'users',
+  initialState: { entity: null, error: null, loading: false },
+  reducers: {},
+  extraReducers: (b) => {
+    b.addCase(fetchUser.pending, (s) => { s.loading = true; s.error = null })
+    b.addCase(fetchUser.fulfilled, (s, a) => { s.loading = false; s.entity = a.payload })
+    b.addCase(fetchUser.rejected, (s, a) => {
+      // a.payload: ApiErr | undefined
+      s.loading = false
+      s.error = a.payload?.message ?? a.error.message
+    })
+  },
+})
+export default slice.reducer
+```
+
+* `rejectWithValue<E>` erzwingt ein **konsistentes Fehlerobjekt** im Store.
+  [RTK: createAsyncThunk](https://redux-toolkit.js.org/api/createAsyncThunk) · [RTK TS-Guide](https://redux-toolkit.js.org/tutorials/typescript)
+
+---
+
+### 6) RTK Query: Fehler-Typen korrekt **narrowen**
+
+```js
+// rtkq.tsx
+import React from 'react'
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query'
+import { useGetUserQuery } from './api.js'
+
+export default function View({ id }) {
+  const { data, error } = useGetUserQuery({ id })
+  if (error) {
+    const fbq = /** @type {FetchBaseQueryError} */ (error)
+    const status = 'status' in fbq ? fbq.status : 'ERR'
+    return <p>Fehler: {String(status)}</p>
+  }
+  return <pre>{JSON.stringify(data)}</pre>
+}
+```
+
+* Hook-Fehler: `FetchBaseQueryError | SerializedError`; per `in`-Check unterscheidbar.
+  [RTK Query: Errors](https://redux-toolkit.js.org/rtk-query/usage/customizing-queries#handling-errors)
+
+---
+
+### 7) HTTP-Status → **disziplinierte** Fehlerklassen (optional)
+
+```js
+// mapping.ts
+export const toErrorCategory = (status) => {
+  if (status >= 500) return 'ServerError'
+  if (status === 401) return 'AuthError'
+  if (status === 403) return 'Forbidden'
+  if (status === 404) return 'NotFound'
+  if (status >= 400) return 'ClientError'
+  return 'Unknown'
+}
+```
+
+* Klare Kategorien erleichtern UI/Retry-Strategien; mit `assertNever` absichern.
+
+---
+
+**Zusammenfassung**
+
+* **`unknown` → Narrowing/Schema** statt `any`.
+* Mit **`Result<T, E>`** (Discriminated Union) Erfolg/Fehler sauber trennen.
+* **Axios**: `AxiosError<E>` + `isAxiosError`; **fetch**: `Response.ok/status` prüfen.
+* **Redux Toolkit**: `rejectWithValue<E>` für typisierte Fehlerpfade; **RTK Query**: Fehler union-typen korrekt narrowen.
+* Optional **Zod** für Laufzeit-Validierung, `never`/Exhaustiveness für Vollständigkeit.
+
+**Quellen**
+
+* TypeScript: [Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html), [Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* MDN: [Fetch API](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API), [Response](https://developer.mozilla.org/ru/docs/Web/API/Response)
+* Axios: [Handling Errors](https://axios-http.com/docs/handling_errors), [Cancellation](https://axios-http.com/docs/cancellation)
+* Redux Toolkit: [createAsyncThunk](https://redux-toolkit.js.org/api/createAsyncThunk), [RTK Query Error Handling](https://redux-toolkit.js.org/rtk-query/usage/customizing-queries#handling-errors)
+* React TypeScript Cheatsheets: [API / Data Fetching Hinweise](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/)
 
   **[⬆ Наверх](#top)**
 
-104. ### <a name="104"></a> 
+104. ### <a name="104"></a> Wie verwendet man Utility Types für API-Modelle?
 
+**Utility Types für API-Modelle (TypeScript)**
 
+---
+
+### 1) CRUD-DTOs aus Domänenmodell ableiten
+
+```js
+// models/user.ts
+export type User = {
+  id: string
+  email: string
+  name: string
+  createdAt: string
+  updatedAt: string
+}
+
+// Create: Felder, die der Server setzt, weglassen
+export type CreateUserDto = Omit<User, 'id' | 'createdAt' | 'updatedAt'>
+
+// Update (PATCH): nur erlaubte Felder optional
+export type UpdateUserDto = Partial<Pick<User, 'email' | 'name'>>
+
+// Serverantwort schreibgeschützt
+export type UserResponse = Readonly<User>
+```
+
+---
+
+### 2) Listen, Maps und Lookups
+
+```js
+// Paginierte Antwort
+export type Page<T> = {
+  items: T[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+// Index nach ID (z. B. Cache)
+export type UserById = Record<User['id'], User>
+
+// Sicherstellen, dass leere Felder nicht null/undefined sind
+export type NonNullUser = {
+  [K in keyof User]-?: NonNullable<User[K]>
+}
+```
+
+---
+
+### 3) Fehler- und Statusmodelle
+
+```js
+// Discriminated Union für API-Ergebnis
+export type Ok<T> = { ok: true; data: T }
+export type Err<E> = { ok: false; error: E }
+export type Result<T, E> = Ok<T> | Err<E>
+
+// Fehlerteil aus Server-Union extrahieren
+type ApiError = { code: string; message: string }
+type AnyResult = Result<User, ApiError>
+
+// Beispiel für Utility Types:
+type ErrorOnly = Extract<AnyResult, { ok: false }>['error'] // ApiError
+type DataOnly = Extract<AnyResult, { ok: true }>['data']     // User
+```
+
+---
+
+### 4) Request/Response je Endpoint präzisieren
+
+```js
+// services/users.ts
+export type GetUserParams = { id: string }
+
+// Response generisch
+export type ApiResponse<T> = Promise<T>
+
+// GET /users/:id
+export type GetUserResponse = ApiResponse<UserResponse>
+
+// POST /users
+export type CreateUserResponse = ApiResponse<UserResponse>
+export type CreateUserRequest = CreateUserDto
+
+// PATCH /users/:id
+export type UpdateUserRequest = UpdateUserDto
+export type UpdateUserResponse = ApiResponse<UserResponse>
+```
+
+---
+
+### 5) Ableitungen aus Funktionen (ReturnType/Parameters/Awaited)
+
+```js
+// api.ts
+export async function fetchUser(id) {
+  const res = await fetch(`/api/users/${id}`)
+  return /** @type {Promise<UserResponse>} */ (res.json())
+}
+
+// Abgeleitete Typen:
+export type FetchUserParams = Parameters<typeof fetchUser> // [id: string]
+export type FetchUserReturn = ReturnType<typeof fetchUser> // Promise<UserResponse>
+export type FetchUserData = Awaited<FetchUserReturn>       // UserResponse
+```
+
+---
+
+### 6) DTOs für Teilmodelle (Komposition)
+
+```js
+export type UserPublic = Pick<User, 'id' | 'name'>
+export type UserPrivate = Omit<User, 'createdAt' | 'updatedAt'>
+export type SafeUserList = ReadonlyArray<UserPublic>
+```
+
+---
+
+### 7) Deep-Partial (für komplexe PATCH-Bodies)
+
+```js
+// Hilfstyp für tiefes Partial
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K]
+}
+
+// Beispiel:
+type Settings = { ui: { theme: 'light' | 'dark'; lang: string }; emails: { marketing: boolean } }
+export type UpdateSettingsDto = DeepPartial<Settings>
+```
+
+---
+
+### 8) Konstante Literale für enge Typen
+
+```js
+export const USER_ROLES = ['admin', 'editor', 'viewer'] as const
+export type UserRole = typeof USER_ROLES[number] // 'admin' | 'editor' | 'viewer'
+
+export type UserWithRole = User & { role: UserRole }
+```
+
+---
+
+**Zusammenfassung**
+
+* `Omit`, `Pick`, `Partial`, `Required`, `Readonly`, `Record`, `NonNullable` für CRUD-DTOs und Caches.
+* `Extract`/`Exclude` für Union-Selektion; `ReturnType`/`Parameters`/`Awaited` für Ableitungen aus Funktionen.
+* `as const` für enge String-Literale; optional eigener `DeepPartial` für verschachtelte PATCH-Bodies.
+* So bleiben Request-/Response-Modelle **konsistent, präzise und wiederverwendbar**.
+
+**Quellen**
+
+* TypeScript Utility Types: [https://www.typescriptlang.org/docs/handbook/utility-types.html](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* TypeScript Generics & Unions: [https://www.typescriptlang.org/docs/handbook/2/generics.html](https://www.typescriptlang.org/docs/handbook/2/generics.html) , [https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#union-types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#union-types)
+* React TypeScript Cheatsheet (Modelle/Typen): [https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/)
+* MDN – Fetch API (für Response-Modelle): [https://developer.mozilla.org/ru/docs/Web/API/Fetch_API](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API)
 
   **[⬆ Наверх](#top)**
 
-105. ### <a name="105"></a> 
+105. ### <a name="105"></a> Wie typisiert man Dynamic Imports in React?
 
+**Dynamic Imports in React typisieren (TypeScript)**
 
+---
+
+### 1) Basis: `import()` in TS typisieren
+
+```js
+// Beliebiges Modul dynamisch laden und typisieren
+export async function loadUtils() {
+  const mod = await import('./utils.js')
+  // Typ: typeof import('./utils.js')
+  return mod
+}
+
+// Einzelnes Symbol:
+export async function loadFn() {
+  const { formatDate } = await import('./utils.js')
+  // formatDate hat den Typ aus utils.js
+  return formatDate
+}
+```
+
+* Typableitung: `typeof import('./utils.js')`.
+* Für reine Typen: `import type { UtilsType } from './utils.js'`.
+* Nützlich: `Awaited<ReturnType<typeof import>>` für abgeleitete Typen.
+
+---
+
+### 2) `React.lazy` für **Default-Export**
+
+```js
+// Foo.tsx – default export
+export default function Foo() { return <div>Foo</div> }
+```
+
+```js
+// LazyFoo.tsx
+import React, { lazy, Suspense } from 'react'
+
+const Foo = lazy(() => import('./Foo.js')) // Typ: LazyExoticComponent<ComponentType<any>>
+
+export default function Page() {
+  return (
+    <Suspense fallback={<p>Laden…</p>}>
+      <Foo />
+    </Suspense>
+  )
+}
+```
+
+* `React.lazy` erwartet eine Funktion, die **ein Promise mit `{ default: Component }`** zurückgibt.
+
+---
+
+### 3) `React.lazy` für **named export**
+
+```js
+// widgets.tsx – named export
+export function Chart({ title }) { return <h3>{title}</h3> }
+export type ChartProps = { title: string }
+```
+
+```js
+// LazyChart.tsx
+import React, { lazy, Suspense } from 'react'
+import type { ChartProps } from './widgets.js'
+
+// `then`-Mapping auf default:
+const Chart = lazy(async () =>
+  import('./widgets.js').then((m) => ({ default: m.Chart }))
+)
+// Typ von `Chart` wird zu LazyExoticComponent<ComponentType<ChartProps>>
+
+export default function Panel() {
+  return (
+    <Suspense fallback={<span>…</span>}>
+      <Chart title="Sales" />
+    </Suspense>
+  )
+}
+```
+
+* Durch das `then`-Mapping bleibt der **Props-Typ** des named Exports erhalten.
+
+---
+
+### 4) Props explizit annotieren (optional)
+
+```js
+import React, { lazy, Suspense, type ComponentType, type LazyExoticComponent } from 'react'
+type ProfileProps = { id: string }
+
+// Falls nötig, den Props-Typ erzwingen:
+const Profile: LazyExoticComponent<ComponentType<ProfileProps>> = lazy(() =>
+  import('./Profile.js')
+)
+
+export function View() {
+  return (
+    <Suspense fallback={null}>
+      <Profile id="42" />
+    </Suspense>
+  )
+}
+```
+
+---
+
+### 5) Typen aus dynamisch importiertem Modul ableiten
+
+```js
+// helpers.ts
+export function calc(a, b) { return a + b }
+export type CalcFn = typeof calc
+```
+
+```js
+// derive.ts
+type HelpersModule = typeof import('./helpers.js')
+type Calc = HelpersModule['calc'] // = (a: number, b: number) => number
+// oder:
+type Loaded = Awaited<ReturnType<typeof import('./helpers.js')>>
+type AlsoCalc = Loaded['calc']
+```
+
+---
+
+### 6) Code-Splitting in Routen/Feature-Modulen
+
+```js
+// Route.tsx
+import React, { lazy, Suspense } from 'react'
+
+// Chunk nur bei Bedarf laden
+const SettingsPage = lazy(() => import('./pages/SettingsPage.js'))
+
+export function AppRoutes() {
+  return (
+    <Suspense fallback={<p>…</p>}>
+      <SettingsPage />
+    </Suspense>
+  )
+}
+```
+
+* **Wichtig:** Immer innerhalb von `<Suspense>` rendern (Fallback!).
+
+---
+
+### 7) Häufige Stolpersteine
+
+* **Kein default export?** → über `then` in `{ default: m.Named }` mappen.
+* **SSR/Next.js:** `React.lazy` rendert nur clientseitig; für SSR ggf. framework-spezifische Helpers (z. B. `next/dynamic`).
+* **Typen prüfen:** Bei komplexen Re-Exports `typeof import()` oder `Awaited<…>` nutzen.
+
+---
+
+**Zusammenfassung**
+
+* `typeof import('…')`, `Awaited<…>` und `import type` helfen bei exakter Typableitung.
+* `React.lazy(() => import(...))` für Default-Exports; named Exports via `then({ default: m.Named })`.
+* Props bleiben erhalten; optional `LazyExoticComponent<ComponentType<Props>>` annotieren.
+* Immer `<Suspense>` mit Fallback verwenden.
+
+**Quellen**
+
+* React – *Code-Splitting* / `React.lazy` & `Suspense`: [https://react.dev/reference/react/lazy](https://react.dev/reference/react/lazy)
+* MDN – *Dynamic import()*: [https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Operators/import](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Operators/import)
+* TypeScript – *ES Module Syntax & import types*: [https://www.typescriptlang.org/docs/handbook/2/modules.html](https://www.typescriptlang.org/docs/handbook/2/modules.html)
+* TypeScript – *Utility & Built-in Types* (`Awaited`, `ReturnType`): [https://www.typescriptlang.org/docs/handbook/utility-types.html](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* React TypeScript Cheatsheet – *Code Splitting/Lazy*: [https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase#code-splitting](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase#code-splitting)
 
   **[⬆ Наверх](#top)**
 
-106. ### <a name="106"></a> 
+106. ### <a name="106"></a> Wie verwendet man keyof für dynamische Eigenschaften in Komponenten?
 
+**`keyof` für dynamische Eigenschaften in React-Komponenten (TypeScript)**
 
+Mit `keyof` kann man Props so typisieren, dass nur **gültige Schlüssel eines Objekts** erlaubt sind. Besonders nützlich für dynamische Property-Namen (z. B. generische Tabellen, Formulare, UI-Komponenten).
+
+---
+
+### 1) Basisidee mit `keyof`
+
+```ts
+type User = {
+  id: string
+  name: string
+  age: number
+}
+
+type UserKeys = keyof User // "id" | "name" | "age"
+```
+
+---
+
+### 2) Komponente: dynamisch ein Feld anzeigen
+
+```tsx
+import React from 'react'
+
+type User = { id: string; name: string; age: number }
+
+type UserFieldProps = {
+  user: User
+  field: keyof User // "id" | "name" | "age"
+}
+
+export function UserField({ user, field }: UserFieldProps) {
+  return <span>{user[field]}</span>
+}
+
+// Nutzung:
+const u: User = { id: '42', name: 'Sergii', age: 34 }
+
+<UserField user={u} field="name" />   // ✅
+<UserField user={u} field="email" />  // ❌ TypeScript-Error
+```
+
+* `user[field]` ist automatisch `string | number` → TS erzwingt Type-Safety.
+
+---
+
+### 3) Mit generischen Typen (wiederverwendbar)
+
+```tsx
+type FieldProps<T> = {
+  entity: T
+  field: keyof T
+}
+
+export function Field<T extends object>({ entity, field }: FieldProps<T>) {
+  return <span>{String(entity[field])}</span>
+}
+
+// Nutzung mit User:
+<Field entity={{ id: '1', name: 'Max' }} field="name" /> // OK
+```
+
+* `T` wird beim Aufruf inferiert → wiederverwendbar für beliebige Modelle.
+
+---
+
+### 4) Kombiniert mit `Pick` / `Omit`
+
+```tsx
+type User = { id: string; name: string; age: number }
+
+type EditableProps<T> = {
+  model: T
+  editable: (keyof T)[]
+}
+
+function EditableForm<T extends object>({ model, editable }: EditableProps<T>) {
+  return (
+    <form>
+      {editable.map((key) => (
+        <input key={String(key)} defaultValue={String(model[key])} />
+      ))}
+    </form>
+  )
+}
+
+// Nur bestimmte Felder editierbar:
+<EditableForm model={{ id: '1', name: 'Anna', age: 30 }} editable={['name', 'age']} />
+```
+
+* `editable` ist auf gültige Keys eingeschränkt.
+
+---
+
+### 5) Dynamische Styles oder Attribute
+
+```tsx
+type StyleKeys = keyof React.CSSProperties // alle CSS-Eigenschaften
+
+type DynamicStyleProps = {
+  prop: StyleKeys
+  value: string | number
+}
+
+function DynamicStyle({ prop, value }: DynamicStyleProps) {
+  return <div style={{ [prop]: value }} />
+}
+
+<DynamicStyle prop="backgroundColor" value="red" /> // ✅
+<DynamicStyle prop="foobar" value="123" />          // ❌ Fehler
+```
+
+* Typ-Sicherheit sogar für CSS-Properties.
+
+---
+
+### 6) Optional: Typen verfeinern
+
+Manchmal möchte man sicherstellen, dass der Wert zum Key passt. Dafür nutzt man **Mapped Types**:
+
+```tsx
+type FieldProps<T, K extends keyof T> = {
+  entity: T
+  field: K
+  onChange: (value: T[K]) => void
+}
+
+function Field<T, K extends keyof T>({ entity, field, onChange }: FieldProps<T, K>) {
+  return (
+    <input
+      value={String(entity[field])}
+      onChange={(e) => onChange(e.target.value as T[K])}
+    />
+  )
+}
+
+// Nutzung:
+const user = { id: '42', name: 'Max', age: 30 }
+
+<Field entity={user} field="age" onChange={(v) => console.log(v.toFixed(2))} /> 
+// v: number
+```
+
+* Durch `<T, K extends keyof T>` ist `onChange`-Wert **an den Feldtyp gebunden**.
+
+---
+
+**Zusammenfassung**
+
+* `keyof` erzeugt **Union aus Property-Namen** eines Typs.
+* Props wie `field: keyof T` erlauben nur gültige Schlüssel → typsichere dynamische Properties.
+* Mit Generics `<T, K extends keyof T>` kann man den Werttyp an den Schlüssel koppeln.
+* Hilfreich für **generische Komponenten**: Tabellen, Formulare, dynamische Styles.
+
+**Quellen**
+
+* TypeScript: [keyof Type Operator](https://www.typescriptlang.org/docs/handbook/2/keyof-types.html)
+* TypeScript: [Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* React TypeScript Cheatsheet: [Typing Dynamic Props](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/)
+
+---
 
   **[⬆ Наверх](#top)**
 
-107. ### <a name="107"></a> 
+107. ### <a name="107"></a> Wie erstellt man typsichere Styles (z. B. mit styled-components)?
 
+**Typsichere Styles mit styled-components (TypeScript)**
 
+Mit [styled-components](https://styled-components.com/) bekommt man dank `@types/styled-components` bereits Typsicherheit für CSS-Properties. Für Props, Themes und dynamische Styles kann man Typen explizit erweitern.
+
+---
+
+### 1) Basis: Styled Component mit Props
+
+```tsx
+// Button.tsx
+import styled from 'styled-components'
+
+// Props definieren
+type ButtonProps = {
+  primary?: boolean
+}
+
+// Props im Template verwenden
+export const Button = styled.button<ButtonProps>`
+  background: ${({ primary }) => (primary ? 'palevioletred' : 'white')};
+  color: ${({ primary }) => (primary ? 'white' : 'palevioletred')};
+  border: 2px solid palevioletred;
+  padding: 0.5rem 1rem;
+`
+```
+
+* `primary` ist optional und streng typisiert.
+* Autovervollständigung in `props` funktioniert.
+
+---
+
+### 2) Typsichere Themes
+
+```tsx
+// theme.ts
+import 'styled-components'
+
+export const theme = {
+  colors: {
+    primary: 'palevioletred',
+    secondary: 'white',
+  },
+  spacing: (factor: number) => `${0.25 * factor}rem`,
+}
+
+// styled-components Theme überschreiben
+declare module 'styled-components' {
+  export interface DefaultTheme {
+    colors: {
+      primary: string
+      secondary: string
+    }
+    spacing: (factor: number) => string
+  }
+}
+```
+
+```tsx
+// App.tsx
+import { ThemeProvider } from 'styled-components'
+import { theme } from './theme.js'
+import { Button } from './Button.js'
+
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <Button primary>Click</Button>
+    </ThemeProvider>
+  )
+}
+```
+
+* Zugriff auf `props.theme.colors.primary` ist jetzt **typsicher**.
+
+---
+
+### 3) Generische Styles für dynamische Properties
+
+```tsx
+type BoxProps = {
+  width?: string
+  height?: string
+}
+
+export const Box = styled.div<BoxProps>`
+  width: ${({ width }) => width ?? '100%'};
+  height: ${({ height }) => height ?? 'auto'};
+`
+```
+
+* Props sind mit `BoxProps` typisiert → Fehler bei falschem Wert.
+
+---
+
+### 4) Reusable Variants über Union Types
+
+```tsx
+type Variant = 'primary' | 'secondary'
+
+interface BadgeProps {
+  variant: Variant
+}
+
+export const Badge = styled.span<BadgeProps>`
+  background: ${({ variant, theme }) =>
+    variant === 'primary' ? theme.colors.primary : theme.colors.secondary};
+  color: ${({ variant }) => (variant === 'primary' ? 'white' : 'black')};
+`
+```
+
+* `variant` ist nur `'primary' | 'secondary'` erlaubt.
+
+---
+
+### 5) Utility: Polymorphe Komponenten (`as` Prop)
+
+```tsx
+export const Text = styled.p<{ size?: 'sm' | 'lg' }>`
+  font-size: ${({ size }) => (size === 'lg' ? '1.5rem' : '0.875rem')};
+`
+
+// Nutzung
+<Text size="lg" as="span">Großer Text als Span</Text>
+```
+
+* `as` ist eingebaut → Komponente bleibt typisiert.
+
+---
+
+### 6) Kombination mit `CSSProperties`
+
+Für frei konfigurierbare Inline-Styles:
+
+```tsx
+import { CSSProperties } from 'react'
+
+type FlexProps = {
+  style?: Pick<CSSProperties, 'justifyContent' | 'alignItems'>
+}
+
+export const Flex = styled.div<FlexProps>`
+  display: flex;
+  justify-content: ${({ style }) => style?.justifyContent ?? 'flex-start'};
+  align-items: ${({ style }) => style?.alignItems ?? 'stretch'};
+`
+```
+
+* Nur erlaubte Keys aus `CSSProperties` sind zugänglich.
+
+---
+
+### 7) Alternative: Utility Types für Styles
+
+```tsx
+// Nur Farb-Props zulassen
+type ColorProps = {
+  color?: CSSProperties['color']
+  backgroundColor?: CSSProperties['backgroundColor']
+}
+
+export const ColoredBox = styled.div<ColorProps>`
+  color: ${({ color }) => color};
+  background-color: ${({ backgroundColor }) => backgroundColor};
+`
+```
+
+* Autovervollständigung für gültige CSS-Farben.
+
+---
+
+**Zusammenfassung**
+
+* `styled.button<Props>`: Props generisch typisieren.
+* Mit `declare module 'styled-components'` das Theme **typsicher** erweitern.
+* `keyof CSSProperties` oder Utility Types für gezielte CSS-Props.
+* Union Types (`'primary' | 'secondary'`) für Varianten.
+* Ergebnis: **Fehler bei ungültigen Props/Styles** → sichere, wartbare Komponenten.
+
+**Quellen**
+
+* TypeScript Utility Types: [https://www.typescriptlang.org/docs/handbook/utility-types.html](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* styled-components: [TypeScript Support](https://styled-components.com/docs/api#typescript)
+* React TypeScript Cheatsheets – [Styling](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase#styling)
+
+---
 
   **[⬆ Наверх](#top)**
 
-108. ### <a name="108"></a> 
+108. ### <a name="108"></a> Wie typisiert man Props für Bibliothekskomponenten (z. B. Material UI)?
 
+**Props für Bibliothekskomponenten (z. B. Material UI) typsicher machen**
 
+---
+
+### 1) Direkt den exportierten Prop-Typ verwenden
+
+```js
+// Wrapper um MUI-Button mit zusätzlichen Props
+import React from 'react'
+import Button from '@mui/material/Button'
+import type { ButtonProps } from '@mui/material/Button'
+
+type Extra = { loading?: boolean }
+
+export function PrimaryButton(props: ButtonProps & Extra) {
+  const { loading, children, disabled, ...rest } = props
+  return (
+    <Button variant="contained" color="primary" disabled={disabled || loading} {...rest}>
+      {loading ? '…' : children}
+    </Button>
+  )
+}
+```
+
+*Vorteil: exakt der gleiche Prop-Typ wie die MUI-Komponente.*
+
+---
+
+### 2) Falls kein Prop-Typ exportiert ist: `ComponentProps<typeof X>`
+
+```js
+import React from 'react'
+import TextField from '@mui/material/TextField'
+import type { ComponentProps } from 'react'
+
+type TFProps = ComponentProps<typeof TextField>
+
+export function LabeledTextField(props: TFProps) {
+  return <TextField variant="outlined" fullWidth {...props} />
+}
+```
+
+*Generisch aus dem Value von `typeof Komponente` abgeleitet.*
+
+---
+
+### 3) Polymorphe Komponenten (`component`/`as`) sauber typisieren
+
+```js
+// Link-Button, der als <a> rendert
+import React from 'react'
+import Button from '@mui/material/Button'
+import type { ButtonProps } from '@mui/material/Button'
+
+type LinkButtonProps = ButtonProps<'a'> & { to: string }
+
+export function LinkButton({ to, ...rest }: LinkButtonProps) {
+  return <Button component="a" href={to} {...rest} />
+}
+```
+
+*Viele MUI-Komponenten sind polymorph; `ButtonProps<'a'>` erzwingt die richtigen HTML-Attribute.*
+
+---
+
+### 4) `sx` und Theme typisieren
+
+```js
+import React from 'react'
+import Box from '@mui/material/Box'
+import type { SxProps, Theme } from '@mui/material/styles'
+
+type CardProps = {
+  sx?: SxProps<Theme> // volle Autocomplete auf Theme-Tokens
+  children?: React.ReactNode
+}
+
+export function Card({ sx, children }: CardProps) {
+  return <Box sx={{ p: 2, borderRadius: 2, boxShadow: 1, ...sx }}>{children}</Box>
+}
+```
+
+---
+
+### 5) Controlled Wrapper: Props präzisieren (Omit/Override)
+
+```js
+import React from 'react'
+import TextField from '@mui/material/TextField'
+import type { TextFieldProps } from '@mui/material/TextField'
+
+type ControlledTextFieldProps =
+  Omit<TextFieldProps, 'value' | 'onChange'> & {
+    value: string
+    onChange: (value: string) => void
+  }
+
+export function ControlledTextField({ onChange, ...rest }: ControlledTextFieldProps) {
+  return (
+    <TextField
+      {...rest}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  )
+}
+```
+
+*Überschreibt gezielt `value`/`onChange`, um den Werttyp zu fixieren.*
+
+---
+
+### 6) Refs korrekt weiterleiten (`forwardRef`)
+
+```js
+import React, { forwardRef } from 'react'
+import Button from '@mui/material/Button'
+import type { ButtonProps } from '@mui/material/Button'
+
+export const IconButtonLink = forwardRef<HTMLAnchorElement, ButtonProps<'a'>>(
+  function IconButtonLink(props, ref) {
+    return <Button component="a" ref={ref} {...props} />
+  }
+)
+```
+
+*`forwardRef` mit Element-Ref + polymorphem Prop-Typ.*
+
+---
+
+### 7) System-Props/Box ableiten (für Layout-Helfer)
+
+```js
+import React from 'react'
+import Box from '@mui/material/Box'
+import type { BoxProps } from '@mui/material/Box'
+
+type StackProps = BoxProps & { gap?: number }
+
+export function Stack({ gap = 2, ...rest }: StackProps) {
+  return <Box display="flex" gap={gap} {...rest} />
+}
+```
+
+---
+
+### 8) Fallback: Native HTML-Props zusammenführen
+
+```js
+import React from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
+
+type AnchorLikeProps = {
+  active?: boolean
+} & ComponentPropsWithoutRef<'a'>
+
+export function AnchorLike({ active, ...rest }: AnchorLikeProps) {
+  return <a data-active={active ? '1' : '0'} {...rest} />
+}
+```
+
+*Nützlich, wenn eine Bibliothek keine Typen liefert.*
+
+---
+
+**Zusammenfassung**
+
+* Bevorzugt **exportierte Prop-Typen** der Bibliothek nutzen (z. B. `ButtonProps`).
+* Alternativ **`ComponentProps<typeof X>`** bzw. HTML-Fallbacks (`ComponentPropsWithoutRef<'button'>`).
+* **Polymorphie**: bei MUI mit `ButtonProps<'a'>` & Co. typisieren.
+* **`sx` als `SxProps<Theme>`**, Events/Refs exakt typisieren; bei Wrappern gezielt mit `Omit`/Override arbeiten.
+
+**Quellen**
+
+* TypeScript Utility Types: [https://www.typescriptlang.org/docs/handbook/utility-types.html](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* React – `forwardRef`: [https://react.dev/reference/react/forwardRef](https://react.dev/reference/react/forwardRef)
+* React TypeScript Cheatsheet – *Props & Patterns*: [https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/)
+* MUI – TypeScript Guide (Props, polymorphe Komponenten): [https://mui.com/material-ui/guides/typescript/](https://mui.com/material-ui/guides/typescript/)
 
   **[⬆ Наверх](#top)**
 
-109. ### <a name="109"></a> 
+109. ### <a name="109"></a> Wie typisiert man React.memo?
 
+**`React.memo` typisieren (TypeScript)**
 
+---
+
+### 1) Standardfall – Typen werden aus der Komponente abgeleitet
+
+```js
+// UserCard.tsx
+import React, { memo } from 'react'
+
+type UserCardProps = { name: string; age?: number }
+
+function UserCard({ name, age }: UserCardProps) {
+  return <div>{name} {age ?? ''}</div>
+}
+
+export const MemoUserCard = memo(UserCard) // Props korrekt abgeleitet
+MemoUserCard.displayName = 'UserCard'
+```
+
+*Kein `React.FC` nötig; Props werden automatisch übernommen.*
+
+---
+
+### 2) Mit `propsAreEqual` (Custom Vergleich) – streng typisiert
+
+```js
+// Strict compare function ist an Props gebunden
+const areEqual = (prev: Readonly<UserCardProps>, next: Readonly<UserCardProps>) =>
+  prev.name === next.name && prev.age === next.age
+
+export const MemoUserCardEq = memo(UserCard, areEqual)
+```
+
+*`Readonly` spiegelt die tatsächliche Immutability von Props wider.*
+
+---
+
+### 3) `forwardRef` + `memo` kombiniert
+
+```js
+import React, { forwardRef, memo } from 'react'
+
+type InputProps = { value: string; onChange: (v: string) => void }
+
+const InputBase = forwardRef<HTMLInputElement, InputProps>(function InputBase(
+  { value, onChange }, ref
+) {
+  return <input ref={ref} value={value} onChange={(e) => onChange(e.target.value)} />
+})
+
+export const Input = memo(InputBase) // Props & Ref-Typ bleiben erhalten
+```
+
+---
+
+### 4) Generische Komponenten: Typen nach `memo` erhalten
+
+`memo` „vergisst“ Generics. Lösung: **Assertion**/Wrapper-Funktion.
+
+```js
+// List.tsx
+import React, { memo } from 'react'
+
+export type ListProps<T> = {
+  items: T[]
+  render: (item: T, index: number) => React.ReactNode
+}
+
+function ListInner<T>({ items, render }: ListProps<T>) {
+  return <ul>{items.map((it, i) => <li key={i}>{render(it, i)}</li>)}</ul>
+}
+
+// Variante A: Assertion auf generische Signatur
+export const List = memo(ListInner) as <T>(p: ListProps<T>) => JSX.Element
+
+// Nutzung:
+<List items={[{ id: 1 }]} render={(x) => x.id} />
+```
+
+Oder als **Hilfsfunktion**, die Generics bewahrt:
+
+```js
+function memoGeneric<TProps>(c: (p: TProps) => JSX.Element) {
+  return memo(c) as (p: TProps) => JSX.Element
+}
+export const List2 = memoGeneric(ListInner)<any> // ggf. mit explizitem Typparameter an Aufrufstellen
+```
+
+---
+
+### 5) Polymorphe Komponenten (optional, mit `as`/`component`)
+
+```js
+import React, { memo } from 'react'
+import type { ComponentPropsWithoutRef, ElementType } from 'react'
+
+type PolymorphProps<T extends ElementType> = {
+  as?: T
+  children?: React.ReactNode
+} & Omit<ComponentPropsWithoutRef<T>, 'as' | 'children'>
+
+function Box<T extends ElementType = 'div'>({ as, children, ...rest }: PolymorphProps<T>) {
+  const Comp = (as ?? 'div') as ElementType
+  return <Comp {...rest}>{children}</Comp>
+}
+
+export const MemoBox = memo(Box) as <T extends ElementType = 'div'>(p: PolymorphProps<T>) => JSX.Element
+```
+
+*Bewahrt die Attribut-Typen des gewählten Tags.*
+
+---
+
+### 6) Häufige Hinweise
+
+* **Kein `React.FC` nötig**: explizite Props sind klarer (keine impliziten `children`).
+* **Comparator sparsam** einsetzen: nur wenn wirklich teure Re-Renders; sonst Overhead.
+* **Stabile Props** (Memoization bei Callbacks/Objekten) sind Voraussetzung, damit `memo` wirkt.
+
+---
+
+**Zusammenfassung**
+
+* Standard: `memo(Component)` – Props werden automatisch abgeleitet.
+* Custom-Vergleich: `(prev: Readonly<Props>, next: Readonly<Props>) => boolean`.
+* `forwardRef` + `memo`: `forwardRef<Element, Props>(...)` und dann `memo(...)`.
+* Generische Komponenten: nach `memo` per **Assertion** (`as <T>(p: Props<T>) => JSX.Element`) oder Helper typisieren.
+* Polymorphe Komponenten: generische Props mit `ElementType` + Assertion erhalten.
+
+**Quellen**
+
+* React – `memo`: [https://react.dev/reference/react/memo](https://react.dev/reference/react/memo)
+* React – `forwardRef`: [https://react.dev/reference/react/forwardRef](https://react.dev/reference/react/forwardRef)
+* TypeScript – Generics & Utility Types: [https://www.typescriptlang.org/docs/handbook/2/generics.html](https://www.typescriptlang.org/docs/handbook/2/generics.html) , [https://www.typescriptlang.org/docs/handbook/utility-types.html](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* React TypeScript Cheatsheet – *Patterns (Memo, forwardRef, Generics)*: [https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase)
 
   **[⬆ Наверх](#top)**
 
-110. ### <a name="110"></a> 
+110. ### <a name="110"></a> Wie typisiert man React.lazy und Suspense?
 
+**`React.lazy` und `Suspense` typisieren (TypeScript)**
 
+---
+
+### 1) Default-Export lazy laden – Typen werden abgeleitet
+
+```js
+// Profile.tsx
+import React from 'react'
+export default function Profile() { return <div>Profile</div> }
+```
+
+```js
+// App.tsx
+import React, { lazy, Suspense } from 'react'
+
+const Profile = lazy(() => import('./Profile.js')) // Props werden automatisch abgeleitet
+
+export default function App() {
+  return (
+    <Suspense fallback={<span>Laden…</span>}>
+      <Profile />
+    </Suspense>
+  )
+}
+```
+
+*`lazy` erwartet ein Promise, dessen Auflösung `{ default: Component }` enthält.*
+
+---
+
+### 2) Named Export lazy laden (mit Mapping auf `default`)
+
+```js
+// widgets.tsx
+import React from 'react'
+export type ChartProps = { title: string }
+export function Chart({ title }: ChartProps) { return <h3>{title}</h3> }
+```
+
+```js
+// LazyChart.tsx
+import React, { lazy, Suspense } from 'react'
+import type { ChartProps } from './widgets.js'
+
+const Chart = lazy(async () =>
+  import('./widgets.js').then(m => ({ default: m.Chart }))
+)
+// Typ: LazyExoticComponent<ComponentType<ChartProps>>
+
+export function Panel() {
+  return (
+    <Suspense fallback={null}>
+      <Chart title="Sales" />
+    </Suspense>
+  )
+}
+```
+
+---
+
+### 3) Props explizit machen (optional, z. B. bei komplexen Generics)
+
+```js
+import React, { lazy, Suspense, type ComponentType, type LazyExoticComponent } from 'react'
+
+type DetailsProps = { id: string }
+
+const Details: LazyExoticComponent<ComponentType<DetailsProps>> = lazy(
+  () => import('./Details.js')
+)
+
+export function View() {
+  return (
+    <Suspense fallback={<i>…</i>}>
+      <Details id="42" />
+    </Suspense>
+  )
+}
+```
+
+---
+
+### 4) `forwardRef` + `lazy` kombinieren (Ref-Typ bleibt erhalten)
+
+```js
+// Input.tsx
+import React, { forwardRef } from 'react'
+export type InputProps = { value: string; onChange: (v: string) => void }
+const Input = forwardRef<HTMLInputElement, InputProps>(function Input({ value, onChange }, ref) {
+  return <input ref={ref} value={value} onChange={e => onChange(e.target.value)} />
+})
+export default Input
+```
+
+```js
+// LazyInput.tsx
+import React, { lazy, Suspense, useRef } from 'react'
+import type { InputProps } from './Input.js'
+
+const LazyInput = lazy(() => import('./Input.js')) // Ref- und Prop-Typen bleiben erhalten
+
+export function Form() {
+  const ref = useRef<HTMLInputElement>(null)
+  return (
+    <Suspense fallback={null}>
+      <LazyInput ref={ref} value="" onChange={() => {}} />
+    </Suspense>
+  )
+}
+```
+
+---
+
+### 5) Generische Komponenten und `lazy`
+
+`lazy` „vergisst“ Typparameter. Lösung: Assertion/Wrapper mit generischer Signatur.
+
+```js
+// List.tsx
+import React from 'react'
+export type ListProps<T> = { items: T[]; render: (item: T) => React.ReactNode }
+export default function List<T>({ items, render }: ListProps<T>) {
+  return <ul>{items.map((it, i) => <li key={i}>{render(it)}</li>)}</ul>
+}
+```
+
+```js
+// LazyList.tsx
+import React, { lazy, Suspense } from 'react'
+import type { ListProps } from './List.js'
+
+const LazyList = lazy(() => import('./List.js')) as <T>(p: ListProps<T>) => JSX.Element
+
+export function Demo() {
+  return (
+    <Suspense fallback="…">
+      <LazyList items={[{ id: 1 }]} render={x => x.id} />
+    </Suspense>
+  )
+}
+```
+
+---
+
+### 6) Typen von `Suspense` (Fallback & Boundary)
+
+```js
+import React, { Suspense } from 'react'
+
+export function Boundary({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<div>Loading…</div>}>{children}</Suspense>
+}
+```
+
+* `fallback: React.ReactNode`
+* `children: React.ReactNode`
+
+---
+
+### 7) Häufige Hinweise
+
+* Immer innerhalb von `<Suspense>` rendern (sonst Laufzeitfehler).
+* Bei SSR-Frameworks (z. B. Next.js) ggf. deren `dynamic()`/`next/dynamic` verwenden.
+* Für named Exports stets via `then(m => ({ default: m.Named }))` mappen.
+* Bei generischen Komponenten Typsignatur per Assertion erhalten.
+
+---
+
+**Zusammenfassung**
+
+* `lazy(() => import(...))` leitet Props automatisch ab; für named Exports via `then` auf `default` mappen.
+* `Suspense` verlangt `fallback: ReactNode`; `children` sind typisiert als `ReactNode`.
+* Generische/komplizierte Komponenten: Props via Assertion sichern; `forwardRef` bleibt mit `lazy` typstark.
+
+**Quellen**
+
+* React – `lazy` & `Suspense`: [https://react.dev/reference/react/lazy](https://react.dev/reference/react/lazy) , [https://react.dev/reference/react/Suspense](https://react.dev/reference/react/Suspense)
+* TypeScript – Module & Generics: [https://www.typescriptlang.org/docs/handbook/2/modules.html](https://www.typescriptlang.org/docs/handbook/2/modules.html) , [https://www.typescriptlang.org/docs/handbook/2/generics.html](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* React TypeScript Cheatsheet – Code Splitting/Lazy: [https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase#code-splitting](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase#code-splitting)
 
   **[⬆ Наверх](#top)**
 
-111. ### <a name="111"></a> 
+111. ### <a name="111"></a> Wie verwendet man Conditional Types (T extends U ? X : Y)?
 
+**Conditional Types (`T extends U ? X : Y`) in TypeScript**
 
+---
+
+### 1) Grundidee
+
+Ein **Conditional Type** ist ein ternärer Operator auf Typ-Ebene:
+
+```ts
+type IsString<T> = T extends string ? 'yes' : 'no'
+
+type A = IsString<string>   // 'yes'
+type B = IsString<number>   // 'no'
+```
+
+* Wenn `T` in `U` assignable ist → `X`.
+* Sonst → `Y`.
+
+📚 [TypeScript Docs – Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html)
+
+---
+
+### 2) Praktische Nutzung: API-Modelle
+
+```ts
+type ApiResponse<T> = T extends Error ? { ok: false; error: T } : { ok: true; data: T }
+
+type R1 = ApiResponse<string> // { ok: true; data: string }
+type R2 = ApiResponse<Error>  // { ok: false; error: Error }
+```
+
+*So lassen sich Erfolg/Fehler-Strukturen automatisch ableiten.*
+
+---
+
+### 3) Verfeinerung von Props in React
+
+```tsx
+type ButtonProps<T extends 'a' | 'button'> =
+  T extends 'a'
+    ? { as: 'a'; href: string }
+    : { as: 'button'; onClick: () => void }
+
+// Nutzung:
+const link: ButtonProps<'a'> = { as: 'a', href: '/home' }        // ✅
+const btn: ButtonProps<'button'> = { as: 'button', onClick() {} } // ✅
+```
+
+*Props variieren abhängig von einem Discriminator.*
+
+---
+
+### 4) Extract / Exclude als Conditional Types
+
+`Extract<T, U>` und `Exclude<T, U>` sind in TS **vordefinierte Conditional Types**:
+
+```ts
+type A = string | number | boolean
+
+type OnlyString = Extract<A, string>  // string
+type NoString = Exclude<A, string>    // number | boolean
+```
+
+---
+
+### 5) Inference (`infer`) innerhalb von Conditional Types
+
+```ts
+type UnwrapPromise<T> = T extends Promise<infer U> ? U : T
+
+type A = UnwrapPromise<Promise<number>> // number
+type B = UnwrapPromise<string>          // string
+```
+
+* `infer U` erstellt einen neuen Typ-Platzhalter, wenn das Pattern matched.
+
+---
+
+### 6) Mehrstufige Verzweigungen
+
+```ts
+type TypeName<T> =
+  T extends string ? 'string' :
+  T extends number ? 'number' :
+  T extends boolean ? 'boolean' :
+  'object'
+
+type A = TypeName<string>   // 'string'
+type B = TypeName<boolean>  // 'boolean'
+type C = TypeName<Date>     // 'object'
+```
+
+---
+
+### 7) Anwendung für API-Generics (Optional/Required)
+
+```ts
+type Nullable<T, Fallback = null> = T extends undefined ? Fallback : T
+
+type A = Nullable<string | undefined>  // string | null
+type B = Nullable<number>              // number
+```
+
+---
+
+### 8) Verteilung über Union Types
+
+Conditional Types sind **distributiv**, wenn das Subject ein Union ist:
+
+```ts
+type ToArray<T> = T extends any ? T[] : never
+
+type R = ToArray<string | number> // string[] | number[]
+```
+
+* Jeder Union-Member wird einzeln geprüft.
+* Verhindern via `[T] extends [U]`.
+
+---
+
+**Zusammenfassung**
+
+* Syntax: `T extends U ? X : Y`.
+* Grundlage für viele eingebaute Utility Types (`Extract`, `Exclude`, `ReturnType`, `Awaited`).
+* Einsatz: API-Result-Wrapper, Props abhängig machen, Typen transformieren (`Promise<T>` → `T`).
+* Mit `infer` kann man Typen aus Strukturen extrahieren.
+* Distributiv über Union Types – wichtiges Verhalten.
+
+**Quellen**
+
+* [TypeScript Docs – Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html)
+* [TypeScript Docs – Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* React TypeScript Cheatsheet – Advanced Patterns: [https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase)
+
+---
 
   **[⬆ Наверх](#top)**
 
-112. ### <a name="112"></a> 
+112. ### <a name="112"></a> Was sind Mapped Types?
 
+**Mapped Types in TypeScript**
 
+---
+
+### 1) Grundidee
+
+Ein **Mapped Type** erlaubt es, über die Schlüssel (`keyof`) eines Typs zu iterieren und daraus neue Typen zu erzeugen.
+
+```ts
+type User = { id: string; name: string; age: number }
+
+type ReadonlyUser = {
+  readonly [K in keyof User]: User[K]
+}
+```
+
+* `[K in keyof User]` = Schleife über alle Keys (`"id" | "name" | "age"`).
+* `User[K]` = jeweiliger Wert-Typ.
+
+📚 [TS Docs – Mapped Types](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html)
+
+---
+
+### 2) Built-in Utility Types sind Mapped Types
+
+```ts
+type User = { id: string; name: string; age?: number }
+
+type PartialUser = Partial<User>     // alle Props optional
+type RequiredUser = Required<User>   // alle Props required
+type ReadonlyUser = Readonly<User>   // alle Props readonly
+type PickUser = Pick<User, 'id'>     // nur id
+type RecordMap = Record<string, number> // {[key: string]: number}
+```
+
+---
+
+### 3) Custom Transformation – optional/readonly
+
+```ts
+type Optional<T> = {
+  [K in keyof T]?: T[K]
+}
+
+type ReadonlyProps<T> = {
+  readonly [K in keyof T]: T[K]
+}
+```
+
+---
+
+### 4) Mit Modifikatoren (`+` | `-`)
+
+```ts
+type User = { id: string; name?: string }
+
+// -? entfernt Optionalität
+type StrictUser = {
+  [K in keyof User]-?: User[K]
+}
+// { id: string; name: string }
+```
+
+---
+
+### 5) Keys remappen (`as`)
+
+```ts
+type User = { id: string; name: string }
+
+type PrefixKeys<T> = {
+  [K in keyof T as `user_${Extract<K, string>}`]: T[K]
+}
+
+type Prefixed = PrefixKeys<User>
+// { user_id: string; user_name: string }
+```
+
+---
+
+### 6) Dynamische Transformationen
+
+```ts
+type Nullable<T> = {
+  [K in keyof T]: T[K] | null
+}
+
+type User = { id: string; age: number }
+type NullableUser = Nullable<User>
+// { id: string | null; age: number | null }
+```
+
+---
+
+### 7) Kombination mit Conditional Types
+
+```ts
+type FunctionProps<T> = {
+  [K in keyof T as T[K] extends Function ? K : never]: T[K]
+}
+
+type Example = {
+  id: string
+  onClick: () => void
+  onChange: (v: string) => void
+}
+
+type OnlyFuncs = FunctionProps<Example>
+// { onClick: () => void; onChange: (v: string) => void }
+```
+
+---
+
+### 8) Praxis in React/Frontend
+
+* **Formulare**: `Partial<T>` für optionale Felder.
+* **Redux State**: `Readonly<T>` für Immutability.
+* **API Models**: `Omit<T, 'serverOnly'>` für Client-DTOs.
+* **CSS-in-JS**: Mapped Types über `keyof CSSProperties`.
+
+---
+
+**Zusammenfassung**
+
+* Mapped Types = Typ-Transformation über alle Keys eines Typs.
+* Syntax: `{ [K in keyof T]: … }`.
+* Unterstützt Modifikatoren (`+?`, `-?`, `+readonly`, `-readonly`) und Key-Remapping (`as`).
+* Grundlage für viele Utility Types (`Partial`, `Required`, `Readonly`, `Pick`, `Record`).
+* Nützlich für API-Modelle, State-Management, UI-Props und dynamische Typableitung.
+
+**Quellen**
+
+* [TypeScript Docs – Mapped Types](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html)
+* [TypeScript Docs – Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* React TypeScript Cheatsheet – Patterns & Utility Types: [https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase)
+
+---
 
   **[⬆ Наверх](#top)**
 
-113. ### <a name="113"></a> 
+113. ### <a name="113"></a> Wie funktionieren Template Literal Types?
 
+**Template Literal Types in TypeScript**
 
+---
+
+### 1) Grundidee
+
+Template Literal Types kombinieren **String Literal Types** mit **String Interpolation**.
+Ähnlich wie bei JavaScript Template Strings (`${}`), aber auf **Typ-Ebene**.
+
+```ts
+type Lang = "de" | "en"
+type Key = "title" | "description"
+
+type TranslationKey = `${Lang}_${Key}`
+// "de_title" | "de_description" | "en_title" | "en_description"
+```
+
+📚 [TS Docs – Template Literal Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)
+
+---
+
+### 2) Kombination mit `keyof`
+
+```ts
+type User = { id: string; name: string; age: number }
+
+type UserGetters = `get${Capitalize<keyof User & string>}`
+// "getId" | "getName" | "getAge"
+```
+
+---
+
+### 3) Utility mit eingebaute String-Manipulation
+
+TypeScript bietet Hilfstypen:
+
+* `Uppercase<T>`
+* `Lowercase<T>`
+* `Capitalize<T>`
+* `Uncapitalize<T>`
+
+```ts
+type Msg = "hello world"
+type U = Uppercase<Msg>      // "HELLO WORLD"
+type C = Capitalize<Msg>     // "Hello world"
+```
+
+---
+
+### 4) Props in React dynamisch ableiten
+
+```ts
+type Size = "sm" | "lg"
+type Variant = "primary" | "secondary"
+
+type ButtonClass = `btn-${Size}-${Variant}`
+// "btn-sm-primary" | "btn-sm-secondary" | "btn-lg-primary" | "btn-lg-secondary"
+
+type ButtonProps = {
+  className: ButtonClass
+}
+```
+
+*Komponente akzeptiert nur gültige Kombinationen.*
+
+---
+
+### 5) API-Endpunkte modellieren
+
+```ts
+type Method = "GET" | "POST"
+type Resource = "users" | "products"
+
+type Endpoint = `${Method}/${Resource}`
+// "GET/users" | "GET/products" | "POST/users" | "POST/products"
+```
+
+---
+
+### 6) Mit Conditional Types kombinieren
+
+```ts
+type EventName<T extends string> = T extends `on${infer U}` ? U : never
+
+type A = EventName<"onClick">  // "Click"
+type B = EventName<"onChange"> // "Change"
+type C = EventName<"hover">    // never
+```
+
+*`infer` extrahiert Teilstrings aus dem Typ.*
+
+---
+
+### 7) Remapping von Keys in Mapped Types
+
+```ts
+type User = { id: string; name: string }
+
+type Prefixed<T> = {
+  [K in keyof T as `user_${string & K}`]: T[K]
+}
+
+type UserDb = Prefixed<User>
+// { user_id: string; user_name: string }
+```
+
+---
+
+### 8) Typische Praxis-Fälle
+
+* **CSS-Klassen** (`btn-lg-primary`).
+* **Internationalisierung** (`de_title`).
+* **Events/Handler** (`onClick`, `onChange`).
+* **API-Routen** (`GET/users`).
+* **Key-Remapping** in Mapped Types.
+
+---
+
+**Zusammenfassung**
+
+* Template Literal Types = String-Literal-Typen mit Interpolation.
+* Kombinierbar mit Union, `keyof`, Utility-Types (`Uppercase`, `Capitalize`, …).
+* Sehr nützlich für **strikte Schlüssel**: Routen, Events, CSS-Klassen, Übersetzungen.
+* Mit `infer` → Teilstrings extrahieren, für flexible Typtransformationen.
+
+**Quellen**
+
+* [TypeScript Docs – Template Literal Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)
+* [TypeScript Utility Types (String Manipulation)](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html#string-manipulation)
+* React TypeScript Cheatsheet – Advanced Patterns: [https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase)
+
+---
 
   **[⬆ Наверх](#top)**
 
-114. ### <a name="114"></a> 
+114. ### <a name="114"></a> Was ist infer?
 
+**`infer` in TypeScript**
 
+---
+
+### 1) Grundidee
+
+* `infer` („infer = ableiten“) wird **nur innerhalb von Conditional Types** verwendet.
+* Damit können **Typvariablen innerhalb eines Typs** aus einem Pattern extrahiert werden.
+
+```ts
+type UnwrapPromise<T> = T extends Promise<infer U> ? U : T
+
+type A = UnwrapPromise<Promise<number>> // number
+type B = UnwrapPromise<string>          // string
+```
+
+📚 [TypeScript Docs – Conditional Types & infer](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#infer)
+
+---
+
+### 2) Typ aus Funktion extrahieren
+
+```ts
+type Return<T> = T extends (...args: any[]) => infer R ? R : never
+
+type A = Return<() => string>  // string
+type B = Return<(x: number) => boolean> // boolean
+```
+
+---
+
+### 3) Parameter-Typen extrahieren
+
+```ts
+type FirstArg<T> = T extends (arg: infer P, ...args: any[]) => any ? P : never
+
+type A = FirstArg<(id: number, name: string) => void> // number
+type B = FirstArg<() => void>                        // never
+```
+
+---
+
+### 4) Mehrere `infer` Variablen gleichzeitig
+
+```ts
+type Args<T> = T extends (...args: infer A) => any ? A : never
+
+type A = Args<(x: string, y: number) => void>
+// [x: string, y: number]
+```
+
+---
+
+### 5) Mit Array/Promise-Strukturen
+
+```ts
+type ElementType<T> = T extends (infer U)[] ? U : T
+
+type A = ElementType<string[]>   // string
+type B = ElementType<number>     // number
+```
+
+```ts
+type Awaited<T> = T extends Promise<infer U> ? Awaited<U> : T
+
+type A = Awaited<Promise<Promise<string>>> // string
+```
+
+(*So ist der eingebaute Utility-Typ `Awaited<T>` definiert.*)
+
+---
+
+### 6) Template Literal Types + `infer`
+
+```ts
+type EventName<T> = T extends `on${infer U}` ? U : never
+
+type A = EventName<'onClick'>   // "Click"
+type B = EventName<'hover'>     // never
+```
+
+---
+
+### 7) Praxisfälle
+
+* Rückgabewerte und Parameter von Funktionen extrahieren.
+* Promise-/Array-/Observable-Inhalte herausziehen.
+* Eventnamen oder Stringteile analysieren.
+* Utility-Types bauen (`ReturnType`, `Parameters`, `Awaited` nutzen `infer`).
+
+---
+
+**Zusammenfassung**
+
+* `infer` = Platzhalter für einen Typ, den TS aus einem Muster **ableitet**.
+* Nur in **Conditional Types** einsetzbar.
+* Ermöglicht flexible Utility-Types (z. B. `ReturnType`, `Awaited`).
+* Typisches Muster: `T extends Something<infer U> ? … : …`.
+
+**Quellen**
+
+* [TypeScript Docs – infer](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#infer)
+* [Utility Types in TS](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* React TS Cheatsheet – Advanced Patterns: [https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase)
+
+---
 
   **[⬆ Наверх](#top)**
 
-115. ### <a name="115"></a> 
+115. ### <a name="115"></a> Wie schreibt man eigene Utility Types?
 
+**Eigene Utility Types in TypeScript**
 
+---
+
+### 1) Grundlagen: Bausteine
+
+* **Conditional Types**: `T extends U ? X : Y`
+* **Mapped Types**: `{ [K in keyof T]: … }` (+ Modifikatoren `-?`, `+readonly`, `-readonly`)
+* **Template Literal Types**: Remapping von Keys via ``as \`prefix_${K}\` ``
+* **`infer`**: Typen aus Strukturen extrahieren
+
+📚 Docs:
+[Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html) · [Mapped Types](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html) · [Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html) · [Template Literal Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)
+
+---
+
+### 2) Häufige selbstgeschriebene Utilities
+
+```js
+// 2.1 DeepPartial – rekursiv optionale Felder (für PATCH-DTOs)
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K]
+}
+
+// 2.2 DeepReadonly – rekursiv readonly (z. B. für State-Snapshots)
+export type DeepReadonly<T> = {
+  readonly [K in keyof T]: T[K] extends object ? DeepReadonly<T[K]> : T[K]
+}
+
+// 2.3 Mutable – entfernt readonly (auch rekursiv möglich)
+export type Mutable<T> = { -readonly [K in keyof T]: T[K] }
+
+// 2.4 ValueOf – Wertetypen einer Map/Record
+export type ValueOf<T> = T[keyof T]
+
+// 2.5 Exact – verhindert „excess properties“
+export type Exact<T, U extends T> = T & { [K in Exclude<keyof U, keyof T>]: never }
+
+// 2.6 Merge – „flaches“ Mergen von Typen (B gewinnt)
+export type Merge<A, B> = Omit<A, keyof B> & B
+
+// 2.7 Overwrite – gezielt Felder überschreiben
+export type Overwrite<T, R> = Merge<T, Pick<R, keyof R>>
+
+// 2.8 UnionToIntersection – nützlich bei zusammengesetzten Props
+export type UnionToIntersection<U> =
+  (U extends any ? (x: U) => void : never) extends (x: infer I) => void ? I : never
+
+// 2.9 RequireAtLeastOne – mindestens ein Feld Pflicht
+export type RequireAtLeastOne<T, K extends keyof T = keyof T> =
+  Omit<T, K> & { [P in K]-?: Required<Pick<T, P>> & Partial<Omit<T, K>> }[K]
+
+// 2.10 XOR – genau eine von zwei Gruppen
+export type XOR<A, B> = (A | B) extends object
+  ? (A & { [K in keyof B]?: never }) | (B & { [K in keyof A]?: never })
+  : A | B
+
+// 2.11 NonEmptyArray – Arrays mit min. 1 Element
+export type NonEmptyArray<T> = [T, ...T[]]
+
+// 2.12 Brand – „gebrandete“ Primitive (IDs typisieren)
+export type Brand<T, B extends string> = T & { __brand: B }
+
+// 2.13 KeysMatching – alle Keys, deren Werte-Typ auf U passt
+export type KeysMatching<T, U> = { [K in keyof T]-?: T[K] extends U ? K : never }[keyof T]
+
+// 2.14 PropType – Typ eines Props einer React-Komponente
+export type PropType<C, K extends keyof C> =
+  C extends (p: infer P) => any ? P[K & keyof P] : never
+
+// 2.15 Prettify – Intersection „glätten“ (bessere IntelliSense)
+export type Prettify<T> = { [K in keyof T]: T[K] } & {}
+```
+
+---
+
+### 3) Beispiele in Praxis (API/React)
+
+```js
+// 3.1 API: DeepPartial für PATCH
+type User = { id: string; name: string; profile: { bio: string; avatarUrl?: string } }
+type UpdateUserDto = DeepPartial<Omit<User, 'id'>> // id nicht erlauben, Rest optional (rekursiv)
+
+// 3.2 Form-Layer: mindestens 'email' ODER 'username'
+type LoginByEmail = { email: string; password: string }
+type LoginByUser  = { username: string; password: string }
+type LoginInput = XOR<LoginByEmail, LoginByUser>
+
+// 3.3 Events-API: RequireAtLeastOne für Filter
+type Filter = { userId?: string; since?: string; until?: string }
+type StrictFilter = RequireAtLeastOne<Filter> // mindestens eins muss gesetzt sein
+
+// 3.4 IDs mit Brand
+type UserId = Brand<string, 'UserId'>
+const uid = '42' as UserId // verhindert versehentlichen Tausch mit z. B. ProductId
+
+// 3.5 React: „genau eine“ Variante erlauben (XOR)
+type ButtonBase = { children?: React.ReactNode }
+type ButtonAsLink = { as: 'a'; href: string }
+type ButtonAsButton = { as?: 'button'; onClick: () => void }
+type ButtonProps = ButtonBase & XOR<ButtonAsLink, ButtonAsButton>
+
+// 3.6 React: Props überarbeiten (Controlled Wrapper)
+import type { ComponentProps } from 'react'
+type InputProps = ComponentProps<'input'>
+type ControlledInputProps = Overwrite<InputProps, {
+  value: string
+  onChange: (v: string) => void
+}>
+
+// 3.7 Selective Keys: nur Callback-Props extrahieren
+type OnlyHandlers<T> = Pick<T, KeysMatching<T, (...a: any[]) => any>>
+type Handlers = OnlyHandlers<{ onClick: () => void; id: string; onChange(v: string): void }>
+// => { onClick: () => void; onChange(v: string): void }
+```
+
+---
+
+### 4) Key-Remapping mit Template Literals
+
+```js
+// Präfixe für API-Felder hinzufügen
+type Api<T> = {
+  [K in keyof T as `api_${K & string}`]: T[K]
+}
+type ApiUser = Api<{ id: string; name: string }>
+// { api_id: string; api_name: string }
+```
+
+---
+
+### 5) Tipps
+
+* Kleine Utilities in **/types** bündeln, mit JSDoc dokumentieren.
+* Erst prüfen, ob ein **Built-in Utility** genügt (`Partial`, `Pick`, `Record`, `Required`, `Readonly`, `NonNullable`, `ReturnType`, `Parameters`, `Awaited` …).
+* Komplexe Intersections via `Prettify<>` „glätten“ für bessere DX.
+* Bei Runtime-Validierung (Zod/Yup) die Typen via `z.infer` synchron halten.
+
+---
+
+**Zusammenfassung**
+
+* Eigene Utility Types entstehen durch **Conditional + Mapped + Template Literal Types** und `infer`.
+* Typische Patterns: `DeepPartial`, `RequireAtLeastOne`, `XOR`, `Merge/Overwrite`, `Brand`.
+* Nützlich für **API-DTOs**, **Form-Validierung**, **React-Props** und **State-Modelle**.
+* Erst Built-ins nutzen, dann gezielt spezialisieren – sauber versionieren und testen.
+
+**Quellen**
+
+* TypeScript: [Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html), [Mapped Types](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html), [Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html), [Template Literal Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)
+* React TypeScript Cheatsheets – Advanced Patterns: [https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase)
 
   **[⬆ Наверх](#top)**
 
-116. ### <a name="116"></a> 
+116. ### <a name="116"></a> Wie kombiniert man mehrere Generics?
 
+**Mehrere Generics kombinieren (TypeScript)**
 
+---
+
+### 1) Funktionen mit mehreren Typparametern
+
+```js
+// Relation zwischen T und U, plus Rückgabe R
+export function mapPair<T, U, R>(a, b, fn) {
+  return fn(a, b) /** @type {R} */
+}
+
+// Nutzung:
+// const out = mapPair<number, string, boolean>(1, 'x', (n, s) => n > 0 && !!s)
+```
+
+* Mehrere Parameter `<T, U, R>`; Reihenfolge ist beliebig, aber **konsistent** halten.
+
+---
+
+### 2) Abhängige Generics (Constraints)
+
+```js
+// K ist ein Key von T; Value-Typ über T[K]
+export function getProp<T, K extends keyof T>(obj, key) {
+  return obj[key] /** @type {T[K]} */
+}
+
+// const v = getProp({ id: 1, name: 'Max' }, 'name') // v: string
+```
+
+* Klassischer Pattern: `<T, K extends keyof T>`.
+
+---
+
+### 3) Defaults für Generics
+
+```js
+// V defaultet auf string
+export type Dict<V = string, K extends string = string> = Record<K, V>
+
+// type D1 = Dict            // Record<string, string>
+// type D2 = Dict<number>    // Record<string, number>
+```
+
+* **Default-Typen** reduzieren Boilerplate bei häufigen Fällen.
+
+---
+
+### 4) Kombi aus Constraints + Conditional Types
+
+```js
+// Wenn T ein Array ist → Elementtyp, sonst T selbst
+export type Elem<T> = T extends (infer U)[] ? U : T
+
+// Nur schreibbare Keys (ohne readonly) extrahieren
+export type WritableKeys<T> = {
+  [P in keyof T]-?: (<X>() => X extends { [Q in P]: T[P] } ? 1 : 2) extends
+                   (<X>() => X extends { -readonly [Q in P]: T[P] } ? 1 : 2) ? P : never
+}[keyof T]
+```
+
+* Mehrere Typparameter/`infer` lassen sich in einem Utility kombinieren.
+
+---
+
+### 5) Re-usable HOC/Wrapper mit mehreren Generics (React)
+
+```js
+// Table.tsx — generische Tabelle mit Datentyp T und Key K
+import React from 'react'
+
+export type Column<T, K extends keyof T> = {
+  key: K
+  title: string
+  render?: (value: T[K], row: T) => React.ReactNode
+}
+
+export function DataTable<T, K extends keyof T>({ rows, columns }) {
+  return (
+    <table>
+      <thead><tr>{columns.map(c => <th key={String(c.key)}>{c.title}</th>)}</tr></thead>
+      <tbody>
+        {rows.map((r, i) => (
+          <tr key={i}>
+            {columns.map(c => <td key={String(c.key)}>{c.render?.(r[c.key], r) ?? String(r[c.key])}</td>)}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+/*
+<DataTable
+  rows={[{ id: 1, name: 'A' }]}
+  columns={[
+    { key: 'id', title: 'ID' },
+    { key: 'name', title: 'Name', render: (v) => v.toUpperCase() }, // v: string
+  ]}
+/>
+*/
+```
+
+* `<T, K extends keyof T>` verbindet **Spaltenschlüssel** eng mit dem **Row-Typ**.
+
+---
+
+### 6) Mehrfach-Generics in Utility-Typen (Merge/Override)
+
+```js
+export type Merge<A, B> = Omit<A, keyof B> & B
+
+export type Override<T, R> = Merge<T, Pick<R, keyof R>>
+
+// Beispiel:
+type A = { id: string; age: number }
+type B = { age: string }
+type C = Override<A, B> // { id: string; age: string }
+```
+
+---
+
+### 7) Event-Handler präzisieren (Wert an Key binden)
+
+```js
+type OnChange<T, K extends keyof T> = (key: K, value: T[K]) => void
+
+export function setValue<T, K extends keyof T>(obj, key, value) {
+  obj[key] = value /** @type {T[K]} */
+}
+```
+
+* Mehrere Generics koppeln **Parameter** logisch (Key ↔ Wertetyp).
+
+---
+
+### 8) Interop mit `ComponentProps`/`ReturnType` (abgeleitete Generics)
+
+```js
+import type { ComponentProps } from 'react'
+
+export type WithOn<T extends (...a: any[]) => any, P = ReturnType<T>> = {
+  onDone: T
+  payload: P
+}
+
+type Click = (ok: boolean) => number
+type Props = WithOn<Click> // { onDone: (ok: boolean) => number; payload: number }
+```
+
+* Generics können andere **Generics/Utility Types** als Bausteine nutzen.
+
+---
+
+**Zusammenfassung**
+
+* Mehrere Generics via `<T, U, R>` kombinieren; mit `extends` **Beziehungen** erzwingen.
+* Häufiges Pattern: `<T, K extends keyof T>` für key-gebundene Werte.
+* Defaults (`<V = string>`) reduzieren Boilerplate.
+* In React helfen Mehrfach-Generics bei **typsicheren Tabellen/HOCs**.
+* Conditional/`infer` + Mapped Types lassen mächtige **Utility Types** entstehen.
+
+**Quellen**
+
+* TypeScript: [Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html), [keyof](https://www.typescriptlang.org/docs/handbook/2/keyof-types.html), [Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html), [Mapped Types](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html)
+* React TypeScript Cheatsheet – Patterns mit Generics: [https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase)
 
   **[⬆ Наверх](#top)**
 
-117. ### <a name="117"></a> 
+117. ### <a name="117"></a> Was sind polymorphe Komponenten in React?
 
+**Polymorphe Komponenten in React (TypeScript)**
 
+---
+
+### 1) Grundidee
+
+Eine **polymorphe Komponente** ist eine Komponente, die mit dem Prop `as` (oder `component`) entscheidet, **welches HTML- oder UI-Element gerendert wird**.
+👉 Props und Typen passen sich dynamisch an den gewählten Elementtyp an.
+
+Beispiele in UI-Libraries:
+
+* **Material UI**: `<Button component="a" href="…">`
+* **Chakra UI**: `<Box as="section">`
+
+---
+
+### 2) Einfaches Beispiel ohne Typisierung
+
+```tsx
+function Text({ as: Comp = 'span', children, ...rest }) {
+  return <Comp {...rest}>{children}</Comp>
+}
+
+// Nutzung
+<Text as="a" href="/home">Link</Text>
+<Text as="button" onClick={() => {}}>Click</Text>
+```
+
+⚠️ Problem: TypeScript weiß hier nicht, dass bei `as="a"` ein `href`-Prop nötig ist.
+
+---
+
+### 3) Typsicher mit `ComponentPropsWithoutRef` und Generics
+
+```tsx
+import React, { ElementType, ComponentPropsWithoutRef } from 'react'
+
+type PolymorphicProps<T extends ElementType> = {
+  as?: T
+  children?: React.ReactNode
+} & ComponentPropsWithoutRef<T>
+
+function Text<T extends ElementType = 'span'>({ as, children, ...rest }: PolymorphicProps<T>) {
+  const Component = as || 'span'
+  return <Component {...rest}>{children}</Component>
+}
+
+// Nutzung
+<Text as="a" href="/home">Link</Text>        // ✅ kennt href
+<Text as="button" onClick={() => {}}>Click</Text> // ✅ kennt onClick
+<Text>Default span</Text>
+```
+
+* `T` bestimmt den gerenderten Tag.
+* Mit `ComponentPropsWithoutRef<T>` übernimmt TS alle nativen Props.
+
+---
+
+### 4) Polymorphe + eigene Props
+
+```tsx
+type BaseProps = { color?: 'red' | 'blue' }
+
+type PolymorphicProps<T extends ElementType> = BaseProps & {
+  as?: T
+  children?: React.ReactNode
+} & Omit<ComponentPropsWithoutRef<T>, keyof BaseProps>
+
+function Box<T extends ElementType = 'div'>({ as, color, children, ...rest }: PolymorphicProps<T>) {
+  const Component = as || 'div'
+  return <Component style={{ color }} {...rest}>{children}</Component>
+}
+
+// Nutzung
+<Box as="a" href="/home" color="red">Link</Box>
+<Box as="button" onClick={() => {}}>Button</Box>
+```
+
+* Konflikte (`color` überschreibt native `color`-Prop) mit `Omit<>` vermeiden.
+
+---
+
+### 5) Mit `forwardRef`
+
+```tsx
+import React, { forwardRef } from 'react'
+
+type PolymorphicProps<T extends ElementType> = {
+  as?: T
+  children?: React.ReactNode
+} & ComponentPropsWithoutRef<T>
+
+const Polymorphic = forwardRef(
+  <T extends ElementType = 'div'>(
+    { as, children, ...rest }: PolymorphicProps<T>,
+    ref: React.Ref<Element>
+  ) => {
+    const Component = as || 'div'
+    return <Component ref={ref} {...rest}>{children}</Component>
+  }
+)
+```
+
+* Ref bleibt korrekt typisiert.
+
+---
+
+### 6) Praxis-Einsatz
+
+* **Design-Systeme** (einheitliche Komponenten wie `Box`, `Text`).
+* **UI-Libraries** (MUI, Chakra, Radix).
+* **Accessibility** (z. B. ein Button, der semantisch ein `<a>` ist).
+
+---
+
+**Zusammenfassung**
+
+* Polymorphe Komponenten ändern den gerenderten Tag/Komponententyp via `as`/`component`.
+* Mit `Generics + ComponentPropsWithoutRef<T>` bleiben Props typsicher.
+* Konflikte durch `Omit<>` lösen.
+* In UI-Libraries Standardpattern für flexible, wiederverwendbare Komponenten.
+
+**Quellen**
+
+* TypeScript Docs – [Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+* React TypeScript Cheatsheet – [Polymorphic Components](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase#polymorphic-components)
+* Material UI – [Polymorphic `component` Prop](https://mui.com/material-ui/guides/typescript/#using-the-component-prop)
+
+---
 
   **[⬆ Наверх](#top)**
 
-118. ### <a name="118"></a> 
+118. ### <a name="118"></a> Wie erstellt man eine generische React-Komponente?
 
+**Generische React-Komponente (TypeScript)**
 
+---
+
+### 1) Einfaches, wiederverwendbares List-Pattern
+
+```js
+// List.tsx
+import React from 'react'
+
+export type ListProps<T> = {
+  items: T[]
+  renderItem: (item: T, index: number) => React.ReactNode
+  getKey?: (item: T, index: number) => React.Key
+}
+
+export default function List<T>({ items, renderItem, getKey }: ListProps<T>) {
+  return (
+    <ul>
+      {items.map((it, i) => (
+        <li key={getKey?.(it, i) ?? i}>{renderItem(it, i)}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+```js
+// Usage.tsx
+import React from 'react'
+import List from './List.js'
+
+export default function Usage() {
+  return (
+    <List
+      items={[{ id: 1, name: 'Max' }]}
+      renderItem={(u) => <span>{u.name}</span>}
+      getKey={(u) => u.id}
+    />
+  )
+}
+```
+
+*`<T>` wird automatisch inferiert.*
+
+---
+
+### 2) Mit Constraints: `K extends keyof T` (z. B. Tabelle/Picker)
+
+```js
+// DataTable.tsx
+import React from 'react'
+
+export type Column<T, K extends keyof T> = {
+  key: K
+  header: string
+  cell?: (value: T[K], row: T) => React.ReactNode
+}
+
+export function DataTable<T, K extends keyof T>({
+  rows,
+  columns,
+}: {
+  rows: T[]
+  columns: Column<T, K>[]
+}) {
+  return (
+    <table>
+      <thead>
+        <tr>{columns.map(c => <th key={String(c.key)}>{c.header}</th>)}</tr>
+      </thead>
+      <tbody>
+        {rows.map((r, i) => (
+          <tr key={i}>
+            {columns.map(c => (
+              <td key={String(c.key)}>{c.cell?.(r[c.key], r) ?? String(r[c.key])}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+```
+
+---
+
+### 3) Generische Form-Felder (Werttyp an Key binden)
+
+```js
+// FormField.tsx
+import React from 'react'
+
+export function FormField<T, K extends keyof T>({
+  entity,
+  name,
+  onChange,
+}: {
+  entity: T
+  name: K
+  onChange: (next: T[K]) => void
+}) {
+  return (
+    <input
+      value={String(entity[name])}
+      onChange={(e) => onChange(e.target.value as unknown as T[K])}
+    />
+  )
+}
+```
+
+---
+
+### 4) Generics mit `forwardRef` korrekt bewahren
+
+```js
+// Select.tsx
+import React, { forwardRef } from 'react'
+
+export type SelectProps<T> = {
+  options: T[]
+  getLabel: (opt: T) => string
+  getValue: (opt: T) => string
+  onChange: (opt: T) => void
+}
+
+function SelectInner<T>(
+  { options, getLabel, getValue, onChange }: SelectProps<T>,
+  ref: React.Ref<HTMLSelectElement>
+) {
+  return (
+    <select ref={ref} onChange={(e) => {
+      const opt = options.find(o => getValue(o) === e.target.value)!
+      onChange(opt)
+    }}>
+      {options.map(o => (
+        <option key={getValue(o)} value={getValue(o)}>
+          {getLabel(o)}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+export const Select = forwardRef(SelectInner) as <T>(
+  p: SelectProps<T> & { ref?: React.Ref<HTMLSelectElement> }
+) => JSX.Element
+```
+
+*Casting nach `forwardRef` nötig, um die generische Signatur zu erhalten.*
+
+---
+
+### 5) Generische Komponente + `memo` (Generics erhalten)
+
+```js
+// memoGeneric.ts
+import React, { memo } from 'react'
+
+export function memoGeneric<P>(c: (p: P) => JSX.Element) {
+  return memo(c) as (p: P) => JSX.Element
+}
+
+// Nutzung:
+import { memoGeneric } from './memoGeneric.js'
+import { DataTable } from './DataTable.js'
+
+export const MemoDataTable = memoGeneric(DataTable)<any> // i. d. R. genügt memoGeneric(DataTable)
+```
+
+*`React.memo` „vergisst“ Generics → per Helper/Assertion sichern.*
+
+---
+
+### 6) Default-Typen für generische Props (weniger Boilerplate)
+
+```js
+// Dict.ts
+export type Dict<V = string, K extends string = string> = Record<K, V>
+```
+
+---
+
+### 7) Tipps & Stolpersteine
+
+* JSX erfordert `.tsx`, damit `<>`-Generics korrekt erkannt werden.
+* **Keine `React.FC`-Zwang** – explizite Props sind klarer (keine impliziten `children`).
+* Für polymorphe Komponenten (`as`) `ComponentPropsWithoutRef<T>` + Generics nutzen.
+* Typen an Aufrufstellen möglichst **inferieren lassen**, nur bei Bedarf explizit `<>`.
+
+---
+
+**Zusammenfassung**
+
+* Generische Komponenten definierst du mit `<T>` und optionalen Constraints wie `<T, K extends keyof T>`.
+* `forwardRef`/`memo` verlieren oft Generics → per Assertion/Helper bewahren.
+* Praxis-Patterns: generische `List`, `DataTable`, formulargebundene `FormField`, `Select` mit Callbacks.
+* Ziel: **Typsichere Wiederverwendung** ohne `any`, mit maximaler Inferenz.
+
+**Quellen**
+
+* TypeScript: [Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html), [keyof](https://www.typescriptlang.org/docs/handbook/2/keyof-types.html), [Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* React: [`forwardRef`](https://react.dev/reference/react/forwardRef), [`memo`](https://react.dev/reference/react/memo)
+* React TypeScript Cheatsheet – *Advanced Patterns (Generics, Polymorphic, HOCs)*: [https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase)
 
   **[⬆ Наверх](#top)**
 
-119. ### <a name="119"></a> 
+119. ### <a name="119"></a> Wie verbindet man Generics in Props und State?
 
+**Generics in Props und State verbinden (TypeScript + React)**
 
+---
+
+### 1) `Props<T>` ↔ `useState<T>`: gemeinsamer Typparameter
+
+```js
+// GenericForm.tsx
+import React from 'react'
+
+export type FieldUpdate<T, K extends keyof T> = { name: K; value: T[K] }
+
+export type GenericFormProps<T> = {
+  initial: T
+  onChange?: (next: T) => void
+}
+
+export default function GenericForm<T>({ initial, onChange }: GenericFormProps<T>) {
+  const [model, setModel] = React.useState<T>(initial) // State an Props-Generic gebunden
+
+  // generischer Updater: Key↔Wert-Typ bleiben konsistent
+  function update<K extends keyof T>({ name, value }: FieldUpdate<T, K>) {
+    setModel(prev => {
+      const next = { ...prev, [name]: value } as T
+      onChange?.(next)
+      return next
+    })
+  }
+
+  // Beispielhafte Nutzung (in echten UIs per Inputs)
+  // update({ name: 'age', value: 30 }) // nur gültig, wenn T['age'] number ist
+
+  return <pre>{JSON.stringify(model)}</pre>
+}
+```
+
+* **Ein Typparameter `T`** steuert sowohl Props als auch State.
+* `FieldUpdate<T, K>` koppelt Key und Wert-Typ (`K extends keyof T` → `value: T[K]`).
+
+---
+
+### 2) Generischer `useReducer<T>`: Actions an `T` binden
+
+```js
+// useModelReducer.ts
+import React from 'react'
+
+export type ModelAction<T> =
+  | { type: 'set'; payload: T }
+  | { type: 'patch'; payload: Partial<T> }
+
+function reducer<T>(state: T, action: ModelAction<T>): T {
+  switch (action.type) {
+    case 'set':   return action.payload
+    case 'patch': return { ...state, ...action.payload } as T
+  }
+}
+
+export function useModelReducer<T>(initial: T) {
+  return React.useReducer(reducer<T>, initial)
+}
+```
+
+```js
+// Usage.tsx
+import React from 'react'
+import { useModelReducer } from './useModelReducer.js'
+
+type User = { id: string; name: string; age: number }
+
+export default function UserEditor() {
+  const [user, dispatch] = useModelReducer<User>({ id: '1', name: 'Sergii', age: 34 })
+  // dispatch({ type: 'patch', payload: { age: 35 } }) // payload typgeprüft gegen User
+  return <pre>{JSON.stringify(user)}</pre>
+}
+```
+
+* Actions sind **diszipliniert** an `T` gekoppelt (`Partial<T>` für Patch).
+
+---
+
+### 3) Generischer State mit abgeleitetem Teilzustand
+
+```js
+// useSelected.ts
+import React from 'react'
+
+export function useSelected<T, K extends keyof T>(initial: T, key: K) {
+  const [state, setState] = React.useState<T>(initial)
+  const selected: T[K] = state[key] // abgeleiteter Teilzustand
+
+  function setSelected(value: T[K]) {
+    setState(prev => ({ ...prev, [key]: value }))
+  }
+
+  return { state, selected, setSelected }
+}
+```
+
+* **Verbinden von Generics**: `T` (Objekt) + `K` (Key) → abgeleiteter Wert `T[K]`.
+
+---
+
+### 4) Generischer Controlled-Wrapper: Props überschreiben + State halten
+
+```js
+// ControlledInput.tsx
+import React from 'react'
+import type { ComponentProps } from 'react'
+
+type Base = ComponentProps<'input'>
+type Controlled<T> = Omit<Base, 'value' | 'onChange'> & {
+  value: T
+  onChange: (v: T) => void
+}
+
+export function ControlledInput<T extends string | number>({
+  value, onChange, ...rest
+}: Controlled<T>) {
+  // interner State optional (z. B. für Debounce), bleibt an T gekoppelt
+  const [inner, setInner] = React.useState<T>(value)
+
+  React.useEffect(() => setInner(value), [value])
+
+  return (
+    <input
+      {...rest}
+      value={inner as unknown as string}
+      onChange={(e) => {
+        const next = (typeof inner === 'number' ? Number(e.target.value) : e.target.value) as T
+        setInner(next)
+        onChange(next) // T bleibt konsistent zwischen Props & State
+      }}
+    />
+  )
+}
+```
+
+* **Props-Generic `T`** bestimmt zugleich den **State-Typ**.
+
+---
+
+### 5) Generische Komponente + `forwardRef` + State
+
+```js
+// Select.tsx
+import React, { forwardRef } from 'react'
+
+export type Option<T> = { label: string; value: T }
+export type SelectProps<T> = {
+  options: Option<T>[]
+  value: T | null
+  onChange: (v: T) => void
+}
+
+function SelectInner<T>(
+  { options, value, onChange }: SelectProps<T>,
+  ref: React.Ref<HTMLSelectElement>
+) {
+  return (
+    <select
+      ref={ref}
+      value={value == null ? '' : String(options.find(o => o.value === value)?.label ?? '')}
+      onChange={(e) => {
+        const picked = options.find(o => o.label === e.target.value)!
+        onChange(picked.value) // T bleibt intakt
+      }}
+    >
+      {options.map(o => <option key={o.label}>{o.label}</option>)}
+    </select>
+  )
+}
+
+// Generische Signatur nach forwardRef bewahren
+export const Select = forwardRef(SelectInner) as <T>(
+  p: SelectProps<T> & { ref?: React.Ref<HTMLSelectElement> }
+) => JSX.Element
+```
+
+* `forwardRef` „vergisst“ Generics → mit **Assertion** signieren.
+
+---
+
+### 6) Tipps für stabile Typinferenz
+
+* **Initialwerte** passend typisieren (`useState<T>(initial)` oder `useState(() => initial)` für Lazy-Init).
+* **Kein `React.FC`** nötig; explizite Props geben klarere Generics (keine impliziten `children`).
+* **Updaters** als **funktionale Updates** schreiben (`setState(prev => …)`), damit `T` sauber erhalten bleibt.
+* Bei komplexen Patterns **Utility Types** nutzen: `Partial<T>`, `Pick<T, …>`, `Omit<T, …>`, `Readonly<T>`.
+
+---
+
+**Zusammenfassung**
+
+* Ein gemeinsamer Typparameter `T` verbindet **Props und State** (`useState<T>`, `useReducer<T>`).
+* Mit `K extends keyof T` koppelt man **Key und Wert** (`value: T[K]`).
+* `forwardRef`/`memo` benötigen **Assertion/Helper**, um Generics zu bewahren.
+* Ziel: maximale **Inferenz** ohne `any`, konsistente Typen über Komponenten-API und internen Zustand.
+
+**Quellen**
+
+* TypeScript: [Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html), [keyof](https://www.typescriptlang.org/docs/handbook/2/keyof-types.html), [Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+* React: [`useState`](https://react.dev/reference/react/useState), [`useReducer`](https://react.dev/reference/react/useReducer), [`forwardRef`](https://react.dev/reference/react/forwardRef)
+* React TypeScript Cheatsheet – *Advanced Patterns (Generics, State, forwardRef)*: [https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase](https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase)
 
   **[⬆ Наверх](#top)**
 
-120. ### <a name="120"></a> 
+120. ### <a name="120"></a> Wie stellt man vollständige Typsicherheit bei der Arbeit mit APIs sicher?
 
+**Vollständige Typsicherheit bei API-Arbeit (TypeScript + React/TS)**
 
+---
+
+### 1) Trenne **Design-Zeit** (TypeScript) und **Laufzeit** (Validierung)
+
+* **Compile-Time:** strikte Typen, `unknown` statt `any`, generische Wrapper.
+* **Run-Time:** Schema-Validierung (z. B. Zod) gegen untrusted Daten, bevor sie ins Typsystem „gelassen“ werden.
+
+```js
+// api/schema.ts
+import { z } from 'zod'
+
+export const UserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  age: z.number().int().nonnegative(),
+})
+export type User = z.infer<typeof UserSchema>
+```
+
+```js
+// api/fetch.ts
+export async function getJSON(url, init) {
+  const res = await fetch(url, init)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return /** @type {Promise<unknown>} */ (res.json())
+}
+```
+
+```js
+// api/users.ts
+import { UserSchema } from './schema.js'
+import { getJSON } from './fetch.js'
+
+export async function getUser(id) {
+  const data = await getJSON(`/api/users/${id}`) // unknown
+  return UserSchema.parse(data)                  // -> User (typsicher + validiert)
+}
+```
+
+*`Response.json()` ist `any`; erst **parse**n, dann als `User` verwenden.*
+Quellen: MDN Fetch/Response; TS Generics.
+
+---
+
+### 2) Baue einen **typsicheren Request-Wrapper** (Result-Pattern)
+
+```js
+// api/request.ts
+export type Ok<T>  = { ok: true; data: T }
+export type Err<E> = { ok: false; error: E }
+export type Result<T, E> = Ok<T> | Err<E>
+
+export async function request<T, E = { message: string }>(url, init) {
+  try {
+    const res = await fetch(url, init)
+    const json = await res.json().catch(() => null)
+    if (!res.ok) return { ok: false, error: (json ?? { message: `HTTP ${res.status}` }) }
+    return { ok: true, data: /** @type {T} */ (json) }
+  } catch (e) {
+    return { ok: false, error: /** @type {E} */ ({ message: String(e) }) }
+  }
+}
+```
+
+```js
+// Verwendung mit Zod-Guard:
+import { UserSchema } from './schema.js'
+import { request } from './request.js'
+
+export async function loadUser(id) {
+  const r = await request(`/api/users/${id}`)
+  if (!r.ok) throw new Error(r.error.message)
+  return UserSchema.parse(r.data) // Laufzeit-Check
+}
+```
+
+*Discriminated Union → sichere Erfolg/Fehler-Zweige ohne `try/catch` an jeder Stelle.*
+
+---
+
+### 3) **Axios** generisch + Fehler typsicher (optional)
+
+```js
+// api/axios.ts
+import axios, { AxiosError } from 'axios'
+export type ApiErr = { code?: string; message: string }
+
+export async function getUserAxios(id) {
+  try {
+    const { data } = await axios.get/** @type {<T>(u:string)=>Promise<import('axios').AxiosResponse<T>>} */(`/api/users/${id}`)
+    return data // T
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      const err = /** @type {AxiosError<ApiErr>} */ (e)
+      throw new Error(err.response?.data?.message ?? err.message)
+    }
+    throw e
+  }
+}
+```
+
+*Fehlerpfade via `AxiosError<E>` präzise modellieren.*
+
+---
+
+### 4) **Strict Types** für Requests/DTOs (Utility Types)
+
+```js
+// models.ts
+export type User = { id: string; name: string; age: number; createdAt: string }
+export type CreateUserDto = Omit<User, 'id' | 'createdAt'>
+export type UpdateUserDto = Partial<Pick<User, 'name' | 'age'>>
+```
+
+*Nur erlaubte Felder an den Endpunkten: `Omit`, `Pick`, `Partial`.*
+
+---
+
+### 5) **Hooks**: Eingänge/Ausgänge getypt halten
+
+```js
+// hooks/useUser.ts
+import React from 'react'
+import { getUser } from '../api/users.js'
+import type { User } from '../api/schema.js'
+
+export function useUser(id) {
+  const [data, setData] = React.useState/** @type {User | null} */(null)
+  const [error, setError] = React.useState/** @type {string | null} */(null)
+  React.useEffect(() => {
+    let alive = true
+    getUser(id).then(u => alive && setData(u)).catch(e => alive && setError(String(e)))
+    return () => { alive = false }
+  }, [id])
+  return { data, error }
+}
+```
+
+*State-Typen exakt halten; niemals unvalidierte Daten in globale Stores.*
+
+---
+
+### 6) **Redux Toolkit**: Fehler & Erfolg strikt
+
+```js
+// features/users/thunks.ts
+import { createAsyncThunk } from '@reduxjs/toolkit'
+import type { User } from '../../api/schema.js'
+type ApiError = { message: string }
+
+export const fetchUser = createAsyncThunk<
+  User, { id: string }, { rejectValue: ApiError }
+>('users/fetch', async ({ id }, { rejectWithValue }) => {
+  const res = await fetch(`/api/users/${id}`)
+  if (!res.ok) return rejectWithValue(await res.json())
+  const data = await res.json()
+  // hier idealerweise UserSchema.parse(data)
+  return data
+})
+```
+
+*`rejectWithValue<E>` garantiert ein konsistentes Fehlerobjekt im Store.*
+
+---
+
+### 7) **Ende-zu-Ende**: Verträge prüfen (Build/Runtime)
+
+* **Build-Zeit:** strikte Typen, keine `any`-Leaks (`noImplicitAny`, `strict` in `tsconfig`).
+* **Runtime:** Schemas per Response prüfen (Zod/Yup); bei Änderungen **fail fast**.
+* Optional: API-Vertrag zentralisieren (OpenAPI → Codegen Typen, dann weiterhin **Schema-Check zur Laufzeit** für externe Quellen).
+
+---
+
+### 8) **Sichere Defaults** und Abbruch
+
+```js
+// abortable.ts
+export async function fetchWithTimeout(url, ms = 8000) {
+  const controller = new AbortController()
+  const t = setTimeout(() => controller.abort(), ms)
+  try {
+    const res = await fetch(url, { signal: controller.signal })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res
+  } finally {
+    clearTimeout(t)
+  }
+}
+```
+
+*Vermeidet hängende Requests; Fehler bleiben typisiert verarbeitet.*
+
+---
+
+**Zusammenfassung**
+
+* **Compile-Time:** strikte Typen, generische Wrapper, Utility Types für DTOs.
+* **Run-Time:** **Schema-Validierung** (z. B. Zod) *vor* Nutzung der Daten.
+* **Result-Pattern**/discriminated unions für sauberes Error-Handling.
+* In Redux/RTK Query/Async Thunks **Fehlertypen** explicit machen.
+* **Keine unvalidierten Daten** in State/Store; `unknown` > `any`.
+* Optional: OpenAPI-Codegen + zusätzliche Runtime-Checks bei externen APIs.
+
+**Quellen**
+
+* TypeScript Docs: [Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html), [Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html), [Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html), [Template Literal / Mapped / Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html)
+* React TypeScript Cheatsheet: [https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/)
+* MDN Web Docs (RU): [Fetch API](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API), [AbortController](https://developer.mozilla.org/ru/docs/Web/API/AbortController)
+* React Offizielle Doku (Hooks/Patterns): [https://react.dev/](https://react.dev/)
 
   **[⬆ Наверх](#top)**
 
