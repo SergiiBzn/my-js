@@ -7,118 +7,126 @@
 | №. | Вопрос |
 | --- | --------- |
 |   | Next.js Grundlagen |
-|1 | [](#1) |
-|2 | [](#2) |
-|3 | [](#3) |
-|4 | [](#4) |
-|5 | [](#5) |
-|6 | [](#6) |
-|7 | [](#7) |
-|8 | [](#8) |
-|9 | [](#9) |
-|10 | [](#10) |
-|11 | [](#11) |
-|12 | [](#12) |
-|13 | [](#13) |
-|14 | [](#14) |
-|15 | [](#15) |
-|16 | [](#16) |
-|17 | [](#17) |
-|18 | [](#18) |
-|19 | [](#19) |
-|20 | [](#20) |
-|   | React...... |
-|21 | [](#21) |
-|22 | [](#22) |
-|23 | [](#23) |
-|24 | [](#24) |
-|25 | [](#25) |
-|26 | [](#26) |
-|27 | [](#27) |
-|28 | [](#28) |
-|29 | [](#29) |
-|30 | [](#30) |
-|31 | [](#31) |
-|32 | [](#32) |
-|33 | [](#33) |
-|34 | [](#34) |
-|35 | [](#35) |
-|36 | [](#36) |
-|37 | [](#37) |
-|38 | [](#38) |
-|39 | [](#39) |
-|40 | [](#40) |
-|41 | [](#41) |
-|42 | [](#42) |
-|43 | [](#43) |
-|44 | [](#44) |
-|45 | [](#45) |
-|46 | [](#46) |
-|47 | [](#47) |
-|48 | [](#48) |
-|49 | [](#49) |
-|50 | [](#50) |
-|51 | [](#51) |
-|52 | [](#52) |
-|53 | [](#53) |
-|54 | [](#54) |
-|55 | [](#55) |
-|56 | [](#56) |
-|57 | [](#57) |
-|58 | [](#58) |
-|59 | [](#59) |
-|60 | [](#60) |
-|61 | [](#61) |
-|62 | [](#62) |
-|63 | [](#63) |
-|64 | [](#64) |
-|65 | [](#65) |
-|66 | [](#66) |
-|67 | [](#67) |
-|68 | [](#68) |
-|69 | [](#69) |
-|70 | [](#70) |
-|71 | [](#71) |
-|72 | [](#72) |
-|73 | [](#73) |
-|74 | [](#74) |
-|75 | [](#75) |
-|76 | [](#76) |
-|77 | [](#77) |
-|78 | [](#78) |
-|79 | [](#79) |
-|80 | [](#80) |
-|81 | [](#81) |
-|82 | [](#82) |
-|83 | [](#83) |
-|84 | [](#84) |
-|85 | [](#85) |
-|86 | [](#86) |
-|87 | [](#87) |
-|88 | [](#88) |
-|89 | [](#89) |
-|90 | [](#90) |
-|91 | [](#91) |
-|92 | [](#92) |
-|93 | [](#93) |
-|94 | [](#94) |
-|95 | [](#95) |
-|96 | [](#96) |
-|97 | [](#97) |
-|98 | [](#98) |
-|99 | [](#99) |
-|100 | [](#100) |
-|   | gfd |
-|101 | [](#101) |
-|102 | [](#102) |
-|103 | [](#103) |
-|104 | [](#104) |
-|105 | [](#105) |
-|106 | [](#106) |
-|107 | [](#107) |
-|108 | [](#108) |
-|109 | [](#109) |
-|110 | [](#110) |
+|1 | [Was ist Next.js und wofür wird es verwendet?](#1) |
+|2 | [Worin unterscheidet sich Next.js von Create React App?](#2) |
+|3 | [Welche Vorteile bietet Next.js für die Entwicklung?](#3) |
+|4 | [Was ist „file-based routing“ (dateibasierte Routen)?](#4) |
+|5 | [Was ist der Unterschied zwischen dem pages- und dem app-Verzeichnis?](#5) |
+|6 | [Was ist der App Router (Next.js 13+) und wie unterscheidet er sich vom Pages Router?](#6) |
+|7 | [Was ist Server-Side Rendering (SSR)?](#7) |
+|8 | [Was ist Static Site Generation (SSG)?](#8) |
+|9 | [Was ist Client-Side Rendering (CSR)?](#9) |
+|10 | [Was ist Incremental Static Regeneration (ISR)?](#10) |
+|11 | [Wann sollte man SSR, SSG und ISR verwenden?](#11) |
+|12 | [Was macht der Befehl npx create-next-app?](#12) |
+|13 | [Wie funktioniert Hydration in Next.js?](#13) |
+|14 | [Was bedeutet „pre-rendering“?](#14) |
+|15 | [Welche Sprachen und Technologien unterstützt Next.js out of the box?](#15) |
+|16 | [Wie richtet man TypeScript in Next.js ein?](#16) |
+|17 | [Was machen next dev, next build, next start?](#17) |
+|18 | [Welche Einschränkungen hat Next.js?](#18) |
+|   | Routing (Routen) |
+|19 | [Wie funktioniert das Routing in Next.js?](#19) |
+|20 | [Wie erstellt man dynamische Routen ([id].tsx)?](#20) |
+|21 | [Wie funktionieren Catch-All-Routen ([...slug].tsx)?](#21) |
+|22 | [Was sind optionale Catch-All-Routen ([[...slug]])?](#22) |
+|23 | [Wie funktioniert Nested Routing (verschachtelte Routen)?](#23) |
+|24 | [Wie übergibt man Query-Parameter in Routen?](#24) |
+|25 | [Wie kann man Routenparameter auf dem Server abrufen?](#25) |
+|26 | [Wie implementiert man Redirects in Next.js?](#26) |
+|27 | [Was ist Middleware in Next.js und wofür wird sie benötigt?](#27) |
+|28 | [Wie funktioniert Internationalisierung (i18n) in Next.js?](#28) |
+|29 | [Was ist der Unterschied zwischen Routing im pages- und im app-Verzeichnis?](#29) |
+|   | Rendering und Daten |
+|30 | [Was macht getStaticProps?](#30) |
+|31 | [Was macht getServerSideProps?](#31) |
+|32 | [Was macht getStaticPaths?](#32) |
+|33 | [Wann sollte man getStaticProps vs. getServerSideProps verwenden?](#33) |
+|34 | [Wie funktioniert revalidate im ISR?](#34) |
+|35 | [Wie ruft man Daten im App Router (Next.js 13) ab?](#35) |
+|36 | [Was ist der Unterschied zwischen fetch auf dem Server und auf dem Client?](#36) |
+|37 | [Wie funktionieren Server Components (Next.js 13)?](#37) |
+|38 | [Was ist der Unterschied zwischen Client Components und Server Components?](#38) |
+|39 | [Wie bindet man externe Bibliotheken in Server Components ein?](#39) |
+|40 | [Welche Einschränkungen haben Server Components?](#40) |
+|   | API Routes |
+|41 | [Was sind API Routes in Next.js?](#41) |
+|42 | [Wie erstellt man einen API-Endpunkt (pages/api/...)?](#42) |
+|43 | [Wie funktionieren API Routes im App Router (route.ts)?](#43) |
+|44 | [Wie übergibt man Query-Parameter an API Routes?](#44) |
+|45 | [Wie verarbeitet man POST-Anfragen in API Routes?](#45) |
+|46 | [Wie verwendet man Middleware in API Routes?](#46) |
+|47 | [Worin besteht der Unterschied zwischen API Routes und einem separaten Backend-Server?](#47) |
+|48 | [Kann man Next.js API Routes als Production-Backend verwenden?](#48) |
+|   | Statische Dateien und Assets |
+|49 | [Wie funktioniert der public-Ordner?](#49) |
+|50 | [Wie bindet man Bilder in Next.js ein?](#50) |
+|51 | [Was macht next/image und wofür wird es benötigt?](#51) |
+|52 | [Welche Vorteile hat next/image im Vergleich zu <img>?](#52) |
+|53 | [Wie funktioniert Image Optimization?](#53) |
+|54 | [Kann man dynamische Bilder im public-Ordner speichern?](#54) |
+|55 | [Wie bindet man Schriftarten in Next.js ein?](#55) |
+|56 | [Was ist next/font?](#56) |
+|   | Styling |
+|57 | [Welche Styling-Methoden unterstützt Next.js?](#57) |
+|58 | [Wie verwendet man CSS-Module?](#58) |
+|59 | [Wie verwendet man SASS/SCSS in Next.js?](#59) |
+|60 | [Wie integriert man TailwindCSS in Next.js?](#60) |
+|61 | [Was ist styled-jsx?](#61) |
+|62 | [Wie verwendet man styled-components in Next.js?](#62) |
+|63 | [Welche Best Practices gibt es für Styling in großen Next.js-Projekten?](#63) |
+|   | Performance-Optimierung |
+|64 | [Was macht automatisches Code-Splitting in Next.js?](#64) |
+|65 | [Wie funktioniert Lazy Loading?](#65) |
+|66 | [Wie optimiert man Bilder in Next.js?](#66) |
+|67 | [Wie verwendet man next/script zum Laden von Skripten?](#67) |
+|68 | [Was ist Static Optimization?](#68) |
+|69 | [Wie reduziert man die Bundle-Größe in Next.js?](#69) |
+|70 | [Wie optimiert man Lighthouse-Scores?](#70) |
+|71 | [Wie funktioniert der eingebaute SWC-Compiler?](#71) |
+|72 | [Was sind Edge Functions und wie unterscheiden sie sich von Serverless Functions?](#72) |
+|   | Sicherheit |
+|73 | [Welche Sicherheitsrisiken gibt es in Next.js-Projekten?](#73) |
+|74 | [Wie schützt man API Routes?](#74) |
+|75 | [Wie implementiert man Authentifizierung in Next.js?](#75) |
+|76 | [Was ist NextAuth.js und wie funktioniert es?](#76) |
+|77 | [Wie speichert man Sessions in Next.js?](#77) |
+|78 | [Wie schützt man Seiten vor unautorisiertem Zugriff?](#78) |
+|79 | [Wie arbeitet man mit Environment Variablen (.env.local)?](#79) |
+|   | Deployment und DevOps |
+|80 | [Wo kann man Next.js-Anwendungen deployen?](#80) |
+|81 | [Worin unterscheidet sich Vercel von Netlify?](#81) |
+|82 | [Wie deployt man Next.js auf Vercel?](#82) |
+|83 | [Kann man Next.js mit Docker deployen?](#83) |
+|84 | [Wie deployt man Next.js auf AWS?](#84) |
+|85 | [Was ist der Unterschied zwischen Serverless-Deployment und Edge-Deployment?](#85) |
+|86 | [Welche Probleme können beim Deployment von Next.js auftreten?](#86) |
+|   | Internationalisierung (i18n) |
+|87 | [Wie aktiviert man die integrierte i18n-Unterstützung in Next.js?](#87) |
+|88 | [Wie implementiert man Mehrsprachigkeit im App Router?](#88) |
+|89 | [Welche i18n-Bibliotheken werden am häufigsten mit Next.js verwendet?](#89) |
+|90 | [Wie funktioniert automatisches Redirect nach Browsersprache?](#90) |
+|   | Fortgeschrittene Themen |
+|91 | [Was ist Middleware und wie wird sie verwendet?](#91) |
+|92 | [Was ist Edge Runtime?](#92) |
+|93 | [Wie funktionieren Streaming und Suspense in Next.js 13?](#93) |
+|94 | [Wie funktionieren Parallel Routes?](#94) |
+|95 | [Was sind Intercepting Routes?](#95) |
+|96 | [Wie bindet man eine GraphQL-API in Next.js ein?](#96) |
+|97 | [Wie integriert man Redux Toolkit mit Next.js?](#97) |
+|98 | [Wie integriert man Zustand mit Next.js?](#98) |
+|99 | [Wie integriert man React Query mit Next.js?](#99) |
+|100 | [Wie implementiert man SSR mit Redux in Next.js?](#100) |
+|101 | [Wie richtet man eine PWA in Next.js ein?](#101) |
+|102 | [Wie implementiert man dynamische Meta-Informationen (head)?](#102) |
+|103 | [Wie funktioniert die metadata API im App Router?](#103) |
+|104 | [Wie fügt man eine Sitemap in Next.js hinzu?](#104) |
+|105 | [Wie fügt man eine robots.txt in Next.js hinzu?](#105) |
+|106 | [Wie integriert man WebSockets in Next.js?](#106) |
+|107 | [Wie verwendet man Next.js in einem Monorepo (z. B. Turborepo)?](#107) |
+|108 | [Wie funktioniert Hot Reloading in Next.js?](#108) |
+|109 | [Was sind App Router Layouts?](#109) |
+|110 | [Was ist der Unterschied zwischen Root Layout und Nested Layout?](#110) |
 |111 | [](#111) |
 |112 | [](#112) |
 |113 | [](#113) |
@@ -129,7 +137,6 @@
 |118 | [](#118) |
 |119 | [](#119) |
 |120 | [](#120) |
-|   | React...... |
 |121 | [](#121) |
 |122 | [](#122) |
 |123 | [](#123) |
@@ -215,7 +222,7 @@
 
 <a name="questions"></a>
 
-## ReactJS 
+## Next.js 
 
   **[⬆ Наверх](#top)**
   
