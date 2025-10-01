@@ -7598,177 +7598,2867 @@ Vercel ist die **native Plattform für Next.js** und unterstützt alle Features 
 
   **[⬆ Наверх](#top)**
 
-82. ### <a name="82"></a> 
+82. ### <a name="82"></a> Wie deployt man Next.js auf Vercel?
 
+**Next.js auf Vercel deployen (App Router):**
 
+1. **Repo vorbereiten**
+
+   * `package.json` enthält:
+
+     ```js
+     {
+       "scripts": {
+         "dev": "next dev",
+         "build": "next build",
+         "start": "next start"
+       }
+     }
+     ```
+   * Code nach GitHub/GitLab/Bitbucket pushen.
+
+2. **Projekt importieren**
+
+   * Auf **vercel.com → New Project → Import** und das Repo wählen.
+   * Framework-Preset **Next.js** wird automatisch erkannt; Build-Command `next build`, Output `Next.js`.
+   * Optional: **Environment Variables** im Projekt unter *Settings → Environment Variables* setzen (z. B. `NEXT_PUBLIC_API_URL`, `DATABASE_URL`).
+
+3. **Erster Deploy**
+
+   * Vercel baut automatisch und erstellt **Preview Deployments** für Branches/PRs.
+   * Merge nach `main` → **Production Deployment**.
+
+4. **CLI (Alternative ohne Dashboard)**
+
+   ```bash
+   npm i -g vercel
+   vercel           # erstes Deployment (Preview)
+   vercel --prod    # Production-Deploy
+   ```
+
+   * Beim ersten Lauf Projekt verlinken und ggf. Variablen setzen.
+
+5. **Domäne & Routing**
+
+   * *Settings → Domains* eigene Domain hinzufügen; DNS nach Anleitung konfigurieren.
+   * Next.js-Routing (App Router) funktioniert ohne Zusatzkonfiguration; Middleware/Edge Functions werden automatisch unterstützt.
+
+6. **Bilder & externe Hosts**
+
+   * Falls externe Bilder: in `next.config.js` freigeben.
+
+     ```js
+     // next.config.js
+     export default {
+       images: {
+         remotePatterns: [{ protocol: 'https', hostname: 'images.example.com' }]
+       }
+     }
+     ```
+   * `next/image` funktioniert auf Vercel ohne zusätzliche Infrastruktur.
+
+7. **Rebuilds & ISR**
+
+   * Incremental Static Regeneration (ISR) und On-Demand Revalidation sind **out of the box** verfügbar; bei Deploys werden Caches/CDN aktualisiert.
+
+**Quellen:**
+
+* Next.js – *Deploying* (App Router): ([nextjs.org][1])
+* Vercel – *Next.js on Vercel* (Framework-Integration): ([Vercel][2])
+* Vercel – *Git-Integration (GitHub)*: ([Vercel][3])
+* Next.js – *next.config.js* (Konfiguration, `images`): ([nextjs.org][4])
+* Next.js – *Installation* (Grundlage): ([nextjs.org][5])
+* Vercel – *Domains hinzufügen*: ([Vercel][6])
+
+---
+
+**Zusammenfassung:**
+Repo pushen → in Vercel importieren → Build läuft automatisch (Next.js-Preset) → Preview/Production-Deploys sind bereit. Optional per CLI deployen, Env-Variablen und Domain im Dashboard konfigurieren; `next/image`, ISR, Middleware/Edge laufen nativ auf Vercel.
+
+[1]: https://nextjs.org/docs/14/app/building-your-application/deploying?utm_source=chatgpt.com "Building Your Application: Deploying"
+[2]: https://vercel.com/docs/frameworks/full-stack/nextjs?utm_source=chatgpt.com "Next.js on Vercel"
+[3]: https://vercel.com/docs/git/vercel-for-github?utm_source=chatgpt.com "Deploying GitHub Projects with Vercel"
+[4]: https://nextjs.org/docs/app/api-reference/config/next-config-js?utm_source=chatgpt.com "Configuration: next.config.js"
+[5]: https://nextjs.org/docs/pages/getting-started/deploying?utm_source=chatgpt.com "Getting Started: Deploying"
+[6]: https://vercel.com/docs/domains/working-with-domains/add-a-domain?utm_source=chatgpt.com "Adding & Configuring a Custom Domain"
 
   **[⬆ Наверх](#top)**
 
-83. ### <a name="83"></a> 
+83. ### <a name="83"></a> Kann man Next.js mit Docker deployen?
 
+**Ja — Next.js kann mit Docker deployt werden. Vorgehensweise (App Router, produktionsfähig):**
 
+1. **Next.js auf „standalone“ bauen (kleineres Image)**
+
+   ```js
+   // next.config.js (ESM)
+   export default {
+     output: 'standalone', // erzeugt .next/standalone + minimal node_modules
+   }
+   ```
+
+   Quelle: Next.js Deploying → Docker/Standalone. ([nextjs.org][1])
+
+2. **Multi-Stage-Dockerfile (Build → Runtime)**
+
+   ```js
+   # Dockerfile
+   # --- Build Stage ---
+   FROM node:18-alpine AS builder
+   WORKDIR /app
+   COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./  # lockfile optional
+   RUN npm ci --no-audit --no-fund
+   COPY . .
+   RUN npm run build  # erzeugt .next/standalone und .next/static
+
+   # --- Runtime Stage ---
+   FROM node:18-alpine AS runner
+   WORKDIR /app
+   ENV NODE_ENV=production
+   # Optionale Port-Angabe für Plattformen, die sie auslesen:
+   ENV PORT=3000
+   # Dateien aus dem Build übernehmen
+   COPY --from=builder /app/public ./public
+   COPY --from=builder /app/.next/standalone ./
+   COPY --from=builder /app/.next/static ./.next/static
+   # Nicht-root Nutzer ist Best Practice
+   RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
+   USER nextjs
+   EXPOSE 3000
+   # Next.js-Standalone bringt den Server bereits mit:
+   CMD ["node", "server.js"]
+   ```
+
+   Hinweise:
+
+   * `CMD ["node", "server.js"]` ist im Standalone-Bundle vorhanden.
+   * Für eigene Startskripte ggf. `-r dotenv/config` etc. ergänzen, wenn `.env` zur Laufzeit geladen werden soll.
+     Quellen: Next.js Deploying (Docker Image, App Router) und offizielles Beispiel `with-docker`. ([nextjs.org][1])
+
+3. **Build & Run**
+
+   ```js
+   # Image bauen
+   docker build -t my-nextjs-app .
+
+   # Container starten (Prod)
+   docker run -p 3000:3000 --env-file .env.production my-nextjs-app
+   ```
+
+   Tipp: Runtime-Env-Vars per `--env`/`--env-file` injizieren; der App Router kann sie serverseitig zur **Request-Zeit** lesen (z. B. in Server Components, RSC Actions). ([nextjs.org][2])
+
+4. **Orchestrierung (optional)**
+
+   * **Kubernetes/Cloud Run/ECS**: Container wie üblich deployen; Health-Checks auf `/` oder eigene Route.
+   * **Wichtig**: Vercel **akzeptiert keine** Docker-Images direkt; für Docker nutze selbst-gehostete Plattformen (K8s, Render, Railway, Cloud Run, ECS). ([nextjs.org][1])
+
+5. **Performance/Größe**
+
+   * `node:18-alpine`, Multi-Stage, `output: 'standalone'` → kleine Images, schnelle Starts.
+   * Assets (`public`, `.next/static`) separat kopieren, sonst fehlen Images/Fonts.
+     Quellen & Best Practices: Next.js Docs (Deploying/Docker) + offizielles Repo-Beispiel. ([nextjs.org][1])
+
+**Weiterlesen (offizielle Doku):**
+
+* Next.js → *Deploying* (Docker, App Router): [https://nextjs.org/docs/app/building-your-application/deploying](https://nextjs.org/docs/app/building-your-application/deploying)
+* Einstieg/Installation: [https://nextjs.org/docs/app/getting-started/installation](https://nextjs.org/docs/app/getting-started/installation) ([nextjs.org][1])
+
+---
+
+**Zusammenfassung:**
+Ja, Deployment mit Docker ist möglich: `output: 'standalone'` aktivieren, Multi-Stage-Dockerfile nutzen, Image bauen und mit Runtime-Env-Vars starten. Für das Hosting nutze Plattformen, die Container ausführen (Kubernetes, Cloud Run, ECS, Render); Vercel nimmt keine Docker-Images direkt an. ([nextjs.org][1])
+
+[1]: https://nextjs.org/docs/app/getting-started/deploying?utm_source=chatgpt.com "Getting Started: Deploying"
+[2]: https://nextjs.org/docs/14/app/building-your-application/deploying?utm_source=chatgpt.com "Building Your Application: Deploying"
 
   **[⬆ Наверх](#top)**
 
-84. ### <a name="84"></a> 
+84. ### <a name="84"></a> Wie deployt man Next.js auf AWS?
 
+**Optionen & Schritte: Next.js auf AWS deployen (App Router)**
 
+### 1) AWS Amplify Hosting (managed, SSR-Unterstützung)
+
+* **Vorgehen**
+
+  ```js
+  // Build Settings werden automatisch erkannt
+  // package.json
+  {
+    "scripts": { "build": "next build", "start": "next start" }
+  }
+  // In der Amplify Console: App anlegen → Repo/Branch verbinden → Deploy
+  // Env-Vars in Amplify: Settings → Environment variables
+  ```
+* **Features:** SSR/ISR, Image-Optimierung, Previews, einfache Git-Integration.
+  Quelle: AWS Amplify Next.js (SSR) & Quickstart. ([docs.amplify.aws][1])
+
+---
+
+### 2) OpenNext/SST (Vercel-ähnliche Architektur auf AWS: CloudFront + S3 + Lambda)
+
+* **Setup (minimal)**
+
+  ```js
+  // sst.config.ts
+  import { sst } from "sst";
+  export default {
+    app(input) {
+      return { name: "my-next-app", home: "aws" };
+    },
+    stacks(app) {
+      app.stack(function Site({ stack }) {
+        new sst.aws.Nextjs("Web"); // nutzt OpenNext unter der Haube
+      });
+    },
+  };
+  ```
+* **Konzept:** OpenNext transformiert den Next.js-Build für AWS-Services (Lambda, S3, CloudFront).
+  Quellen: OpenNext & SST Docs. ([opennext.js.org][2])
+
+---
+
+### 3) Containerisiert (Docker) auf App Runner / ECS / EKS
+
+* **Docker-Build (empfohlen: `output: 'standalone'`)**
+
+  ```js
+  // next.config.js
+  export default { output: "standalone" };
+  ```
+
+  ```js
+  // Dockerfile (schematisch)
+  // 1) Build-Stage → next build
+  // 2) Runtime-Stage kopiert .next/standalone + .next/static + public
+  // CMD ["node","server.js"]
+  ```
+* **App Runner Tipp**
+
+  ```js
+  // Wichtige Env-Var in App Runner setzen:
+  // HOSTNAME=0.0.0.0  // sonst bindet Next.js ggf. nicht korrekt
+  ```
+* **Alternativen:** ECS/Fargate (ECR-Image), EKS (K8s).
+  Quellen: Next.js Deploying (Docker) + App Runner Hinweise. ([nextjs.org][3])
+
+---
+
+### 4) Statisches Hosting (ohne SSR): S3 + CloudFront
+
+* **Nur für `next export`/statische Routen**
+
+  ```js
+  // Build
+  // npm run build && npx next export  // erzeugt /out
+  // Upload /out nach S3, über CloudFront ausliefern
+  ```
+* **Hinweis:** keine SSR-/Middleware-Features.
+  Quellen: Next.js Static Export + S3/CloudFront Guides. ([nextjs.org][4])
+
+---
+
+### 5) Klassischer Node-Server: Elastic Beanstalk
+
+* **Einsatzfall:** Monolithischer Node-Prozess (z. B. `next start`) mit Auto-Scaling durch EB.
+
+  ```js
+  // package.json (Production start)
+  {
+    "scripts": { "build": "next build", "start": "next start" }
+  }
+  // In EB als Node.js-App deployen
+  ```
+
+  Quellen: EB Node.js Doku & Quickstart. ([Документация AWS][5])
+
+---
+
+**Weiterführende Next.js-Doku:**
+
+* Getting Started / Deploying: [https://nextjs.org/docs/app/getting-started/deploying](https://nextjs.org/docs/app/getting-started/deploying)
+* Installation/Grundlagen: [https://nextjs.org/docs/app/getting-started/installation](https://nextjs.org/docs/app/getting-started/installation) ([nextjs.org][3])
+
+---
+
+**Zusammenfassung:**
+Für **managed SSR**: Amplify Hosting. Für **AWS-native, Vercel-ähnlich**: OpenNext/SST (CloudFront+S3+Lambda). Für **Container-Workflows**: App Runner/ECS mit Docker (`output: 'standalone'`, ggf. `HOSTNAME=0.0.0.0`). Für **statische Sites**: S3+CloudFront via `next export`. Elastic Beanstalk eignet sich für klassische Node-Deployments. ([docs.amplify.aws][1])
+
+[1]: https://docs.amplify.aws/gen1/javascript/deploy-and-host/frameworks/deploy-nextjs-app/?utm_source=chatgpt.com "Deploy a Next.js app - JavaScript - AWS Amplify Gen 1 ..."
+[2]: https://opennext.js.org/aws?utm_source=chatgpt.com "AWS"
+[3]: https://nextjs.org/docs/app/getting-started/deploying?utm_source=chatgpt.com "Getting Started: Deploying"
+[4]: https://nextjs.org/docs/pages/getting-started/deploying?utm_source=chatgpt.com "Getting Started: Deploying"
+[5]: https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_nodejs.html?utm_source=chatgpt.com "Deploying Node.js applications with Elastic Beanstalk"
 
   **[⬆ Наверх](#top)**
 
-85. ### <a name="85"></a> 
+85. ### <a name="85"></a> Was ist der Unterschied zwischen Serverless-Deployment und Edge-Deployment?
 
+**Unterschied: Serverless vs. Edge Deployment in Next.js**
 
+| Kriterium                  | **Serverless Deployment**                                                           | **Edge Deployment**                                                                        |
+| -------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Laufzeit-Umgebung**      | Node.js-basierte Serverless Functions (z. B. AWS Lambda, Vercel Functions).         | Edge-Runtime (V8 Isolate, ähnlich wie Cloudflare Workers, kein voller Node.js).            |
+| **Startzeit (Cold Start)** | Höher (ms–sekundenabhängig von Provider, bei Inaktivität Neustart nötig).           | Extrem gering (ms), da global verteilt und ohne Cold-Starts wie bei klassischen Lambdas.   |
+| **Node-API**               | Voller Zugriff auf Node.js APIs, z. B. `fs`, `crypto`, native Module.               | Kein voller Node.js-Support; eingeschränkte APIs, Fokus auf Web-APIs (`fetch`, `Request`). |
+| **Globalität**             | Läuft in spezifischen Rechenzentren/Regionen → höherer Latenz für entfernte Nutzer. | Wird auf Edge-Netzwerk repliziert → sehr niedrige Latenz weltweit.                         |
+| **Use Cases**              | Schwergewichtigere Logik: Auth, Datenbankzugriffe, Bildbearbeitung.                 | Leichte Middleware: Auth-Checks, Redirects, A/B-Testing, Geo-basierte Anpassungen.         |
+| **Beispiele in Next.js**   | API Routes (`pages/api/*` oder App Router `app/api/*`), ISR-Revalidierung.          | Middleware (`middleware.js`), Edge Functions (`export const runtime = 'edge'`).            |
+
+---
+
+**Codebeispiel:**
+
+*Serverless Function (Node.js Umgebung):*
+
+```js
+// app/api/hello/route.js
+export async function GET() {
+  const secret = process.env.SECRET_KEY; // Zugriff auf Node.js env
+  return Response.json({ message: "Hello from Serverless" });
+}
+```
+
+*Edge Function (Edge-Runtime):*
+
+```js
+// app/api/edge/route.js
+export const runtime = 'edge'; // explizit Edge
+export async function GET() {
+  // Nur Web-APIs verfügbar (kein Node.js fs)
+  return new Response(JSON.stringify({ message: "Hello from Edge" }), {
+    headers: { "content-type": "application/json" }
+  });
+}
+```
+
+---
+
+🔗 [Next.js – Middleware & Edge Functions](https://nextjs.org/docs/app/building-your-application/routing/middleware)
+🔗 [Next.js – API Routes / Serverless Functions](https://nextjs.org/docs/pages/building-your-application/routing/api-routes)
+
+---
+
+**Zusammenfassung:**
+Serverless läuft in Node.js-Umgebungen (flexibel, aber langsamer), Edge läuft in leichtgewichtigen V8-Isolates direkt am CDN-Edge (schneller, global, aber eingeschränkte APIs). Edge ist optimal für **leichte, globale Middleware**, Serverless für **vollwertige Backend-Logik**.
 
   **[⬆ Наверх](#top)**
 
-86. ### <a name="86"></a> 
+86. ### <a name="86"></a> Welche Probleme können beim Deployment von Next.js auftreten?
 
+**Häufige Probleme beim Deployment von Next.js und ihre Ursachen:**
 
+* **Falsche Umgebungskonfiguration**
+
+  * `process.env` Variablen fehlen oder sind falsch gesetzt → Fehler beim Build oder Runtime.
+  * Lösung: `.env.*` richtig pflegen, Secrets nicht ins Client-Bundle ohne `NEXT_PUBLIC_`.
+
+* **Node.js-Version inkompatibel**
+
+  * Next.js erfordert bestimmte Node-Version (z. B. ≥ 18).
+  * Lösung: In Deployment-Umgebung exakt gleiche Node-Version wie lokal nutzen.
+
+* **Image-Optimierung fehlschlägt**
+
+  * Externe Domains nicht freigegeben → `next/image` lädt nicht.
+  * Lösung: `next.config.js → images.remotePatterns` konfigurieren.
+
+* **Fehlerhafte Routing-Struktur**
+
+  * Unterschied App Router (`app/`) vs. Pages Router (`pages/`).
+  * Mögliche 404 bei Deployments, wenn Dateien nicht am richtigen Ort.
+
+* **Build schlägt fehl**
+
+  * Abhängigkeiten fehlen, lockfile nicht im Repo, falsches Install-Command.
+  * Lösung: Lockfile committen, `npm ci` oder `pnpm install --frozen-lockfile` im CI/CD.
+
+* **Serverless- vs. Edge-Limits**
+
+  * Edge Functions → eingeschränkte Node-APIs (kein `fs`, kein `crypto.randomBytes`).
+  * Serverless Functions → Cold Starts, Timeout-Limits (z. B. 10s auf Vercel/Hobby-Plan).
+
+* **Statisches Export-Limit (`next export`)**
+
+  * Funktioniert nicht mit Features wie SSR, Middleware oder API-Routes.
+  * Lösung: Nur für rein statische Sites nutzen; sonst SSR-Deployment wählen.
+
+* **Cache-/ISR-Probleme**
+
+  * Incremental Static Regeneration funktioniert nicht, wenn Plattform keine Revalidierung unterstützt.
+  * Lösung: Plattform wählen, die ISR/On-Demand Revalidation zulässt (z. B. Vercel, Netlify mit Plugin).
+
+* **Fehlende Dateisystemrechte**
+
+  * Bei Docker/Server-Deployments: `public` oder `.next/static` nicht kopiert → Assets fehlen.
+  * Lösung: im Dockerfile oder CI/CD sicherstellen, dass statische Ressourcen enthalten sind.
+
+---
+
+🔗 [Next.js – Deployment](https://nextjs.org/docs/app/building-your-application/deploying)
+🔗 [Next.js – Troubleshooting](https://nextjs.org/docs/messages)
+
+---
+
+**Zusammenfassung:**
+Typische Probleme: falsche Environment-Variablen, inkompatible Node-Version, nicht konfigurierte Images, Routing-Fehler, fehlende Abhängigkeiten, Einschränkungen bei Serverless/Edge, sowie Cache-/ISR-Probleme. Lösung: Dokumentation prüfen, Build-/Runtime-Umgebung anpassen und Plattform-spezifische Limits beachten.
 
   **[⬆ Наверх](#top)**
 
-87. ### <a name="87"></a> 
+87. ### <a name="87"></a> Wie aktiviert man die integrierte i18n-Unterstützung in Next.js?
 
+**i18n in Next.js aktivieren (App Router und Pages Router):**
 
+### 1. Konfiguration in `next.config.js`
+
+```js
+// next.config.js
+export default {
+  i18n: {
+    locales: ["en", "de", "fr"], // unterstützte Sprachen
+    defaultLocale: "en",         // Standardsprache
+  },
+};
+```
+
+* `locales`: Liste der Sprachen (z. B. `["en", "de"]`).
+* `defaultLocale`: Fallback-Sprache.
+* Next.js generiert automatisch sprachspezifische Routen (`/de/about`, `/fr/about`).
+
+---
+
+### 2. Nutzung im App Router
+
+* Routen wie `app/[locale]/page.js` anlegen.
+* `params.locale` in Server-Komponenten oder Layouts verwenden:
+
+```js
+// app/[locale]/page.js
+export default function Page({ params }) {
+  return <h1>Sprache: {params.locale}</h1>;
+}
+```
+
+* Dynamische Inhalte (z. B. Übersetzungen) über JSON-Dateien oder externe Libraries (z. B. `next-intl`, `next-i18next`).
+
+---
+
+### 3. Nutzung im Pages Router (älter)
+
+* Pfade automatisch `/en/...`, `/de/...`.
+* Zugriff auf Locale über `useRouter`:
+
+```js
+import { useRouter } from "next/router";
+
+export default function Home() {
+  const { locale, locales, defaultLocale } = useRouter();
+  return <p>Aktuelle Sprache: {locale}</p>;
+}
+```
+
+---
+
+### 4. Einschränkungen
+
+* Die integrierte i18n-Unterstützung regelt **nur Routing & Locale-Erkennung**.
+* Für echte Übersetzungen (Text, Pluralisierung) benötigt man zusätzliche Packages (`next-intl`, `next-i18next`).
+
+---
+
+🔗 [Next.js – Internationalized Routing](https://nextjs.org/docs/app/building-your-application/routing/internationalization)
+
+---
+
+**Zusammenfassung:**
+Die integrierte i18n-Unterstützung aktiviert man in `next.config.js` über die `i18n`-Option. Sie sorgt für sprachbasierte Routen (`/de/...`), aber nicht für Übersetzungen selbst – dafür nutzt man zusätzliche Libraries.
 
   **[⬆ Наверх](#top)**
 
-88. ### <a name="88"></a> 
+88. ### <a name="88"></a> Wie implementiert man Mehrsprachigkeit im App Router?
 
+**Mehrsprachigkeit im App Router implementieren (Best Practice mit `next-intl`)**
 
+> Im App Router gibt es **keine eingebaute i18n-Routing-Konfiguration** mehr; du setzt sie selbst via `[locale]`-Segment und optionaler Middleware um. ([nextjs.org][1])
+
+### 1) Locale-Segment & Messages
+
+```js
+// app/[locale]/layout.js
+import {NextIntlClientProvider} from 'next-intl';
+import {notFound} from 'next/navigation';
+import en from '@/messages/en.json';
+import de from '@/messages/de.json';
+
+const messagesMap = {en, de};
+export const locales = ['en', 'de'];
+
+export default function RootLayout({children, params}) {
+  const {locale} = params;
+  if (!locales.includes(locale)) notFound();
+
+  // <html lang> pro Sprache setzen
+  return (
+    <html lang={locale}>
+      <body>
+        <NextIntlClientProvider locale={locale} messages={messagesMap[locale]}>
+          {children}
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### 2) Routen statisch vorab generieren (optional, besseres SSG/ISR)
+
+```js
+// app/[locale]/page.js
+export function generateStaticParams() {
+  return [{locale: 'en'}, {locale: 'de'}]; // plus weitere Locales
+}
+
+export default function Page({params}) {
+  return <h1>Home ({params.locale})</h1>;
+}
+```
+
+### 3) Locale-Erkennung & Redirect aus `/` (Middleware)
+
+```js
+// middleware.js
+import {NextResponse} from 'next/server';
+import {locales} from './app/[locale]/layout.js';
+
+function detectLocale(req) {
+  // sehr einfach: Accept-Language → erstes unterstütztes Locale
+  const header = req.headers.get('accept-language') || '';
+  const preferred = header.split(',')[0]?.split('-')[0];
+  return locales.includes(preferred) ? preferred : 'en';
+}
+
+export function middleware(req) {
+  const {pathname} = req.nextUrl;
+  // Wenn bereits /en/... oder /de/..., nichts tun
+  if (locales.some(l => pathname.startsWith(`/${l}/`) || pathname === `/${l}`)) {
+    return NextResponse.next();
+  }
+  // Root oder andere Pfade → auf ermitteltes Locale umschreiben
+  if (pathname === '/' || pathname.split('/').filter(Boolean).length === 0) {
+    const locale = detectLocale(req);
+    return NextResponse.redirect(new URL(`/${locale}`, req.url));
+  }
+  return NextResponse.next();
+}
+
+export const config = {matcher: ['/((?!_next|.*\\..*).*)']};
+```
+
+Hinweis: Du kannst die Middleware auch mit `next-intl`’s Routing-Helpers umsetzen (Domain-/Cookie-basiert). ([next-intl.dev][2])
+
+### 4) Übersetzungen im Code verwenden
+
+```js
+// app/[locale]/about/page.js
+'use client';
+import {useTranslations} from 'next-intl';
+
+export default function About() {
+  const t = useTranslations('about');
+  return <p>{t('headline')}</p>; // messages/en.json → { "about": { "headline": "About us" } }
+}
+```
+
+([next-intl.dev][3])
+
+### 5) SEO: `alternates.languages` & Sitemaps
+
+```js
+// app/[locale]/layout.js
+export async function generateMetadata({params}) {
+  const {locale} = params;
+  const base = 'https://example.com';
+  return {
+    alternates: {
+      languages: {
+        en: `${base}/en`,
+        de: `${base}/de`
+      }
+    }
+  };
+}
+```
+
+Optional zusätzlich eine lokalisierte `sitemap.ts` erzeugen. ([nextjs.org][4])
+
+### 6) Alternativen zu `next-intl`
+
+* **i18next / react-i18next** direkt im App Router (ohne `next-i18next`) oder mit `next-i18n-router` für komfortables Routing & Detection. ([GitHub][5])
+
+**Weiterlesen (offiziell & aktuell):**
+
+* Next.js App Router – Internationalization (Guide & Patterns). ([nextjs.org][1])
+* Middleware (App Router). ([nextjs.org][6])
+* Installation/Grundlagen (Referenzlink). ([locize.com][7])
+* next-intl (App Router Setup & Routing/SEO). ([next-intl.dev][3])
+
+---
+
+**Zusammenfassung:**
+Im App Router realisierst du i18n über ein `[locale]`-Segment, Middleware für Locale-Erkennung/Redirects, einen Provider (z. B. `next-intl`) zum Laden der Messages und SEO-Metadaten mit `alternates.languages`. `generateStaticParams` verbessert das Prerendering; `next-intl` oder i18next liefern Übersetzungs-APIs, `next-i18n-router` ergänzt bequemes Routing. ([nextjs.org][1])
+
+[1]: https://nextjs.org/docs/app/guides/internationalization?utm_source=chatgpt.com "Guides: Internationalization"
+[2]: https://next-intl.dev/docs/routing/middleware?utm_source=chatgpt.com "Middleware – Internationalization (i18n) for Next.js"
+[3]: https://next-intl.dev/docs?utm_source=chatgpt.com "Internationalization (i18n) for Next.js"
+[4]: https://nextjs.org/docs/app/api-reference/functions/generate-metadata?utm_source=chatgpt.com "generateMetadata function"
+[5]: https://github.com/i18next/next-i18next?utm_source=chatgpt.com "i18next/next-i18next: The easiest way to translate your ..."
+[6]: https://nextjs.org/docs/app/api-reference/file-conventions/middleware?utm_source=chatgpt.com "File-system conventions: middleware.js"
+[7]: https://www.locize.com/blog/i18n-next-app-router?utm_source=chatgpt.com "Simplifying i18next Setup in Next.js App Router"
 
   **[⬆ Наверх](#top)**
 
-89. ### <a name="89"></a> 
+89. ### <a name="89"></a> Welche i18n-Bibliotheken werden am häufigsten mit Next.js verwendet?
 
+**Häufig genutzte i18n-Bibliotheken mit Next.js:**
 
+* **[next-i18next](https://github.com/i18next/next-i18next)**
+
+  * Offizielles Next.js-Plugin für [i18next](https://www.i18next.com/).
+  * Bietet automatische Integration mit dem Next.js-Routing (Pages Router), Namespaces, Pluralisierung.
+  * Sehr etabliert in der Community, viel Dokumentation.
+  * Einschränkung: Anpassung für den neuen **App Router** ist komplexer.
+
+* **[next-intl](https://next-intl-docs.vercel.app/)**
+
+  * Moderne Lösung speziell für den **App Router**.
+  * Nutzt native Intl-APIs, kleine API-Oberfläche, optimiert für SSR/SSG.
+  * Bietet `useTranslations` Hook, Middleware-Integration, SEO (hreflang/alternates).
+  * Ideal für Projekte, die auf App Router setzen.
+
+* **[react-intl](https://formatjs.io/docs/react-intl/)**
+
+  * Teil von *FormatJS*.
+  * Starke Unterstützung für ICU-Messageformat, komplexe Pluralisierung & Datums-/Zahlenformatierung.
+  * Muss manuell in Next.js integriert werden, kein spezifisches Routing-Plugin.
+
+* **[i18next + react-i18next](https://react.i18next.com/)** (ohne next-i18next)
+
+  * Voll flexibel, direkte Verwendung in Next.js möglich.
+  * Benötigt etwas mehr Boilerplate, Middleware oder Routing-Lösungen wie [next-i18n-router](https://github.com/QuiiBz/next-i18n-router).
+
+* **[LinguiJS](https://lingui.dev/)**
+
+  * Fokussiert auf Developer Experience.
+  * Translation Keys als Code, unterstützt ICU-Format.
+  * Gut für kleine Projekte oder wenn man lieber Messages statt Namespaces benutzt.
+
+---
+
+🔗 Offizielle Next.js Docs: [Internationalization](https://nextjs.org/docs/app/building-your-application/routing/internationalization)
+
+---
+
+**Zusammenfassung:**
+Die **häufigsten Libraries** sind `next-i18next` (klassisch, stark im Pages Router), `next-intl` (empfohlen für App Router), sowie `react-intl` und `LinguiJS` für komplexere Übersetzungslogik. Für neue Projekte im **App Router** ist **next-intl** meist die beste Wahl.
 
   **[⬆ Наверх](#top)**
 
-90. ### <a name="90"></a> 
+90. ### <a name="90"></a> Wie funktioniert automatisches Redirect nach Browsersprache?
 
+**Automatisches Redirect nach Browsersprache in Next.js (App Router):**
 
+### 1) Erkennung der Sprache
+
+* Standard: HTTP-Header `Accept-Language` → enthält Präferenz des Browsers.
+* Fallback: Cookie, Domain oder Default-Locale.
+
+### 2) Middleware einsetzen
+
+Middleware wird beim Request am Edge ausgeführt und kann Redirects setzen.
+
+```js
+// middleware.js
+import {NextResponse} from 'next/server';
+
+const locales = ['en', 'de', 'fr'];
+const defaultLocale = 'en';
+
+function getLocale(request) {
+  const header = request.headers.get('accept-language') || '';
+  const preferred = header.split(',')[0]?.split('-')[0]; 
+  return locales.includes(preferred) ? preferred : defaultLocale;
+}
+
+export function middleware(request) {
+  const {pathname} = request.nextUrl;
+
+  // Prüfen: hat die URL bereits ein Locale?
+  const pathnameIsMissingLocale = locales.every(
+    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
+  );
+
+  if (pathnameIsMissingLocale) {
+    const locale = getLocale(request);
+    return NextResponse.redirect(new URL(`/${locale}${pathname}`, request.url));
+  }
+}
+
+export const config = {
+  matcher: ['/((?!_next|.*\\..*).*)'], // nur eigene Routen, keine Assets
+};
+```
+
+### 3) Routing-Struktur anlegen
+
+* `app/[locale]/page.js` → dynamisches Segment für Sprachen.
+* Übersetzungen über `next-intl`, `next-i18next` oder eigenes System laden.
+
+### 4) Best Practices
+
+* User-Präferenz merken (z. B. mit Cookie `NEXT_LOCALE`) und bei erneutem Besuch verwenden.
+* Fallback immer auf `defaultLocale`.
+* SEO: `alternates.languages` in `generateMetadata` setzen.
+
+---
+
+🔗 [Next.js – Middleware](https://nextjs.org/docs/app/building-your-application/routing/middleware)
+🔗 [next-intl – Locale Detection](https://next-intl-docs.vercel.app/docs/routing/middleware)
+
+---
+
+**Zusammenfassung:**
+Automatische Locale-Redirects realisiert man in Next.js per **Middleware**: Sprache aus `Accept-Language` ermitteln, prüfen ob URL ein Locale enthält, andernfalls Redirect auf passende Sprachroute durchführen. Cookies + SEO-Alternates sorgen für bessere User-Experience und Suchmaschinenoptimierung.
 
   **[⬆ Наверх](#top)**  
 
-91. ### <a name="91"></a> 
+91. ### <a name="91"></a> Was ist Middleware und wie wird sie verwendet?
 
+**Middleware in Next.js (App Router):**
 
+* **Definition:**
+  Middleware ist Code, der **vor der Ausführung einer Route** (Page, API) am **Edge** läuft.
+  Damit können Anfragen abgefangen, verändert oder umgeleitet werden.
+
+* **Einsatzbereiche:**
+
+  * Authentifizierung / Zugriffskontrolle
+  * Lokalisierung (Redirect nach Browsersprache)
+  * A/B-Testing oder Feature Flags
+  * URL-Rewrites & Weiterleitungen
+  * Logging, Header-Manipulation
+
+---
+
+### **Beispiel 1: Auth-Check**
+
+```js
+// middleware.js
+import {NextResponse} from 'next/server';
+
+export function middleware(request) {
+  const isLoggedIn = request.cookies.get('token');
+  if (!isLoggedIn && request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ['/dashboard/:path*'], // nur auf /dashboard anwenden
+};
+```
+
+---
+
+### **Beispiel 2: Locale-Redirect**
+
+```js
+// middleware.js
+import {NextResponse} from 'next/server';
+
+export function middleware(request) {
+  const locale = request.headers.get('accept-language')?.split(',')[0] || 'en';
+  return NextResponse.rewrite(new URL(`/${locale}${request.nextUrl.pathname}`, request.url));
+}
+
+export const config = {matcher: ['/((?!_next|.*\\..*).*)']};
+```
+
+---
+
+### **Technische Details**
+
+* Läuft in einer **Edge-Runtime** (kein voller Node.js-Support).
+* Zugriff nur auf Web APIs (`Request`, `Response`, `fetch`).
+* Kann Response-Header ändern, Redirects oder Rewrites zurückgeben.
+
+---
+
+🔗 [Next.js – Middleware](https://nextjs.org/docs/app/building-your-application/routing/middleware)
+
+---
+
+**Zusammenfassung:**
+Middleware ist ein Edge-Layer zwischen Anfrage und Antwort. Sie erlaubt Redirects, Auth-Checks, Internationalisierung und Header-Manipulation – läuft vor der Route und nutzt Web APIs statt Node.js.
 
   **[⬆ Наверх](#top)**
 
-92. ### <a name="92"></a> 
+92. ### <a name="92"></a> Was ist Edge Runtime?
 
+**Edge Runtime in Next.js**
 
+* **Definition:**
+  Die Edge Runtime ist eine **leichtgewichtige Ausführungsumgebung**, die auf **V8-Isolates** basiert (ähnlich wie Cloudflare Workers). Sie läuft **am Rand des CDN-Netzwerks** („Edge“) und nicht in zentralen Rechenzentren.
+
+* **Eigenschaften:**
+
+  * Extrem schnelle Antwortzeiten (kein klassischer „Cold Start“ wie bei Serverless Lambdas).
+  * Weltweite Verteilung → niedrige Latenz für User.
+  * Eingeschränkte APIs: keine Node.js-Module (`fs`, `net`, `crypto.randomBytes`), sondern **Web APIs** (`fetch`, `Request`, `Response`, `URL`).
+  * Perfekt für leichte Middleware-Logik (Auth, Redirects, Geo-basiertes Routing).
+
+---
+
+### **Beispiel: Edge API Route**
+
+```js
+// app/api/hello/route.js
+export const runtime = 'edge'; // explizit Edge Runtime aktivieren
+
+export async function GET() {
+  // Nur Web APIs verfügbar
+  return new Response(JSON.stringify({msg: "Hello from Edge"}), {
+    headers: {"Content-Type": "application/json"},
+  });
+}
+```
+
+---
+
+### **Beispiele für Einsatz in Next.js**
+
+* `middleware.js` → automatisch in Edge Runtime
+* Edge API Routes (`export const runtime = 'edge'`)
+* A/B-Testing, Geo-Redirects, schnelle Auth-Checks
+
+---
+
+🔗 [Next.js – Edge Runtime](https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes)
+
+---
+
+**Zusammenfassung:**
+Die Edge Runtime ist eine V8-basierte, global verteilte Laufzeitumgebung mit sehr niedriger Latenz. Sie bietet nur Web APIs, eignet sich aber hervorragend für Middleware, Edge-API-Routes und Geo-nahe Optimierungen.
 
   **[⬆ Наверх](#top)**
 
-93. ### <a name="93"></a> 
+93. ### <a name="93"></a> Wie funktionieren Streaming und Suspense in Next.js 13?
 
+**Streaming & Suspense in Next.js 13 (App Router):**
 
+---
+
+### 1. **Grundidee:**
+
+* **Streaming:** Server-Rendering schickt HTML **schrittweise** zum Client → erste Teile sind sofort sichtbar, während andere noch nachgeladen werden.
+* **Suspense:** React-Mechanismus, um UI zu „pausieren“, bis Daten oder Komponenten verfügbar sind. Im App Router direkt integriert.
+
+---
+
+### 2. **Server Components + Streaming**
+
+* Next.js 13 rendert **Server Components** und streamt sie inkrementell an den Client.
+* Kein Warten, bis die gesamte Seite fertig ist → **Time-to-First-Byte (TTFB)** sinkt, Nutzer sieht sofort Inhalte.
+
+**Beispiel:**
+
+```js
+// app/page.js
+import UserInfo from './UserInfo';
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      {/* UserInfo braucht Daten und streamt separat */}
+      <UserInfo />
+    </div>
+  );
+}
+```
+
+---
+
+### 3. **Suspense für Datenabhängigkeiten**
+
+* `Suspense` zeigt Fallback, während eine Komponente lädt.
+* Ideal für **langsamen Teil des UIs** (z. B. API-Aufruf).
+
+**Beispiel:**
+
+```js
+// app/page.js
+import {Suspense} from 'react';
+import SlowPosts from './SlowPosts';
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Blog</h1>
+      <Suspense fallback={<p>Lade Beiträge...</p>}>
+        <SlowPosts />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+```js
+// app/SlowPosts.js
+export default async function SlowPosts() {
+  const res = await fetch('https://jsonplaceholder.typicode.com/posts', {
+    cache: 'no-store'
+  });
+  const posts = await res.json();
+  return (
+    <ul>
+      {posts.slice(0, 5).map(p => <li key={p.id}>{p.title}</li>)}
+    </ul>
+  );
+}
+```
+
+➡️ `Suspense` rendert erst das Fallback, bis `fetch` abgeschlossen ist; anschließend wird der Inhalt **gestreamt**.
+
+---
+
+### 4. **Nested Suspense & Parallel Routes**
+
+* Mehrere Suspense-„Inseln“ ermöglichen **progressives Rendering** unterschiedlicher UI-Teile.
+* Mit **Parallel Routes** können Bereiche unabhängig geladen werden.
+
+---
+
+🔗 [Next.js – Streaming & Suspense](https://nextjs.org/docs/app/building-your-application/routing/loading-ui-and-streaming)
+
+---
+
+**Zusammenfassung:**
+Streaming erlaubt inkrementelles Ausliefern von Server-rendered Content; Suspense steuert, welche UI-Teile Fallbacks anzeigen, bis Daten da sind. Zusammen verbessern sie **Performance und User Experience**, weil Nutzer sofort etwas sehen, auch wenn andere Teile noch laden.
 
   **[⬆ Наверх](#top)**
 
-94. ### <a name="94"></a> 
+94. ### <a name="94"></a> Wie funktionieren Parallel Routes?
 
+**Parallel Routes in Next.js (App Router, ab v13):**
 
+---
+
+### 1. **Definition**
+
+* Parallel Routes erlauben, **mehrere UI-Bereiche gleichzeitig** und unabhängig voneinander zu rendern.
+* Jeder Bereich hat seinen eigenen „Slot“ (`@slotName`) im Layout.
+* Ideal für Dashboards, Sidebars oder Overlays, die **parallel** geladen werden sollen.
+
+---
+
+### 2. **Grundstruktur**
+
+```
+app/
+ ├─ layout.js
+ ├─ page.js
+ ├─ @analytics/page.js
+ └─ @team/page.js
+```
+
+* `@analytics` und `@team` sind **benannte Slots**.
+* In `layout.js` definierst du, wie diese Slots angezeigt werden.
+
+```js
+// app/layout.js
+export default function RootLayout({ children, analytics, team }) {
+  return (
+    <div>
+      <aside>{analytics}</aside>
+      <main>{children}</main>
+      <section>{team}</section>
+    </div>
+  );
+}
+```
+
+* `children` → Standardroute
+* `analytics` & `team` → Inhalte aus den entsprechenden `@slot`-Ordnern
+
+---
+
+### 3. **Vorteile**
+
+* **Unabhängiges Laden**: Jeder Slot wird separat gestreamt (mit Suspense kombinierbar).
+* **Flexibles UI**: Seitenabschnitte können **unterschiedliche Routing-Logik** haben.
+* **Bessere UX**: Hauptinhalt kann sofort erscheinen, während Sidebar/Extras noch laden.
+
+---
+
+### 4. **Advanced: Default und Error UI**
+
+* Jeder Slot kann eine **`default.js`** enthalten → Fallback, wenn kein Inhalt aktiv ist.
+* Slots können eigene `error.js`, `loading.js` und `not-found.js` haben.
+
+```js
+// app/@analytics/default.js
+export default function DefaultAnalytics() {
+  return <p>No Analytics Data</p>;
+}
+```
+
+---
+
+🔗 [Next.js – Parallel Routes](https://nextjs.org/docs/app/building-your-application/routing/parallel-routes)
+
+---
+
+**Zusammenfassung:**
+Parallel Routes teilen die UI in mehrere **benannte Slots** (`@slot`), die unabhängig voneinander geladen und gestreamt werden. Sie ermöglichen **gleichzeitiges Laden verschiedener UI-Bereiche**, was besonders in Dashboards oder komplexen Apps nützlich ist.
 
   **[⬆ Наверх](#top)**
 
-95. ### <a name="95"></a> 
+95. ### <a name="95"></a> Was sind Intercepting Routes?
 
+**Intercepting Routes in Next.js (App Router, ab v13.3):**
 
+---
+
+### 1. **Definition**
+
+* Intercepting Routes erlauben, eine Route **abzufangen** und **in einem anderen Kontext darzustellen**, ohne die aktuelle Seite vollständig zu verlassen.
+* Typisches Beispiel: Ein Modal-Fenster für Detailansichten, statt einen neuen Tab oder eine neue Seite zu laden.
+
+---
+
+### 2. **Syntax**
+
+* In `app/`-Struktur nutzt man den Präfix **`(..)`**, um eine Route an anderer Stelle abzufangen.
+
+**Beispiel-Projektstruktur:**
+
+```
+app/
+ ├─ feed/page.js
+ ├─ feed/[id]/page.js        // normale Detailseite
+ └─ feed/(..)photo/[id]/page.js // Intercepting Route für Modal
+```
+
+---
+
+### 3. **Verhalten**
+
+* Besuchst du `/feed/123` direkt → normale Detailseite (`feed/[id]/page.js`).
+* Klickst du innerhalb von `/feed` auf ein Foto → dieselbe Route wird **abgefangen** und im Modal (`(..)photo/[id]`) angezeigt, während der Feed sichtbar bleibt.
+
+---
+
+### 4. **Codebeispiel Modal-Intercept**
+
+```js
+// app/feed/(..)photo/[id]/page.js
+'use client';
+
+import {useRouter} from 'next/navigation';
+
+export default function PhotoModal({params}) {
+  const router = useRouter();
+  return (
+    <div className="modal">
+      <img src={`/photos/${params.id}.jpg`} alt="Photo" />
+      <button onClick={() => router.back()}>Schließen</button>
+    </div>
+  );
+}
+```
+
+* `(..)` sagt: „Intercepte die Route `[id]` von `feed/`, aber rendere sie hier im Kontext.“
+
+---
+
+### 5. **Use Cases**
+
+* Modale (Bildergalerien, Detail-Overlays)
+* Previews (z. B. Artikelvorschau, ohne die Hauptseite zu verlassen)
+* Nested Navigation mit gleichem Content in unterschiedlichen UI-Kontexten
+
+---
+
+🔗 [Next.js – Intercepting Routes](https://nextjs.org/docs/app/building-your-application/routing/intercepting-routes)
+
+---
+
+**Zusammenfassung:**
+Intercepting Routes ermöglichen es, **eine Route an einer anderen Stelle darzustellen**, z. B. als Modal oder Overlay, ohne die aktuelle Seite zu verlassen. Sie nutzen den `(..)`-Präfix in der `app/`-Struktur und verbessern so UX bei Detailansichten.
 
   **[⬆ Наверх](#top)**
 
-96. ### <a name="96"></a> 
+96. ### <a name="96"></a> Wie bindet man eine GraphQL-API in Next.js ein?
 
+**GraphQL in Next.js (App Router) einbinden – drei etablierte Wege**
 
+### 1) Direkt per `fetch` (Server Component, leicht & ohne Client-Library)
+
+```js
+// app/users/page.js  (Server Component)
+const GQL = `#graphql
+  query Users($limit:Int!) { users(limit:$limit) { id name email } }
+`;
+
+export default async function UsersPage() {
+  const res = await fetch(process.env.GRAPHQL_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${process.env.API_TOKEN}` },
+    body: JSON.stringify({ query: GQL, variables: { limit: 5 } }),
+    // Caching/ISR nach Bedarf:
+    next: { revalidate: 60 } // oder { tags: ['users'] }
+  });
+  const { data, errors } = await res.json();
+  if (errors) throw new Error(errors[0].message);
+  return <ul>{data.users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
+
+* Vorteil: minimal, nutzt Next.js-Server-Fetch inkl. Cache/Revalidate.
+* Passend für SSR/ISR ohne zusätzliche Runtime auf dem Client.
+  Quelle: Next.js Data Fetching & Caching im App Router. ([nextjs.org][1])
+
+---
+
+### 2) Apollo Client (Client- oder hybride Nutzung, Typ-Safety & Cache)
+
+**Provider einrichten (App Router)**
+
+```js
+// app/providers.jsx  (Client Component)
+'use client';
+import { ApolloClient, InMemoryCache, ApolloProvider, HttpLink } from '@apollo/client';
+
+const client = new ApolloClient({
+  link: new HttpLink({ uri: process.env.NEXT_PUBLIC_GRAPHQL_URL, fetch }),
+  cache: new InMemoryCache()
+});
+
+export default function Providers({ children }) {
+  return <ApolloProvider client={client}>{children}</ApolloProvider>;
+}
+```
+
+```js
+// app/layout.js  (Server Component)
+import Providers from './providers.jsx';
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="de">
+      <body><Providers>{children}</Providers></body>
+    </html>
+  );
+}
+```
+
+**Query im Client**
+
+```js
+// app/users/ClientUsers.jsx  (Client Component)
+'use client';
+import { gql, useQuery } from '@apollo/client';
+
+const USERS = gql`query { users { id name } }`;
+
+export default function ClientUsers() {
+  const { data, loading, error } = useQuery(USERS);
+  if (loading) return <p>Lade…</p>;
+  if (error) return <p>Fehler: {error.message}</p>;
+  return <ul>{data.users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
+
+* Vorteil: Normalisierte Caches, React-Hooks, starke Ökosystem-Unterstützung.
+* Für App Router existiert eine offizielle Integration von Apollo. ([GitHub][2])
+
+---
+
+### 3) `urql` (leichtgewichtig, gut für App Router)
+
+```js
+// app/providers.jsx  (Client Component)
+'use client';
+import { Provider, createClient } from 'urql';
+
+const client = createClient({ url: process.env.NEXT_PUBLIC_GRAPHQL_URL });
+
+export default function Providers({ children }) {
+  return <Provider value={client}>{children}</Provider>;
+}
+```
+
+```js
+// app/users/ClientUsers.jsx  (Client Component)
+'use client';
+import { useQuery } from 'urql';
+
+const Users = `
+  query { users { id name } }
+`;
+
+export default function ClientUsers() {
+  const [{ data, fetching, error }] = useQuery({ query: Users });
+  if (fetching) return <p>Lade…</p>;
+  if (error) return <p>Fehler: {error.message}</p>;
+  return <ul>{data.users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
+
+* Vorteil: kleiner Footprint, gute SSR-Story (next-urql/SSR-Guides). ([nearform.com][3])
+
+---
+
+### Praxis-Hinweise
+
+* **Env-Vars:** Server-seitig `process.env.GRAPHQL_URL`; im Browser nur `NEXT_PUBLIC_…`.
+* **Caching/Revalidate:** Bei `fetch` per `next: { revalidate }`/`cache` steuern; bei Apollo/urql über deren Cache. ([nextjs.org][1])
+* **Type-Safety:** GraphQL Code Generator für Typen/Hooks. ([Webkul Software][4])
+* **Security:** Keine Secrets im Client; Auth-Header in Server Components oder per Route Handler injizieren.
+
+**Weiterlesen (offiziell):**
+
+* Next.js App Router – Data Fetching/Caching/Revalidate & `fetch` API. ([nextjs.org][1])
+* Apollo Client – Getting Started & App-Router-Integration. ([apollographql.com][5])
+* urql – SSR/Next.js Leitfaden. ([nearform.com][3])
+* Next.js – Installation/Grundlagen. ([nextjs.org][6])
+
+---
+
+**Zusammenfassung:**
+Für Next.js (App Router) sind drei Wege üblich: **(1)** reines `fetch` in Server Components (einfach, SSR/ISR-freundlich), **(2)** **Apollo Client** mit Provider für komfortable Hooks & Cache, **(3)** **urql** als leichtgewichtige Alternative. Caching/ISR über Next.js steuern (bei `fetch`) oder über den Client-Cache; Env-Vars sauber trennen (Server vs. `NEXT_PUBLIC_`). ([nextjs.org][1])
+
+[1]: https://nextjs.org/docs/14/app/building-your-application/data-fetching/fetching-caching-and-revalidating?utm_source=chatgpt.com "Data Fetching, Caching, and Revalidating"
+[2]: https://github.com/apollographql/apollo-client-integrations?utm_source=chatgpt.com "Apollo Client support for the Next.js App Router"
+[3]: https://nearform.com/open-source/urql/docs/advanced/server-side-rendering/?utm_source=chatgpt.com "Server-side Rendering | urql Documentation"
+[4]: https://webkul.com/blog/nextjs-graphql-codegen/?utm_source=chatgpt.com "GraphQL CodeGen with Next.js"
+[5]: https://www.apollographql.com/docs/react/get-started?utm_source=chatgpt.com "Get started with Apollo Client"
+[6]: https://nextjs.org/docs/app/getting-started/fetching-data?utm_source=chatgpt.com "Getting Started: Fetching Data"
 
   **[⬆ Наверх](#top)**
 
-97. ### <a name="97"></a> 
+97. ### <a name="97"></a> Wie integriert man Redux Toolkit mit Next.js?
 
+**Redux Toolkit im Next.js App Router integrieren (empfohlener Ansatz)**
 
+### 1) Store & Slice anlegen
+
+```js
+// lib/store.js
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: {
+    inc: (state) => { state.value += 1; },
+    add: (state, action) => { state.value += action.payload; }
+  }
+});
+
+export const { inc, add } = counterSlice.actions;
+
+export const makeStore = () =>
+  configureStore({
+    reducer: { counter: counterSlice.reducer },
+    // optional: middleware, devTools etc.
+  });
+
+export const store = makeStore();
+```
+
+### 2) Provider als **Client Component**
+
+> Hooks wie `useSelector` / `useDispatch` funktionieren nur in **Client Components**.
+
+```js
+// app/providers.jsx
+'use client';
+import { Provider } from 'react-redux';
+import { store } from '@/lib/store';
+
+export default function Providers({ children }) {
+  return <Provider store={store}>{children}</Provider>;
+}
+```
+
+### 3) Provider im Root-Layout einhängen
+
+```js
+// app/layout.js
+import Providers from './providers.jsx';
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="de">
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}
+```
+
+### 4) Nutzung in Client Components
+
+```js
+// app/example/Counter.jsx
+'use client';
+import { useDispatch, useSelector } from 'react-redux';
+import { inc, add } from '@/lib/store';
+
+export default function Counter() {
+  const value = useSelector((s) => s.counter.value);
+  const dispatch = useDispatch();
+
+  return (
+    <div>
+      <p>Count: {value}</p>
+      <button onClick={() => dispatch(inc())}>+1</button>
+      <button onClick={() => dispatch(add(5))}>+5</button>
+    </div>
+  );
+}
+```
+
+### 5) Server Components beachten
+
+* Server Components **dürfen keine Redux-Hooks** nutzen.
+* Muster: Daten in Server Components laden, per Props an Client Components mit Redux übergeben **oder** State ausschließlich im Client verwalten. ([redux-toolkit.js.org][1])
+
+### 6) RTK Query (optional)
+
+* Client-seitig: normal über Hooks (`useGetXQuery`).
+* Klassisches SSR mit Pages Router nutzt `next-redux-wrapper` zur Rehydration; im App Router setzt man eher auf **Client-Fetching** oder serverseitiges `fetch` + Props. ([redux-toolkit.js.org][2])
+
+**Quellen:**
+
+* Redux Toolkit – *Setup mit Next.js (App Router)*. ([redux-toolkit.js.org][1])
+* Redux Toolkit – *Quick Start* / *Usage Guide*. ([redux-toolkit.js.org][3])
+* Next.js – *Getting Started (App Router Grundlagen)*. ([nextjs.org][4])
+* Next.js – *Installation* (Referenzlink). ([nextjs.org][4])
+
+---
+
+**Zusammenfassung:**
+Store mit RTK erstellen → `Provider` als **Client Component** definieren → im `app/layout.js` einbinden → Hooks nur in Client Components verwenden. Für RTK Query im App Router bevorzugt Client-Hooks oder serverseitiges `fetch` + Props; SSR-Rehydration ist primär ein Pages-Router-Pattern. ([redux-toolkit.js.org][1])
+
+[1]: https://redux-toolkit.js.org/usage/nextjs?utm_source=chatgpt.com "Redux Toolkit Setup with Next.js"
+[2]: https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering?utm_source=chatgpt.com "Server Side Rendering"
+[3]: https://redux-toolkit.js.org/tutorials/quick-start?utm_source=chatgpt.com "Redux Toolkit Quick Start"
+[4]: https://nextjs.org/docs/app/getting-started?utm_source=chatgpt.com "App Router: Getting Started"
 
   **[⬆ Наверх](#top)**
 
-98. ### <a name="98"></a> 
+98. ### <a name="98"></a> Wie integriert man Zustand mit Next.js?
 
+**Zustand mit Next.js (App Router) integrieren — schlank & SSR-sicher**
 
+### 1) Basis-Store (ohne Provider)
+
+```js
+// lib/store.js
+import {create} from 'zustand';
+
+export const useCounter = create((set) => ({
+  value: 0,
+  inc: () => set((s) => ({ value: s.value + 1 })),
+  add: (n) => set((s) => ({ value: s.value + n })),
+}));
+```
+
+```js
+// app/example/Counter.jsx
+'use client';
+import {useCounter} from '@/lib/store';
+
+export default function Counter() {
+  const value = useCounter((s) => s.value);         // selektiver Zugriff
+  const inc = useCounter((s) => s.inc);
+  return (
+    <div>
+      <p>Value: {value}</p>
+      <button onClick={inc}>+1</button>
+    </div>
+  );
+}
+```
+
+* Hooks nur in **Client Components** verwenden. Server/Client-Komponenten: siehe Next.js App-Router-Grundlagen. ([nextjs.org][1])
+
+---
+
+### 2) SSR-sicherer Store mit Initialzustand vom Server
+
+Wenn der anfängliche Zustand **vom Server** kommt (z. B. Session, DB), pro Request einen Store erstellen und in einem **Client-Provider** einmalig initialisieren.
+
+```js
+// lib/makeStore.js
+import {createStore} from 'zustand';
+export function initCounterStore(preloaded = { value: 0 }) {
+  return createStore(() => ({ ...preloaded, inc: () => {} })); // Platzhalter; s. unten
+}
+```
+
+```js
+// app/providers.jsx
+'use client';
+import {useRef} from 'react';
+import {create} from 'zustand';
+import {initCounterStore} from '@/lib/makeStore';
+
+export function CounterProvider({ children, initialState }) {
+  // Store nur einmal pro Client instanziieren
+  const storeRef = useRef();
+  if (!storeRef.current) {
+    const base = initCounterStore(initialState).getState();
+    storeRef.current = create((set) => ({
+      ...base,
+      inc: () => set((s) => ({ value: s.value + 1 })),
+    }));
+  }
+  return <ZustandContext.Provider value={storeRef.current}>{children}</ZustandContext.Provider>;
+}
+```
+
+```js
+// app/layout.js  (Server Component)
+import {CounterProvider} from './providers.jsx';
+
+export default async function RootLayout({ children }) {
+  const initial = { value: 5 }; // z. B. aus DB/Session
+  return (
+    <html lang="de">
+      <body>
+        <CounterProvider initialState={initial}>{children}</CounterProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+> Hintergrund: Next.js rendert Server- und Client-Seite separat; der Zustand darf nicht zwischen Requests „leaken“. Der offizielle Leitfaden empfiehlt pro Request/Client eine **eigene Store-Instanz** zu benutzen. ([zustand.docs.pmnd.rs][2])
+
+---
+
+### 3) Persistenz (optional) mit Middleware
+
+```js
+// lib/themeStore.js
+import {create} from 'zustand';
+import {persist} from 'zustand/middleware';
+
+export const useTheme = create(persist(
+  (set) => ({ theme: 'light', toggle: () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' })) }),
+  { name: 'theme-store' } // localStorage-Key (nur Client)
+));
+```
+
+* Persist nur **im Browser** aktiv; auf dem Server existiert `localStorage` nicht. Bei Hydration-Meldungen ggf. erst nach `useEffect` rendern oder selektiv lesen. ([zustand.docs.pmnd.rs][3])
+
+---
+
+### 4) Best Practices
+
+* **Client only:** Zustand-Consumer-Komponenten mit `'use client'` markieren. ([nextjs.org][1])
+* **Selektoren & `shallow`:** immer selektiv subscriben, um Re-Renders zu minimieren.
+* **Hydration-Fallen:** Bei Persist/Browser-APIs auf **Mismatch** achten und mit „hasMounted“-Guard oder lazy init umgehen (siehe Community-Guides). ([Medium][4])
+* **Kein globaler Singleton bei Server-Initialzustand:** pro Request initialisieren (siehe Zustand-Next.js-Guide). ([zustand.docs.pmnd.rs][2])
+
+---
+
+**Weiterlesen:**
+
+* Zustand – *Setup with Next.js (SSR-Hinweise, per-request Stores)*. ([zustand.docs.pmnd.rs][2])
+* Zustand – *Persist middleware*. ([zustand.docs.pmnd.rs][3])
+* Next.js – *Server und Client Components (App Router)*. ([nextjs.org][1])
+* Next.js – *Installation (Referenzlink, wie gefordert)*. ([nextjs.org][5])
+
+---
+
+**Zusammenfassung:**
+Zustand im App Router: Store definieren, in **Client Components** nutzen; wenn Serverdaten den Initialzustand bestimmen, den Store **pro Request** erstellen und im Client-Provider einmalig hydrieren. Persistenz per `persist` (nur Client) und auf Hydration achten. Quellen: Zustand-Next.js-Guide, Persist-Doku, Next.js App-Router-Docs. ([zustand.docs.pmnd.rs][2])
+
+[1]: https://nextjs.org/docs/app/getting-started/server-and-client-components?utm_source=chatgpt.com "Getting Started: Server and Client Components"
+[2]: https://zustand.docs.pmnd.rs/guides/nextjs?utm_source=chatgpt.com "Setup with Next.js - Zustand"
+[3]: https://zustand.docs.pmnd.rs/integrations/persisting-store-data?utm_source=chatgpt.com "Persisting store data - Zustand"
+[4]: https://medium.com/%40koalamango/fix-next-js-hydration-error-with-zustand-state-management-0ce51a0176ad?utm_source=chatgpt.com "Fix Next.js 14 hydration error with Zustand state management"
+[5]: https://nextjs.org/docs/app/getting-started/installation?utm_source=chatgpt.com "Getting Started: Installation"
 
   **[⬆ Наверх](#top)**
 
-99. ### <a name="99"></a> 
+99. ### <a name="99"></a> Wie integriert man React Query mit Next.js?
 
+**React Query (TanStack Query) im Next.js App Router integrieren (inkl. SSR/Hydration)**
 
+### 1) Provider als **Client Component**
+
+```js
+// app/providers.jsx
+'use client';
+import { useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+export default function Providers({ children }) {
+  // pro Browser-Session EIN QueryClient (verhindert Leaks/Neuerstellung)
+  const [client] = useState(() => new QueryClient());
+  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+}
+```
+
+```js
+// app/layout.js (Server Component)
+import Providers from './providers.jsx';
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="de">
+      <body><Providers>{children}</Providers></body>
+    </html>
+  );
+}
+```
+
+### 2) SSR/Streaming mit **HydrationBoundary** (empfohlen)
+
+```js
+// app/users/page.js  (Server Component)
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+import UsersClient from './UsersClient.jsx';
+
+async function prefetchUsers(qc) {
+  await qc.prefetchQuery({
+    queryKey: ['users', { limit: 5 }],
+    queryFn: async () => {
+      const res = await fetch(process.env.API_URL + '/users?limit=5', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to fetch users');
+      return res.json();
+    },
+  });
+}
+
+export default async function UsersPage() {
+  const qc = new QueryClient();
+  await prefetchUsers(qc);     // Server holt Daten vorab
+  const state = dehydrate(qc); // dehydrieren → an Client übergeben
+
+  return (
+    // Teile der UI können gestreamt werden; Query-Daten sind sofort da
+    <HydrationBoundary state={state}>
+      <UsersClient />
+    </HydrationBoundary>
+  );
+}
+```
+
+```js
+// app/users/UsersClient.jsx  (Client Component)
+'use client';
+import { useQuery } from '@tanstack/react-query';
+
+export default function UsersClient() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['users', { limit: 5 }],
+    queryFn: async () => {
+      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/users?limit=5');
+      if (!res.ok) throw new Error('Failed');
+      return res.json();
+    },
+    staleTime: 30_000, // Beispiel: Cache-Einstellung
+  });
+
+  if (isLoading) return <p>Lade…</p>;
+  if (error) return <p>Fehler: {error.message}</p>;
+  return <ul>{data?.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
+
+**Wichtig**
+
+* **Provider muss clientseitig** sein; `useState(() => new QueryClient())` verhindert, dass pro Render ein neuer Client entsteht.
+* **HydrationBoundary+dehydrate**: Server-prefetch → sofort nutzbare Daten ohne FOUC; kompatibel mit **Streaming/Suspense** im App Router.
+* **Env-Vars:** Server: `API_URL`; Client: `NEXT_PUBLIC_API_URL`.
+* **Alternative:** rein serverseitig mit `fetch` (ohne React Query) für einfache SSR/ISR-Fälle; React Query lohnt sich für clientseitiges Re-Fetching, Caching, Mutations.
+
+**Quellen (aktuell):**
+
+* TanStack Query – *Advanced Server Rendering* (App Router, Streaming, HydrationBoundary). ([tanstack.com][1])
+* TanStack Query – *Server Rendering & Hydration* (dehydrate/hydrate). ([tanstack.com][2])
+* (Referenzlink gefordert) Next.js – *Installation / Getting Started*. ([nextjs.org][3])
+
+---
+
+**Zusammenfassung:**
+`QueryClientProvider` als **Client Component**, pro Browser einen `QueryClient`. Für SSR: im **Server Component** Queries per `prefetchQuery` laden, `dehydrate` aufrufen und mit **HydrationBoundary** an den Client übergeben. So kombinierst du Next.js-Streaming mit React-Query-Caching und bekommst sofort gerenderte, reaktive Daten. ([tanstack.com][1])
+
+[1]: https://tanstack.com/query/v5/docs/react/guides/advanced-ssr?utm_source=chatgpt.com "Advanced Server Rendering | TanStack Query React Docs"
+[2]: https://tanstack.com/query/v5/docs/react/guides/ssr?utm_source=chatgpt.com "Server Rendering & Hydration | TanStack Query React Docs"
+[3]: https://nextjs.org/docs/app/getting-started/installation?utm_source=chatgpt.com "Getting Started: Installation"
 
   **[⬆ Наверх](#top)**
 
-100. ### <a name="100"></a> 
+100. ### <a name="100"></a> Wie implementiert man SSR mit Redux in Next.js?
 
+**SSR mit Redux in Next.js (App Router & Pages Router)**
 
+### App Router (empfohlen ab Next 13)
+
+**Ziel:** pro Request einen frischen Store, Daten serverseitig laden und beim ersten Render ohne Flicker anzeigen.
+
+1. **Store pro Request + Provider (Client Component)**
+
+```js
+// lib/store.js
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+
+const counter = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: { set: (s, a) => { s.value = a.payload; } }
+});
+export const { set } = counter.actions;
+
+export const makeStore = () =>
+  configureStore({ reducer: { counter: counter.reducer } });
+```
+
+```js
+// app/StoreProvider.jsx
+'use client';
+import { useRef } from 'react';
+import { Provider } from 'react-redux';
+import { makeStore } from '@/lib/store';
+import { set } from '@/lib/store';
+
+export default function StoreProvider({ children, initialCount = 0 }) {
+  const storeRef = useRef();
+  if (!storeRef.current) {
+    storeRef.current = makeStore();
+    // Wichtig: beim ersten Render initialisieren (nicht in useEffect!)
+    storeRef.current.dispatch(set(initialCount));
+  }
+  return <Provider store={storeRef.current}>{children}</Provider>;
+}
+```
+
+2. **Serverseitig Daten laden und als Prop übergeben**
+
+```js
+// app/page.js  (Server Component)
+import StoreProvider from './StoreProvider';
+
+export default async function Page() {
+  const countFromServer = 5; // z. B. DB/Fetch
+  return (
+    <html lang="de">
+      <body>
+        <StoreProvider initialCount={countFromServer}>
+          {/* Client-UI, die Redux nutzt */}
+          <Counter />
+        </StoreProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+```js
+// app/Counter.jsx  (Client Component)
+'use client';
+import { useSelector } from 'react-redux';
+
+export default function Counter() {
+  const value = useSelector(s => s.counter.value);
+  return <p>SSR-Wert: {value}</p>;
+}
+```
+
+**Hinweise:**
+
+* RSCs (Server Components) lesen/schreiben **nicht** direkt den Redux-Store; Initialdaten per Props an einen **Client-Provider** übergeben und dort dispatchen.
+* Vermeide Initialisierung in `useEffect` → sonst Hydration-Differenzen. ([Redux][1])
+
+---
+
+### Pages Router (klassisch)
+
+**Pattern:** `next-redux-wrapper` + `getServerSideProps`/`getStaticProps` → Server-Store wird befüllt und per HYDRATE an den Client übergeben.
+
+```js
+// store.ts
+import { configureStore } from '@reduxjs/toolkit';
+export const makeStore = () => configureStore({ reducer: {/* ... */} });
+export const wrapper = createWrapper(makeStore); // aus next-redux-wrapper
+```
+
+```js
+// pages/index.tsx
+import { wrapper } from '@/store';
+import { set } from '@/features/counter';
+
+export const getServerSideProps = wrapper.getServerSideProps(
+  store => async () => {
+    store.dispatch(set(5)); // Server-State
+    return { props: {} };
+  }
+);
+
+export default function Home() { /* ... */ }
+```
+
+**Hinweis:** `next-redux-wrapper` kapselt HYDRATE und synchronisiert Server-→Client-State. ([GitHub][2])
+
+---
+
+### Typische Stolpersteine (SSR + Redux)
+
+* **Hydration-Fehler**: Unterschiedlicher HTML-Baum Server/Client (z. B. wenn State erst im `useEffect` gesetzt wird). Initialisierung **während** des ersten Renders im Provider durchführen. ([nextjs.org][3])
+* **Globaler Singleton-Store** im App Router → Request-Leaks. Immer **per Request** erzeugen. ([Redux][1])
+
+**Weiterlesen (offiziell/aktuell):**
+
+* Redux Toolkit – *Setup with Next.js* (Fokus **App Router**, per-Request Store, Initialdaten) ([Redux][1])
+* `next-redux-wrapper` (Pages Router + SSR/HYDRATE) ([GitHub][2])
+* RTK Query SSR mit Next.js (Pages Router) ([redux-toolkit.js.org][4])
+* Next.js – *Installation* (Referenzlink) ([nextjs.org][5])
+
+---
+
+**Zusammenfassung:**
+App Router: Store **pro Request** erzeugen, Daten in einer **Server Component** laden und als Props an einen **Client-Provider** geben, der beim ersten Render dispatcht (keine `useEffect`-Init). Pages Router: **`next-redux-wrapper`** nutzen und in `getServerSideProps`/`getStaticProps` befüllen (HYDRATE synchronisiert). Dies verhindert Hydration-Fehler und ermöglicht echtes SSR mit Redux. ([Redux][1])
+
+[1]: https://redux.js.org/usage/nextjs "Redux Toolkit Setup with Next.js | Redux"
+[2]: https://github.com/kirill-konshin/next-redux-wrapper?utm_source=chatgpt.com "kirill-konshin/next-redux-wrapper: Redux wrapper for Next.js"
+[3]: https://nextjs.org/docs/messages/react-hydration-error?utm_source=chatgpt.com "Text content does not match server-rendered HTML"
+[4]: https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering?utm_source=chatgpt.com "Server Side Rendering"
+[5]: https://nextjs.org/docs/app/getting-started/fetching-data?utm_source=chatgpt.com "Getting Started: Fetching Data"
 
   **[⬆ Наверх](#top)**    
 
-101. ### <a name="101"></a> 
+101. ### <a name="101"></a> Wie richtet man eine PWA in Next.js ein?
 
+**PWA in Next.js (App Router) einrichten – ohne Zusatz-Plugin**
 
+### 1) Web App Manifest anlegen
+
+`app/manifest.json` (oder `app/manifest.webmanifest`)
+
+```js
+{
+  "name": "My App",
+  "short_name": "MyApp",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#111111",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
+```
+
+Icons nach `public/icons` legen. In Next.js wird das Manifest automatisch erkannt. ([nextjs.org][1])
+
+### 2) `<link rel="manifest">` & Meta (optional, falls nicht automatisch gesetzt)
+
+```js
+// app/layout.js
+export const metadata = {
+  title: 'My App',
+  themeColor: '#111111',
+  manifest: '/manifest.json'
+};
+export default function RootLayout({ children }) {
+  return <html lang="de"><body>{children}</body></html>;
+}
+```
+
+([nextjs.org][2])
+
+### 3) Service Worker erstellen und registrieren
+
+`public/sw.js` (ein einfaches Cache-First-Beispiel)
+
+```js
+// public/sw.js
+const CACHE = 'app-cache-v1';
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/'])));
+});
+self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    caches.match(e.request).then((res) => res || fetch(e.request))
+  );
+});
+```
+
+Client-Registrierung (nur im Browser):
+
+```js
+// app/sw-register.jsx
+'use client';
+import { useEffect } from 'react';
+
+export default function SWRegister() {
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  }, []);
+  return null;
+}
+```
+
+Im Root-Layout einbinden:
+
+```js
+// app/layout.js
+import SWRegister from './sw-register.jsx';
+export default function RootLayout({ children }) {
+  return (
+    <html lang="de">
+      <body>
+        <SWRegister />
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+Grundlagen zu Service Workern und Offline-Caching siehe Guides. ([nextjs.org][2])
+
+### 4) Installierbarkeit testen
+
+* Via **Lighthouse** oder Chrome „Application → Manifest/Service Workers“.
+* HTTPS ist Pflicht; lokal mit `next dev`, produktiv über TLS hosten. ([nextjs.org][2])
+
+### 5) Optional: `next-pwa` verwenden
+
+Wenn du Workbox-Features (Precache, Runtime-Caching-Strategien) komfortabel willst:
+
+```js
+// next.config.js
+import withPWA from 'next-pwa';
+export default withPWA({
+  dest: 'public',
+  // weitere Optionen…
+});
+```
+
+Dokumentation und App-Router-Hinweise beachten. ([ducanh-next-pwa.vercel.app][3])
+
+**Weiterlesen (offiziell):**
+
+* Next.js – **PWAs Guide** (Manifest, SW, A2HS, Tests). ([nextjs.org][2])
+* Next.js – **Manifest Datei** (File Convention). ([nextjs.org][1])
+* Next.js – **Installation (Referenzlink)**. ([nextjs.org][4])
+
+---
+
+**Zusammenfassung:**
+Manifest unter `app/manifest.json` + Icons in `public/`, Service Worker in `public/sw.js` schreiben und in einer Client-Komponente registrieren, optional Workbox/`next-pwa` für komfortables Caching. Installierbarkeit/Offline-Funktion via Lighthouse prüfen; HTTPS ist erforderlich. ([nextjs.org][2])
+
+[1]: https://nextjs.org/docs/app/api-reference/file-conventions/metadata/manifest?utm_source=chatgpt.com "Metadata Files: manifest.json"
+[2]: https://nextjs.org/docs/app/guides/progressive-web-apps?utm_source=chatgpt.com "Guides: PWAs"
+[3]: https://ducanh-next-pwa.vercel.app/docs/next-pwa/getting-started?utm_source=chatgpt.com "Getting started - next-pwa"
+[4]: https://nextjs.org/docs/app/getting-started/installation?utm_source=chatgpt.com "Getting Started: Installation"
 
   **[⬆ Наверх](#top)**
 
-102. ### <a name="102"></a> 
+102. ### <a name="102"></a> Wie implementiert man dynamische Meta-Informationen (head)?
 
+**Dynamische Meta-Informationen (SEO) im Next.js App Router**
 
+---
+
+### 1) **Statische Meta-Infos** (Basis)
+
+Im App Router nutzt man `export const metadata` in `layout.js` oder `page.js`.
+
+```js
+// app/page.js
+export const metadata = {
+  title: 'Startseite',
+  description: 'Meine Next.js App',
+};
+```
+
+---
+
+### 2) **Dynamische Meta-Infos mit `generateMetadata`**
+
+Mit `generateMetadata` kannst du die Meta-Daten **pro Request** dynamisch setzen (z. B. via `params` oder `fetch`).
+
+```js
+// app/blog/[slug]/page.js
+export async function generateMetadata({ params }) {
+  const post = await fetch(`https://api.example.com/posts/${params.slug}`)
+    .then((res) => res.json());
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      url: `https://example.com/blog/${params.slug}`,
+      images: [{ url: post.image }],
+    },
+  };
+}
+
+export default function BlogPost({ params }) {
+  return <h1>{params.slug}</h1>;
+}
+```
+
+➡️ `generateMetadata` läuft **auf dem Server** und unterstützt asynchrone Datenquellen.
+
+---
+
+### 3) **Nested Metadata (Layouts + Pages)**
+
+* `layout.js` → setzt Basis-SEO für einen Bereich.
+* `page.js` → überschreibt oder ergänzt.
+* Next.js **merged** die Metadata automatisch.
+
+---
+
+### 4) **Beispiele für weitere Felder**
+
+```js
+// app/product/[id]/page.js
+export async function generateMetadata({ params }) {
+  return {
+    title: `Produkt ${params.id} | Shop`,
+    description: `Details zum Produkt ${params.id}`,
+    alternates: {
+      canonical: `/product/${params.id}`,
+      languages: {
+        'en': `/en/product/${params.id}`,
+        'de': `/de/product/${params.id}`,
+      },
+    },
+    robots: { index: true, follow: true },
+  };
+}
+```
+
+---
+
+### 5) **Pages Router (ältere Version)**
+
+* Dort verwendet man `next/head`:
+
+```js
+// pages/blog/[slug].js
+import Head from 'next/head';
+
+export default function Blog({ post }) {
+  return (
+    <>
+      <Head>
+        <title>{post.title}</title>
+        <meta name="description" content={post.excerpt} />
+      </Head>
+      <h1>{post.title}</h1>
+    </>
+  );
+}
+```
+
+---
+
+🔗 [Next.js – Metadata API](https://nextjs.org/docs/app/building-your-application/optimizing/metadata)
+
+---
+
+**Zusammenfassung:**
+Im App Router setzt man dynamische Meta-Infos mit `generateMetadata` (async möglich, Datenabhängig). Statische Werte mit `metadata` in `layout.js`/`page.js`. Im Pages Router nutzt man `<Head>`. So lassen sich Titel, Open Graph, Canonical, Robots etc. flexibel steuern.
 
   **[⬆ Наверх](#top)**
 
-103. ### <a name="103"></a> 
+103. ### <a name="103"></a> Wie funktioniert die metadata API im App Router?
 
+**Metadata API im Next.js App Router**
 
+---
+
+### 1) **Definition**
+
+* Die **Metadata API** ist das zentrale Feature im App Router für **SEO, Open Graph, Robots, Favicons, Manifest usw.**
+* Statt `<Head>`-Komponenten wie im Pages Router nutzt man strukturierte Objekte (`metadata`) oder die Funktion `generateMetadata`.
+
+---
+
+### 2) **Statische Metadata**
+
+Einfaches Objekt in `page.js` oder `layout.js`:
+
+```js
+// app/page.js
+export const metadata = {
+  title: 'Home',
+  description: 'Startseite meiner Next.js-App',
+  keywords: ['Next.js', 'SEO', 'App Router'],
+};
+```
+
+➡️ Wird beim Build gesetzt, **nicht dynamisch**.
+
+---
+
+### 3) **Dynamische Metadata**
+
+Mit `generateMetadata` (async möglich, z. B. für API-Daten oder URL-Parameter):
+
+```js
+// app/blog/[slug]/page.js
+export async function generateMetadata({ params }) {
+  const post = await fetch(`https://api.example.com/posts/${params.slug}`).then(r => r.json());
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      url: `https://example.com/blog/${params.slug}`,
+      images: [{ url: post.image }],
+    },
+  };
+}
+
+export default function BlogPost({ params }) {
+  return <h1>{params.slug}</h1>;
+}
+```
+
+➡️ `generateMetadata` läuft auf dem **Server**, daher sicher für Secrets.
+
+---
+
+### 4) **Merge von Layout & Page**
+
+* `layout.js`-Metadata liefert Standardwerte.
+* `page.js`-Metadata überschreibt oder ergänzt diese.
+* Ergebnis = **kombinierte SEO-Infos pro Route**.
+
+---
+
+### 5) **Unterstützte Felder**
+
+* **SEO**: `title`, `description`, `keywords`
+* **Open Graph / Twitter**: `openGraph`, `twitter`
+* **Internationalisierung**: `alternates.languages`
+* **Technisch**: `robots`, `icons`, `manifest`
+* **Weitere**: `metadataBase` (für absolute URLs)
+
+---
+
+### 6) **Unterschied zu Pages Router**
+
+* Pages Router: `<Head>`-Komponente (`next/head`).
+* App Router: **strukturierte Objekte + API** → sicherer, standardisierter, asynchron möglich.
+
+---
+
+🔗 [Next.js – Metadata API](https://nextjs.org/docs/app/building-your-application/optimizing/metadata)
+
+---
+
+**Zusammenfassung:**
+Die Metadata API ersetzt `<Head>` im App Router. Statische Daten setzt man mit `export const metadata`, dynamische mit `generateMetadata`. Layouts liefern Defaults, Pages überschreiben. Unterstützt SEO, Social Media, Robots, Favicons und Internationalisierung.
 
   **[⬆ Наверх](#top)**
 
-104. ### <a name="104"></a> 
+104. ### <a name="104"></a> Wie fügt man eine Sitemap in Next.js hinzu?
 
+**Sitemap in Next.js (App Router, ab v13.3+)**
 
+---
+
+### 1) **Dateikonvention nutzen**
+
+Next.js bietet eine eingebaute **Sitemap API** über den App Router.
+
+* Lege `app/sitemap.js` oder `app/sitemap.ts` an.
+* Die Datei muss eine Funktion exportieren, die Routen zurückgibt.
+
+---
+
+### 2) **Statische Sitemap**
+
+```js
+// app/sitemap.js
+export default function sitemap() {
+  return [
+    {
+      url: 'https://example.com',
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 1.0,
+    },
+    {
+      url: 'https://example.com/about',
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+  ];
+}
+```
+
+➡️ Next.js generiert daraus automatisch `https://example.com/sitemap.xml`.
+
+---
+
+### 3) **Dynamische Sitemap (z. B. Blog)**
+
+```js
+// app/sitemap.js
+export default async function sitemap() {
+  const posts = await fetch('https://api.example.com/posts').then(r => r.json());
+
+  const postUrls = posts.map((post) => ({
+    url: `https://example.com/blog/${post.slug}`,
+    lastModified: new Date(post.updatedAt),
+  }));
+
+  return [
+    { url: 'https://example.com', lastModified: new Date() },
+    ...postUrls,
+  ];
+}
+```
+
+➡️ Ideal für dynamische Inhalte wie Produkte, Blogs, Userseiten.
+
+---
+
+### 4) **Metadata + Alternates für Sprachen**
+
+In Kombination mit der **Metadata API** kannst du `alternates.languages` definieren, damit Suchmaschinen Lokalisierung verstehen.
+
+```js
+// app/[locale]/layout.js
+export async function generateMetadata({ params }) {
+  return {
+    alternates: {
+      languages: {
+        en: `https://example.com/en`,
+        de: `https://example.com/de`,
+      },
+    },
+  };
+}
+```
+
+---
+
+### 5) **Sitemap & robots.txt zusammen**
+
+* `app/robots.js` anlegen für `robots.txt`.
+
+```js
+// app/robots.js
+export default function robots() {
+  return {
+    rules: [{ userAgent: '*', allow: '/' }],
+    sitemap: 'https://example.com/sitemap.xml',
+  };
+}
+```
+
+---
+
+🔗 [Next.js – Sitemaps](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap)
+
+---
+
+**Zusammenfassung:**
+Eine Sitemap implementiert man im App Router über die Datei `app/sitemap.js`. Dort gibt man statische oder dynamisch generierte Routen zurück. Next.js erstellt daraus automatisch `sitemap.xml`, optional kombiniert mit `robots.js` für `robots.txt`.
 
   **[⬆ Наверх](#top)**
 
-105. ### <a name="105"></a> 
+105. ### <a name="105"></a> Wie fügt man eine robots.txt in Next.js hinzu?
 
+**robots.txt in Next.js (App Router, ab v13.3)**
 
+---
+
+### 1) **File Convention nutzen**
+
+Next.js generiert `robots.txt` automatisch, wenn du eine Datei `app/robots.js` oder `app/robots.ts` erstellst.
+
+---
+
+### 2) **Statisches Beispiel**
+
+```js
+// app/robots.js
+export default function robots() {
+  return {
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+      },
+    ],
+    sitemap: 'https://example.com/sitemap.xml',
+  };
+}
+```
+
+➡️ Ausgabe:
+
+```
+User-agent: *
+Allow: /
+Sitemap: https://example.com/sitemap.xml
+```
+
+---
+
+### 3) **Komplexere Regeln**
+
+```js
+// app/robots.js
+export default function robots() {
+  return {
+    rules: [
+      { userAgent: '*', allow: '/' },
+      { userAgent: 'Googlebot', disallow: ['/private'] },
+    ],
+    host: 'https://example.com',
+    sitemap: [
+      'https://example.com/sitemap.xml',
+      'https://example.com/sitemap-blog.xml',
+    ],
+  };
+}
+```
+
+➡️ Mehrere `Sitemap`-Einträge und Botspezifische Regeln.
+
+---
+
+### 4) **Dynamisch (optional)**
+
+* Da es ein normaler Server-Export ist, kannst du Datenbank/API-Aufrufe nutzen, um dynamische Regeln zu erzeugen.
+* Beispiel: einzelne Bereiche für bestimmte User-Agents sperren.
+
+---
+
+🔗 [Next.js – robots.txt](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots)
+
+---
+
+**Zusammenfassung:**
+Eine `robots.txt` legst du in Next.js einfach über `app/robots.js` an. Du gibst `rules`, `sitemap` und optional `host` zurück; Next.js erstellt daraus automatisch die `robots.txt`. Dynamische Inhalte sind ebenfalls möglich.
 
   **[⬆ Наверх](#top)**
 
-106. ### <a name="106"></a> 
+106. ### <a name="106"></a> Wie integriert man WebSockets in Next.js?
 
+**WebSockets in Next.js integrieren (App Router)**
 
+### 1) Eigenen WebSocket-Server neben Next.js betreiben (empfohlen bei klassischem WS)
+
+**Server (Node, `ws` oder Socket.IO) läuft als separater Prozess/Container; Next.js bleibt „rein“ für HTTP/SSR.**
+
+```js
+// server/ws-server.mjs  (Node-Prozess, ESM)
+import { WebSocketServer } from 'ws';
+
+const wss = new WebSocketServer({ port: 4000 });
+wss.on('connection', (socket) => {
+  socket.send(JSON.stringify({ type: 'hello', ts: Date.now() }));
+  socket.on('message', (msg) => {
+    // Echo an alle
+    for (const client of wss.clients) client.send(msg);
+  });
+});
+
+console.log('WS listening on ws://localhost:4000');
+```
+
+```js
+// app/ws-client/Client.jsx  (Client Component)
+'use client';
+import { useEffect, useState } from 'react';
+
+export default function WSClient() {
+  const [msgs, setMsgs] = useState([]);
+  useEffect(() => {
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL); // z. B. ws://localhost:4000
+    ws.onmessage = (e) => setMsgs((m) => [...m, e.data]);
+    return () => ws.close();
+  }, []);
+  return <ul>{msgs.map((m, i) => <li key={i}>{m}</li>)}</ul>;
+}
+```
+
+**Warum so?** Route Handlers/Middleware sind HTTP-orientiert; ein stabiler WS-Server läuft am besten als separater Dienst oder auf einer Plattform, die echte WebSocket-Upgrades unterstützt. Auf Vercel sind **WebSockets in Functions** nicht unterstützt; nutze dort z. B. einen externen WS-Dienst oder Realtime-Anbieter. ([nextjs.org][1])
+
+---
+
+### 2) Socket.IO verwenden (gleiche Architektur, komfortabler Client/Rooms)
+
+```js
+// server/socket-server.mjs
+import { createServer } from 'node:http';
+import { Server } from 'socket.io';
+
+const httpServer = createServer();
+const io = new Server(httpServer, { cors: { origin: '*' } });
+
+io.on('connection', (socket) => {
+  socket.emit('hello', { ts: Date.now() });
+  socket.on('msg', (data) => io.emit('msg', data));
+});
+
+httpServer.listen(4001);
+```
+
+```js
+// app/socket/Client.jsx
+'use client';
+import { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
+
+export default function SocketClient() {
+  const [list, setList] = useState([]);
+  useEffect(() => {
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL);
+    socket.on('hello', (p) => setList((arr) => [...arr, `hello ${p.ts}`]));
+    socket.on('msg', (m) => setList((arr) => [...arr, m]));
+    return () => socket.disconnect();
+  }, []);
+  return <ul>{list.map((m, i) => <li key={i}>{m}</li>)}</ul>;
+}
+```
+
+**Hinweis Deployment:** Die **offizielle Socket.IO-Doku** weist darauf hin, dass Vercel-Functions **keine** WebSocket-Verbindungen unterstützen; betreibe Socket.IO woanders (z. B. AWS/ECS, Fly.io, Railway) oder nutze einen Realtime-Service. ([socket.io][2])
+
+---
+
+### 3) Managed Realtime-Services (kein eigener WS-Server)
+
+Wenn du auf Vercel bleibst oder Serverbetrieb vermeiden willst: nutze **Ably/Pusher/Supabase Realtime** – diese liefern persistenten WS-Transport, während Next.js nur HTTP/SSR macht.
+
+* Beispiel/Guide (Next.js + Vercel + Ably): Realtime-Features über externen Dienst. ([Ably Realtime][3])
+
+---
+
+### 4) Alternative bei Einweg-Updates: **SSE** (Server-Sent Events) in Route Handlers
+
+Für reines Downstream-Streaming reicht oft SSE (keine bidirektionale WS-Verbindung nötig).
+
+```js
+// app/api/sse/route.js   (Route Handler → Text/Event-Stream)
+export async function GET() {
+  const stream = new ReadableStream({
+    start(controller) {
+      const enc = new TextEncoder();
+      let i = 0;
+      const id = setInterval(() => {
+        controller.enqueue(enc.encode(`data: ${JSON.stringify({ tick: ++i })}\n\n`));
+      }, 1000);
+      return () => clearInterval(id);
+    }
+  });
+  return new Response(stream, {
+    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
+  });
+}
+```
+
+```js
+// app/sse/Client.jsx
+'use client';
+import { useEffect, useState } from 'react';
+
+export default function SSEClient() {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    const es = new EventSource('/api/sse');
+    es.onmessage = (e) => setV(JSON.parse(e.data).tick);
+    return () => es.close();
+  }, []);
+  return <p>Tick: {v}</p>;
+}
+```
+
+Route Handlers eignen sich gut für SSE und integrieren sich mit dem App-Router. ([nextjs.org][1])
+
+---
+
+### Platform-/Deploy-Hinweise
+
+* **Vercel Functions**: keine WebSocket-Upgrades → WS separat hosten oder Managed Realtime. ([Vercel][4])
+* **Eigenes Hosting / Docker**: Next.js + WS-Server in Compose/K8s deployen; Frontend verbindet über `NEXT_PUBLIC_WS_URL`.
+* **Sicherheit**: Auth-Token **nicht** im Client speichern; WS-Auth z. B. via signierten Kurz-Tokens oder Upstream-Auth-Endpoint.
+
+**Weiterlesen:**
+
+* Next.js App Router – Route Handlers & Middleware (Architektur/HTTP-Handling). ([nextjs.org][1])
+* Vercel – Support-Artikel zu WebSockets in Functions. ([Vercel][4])
+* Socket.IO – „How to use with Next.js“. ([socket.io][2])
+* **Referenzlink (gewünscht):** Getting Started / Installation. ([nextjs.org][1])
+
+---
+
+**Zusammenfassung:**
+Für echte WebSockets: **separaten WS-Server** (z. B. `ws`/Socket.IO) neben Next.js betreiben oder **Managed Realtime** nutzen; Vercel-Functions unterstützen keine WS-Upgrades. Für Einweg-Events reicht **SSE** in Route Handlers. Frontend verbindet sich über `NEXT_PUBLIC_WS_URL`, State/Rooms/Authentifizierung übernimmt der WS-Dienst. ([Vercel][4])
+
+[1]: https://nextjs.org/docs/app/getting-started/route-handlers-and-middleware?utm_source=chatgpt.com "Getting Started: Route Handlers and Middleware"
+[2]: https://socket.io/how-to/use-with-nextjs?utm_source=chatgpt.com "How to use with Next.js"
+[3]: https://ably.com/blog/next-js-vercel-link-sharing-serverless-websockets?utm_source=chatgpt.com "Next.js + Vercel: Building a live app with serverless ..."
+[4]: https://vercel.com/guides/do-vercel-serverless-functions-support-websocket-connections?utm_source=chatgpt.com "Do Vercel Serverless Functions support WebSocket ..."
 
   **[⬆ Наверх](#top)**
 
-107. ### <a name="107"></a> 
+107. ### <a name="107"></a> Wie verwendet man Next.js in einem Monorepo (z. B. Turborepo)?
 
+**Next.js im Monorepo (z. B. mit Turborepo) – Setup & Best Practices**
 
+### 1) Workspace-Struktur
+
+```
+repo/
+├─ apps/
+│  └─ web/                  # Next.js-App
+├─ packages/
+│  ├─ ui/                   # gemeinsame UI-Komponenten
+│  └─ config/               # eslint, tsconfig, tailwind o. ä.
+├─ package.json
+├─ turbo.json
+└─ pnpm-workspace.yaml      # oder npm/yarn workspaces
+```
+
+**Workspaces aktivieren**
+
+```js
+// package.json (Root)
+{
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],     // npm/yarn
+  // pnpm: in pnpm-workspace.yaml definieren
+  "devDependencies": { "turbo": "^2" },
+  "scripts": { "dev": "turbo run dev", "build": "turbo run build" }
+}
+```
+
+Quellen: Turborepo – Next.js Guide & Repo-Struktur. ([Turborepo][1])
+
+---
+
+### 2) Next.js-App hinzufügen
+
+```bash
+pnpm dlx create-next-app@latest apps/web
+# oder
+npm create next-app@latest apps/web
+```
+
+Quellen: Next.js Installation (App Router). ([nextjs.org][2])
+
+---
+
+### 3) Gemeinsames Paket („ui“) erstellen
+
+```js
+// packages/ui/package.json
+{
+  "name": "@repo/ui",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": { ".": "./src/index.ts" }
+}
+```
+
+```js
+// packages/ui/src/Button.tsx
+export function Button({children}) { return <button>{children}</button>; }
+export default Button;
+```
+
+In der App verwenden:
+
+```js
+// apps/web/app/page.js
+import Button from '@repo/ui/src/Button';
+export default function Page(){ return <Button>Hi</Button>; }
+```
+
+---
+
+### 4) `transpilePackages` für gemeinsame Pakete
+
+Damit Next.js Code aus `packages/*` transpiliert (TS/JSX):
+
+```js
+// apps/web/next.config.js (ESM)
+export default {
+  transpilePackages: ['@repo/ui']  // ersetzt next-transpile-modules
+};
+```
+
+Quelle: Next.js `transpilePackages`. ([nextjs.org][3])
+
+---
+
+### 5) Pfad-Aliase (optional)
+
+```js
+// apps/web/tsconfig.json (oder jsconfig.json)
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["./app/*"] }
+  }
+}
+```
+
+Quelle: Absolute Imports & Module Aliases. ([nextjs.org][4])
+
+---
+
+### 6) Turborepo-Pipeline
+
+```js
+// turbo.json
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "dev": { "cache": false, "persistent": true },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "dist/**"]
+    },
+    "lint": {}
+  }
+}
+```
+
+Quellen: Turborepo – Package Configurations & Beispiele. ([Turborepo][5])
+
+---
+
+### 7) Dev/Build starten
+
+```bash
+# root
+pnpm install
+pnpm dev          # startet alle dev-Tasks (z. B. apps/web)
+pnpm build        # inkrementelle Builds via Turborepo
+```
+
+---
+
+### 8) Häufige Stolpersteine
+
+* **Nicht transpiliertes Shared-Package** → `transpilePackages` setzen. ([nextjs.org][3])
+* **Unklare Aliase** → Pfade pro Paket definieren; Kollisionen vermeiden. ([nextjs.org][4])
+* **CI/Deployment**: auf Vercel das **Monorepo**-Root verbinden, Projektpfad auf `apps/web` setzen; Template/Starter vorhanden. ([Vercel][6])
+
+---
+
+### Minimalbeispiel (Next-App + Turborepo)
+
+```js
+// apps/web/package.json
+{
+  "name": "web",
+  "scripts": { "dev": "next dev", "build": "next build", "start": "next start" },
+  "dependencies": { "next": "latest", "react": "latest", "react-dom": "latest", "@repo/ui": "*" }
+}
+```
+
+```js
+// pnpm-workspace.yaml (falls pnpm)
+packages:
+  - "apps/*"
+  - "packages/*"
+```
+
+Quellen: Next.js Installation; pnpm Workspaces. ([nextjs.org][2])
+
+---
+
+**Weiterlesen**
+
+* Next.js – Getting Started / Installation. ([nextjs.org][2])
+* Next.js – `transpilePackages`. ([nextjs.org][3])
+* Turborepo – Next.js Guide, Struktur, Beispiele. ([Turborepo][1])
+* Vercel Template: „Monorepo with Turborepo“. ([Vercel][6])
+
+---
+
+**Zusammenfassung:**
+Monorepo per Workspaces + Turborepo strukturieren, Next-App in `apps/*` anlegen, Shared-Code in `packages/*` auslagern. In Next.js **`transpilePackages`** für lokale Pakete aktivieren und optional Pfad-Aliase setzen. Builds/Devs über `turbo.json` orchestrieren; auf Vercel Monorepo-Projektpfad konfigurieren. ([nextjs.org][2])
+
+[1]: https://turborepo.com/docs/guides/frameworks/nextjs?utm_source=chatgpt.com "Next.js"
+[2]: https://nextjs.org/docs/app/getting-started/installation?utm_source=chatgpt.com "Getting Started: Installation"
+[3]: https://nextjs.org/docs/app/api-reference/config/next-config-js/transpilePackages?utm_source=chatgpt.com "next.config.js: transpilePackages"
+[4]: https://nextjs.org/docs/14/app/building-your-application/configuring/absolute-imports-and-module-aliases?utm_source=chatgpt.com "Configuring: Absolute Imports and Module Path Aliases"
+[5]: https://turborepo.com/docs/reference/package-configurations?utm_source=chatgpt.com "Package Configurations"
+[6]: https://vercel.com/templates/next.js/monorepo-turborepo?utm_source=chatgpt.com "Monorepo with Turborepo"
 
   **[⬆ Наверх](#top)**
 
-108. ### <a name="108"></a> 
+108. ### <a name="108"></a> Wie funktioniert Hot Reloading in Next.js?
 
+**Hot Reloading in Next.js**
 
+---
+
+### 1) **Definition**
+
+Hot Reloading = Änderungen am Code werden im Dev-Server erkannt und **automatisch im Browser aktualisiert**, ohne dass ein manueller Reload nötig ist. Next.js verwendet dabei **Fast Refresh**, eine React-Technologie für zuverlässiges State-Preserving Reloading.
+
+---
+
+### 2) **Ablauf im Detail**
+
+* Du startest den Dev-Server:
+
+  ```bash
+  npm run dev
+  ```
+* Webpack (oder Turbopack, seit Next.js 13 als neuer Dev-Bundler) überwacht Dateien.
+* Sobald eine Datei geändert wird:
+
+  * **Nur betroffene Module** werden neu kompiliert.
+  * Browser erhält Update über **Hot Module Replacement (HMR)**.
+  * React Fast Refresh rendert die Komponente neu **mit Erhalt des States**, sofern möglich.
+
+---
+
+### 3) **Fast Refresh Verhalten**
+
+* Änderungen in **Komponenten/JSX** → direkt sichtbar, State bleibt erhalten.
+* Änderungen in **Hooks oder Business-Logic** → Komponenten werden neu gemountet (State Reset).
+* Änderungen an **Server Components** → Seite wird serverseitig neu gerendert und gestreamt.
+* Änderungen in **next.config.js** oder `.env` → Dev-Server muss neu gestartet werden.
+
+---
+
+### 4) **Unterschiede App Router vs. Pages Router**
+
+* **Pages Router**: HMR + Fast Refresh wie in React.
+* **App Router**: Streaming + React Server Components → Updates können **teilweise** kommen (Client Components sofort, Server Components per Refresh/Stream).
+
+---
+
+### 5) **Beispiel**
+
+```js
+// app/page.js
+export default function Page() {
+  return <h1>Hallo {new Date().toLocaleTimeString()}</h1>;
+}
+```
+
+➡️ Im Dev-Server: jede Codeänderung wird sofort sichtbar; beim Aktualisieren bleibt der State von Kind-Komponenten erhalten.
+
+---
+
+### 6) **Troubleshooting**
+
+* Hot Reloading funktioniert nicht?
+
+  * Prüfen: läuft `npm run dev` oder `next dev`?
+  * Keine manuelle Browser-Caching-Probleme?
+  * `node_modules` löschen und neu installieren.
+  * Bei **Docker**: Volumes und `CHOKIDAR_USEPOLLING=true` setzen, damit File-Watcher funktioniert.
+
+---
+
+🔗 [Next.js – Fast Refresh](https://nextjs.org/docs/app/building-your-application/optimizing/fast-refresh)
+
+---
+
+**Zusammenfassung:**
+Hot Reloading in Next.js basiert auf **HMR + React Fast Refresh**. Änderungen im Code werden ohne kompletten Reload übernommen, wobei der State erhalten bleibt (sofern möglich). Im App Router kommen Server- und Client-Komponenten hinzu → Updates werden gestreamt oder komplett neu gerendert.
 
   **[⬆ Наверх](#top)**
 
-109. ### <a name="109"></a> 
+109. ### <a name="109"></a> Was sind App Router Layouts?
 
+**App Router Layouts in Next.js**
 
+---
+
+### 1) **Definition**
+
+* Layouts sind **React-Komponenten**, die in der App-Router-Struktur (`app/`) auf einer bestimmten Ebene platziert werden.
+* Sie dienen als **Wrapper** für darunterliegende Seiten und Routen und ermöglichen gemeinsame UI-Strukturen (z. B. Navigation, Footer, Sidebar).
+* Layouts sind **persistent** → sie bleiben zwischen Navigationswechseln erhalten (kein vollständiger Reload).
+
+---
+
+### 2) **Dateikonvention**
+
+* Jede Route kann eine Datei `layout.js` (oder `.tsx`) enthalten.
+* `children` wird automatisch an die darunterliegenden Seiten weitergegeben.
+
+**Beispielstruktur:**
+
+```
+app/
+ ├─ layout.js        // Root Layout (für gesamte App)
+ ├─ page.js
+ └─ dashboard/
+     ├─ layout.js    // Layout nur für Dashboard
+     ├─ page.js
+     └─ settings/
+         └─ page.js
+```
+
+---
+
+### 3) **Codebeispiel Root-Layout**
+
+```js
+// app/layout.js
+export default function RootLayout({ children }) {
+  return (
+    <html lang="de">
+      <body>
+        <header>Navigation</header>
+        <main>{children}</main>
+        <footer>© 2025</footer>
+      </body>
+    </html>
+  );
+}
+```
+
+➡️ `children` = jeweilige Page/Route.
+
+---
+
+### 4) **Verschachtelte Layouts**
+
+```js
+// app/dashboard/layout.js
+export default function DashboardLayout({ children }) {
+  return (
+    <section>
+      <aside>Sidebar</aside>
+      <div>{children}</div>
+    </section>
+  );
+}
+```
+
+➡️ Öffnet man `/dashboard/settings`, so wird `DashboardLayout` **+** `RootLayout` gerendert.
+
+---
+
+### 5) **Besonderheiten**
+
+* Layouts können **Server Components** sein (empfohlen).
+* Können **async** sein → Datenfetching direkt im Layout möglich.
+* Bleiben beim Client-Routing **persistent**, d. h. nur der Inhalt im `children`-Bereich wird neu geladen.
+* Neben `layout.js` existieren verwandte Konventionen: `error.js`, `loading.js`, `not-found.js`.
+
+---
+
+🔗 [Next.js – Layouts im App Router](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts#layouts)
+
+---
+
+**Zusammenfassung:**
+App Router Layouts sind **persistent Wrapper-Komponenten**, die gemeinsame UI-Strukturen definieren. Sie können verschachtelt sein, async-Daten laden und bleiben beim Navigieren erhalten – nur `children`-Inhalte wechseln.
 
   **[⬆ Наверх](#top)**
 
-110. ### <a name="110"></a> 
+110. ### <a name="110"></a> Was ist der Unterschied zwischen Root Layout und Nested Layout?
 
+**Unterschied: Root Layout vs. Nested Layout (Next.js App Router)**
 
+---
+
+### **Root Layout**
+
+* Datei: `app/layout.js` (Pflicht).
+* Umschließt die **gesamte Anwendung**.
+* Wird nur **einmal** pro App definiert.
+* Enthält globale Strukturen: `<html>`, `<body>`, globale CSS, Fonts, Provider (Redux, React Query, Theme).
+* Beispiel:
+
+```js
+// app/layout.js
+export default function RootLayout({ children }) {
+  return (
+    <html lang="de">
+      <body>
+        <header>Global Nav</header>
+        {children}
+        <footer>© 2025</footer>
+      </body>
+    </html>
+  );
+}
+```
+
+---
+
+### **Nested Layout**
+
+* Datei: `layout.js` in einem Unterordner (z. B. `app/dashboard/layout.js`).
+* Umschließt nur den **Teilbaum der Route**, unter der sie liegt.
+* Kann **mehrfach** pro App existieren.
+* Typisch für spezifische Bereiche: Dashboard, Admin-Bereich, Shop.
+* Beispiel:
+
+```js
+// app/dashboard/layout.js
+export default function DashboardLayout({ children }) {
+  return (
+    <section>
+      <aside>Sidebar</aside>
+      <main>{children}</main>
+    </section>
+  );
+}
+```
+
+---
+
+### **Verhalten beim Navigieren**
+
+* Root Layout bleibt **immer gleich** (persistiert).
+* Nested Layouts bleiben erhalten, solange man innerhalb ihres Routenbereichs navigiert.
+* Nur der `children`-Bereich wird neu gerendert.
+
+---
+
+🔗 [Next.js – Layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts#layouts)
+
+---
+
+**Zusammenfassung:**
+
+* **Root Layout** = global, nur einmal definiert, enthält `<html>` & `<body>`.
+* **Nested Layout** = beliebig oft, pro Teilbereich, erweitert oder überschreibt Root Layout für Unterrouten.
 
   **[⬆ Наверх](#top)**
 
