@@ -1489,133 +1489,2119 @@ Next.js bringt viel Komfort (SSR, SSG, ISR, API-Routen, App Router), hat aber **
 
 19. ### <a name="19"></a> Wie funktioniert das Routing in Next.js?
 
+**Routing in Next.js** basiert auf dem Prinzip des **file-based routing**: Jede Datei im `pages/`- oder `app/`-Verzeichnis wird automatisch zu einer Route.
 
+---
+
+### **1. App Router (ab Next.js 13)**
+
+* Struktur: `app/`
+* Besondere Dateien:
+
+  * `page.js` → definiert eine Seite
+  * `layout.js` → Layout für eine Route und ihre Kind-Routen
+  * `loading.js` → Ladezustand für Suspense
+  * `error.js` → Fehlerbehandlung pro Route
+* **Dynamische Routen:** `[id]` (z. B. `app/blog/[id]/page.js`)
+* **Verschachtelung:** Unterordner erzeugen automatisch **Nested Routes**
+
+**Beispiel:**
+
+```js
+// app/page.js → /
+export default function Home() {
+  return <h1>Startseite</h1>;
+}
+
+// app/about/page.js → /about
+export default function About() {
+  return <h1>Über uns</h1>;
+}
+
+// app/blog/[id]/page.js → /blog/123
+export default function BlogPost({ params }) {
+  return <h1>Blogpost: {params.id}</h1>;
+}
+```
+
+---
+
+### **2. Pages Router (klassisch bis Next.js 12, weiterhin nutzbar)**
+
+* Struktur: `pages/`
+* Jede Datei = Route
+* Dynamische Routen über `[param].js`
+* API-Routen über `pages/api/*`
+
+**Beispiel:**
+
+```js
+// pages/index.js → /
+export default function Home() {
+  return <h1>Startseite</h1>;
+}
+
+// pages/about.js → /about
+export default function About() {
+  return <h1>Über uns</h1>;
+}
+
+// pages/blog/[id].js → /blog/123
+export default function BlogPost({ params }) {
+  return <h1>Blogpost</h1>;
+}
+```
+
+---
+
+### **3. Navigation**
+
+* Mit `next/link` für interne Links (automatisches Prefetching).
+* Mit `next/navigation` (App Router) für programmatic navigation (`useRouter`).
+
+```js
+// app/page.js
+import Link from "next/link";
+
+export default function Home() {
+  return (
+    <main>
+      <h1>Startseite</h1>
+      <Link href="/about">Über uns</Link>
+    </main>
+  );
+}
+```
+
+---
+
+**Zusammenfassung:**
+Next.js-Routing basiert auf der **Dateistruktur** (`app/` oder `pages/`).
+
+* **App Router:** modern, unterstützt verschachtelte Layouts, Server Components, Streaming.
+* **Pages Router:** klassisch, einfach, weiterhin stabil.
+  Navigation erfolgt mit **`next/link`** oder Hooks (`useRouter`).
+
+📖 Quelle: [Next.js Docs – Routing](https://nextjs.org/docs/app/building-your-application/routing)
+
+---
 
   **[⬆ Наверх](#top)**
 
-20. ### <a name="20"></a> 
+20. ### <a name="20"></a> Wie erstellt man dynamische Routen ([id].tsx)?
 
+**Dynamische Routen – Grundprinzip**
+Ein **dynamisches Segment** entsteht durch eckige Klammern im Dateinamen, z. B. `[id]`. Der Wert wird aus der URL gelesen und in der Seite verfügbar gemacht. ([nextjs.org][1])
 
+---
+
+### App Router (`app/`, Next.js 13+)
+
+**1) Einfache dynamische Route**
+
+```js
+// app/products/[id]/page.js  → /products/123
+import { notFound } from "next/navigation";
+
+export default async function ProductPage({ params }) {
+  const { id } = params; // "123"
+  const res = await fetch(`https://api.example.com/products/${id}`, { cache: "no-store" });
+  if (!res.ok) notFound();
+  const product = await res.json();
+  return <h1>{product.name}</h1>;
+}
+```
+
+* `params` kommt als Prop in Server Components an. `cache: "no-store"` erzwingt SSR. ([nextjs.org][1])
+
+**2) Statisches Vor-Rendern ausgewählter IDs (SSG/ISR)**
+
+```js
+// app/products/[id]/page.js
+export async function generateStaticParams() {
+  const ids = await fetch("https://api.example.com/products")
+    .then(r => r.json())
+    .then(list => list.slice(0, 50).map(p => ({ id: String(p.id) }))); // Beispiel
+  return ids; // → [{ id: "1" }, { id: "2" }, ...]
+}
+```
+
+* `generateStaticParams()` erzeugt Build-Time-Seiten für die angegebenen Parameter. Mit `export const revalidate = 60` aktivierst du ISR. ([nextjs.org][2])
+
+**3) Parameter in Client Components**
+
+```js
+// app/products/[id]/client-info.js
+"use client";
+import { useParams } from "next/navigation";
+
+export default function ClientInfo() {
+  const { id } = useParams(); // string | string[]
+  return <small>Produkt-ID: {id}</small>;
+}
+```
+
+* `useParams()` liefert die ausgefüllten dynamischen Segmente. ([nextjs.org][3])
+
+**4) Catch-all & optionale Catch-all**
+
+* `app/docs/[...slug]/page.js`  → `/docs/a/b/c` → `params.slug` ist `string[]`.
+* `app/docs/[[...slug]]/page.js` → optional, `/docs` funktioniert ebenfalls. ([nextjs.org][1])
+
+---
+
+### Pages Router (`pages/`)
+
+**1) Einfache dynamische Route (SSR/CSR/SSG möglich)**
+
+```js
+// pages/products/[id].tsx
+import type { GetStaticProps, GetStaticPaths, InferGetStaticPropsType } from "next";
+
+export default function Product({ product }: InferGetStaticPropsType<typeof getStaticProps>) {
+  return <h1>{product.name}</h1>;
+}
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const list = await fetch("https://api.example.com/products").then(r => r.json());
+  return {
+    paths: list.slice(0, 50).map((p: any) => ({ params: { id: String(p.id) } })),
+    fallback: "blocking", // ISR-kompatibel
+  };
+};
+
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const res = await fetch(`https://api.example.com/products/${params!.id}`);
+  const product = await res.json();
+  return { props: { product }, revalidate: 60 }; // ISR
+};
+```
+
+* Dynamische Seiten + SSG benötigen `getStaticPaths`. `revalidate` aktiviert ISR. ([nextjs.org][4])
+
+**2) Catch-all im Pages Router**
+
+* `pages/posts/[...id].js` fängt beliebig tiefe Segmente als Array ab. ([nextjs.org][5])
+
+---
+
+### Navigation zu dynamischen Routen
+
+```js
+// App Router
+import Link from "next/link";
+export default function List({ items }) {
+  return items.map(p => <Link key={p.id} href={`/products/${p.id}`}>{p.name}</Link>);
+}
+```
+
+* `<Link />` prefetched standardmäßig (optimiert Navigation). ([nextjs.org][6])
+
+---
+
+**Zusammenfassung**
+
+* **Erzeugen:** `[id]` im Dateinamen (App: `app/…/page.js`, Pages: `pages/… .js`).
+* **App Router:** `params`-Prop, `generateStaticParams()` für SSG, `revalidate` für ISR, `useParams()` in Clients.
+* **Pages Router:** `getStaticPaths` + `getStaticProps` für SSG/ISR.
+* **Varianten:** Catch-all `[...slug]`, optional `[[...slug]]`.
+  Quellen: [Dynamic Route Segments (App)](https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes), [useParams](https://nextjs.org/docs/app/api-reference/functions/use-params), [getStaticPaths (Pages)](https://nextjs.org/docs/pages/building-your-application/data-fetching/get-static-paths), [Linking & Navigating](https://nextjs.org/docs/app/getting-started/linking-and-navigating). ([nextjs.org][1])
+
+[1]: https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes?utm_source=chatgpt.com "Dynamic Route Segments"
+[2]: https://nextjs.org/docs/app/api-reference/functions/generate-static-params?utm_source=chatgpt.com "Functions: generateStaticParams"
+[3]: https://nextjs.org/docs/app/api-reference/functions/use-params?utm_source=chatgpt.com "Functions: useParams"
+[4]: https://nextjs.org/docs/pages/building-your-application/data-fetching/get-static-paths?utm_source=chatgpt.com "Data Fetching: getStaticPaths"
+[5]: https://nextjs.org/learn/pages-router/dynamic-routes-dynamic-routes-details?utm_source=chatgpt.com "Pages Router: Dynamic Routes Details"
+[6]: https://nextjs.org/docs/app/getting-started/linking-and-navigating?utm_source=chatgpt.com "Getting Started: Linking and Navigating"
 
   **[⬆ Наверх](#top)**
 
-21. ### <a name="21"></a> 
+21. ### <a name="21"></a> Wie funktionieren Catch-All-Routen ([...slug].tsx)?
 
+**Definition:**
+Catch-All-Routen in Next.js fangen **mehrere URL-Segmente** gleichzeitig ab. Statt nur einen Parameter wie `[id]`, kann man mit `[...slug]` oder `[[...slug]]` **beliebig viele Segmente** in einem Array verarbeiten.
 
+---
+
+### **1. App Router (`app/`)**
+
+**Beispiel:**
+
+```js
+// app/docs/[...slug]/page.js
+export default function DocsPage({ params }) {
+  // /docs/a/b/c  → params.slug = ["a", "b", "c"]
+  return (
+    <main>
+      <h1>Docs Route</h1>
+      <p>Slug: {params.slug.join(" / ")}</p>
+    </main>
+  );
+}
+```
+
+* `/docs/installation` → `params.slug = ["installation"]`
+* `/docs/react/hooks` → `params.slug = ["react", "hooks"]`
+
+👉 Optional Catch-All:
+
+```js
+// app/docs/[[...slug]]/page.js
+// erlaubt auch /docs ohne weitere Segmente
+```
+
+* `/docs` → `params.slug = undefined`
+* `/docs/react` → `params.slug = ["react"]`
+
+---
+
+### **2. Pages Router (`pages/`)**
+
+**Beispiel:**
+
+```js
+// pages/docs/[...slug].tsx
+import { GetStaticPaths, GetStaticProps } from "next";
+
+export default function Docs({ slug }: { slug: string[] }) {
+  return <h1>Slug: {slug.join(" / ")}</h1>;
+}
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  return {
+    paths: [
+      { params: { slug: ["installation"] } },
+      { params: { slug: ["react", "hooks"] } }
+    ],
+    fallback: "blocking"
+  };
+};
+
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  return { props: { slug: params!.slug as string[] } };
+};
+```
+
+---
+
+### **Einsatzmöglichkeiten**
+
+* Dokumentationen mit tiefen Hierarchien (`/docs/react/hooks/useEffect`)
+* Shops mit Kategorien & Unterkategorien (`/shop/clothes/men/shirts`)
+* SEO-freundliche URLs ohne manuelles Definieren aller Ebenen
+
+---
+
+**Zusammenfassung:**
+
+* `[...slug]` → fängt beliebig viele Segmente als **Array** ab.
+* `[[...slug]]` → wie `[...slug]`, aber auch ohne Segmente gültig.
+* Im **App Router** via `params.slug`, im **Pages Router** via `params.slug` in `getStaticProps`.
+
+📖 Quelle: [Next.js Docs – Dynamic Routes](https://nextjs.org/docs/app/building-your-application/routing/dynamic-routes#catch-all-segments)
+
+---
 
   **[⬆ Наверх](#top)**
 
-22. ### <a name="22"></a> 
+22. ### <a name="22"></a> Was sind optionale Catch-All-Routen ([[...slug]])?
 
+**Definition:**
+Optionale Catch-All-Routen (`[[...slug]]`) sind eine Variante der Catch-All-Routen (`[...slug]`), bei der das Vorhandensein von Segmenten **optional** ist.
+Das bedeutet: Die Route funktioniert **sowohl mit als auch ohne zusätzliche Segmente**.
 
+---
+
+### **1. App Router (`app/`)**
+
+```js
+// app/docs/[[...slug]]/page.js
+export default function DocsPage({ params }) {
+  // params.slug ist entweder undefined oder ein Array
+  return (
+    <main>
+      <h1>Docs</h1>
+      <p>Slug: {params.slug ? params.slug.join(" / ") : "Root-Seite"}</p>
+    </main>
+  );
+}
+```
+
+* `/docs` → `params.slug = undefined`
+* `/docs/react` → `params.slug = ["react"]`
+* `/docs/react/hooks` → `params.slug = ["react", "hooks"]`
+
+---
+
+### **2. Pages Router (`pages/`)**
+
+```js
+// pages/docs/[[...slug]].tsx
+import { GetStaticProps } from "next";
+
+export default function Docs({ slug }: { slug?: string[] }) {
+  return <h1>{slug ? slug.join(" / ") : "Docs Root"}</h1>;
+}
+
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  return { props: { slug: params?.slug as string[] | undefined } };
+};
+```
+
+* `/docs` → `slug = undefined`
+* `/docs/intro/getting-started` → `slug = ["intro", "getting-started"]`
+
+---
+
+### **Einsatzmöglichkeiten**
+
+* **Docs-Systeme**: `/docs` als Einstieg + Unterseiten `/docs/...`
+* **Kategorie-Seiten**: `/shop` und `/shop/clothes/men/shirts`
+* **Flexibles URL-Design**, wenn Wurzelroute + beliebig viele Unterebenen unterstützt werden sollen
+
+---
+
+**Zusammenfassung:**
+
+* **`[...slug]`** → benötigt mindestens ein Segment (`/docs/react`).
+* **`[[...slug]]`** → Segmente sind **optional** (`/docs` oder `/docs/react`).
+* Praktisch für **Root-Seiten mit Unterrouten**, ohne separate Datei für `/docs` anlegen zu müssen.
+
+📖 Quelle: [Next.js Docs – Catch-All Segments](https://nextjs.org/docs/app/building-your-application/routing/dynamic-routes#catch-all-segments)
+
+---
 
   **[⬆ Наверх](#top)**
 
-23. ### <a name="23"></a> 
+23. ### <a name="23"></a> Wie funktioniert Nested Routing (verschachtelte Routen)?
 
+**Definition:**
+**Nested Routing (verschachtelte Routen)** bedeutet, dass in Next.js die **Ordnerstruktur im Projekt der URL-Struktur entspricht**. Dabei können **Unterordner verschachtelte Routen** erzeugen, die automatisch **Layout-Vererbung** und **hierarchische Navigation** unterstützen.
 
+---
+
+## **1. App Router (`app/` – Next.js 13+)**
+
+* Jeder **Ordner** = ein Segment der URL.
+* Jede **`page.js`** = eine Seite.
+* Jede **`layout.js`** = ein Layout, das **für diesen Ordner und alle Kinder gilt**.
+
+**Beispiel:**
+
+```
+app/
+ ├─ dashboard/
+ │   ├─ layout.js
+ │   ├─ page.js
+ │   ├─ settings/
+ │   │   └─ page.js
+ │   └─ analytics/
+ │       └─ page.js
+```
+
+**URLs:**
+
+* `/dashboard` → `app/dashboard/page.js`
+* `/dashboard/settings` → `app/dashboard/settings/page.js`
+* `/dashboard/analytics` → `app/dashboard/analytics/page.js`
+
+**Code – Layout + Nested Pages:**
+
+```js
+// app/dashboard/layout.js
+export default function DashboardLayout({ children }) {
+  return (
+    <section>
+      <h2>Dashboard Layout</h2>
+      {children}
+    </section>
+  );
+}
+
+// app/dashboard/page.js
+export default function Dashboard() {
+  return <p>Dashboard Startseite</p>;
+}
+
+// app/dashboard/settings/page.js
+export default function Settings() {
+  return <p>Einstellungen</p>;
+}
+```
+
+👉 Ergebnis: Alle Unterseiten (`/settings`, `/analytics`) nutzen das **gemeinsame Dashboard-Layout**.
+
+---
+
+## **2. Pages Router (`pages/`)**
+
+* Verschachtelung funktioniert ebenfalls über **Ordnerstruktur**.
+* Kein Layout-System, nur **seitenbasierte Struktur**.
+
+**Beispiel:**
+
+```
+pages/
+ ├─ dashboard/
+ │   ├─ index.js        → /dashboard
+ │   ├─ settings.js     → /dashboard/settings
+ │   └─ analytics.js    → /dashboard/analytics
+```
+
+**Code:**
+
+```js
+// pages/dashboard/settings.js
+export default function Settings() {
+  return <h1>Einstellungen</h1>;
+}
+```
+
+👉 Unterschied: Hier gibt es **kein automatisches Layout**, nur Seiten. Gemeinsame Elemente müssen manuell (z. B. via `_app.js`) eingebunden werden.
+
+---
+
+### **Vorteile von Nested Routing**
+
+* **App Router:** Gemeinsame Layouts + logische Gruppierung der Routen.
+* **Pages Router:** Einfache Struktur, aber weniger flexibel.
+
+---
+
+**Zusammenfassung:**
+
+* **App Router:** Nested Routing basiert auf Ordnern, unterstützt verschachtelte Layouts, Error Boundaries, Loading States → sehr mächtig.
+* **Pages Router:** Ebenfalls dateibasiert, aber ohne Layout-Vererbung – nur reine Seitenstruktur.
+
+📖 Quelle: [Next.js Docs – Nested Routes](https://nextjs.org/docs/app/building-your-application/routing/nested-routes)
+
+---
 
   **[⬆ Наверх](#top)**
 
-24. ### <a name="24"></a> 
+24. ### <a name="24"></a> Wie übergibt man Query-Parameter in Routen?
 
+**Definition:**
+Query-Parameter sind **zusätzliche Schlüssel-Wert-Paare** in der URL, die nach einem `?` beginnen.
+Beispiel:
 
+```
+/products?id=123&ref=promo
+```
+
+Hier: `id=123`, `ref=promo`.
+
+In Next.js kann man Query-Parameter sowohl im **App Router** (`app/`) als auch im **Pages Router** (`pages/`) auslesen.
+
+---
+
+## **1. App Router (Next.js 13+)**
+
+### a) Mit `useSearchParams()` (Client Component)
+
+```js
+"use client";
+
+import { useSearchParams } from "next/navigation";
+
+export default function Products() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id"); // z.B. "123"
+  const ref = searchParams.get("ref"); // z.B. "promo"
+
+  return (
+    <main>
+      <h1>Produktseite</h1>
+      <p>ID: {id}</p>
+      <p>Ref: {ref}</p>
+    </main>
+  );
+}
+```
+
+### b) Mit `searchParams` (Server Component)
+
+```js
+// app/products/page.js
+export default function Products({ searchParams }) {
+  return (
+    <main>
+      <h1>Produktseite</h1>
+      <p>ID: {searchParams.id}</p>
+      <p>Ref: {searchParams.ref}</p>
+    </main>
+  );
+}
+```
+
+---
+
+## **2. Pages Router**
+
+### a) Mit `useRouter()` (Client-Side)
+
+```js
+// pages/products.js
+import { useRouter } from "next/router";
+
+export default function Products() {
+  const { query } = useRouter();
+  return (
+    <main>
+      <h1>Produktseite</h1>
+      <p>ID: {query.id}</p>
+      <p>Ref: {query.ref}</p>
+    </main>
+  );
+}
+```
+
+### b) Mit SSR-Funktionen
+
+```js
+// pages/products.js
+export default function Products({ id, ref }) {
+  return (
+    <main>
+      <h1>Produktseite</h1>
+      <p>ID: {id}</p>
+      <p>Ref: {ref}</p>
+    </main>
+  );
+}
+
+export async function getServerSideProps({ query }) {
+  return {
+    props: {
+      id: query.id || null,
+      ref: query.ref || null,
+    },
+  };
+}
+```
+
+---
+
+## **Navigation mit Query-Params**
+
+```js
+import Link from "next/link";
+
+export default function Home() {
+  return (
+    <Link href={{ pathname: "/products", query: { id: 123, ref: "promo" } }}>
+      Zum Produkt 123
+    </Link>
+  );
+}
+```
+
+➡ erzeugt URL: `/products?id=123&ref=promo`
+
+---
+
+**Zusammenfassung:**
+
+* **App Router:** Query-Parameter über `searchParams` (Server Components) oder `useSearchParams()` (Client Components).
+* **Pages Router:** Über `useRouter().query` oder via SSR-Funktionen (`getServerSideProps`).
+* Navigation mit Query-Params geht einfach über `next/link`.
+
+📖 Quelle: [Next.js Docs – useSearchParams](https://nextjs.org/docs/app/api-reference/functions/use-search-params)
+
+---
 
   **[⬆ Наверх](#top)**
 
-25. ### <a name="25"></a> 
+25. ### <a name="25"></a> Wie kann man Routenparameter auf dem Server abrufen?
 
+**Serverseitiges Auslesen von Routenparametern in Next.js**
 
+---
+
+### **App Router (`app/`, Next.js 13+)**
+
+**`params` und `searchParams` als Props in Server Components**
+
+```js
+// app/products/[id]/page.js  → /products/123
+export default async function ProductPage({ params, searchParams }) {
+  const { id } = params;              // "123"
+  const { ref } = await searchParams; // Next.js ≥15: Promise (künftig Pflicht)
+  // ...Server-seitiges Fetching, Rendering
+  return <h1>Produkt {id} (ref={ref})</h1>;
+}
+```
+
+* Dynamische Segmente werden als **`params`** übergeben (z. B. `{ id: '123' }`).
+* **`searchParams`** enthält Query-Parameter (in Next.js 15 als Promise). ([nextjs.org][1])
+
+**In `generateMetadata`/Layouts nutzbar**
+
+```js
+// app/products/[id]/page.js
+export async function generateMetadata({ params }) {
+  return { title: `Produkt ${params.id}` };
+}
+```
+
+* **`params`** ist auch in `layout.js`, `page.js`, `generateMetadata` verfügbar. ([nextjs.org][1])
+
+---
+
+### **Route Handler (App Router, `app/**/route.ts`)**
+
+```js
+// app/items/[slug]/route.ts  → /items/foo
+export async function GET(_req, { params }) {
+  return new Response(JSON.stringify({ slug: params.slug }), {
+    headers: { "content-type": "application/json" },
+  });
+}
+```
+
+* Der **zweite Parameter** enthält `{ params }` mit den dynamischen Segmenten. ([nextjs.org][2])
+
+---
+
+### **Pages Router (`pages/`)**
+
+**SSR: `getServerSideProps`**
+
+```js
+// pages/products/[id].tsx
+export default function Page({ id }: { id: string }) {
+  return <h1>Produkt {id}</h1>;
+}
+export async function getServerSideProps({ params, query }) {
+  return { props: { id: params!.id, ref: query.ref ?? null } };
+}
+```
+
+* **`context.params`** enthält die dynamischen Segmente; **`context.query`** die Query-Parameter. ([nextjs.org][3])
+
+**SSG/ISR: `getStaticPaths` + `getStaticProps`**
+
+```js
+// pages/blog/[slug].tsx
+export async function getStaticPaths() {
+  return { paths: [{ params: { slug: "hello" } }], fallback: "blocking" };
+}
+export async function getStaticProps({ params }) {
+  return { props: { slug: params!.slug }, revalidate: 60 };
+}
+```
+
+* Dynamische Seiten benötigen **`getStaticPaths`**; Revalidierung via **`revalidate`**. ([nextjs.org][3])
+
+---
+
+**Zusammenfassung**
+
+* **App Router:** `params`/`searchParams` als Props in Server Components; Route Handler erhalten `{ params }` als 2. Argument.
+* **Pages Router:** Serverseitig über `context.params`/`context.query` in `getServerSideProps` bzw. `getStaticProps`.
+  Quellen: Dynamic Routes, `page.js`-Konventionen, `useSearchParams`, `getServerSideProps`, Route Handlers, sowie Installation/Getting Started. ([nextjs.org][1])
+
+[1]: https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes?utm_source=chatgpt.com "Dynamic Route Segments"
+[2]: https://nextjs.org/docs/app/api-reference/file-conventions/route?utm_source=chatgpt.com "File-system conventions: route.js"
+[3]: https://nextjs.org/docs/pages/api-reference/functions/get-server-side-props?utm_source=chatgpt.com "Functions: getServerSideProps"
 
   **[⬆ Наверх](#top)**
 
-26. ### <a name="26"></a> 
+26. ### <a name="26"></a> Wie implementiert man Redirects in Next.js?
 
+**Redirects in Next.js** können sowohl **serverseitig** (Build-Time oder Request-Time) als auch **clientseitig** erfolgen.
 
+---
+
+## **1. Serverseitige Redirects über `next.config.js`**
+
+Ideal für **permanente (301)** oder **temporäre (302)** Weiterleitungen.
+
+```js
+// next.config.js
+module.exports = {
+  async redirects() {
+    return [
+      {
+        source: "/old-route",
+        destination: "/new-route",
+        permanent: true, // 308 (SEO-freundlich, cached)
+      },
+      {
+        source: "/blog/:id",
+        destination: "/posts/:id",
+        permanent: false, // 307 (nicht gecached)
+      },
+    ];
+  },
+};
+```
+
+* Läuft beim **Build**, Next.js generiert interne Rewrite-Regeln.
+* Unterstützt **Wildcards** (`:id`, `*`) und Bedingungen.
+
+📖 Quelle: [Next.js Docs – Redirects](https://nextjs.org/docs/app/api-reference/next-config-js/redirects)
+
+---
+
+## **2. Redirects im App Router (Server Components / Route Handler)**
+
+### a) **Mit `redirect()`** (Next.js 13+)
+
+```js
+// app/page.js
+import { redirect } from "next/navigation";
+
+export default function Home() {
+  redirect("/dashboard"); // sofortige Weiterleitung
+}
+```
+
+### b) **In Route Handlern**
+
+```js
+// app/api/old/route.js
+import { NextResponse } from "next/server";
+
+export function GET() {
+  return NextResponse.redirect(new URL("/new", request.url), 301);
+}
+```
+
+---
+
+## **3. Redirects im Pages Router**
+
+### a) **getServerSideProps**
+
+```js
+// pages/old.js
+export async function getServerSideProps() {
+  return {
+    redirect: {
+      destination: "/new",
+      permanent: true, // 308
+    },
+  };
+}
+```
+
+### b) **getStaticProps**
+
+Bei statisch generierten Seiten ist Redirect auch möglich:
+
+```js
+// pages/legacy.js
+export async function getStaticProps() {
+  return {
+    redirect: {
+      destination: "/new",
+      permanent: false,
+    },
+  };
+}
+```
+
+---
+
+## **4. Clientseitige Redirects**
+
+### a) Mit `useRouter()` (Pages Router)
+
+```js
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+
+export default function Old() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/new");
+  }, [router]);
+  return null;
+}
+```
+
+### b) Mit `useRouter()` (App Router → `next/navigation`)
+
+```js
+"use client";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+export default function Old() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/new");
+  }, [router]);
+  return null;
+}
+```
+
+---
+
+## **Zusammenfassung:**
+
+* **Global (Build-Time):** `next.config.js → redirects()` (SEO-freundlich).
+* **App Router:** `redirect()` oder `NextResponse.redirect()`.
+* **Pages Router:** `getServerSideProps` / `getStaticProps` mit Redirect.
+* **Clientseitig:** `useRouter().replace()` oder `router.push()`.
+
+---
 
   **[⬆ Наверх](#top)**
 
-27. ### <a name="27"></a> 
+27. ### <a name="27"></a> Was ist Middleware in Next.js und wofür wird sie benötigt?
 
+**Definition:**
+**Middleware** in Next.js ist Code, der **vor dem Rendering einer Seite ausgeführt wird**, direkt am **Edge (CDN/Server)**.
+Sie ermöglicht es, **Requests abzufangen und zu verändern**, bevor sie die eigentliche Route erreichen.
 
+---
+
+### **Wofür wird Middleware benötigt?**
+
+* **Authentifizierung & Autorisierung**
+  → z. B. Weiterleitung nicht eingeloggter Nutzer auf `/login`.
+* **Redirects & Rewrites**
+  → URL anpassen oder Nutzer an andere Seiten weiterleiten.
+* **Feature Flags / A/B-Testing**
+  → unterschiedliche Versionen einer Seite ausliefern.
+* **Lokalisierung (i18n)**
+  → Nutzer anhand von Geodaten oder Accept-Language Header auf Sprachversion weiterleiten.
+* **Caching & Headers**
+  → Response-Header hinzufügen oder anpassen.
+
+---
+
+### **Beispiel – Middleware in Next.js**
+
+```js
+// middleware.js im Projekt-Root
+import { NextResponse } from "next/server";
+
+export function middleware(request) {
+  const url = request.nextUrl;
+
+  // Beispiel: Nur eingeloggte Nutzer dürfen /dashboard sehen
+  const isLoggedIn = request.cookies.get("authToken");
+  if (url.pathname.startsWith("/dashboard") && !isLoggedIn) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  return NextResponse.next(); // normal weiterleiten
+}
+```
+
+👉 Middleware läuft **bei jedem Request**, bevor eine Seite oder API-Route erreicht wird.
+
+---
+
+### **Einschränkungen**
+
+* Läuft **immer am Edge** → kein Zugriff auf Node.js-spezifische APIs (z. B. `fs`).
+* Muss **schnell** sein (kein aufwendiges Datenfetching).
+* Kein direktes Senden von HTML → nur Weiterleitungen, Header-Manipulation, Rewrites.
+
+---
+
+**Zusammenfassung:**
+Middleware in Next.js ist Code, der **zwischen Request und Response** ausgeführt wird. Sie wird verwendet für **Auth, Redirects, i18n, Feature Flags und Request-Manipulation** – direkt am Edge, bevor das Rendering startet.
+
+📖 Quelle: [Next.js Docs – Middleware](https://nextjs.org/docs/app/building-your-application/routing/middleware)
+
+---
 
   **[⬆ Наверх](#top)**
 
-28. ### <a name="28"></a> 
+28. ### <a name="28"></a> Wie funktioniert Internationalisierung (i18n) in Next.js?
 
+**Definition:**
+Internationalisierung (**i18n**) in Next.js bedeutet, dass eine Anwendung mehrere **Sprachen / Lokalisierungen** unterstützt. Next.js hat eine **eingebaute i18n-Routing-Funktion**, die im `next.config.js` aktiviert wird.
 
+---
+
+## **1. i18n im Pages Router (`pages/`)**
+
+* Konfiguration über `next.config.js`
+
+```js
+// next.config.js
+module.exports = {
+  i18n: {
+    locales: ["en", "de", "fr"], // unterstützte Sprachen
+    defaultLocale: "en",         // Standardsprache
+  },
+};
+```
+
+* URLs:
+
+  * `/` → `en` (default)
+  * `/de/about` → deutsche Version
+  * `/fr/about` → französische Version
+* Next.js leitet automatisch auf die richtige Sprache um (basierend auf URL oder Accept-Language Header).
+
+---
+
+## **2. i18n im App Router (`app/`)**
+
+Der App Router hat **noch keine eingebaute i18n-Unterstützung im Routing** (Stand Next.js 14). Man löst es so:
+
+* Sprachordner anlegen:
+
+```
+app/
+ ├─ [locale]/
+ │   ├─ page.js
+ │   └─ about/page.js
+```
+
+* URL: `/en/about`, `/de/about`
+* Zugriff auf aktuelle Sprache über `params.locale`.
+
+**Beispiel:**
+
+```js
+// app/[locale]/page.js
+export default function Home({ params }) {
+  return <h1>Sprache: {params.locale}</h1>;
+}
+```
+
+---
+
+## **3. Übersetzungen verwalten**
+
+Da Next.js keine eingebaute Übersetzungs-Engine mitliefert, nutzt man Libraries:
+
+* [`next-intl`](https://next-intl-docs.vercel.app/)
+* [`next-i18next`](https://github.com/i18next/next-i18next)
+* [`react-intl`] oder `i18next`
+
+**Beispiel mit `next-intl`:**
+
+```js
+// app/[locale]/page.js
+import { useTranslations } from "next-intl";
+
+export default function Page() {
+  const t = useTranslations("Home");
+  return <h1>{t("title")}</h1>;
+}
+```
+
+`messages/de.json`
+
+```json
+{ "Home": { "title": "Willkommen" } }
+```
+
+---
+
+## **4. Typische Use-Cases**
+
+* Mehrsprachige Websites (Landing Pages, Marketing, Shops)
+* Automatische Weiterleitung je nach Sprache
+* Dynamische Sprachumschaltung per Switch
+
+---
+
+**Zusammenfassung:**
+
+* **Pages Router**: eingebaute i18n-Unterstützung über `next.config.js`.
+* **App Router**: i18n aktuell manuell über `[locale]`-Routen + Libraries wie `next-intl`.
+* Übersetzungen selbst kommen aus JSON/externen Tools.
+
+📖 Quelle: [Next.js Docs – i18n Routing](https://nextjs.org/docs/pages/building-your-application/routing/internationalization)
+
+---
 
   **[⬆ Наверх](#top)**
 
-29. ### <a name="29"></a> 
+29. ### <a name="29"></a> Was ist der Unterschied zwischen Routing im pages- und im app-Verzeichnis?
 
+**Unterschied Routing im `pages/`- vs. `app/`-Verzeichnis**
 
+---
+
+### **1. Architektur**
+
+* **Pages Router (`pages/`)**
+
+  * Klassisches Next.js-Routing.
+  * Jede Datei = eine Route.
+  * Datenfetching über spezielle Funktionen (`getStaticProps`, `getServerSideProps`, `getStaticPaths`).
+  * Layouts nur global via `_app.js` oder `_document.js`.
+
+* **App Router (`app/`)**
+
+  * Neu seit Next.js 13.
+  * Baut auf **React Server Components (RSC)**.
+  * Klare Trennung: **`page.js`**, **`layout.js`**, **`loading.js`**, **`error.js`** pro Route.
+  * Nested Routing & Layout-Vererbung möglich.
+
+---
+
+### **2. Dateibasierte Struktur**
+
+* **Pages Router**
+
+```
+pages/
+ ├─ index.js        → /
+ ├─ about.js        → /about
+ └─ blog/[id].js    → /blog/123
+```
+
+* **App Router**
+
+```
+app/
+ ├─ page.js               → /
+ ├─ about/page.js         → /about
+ └─ blog/[id]/page.js     → /blog/123
+    └─ layout.js          → Layout für /blog und Kinder
+```
+
+---
+
+### **3. Datenfetching**
+
+* **Pages Router**:
+
+  * SSR → `getServerSideProps`
+  * SSG → `getStaticProps` + `getStaticPaths`
+  * ISR → über `revalidate` in `getStaticProps`
+* **App Router**:
+
+  * Einfaches `fetch()` direkt in Server Components
+  * Caching via `cache`, `revalidate`, `no-store`
+  * Keine speziellen Funktionen mehr nötig
+
+---
+
+### **4. Layouts**
+
+* **Pages Router:** Nur global über `_app.js` → eingeschränkt.
+* **App Router:** Beliebig viele verschachtelte Layouts (`layout.js`) pro Segment.
+
+---
+
+### **5. API-Routen**
+
+* **Pages Router:** `pages/api/*`
+* **App Router:** `app/api/*/route.js` (modernes API-Handling, Edge-first).
+
+---
+
+### **Vergleichstabelle**
+
+| Merkmal           | Pages Router (`pages/`)            | App Router (`app/`)                            |
+| ----------------- | ---------------------------------- | ---------------------------------------------- |
+| **Einführung**    | Klassisch, seit Next.js 1          | Neu ab Next.js 13                              |
+| **Routing**       | Datei = Route                      | Datei = Route, Layout/Loading/Error integriert |
+| **Datenfetching** | getServerSideProps, getStaticProps | `fetch()` mit Cache-Optionen                   |
+| **Layouts**       | Nur global (`_app.js`)             | Verschachtelte Layouts pro Route               |
+| **Rendering**     | CSR, SSR, SSG, ISR                 | CSR, SSR, SSG, ISR, Streaming, RSC             |
+| **API-Routen**    | `pages/api/*`                      | `app/api/*/route.js`                           |
+
+---
+
+**Zusammenfassung:**
+
+* **Pages Router** = klassisch, stabil, einfacher Einstieg, aber eingeschränkte Layout- und Datenfetching-Möglichkeiten.
+* **App Router** = modern, basiert auf Server Components, ermöglicht verschachtelte Layouts, flexibles Datenfetching und Streaming.
+
+📖 Quelle: [Next.js Docs – App Router vs. Pages Router](https://nextjs.org/docs/app/building-your-application/routing#the-app-router)
+
+---
 
   **[⬆ Наверх](#top)**
 
-30. ### <a name="30"></a> 
+30. ### <a name="30"></a> Was macht getStaticProps?
 
+**Definition:**
+`getStaticProps` ist eine spezielle Funktion im **Pages Router** von Next.js. Sie wird **zur Build-Zeit** ausgeführt, um Daten zu laden und die Seite **statisch vorzurendern (SSG)**.
+Die zurückgegebenen Props werden an die React-Komponente übergeben.
 
+---
+
+### **Wann wird `getStaticProps` verwendet?**
+
+* Wenn Inhalte **statisch** sind, aber **Daten aus externen Quellen** benötigen.
+* Für **SEO-optimierte Seiten**, die selten aktualisiert werden.
+* Beispiel: Blogs, Landing Pages, Marketingseiten.
+
+---
+
+### **Funktionsweise**
+
+* Wird **nur auf dem Server** ausgeführt, niemals im Client.
+* Läuft **zur Build-Time** (bei `next build`).
+* Kann mit `revalidate` kombiniert werden → **Incremental Static Regeneration (ISR)**.
+
+---
+
+### **Beispiel**
+
+```js
+// pages/index.js
+export default function Home({ posts }) {
+  return (
+    <main>
+      <h1>Blog</h1>
+      <ul>
+        {posts.map((p) => (
+          <li key={p.id}>{p.title}</li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+
+export async function getStaticProps() {
+  // Daten laden (z. B. aus einer API oder Datenbank)
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=5");
+  const posts = await res.json();
+
+  return {
+    props: {
+      posts, // wird an die Komponente übergeben
+    },
+    revalidate: 60, // ISR: Seite wird alle 60 Sekunden neu generiert
+  };
+}
+```
+
+---
+
+### **Wichtige Punkte**
+
+* Nur im **Pages Router** verfügbar (`pages/`).
+* Wird nicht im **App Router** genutzt → dort einfach `fetch()` in Server Components.
+* Kann keine Hooks nutzen (läuft **außerhalb von React**).
+* Muss **ein Objekt** zurückgeben: `{ props: {} }`, optional `{ notFound: true }` oder `{ redirect: { destination: ... } }`.
+
+---
+
+**Zusammenfassung:**
+`getStaticProps` wird in Next.js verwendet, um Seiten **zur Build-Zeit mit Daten zu generieren (SSG)**. Optional mit `revalidate` → **ISR**. Vorteil: **schnell, SEO-freundlich, skalierbar**.
+
+📖 Quelle: [Next.js Docs – getStaticProps](https://nextjs.org/docs/pages/building-your-application/data-fetching/get-static-props)
+
+---
 
   **[⬆ Наверх](#top)**  
 
-31. ### <a name="31"></a> 
+31. ### <a name="31"></a> Was macht getServerSideProps?
 
+**Definition:**
+`getServerSideProps` ist eine spezielle Funktion im **Pages Router** von Next.js. Sie wird **bei jeder Anfrage (Request-Time)** auf dem Server ausgeführt und liefert Props an die Seite zurück.
+Damit wird **Server-Side Rendering (SSR)** umgesetzt.
 
+---
+
+### **Wann wird `getServerSideProps` verwendet?**
+
+* Wenn Inhalte **bei jedem Request aktuell** sein müssen.
+* Für Seiten mit **dynamischen Daten**, die sich häufig ändern.
+* Für **personalisierten Content** (z. B. abhängig von Cookies, Session, Auth).
+
+---
+
+### **Funktionsweise**
+
+* Läuft nur **auf dem Server**, niemals im Browser.
+* Wird **bei jedem Request** ausgeführt (anders als `getStaticProps`).
+* Gibt Props an die Seite zurück, optional auch Redirects oder 404.
+
+---
+
+### **Beispiel**
+
+```js
+// pages/index.js
+export default function Home({ time }) {
+  return (
+    <main>
+      <h1>Server-Side Rendering Beispiel</h1>
+      <p>Aktuelle Zeit: {time}</p>
+    </main>
+  );
+}
+
+export async function getServerSideProps(context) {
+  // Daten werden bei jedem Request geladen
+  const time = new Date().toISOString();
+
+  return {
+    props: {
+      time,
+    },
+  };
+}
+```
+
+➡️ Bei jedem Refresh wird die Zeit **neu generiert**.
+
+---
+
+### **Parameter (`context`)**
+
+* `params`: dynamische Routenparameter (`/posts/[id]`)
+* `query`: Query-Parameter (`?page=2`)
+* `req`, `res`: Zugriff auf Request & Response (nur im Pages Router)
+
+---
+
+### **Besondere Rückgaben**
+
+```js
+return { notFound: true }; 
+// liefert 404 zurück
+
+return {
+  redirect: {
+    destination: "/login",
+    permanent: false,
+  },
+}; 
+// leitet um
+```
+
+---
+
+### **Vergleich zu `getStaticProps`**
+
+| Merkmal             | `getStaticProps` (SSG)        | `getServerSideProps` (SSR)         |
+| ------------------- | ----------------------------- | ---------------------------------- |
+| **Zeitpunkt**       | Build-Time / Revalidate (ISR) | Request-Time (bei jedem Request)   |
+| **Performance**     | Sehr schnell (CDN, Cache)     | Langsamer (Server-Render nötig)    |
+| **Datenaktualität** | Nicht immer aktuell           | Immer aktuell                      |
+| **Use Cases**       | Blog, Landing Pages           | Dashboards, personalisierte Seiten |
+
+---
+
+**Zusammenfassung:**
+`getServerSideProps` ermöglicht **Server-Side Rendering** im Pages Router. Es wird bei jedem Request aufgerufen, liefert Props zurück und eignet sich für **aktuelle oder personalisierte Daten**, allerdings mit **höherer Serverlast**.
+
+📖 Quelle: [Next.js Docs – getServerSideProps](https://nextjs.org/docs/pages/building-your-application/data-fetching/get-server-side-props)
+
+---
 
   **[⬆ Наверх](#top)**
 
-32. ### <a name="32"></a> 
+32. ### <a name="32"></a> Was macht getStaticPaths?
 
+**Definition:**
+`getStaticPaths` ist eine spezielle Funktion im **Pages Router** von Next.js. Sie wird mit **`getStaticProps`** kombiniert, um **dynamische Routen statisch zur Build-Zeit** zu erzeugen.
+Damit kann Next.js genau wissen, **welche Seiten vorgerendert werden sollen**.
 
+---
+
+## **Wann wird `getStaticPaths` benötigt?**
+
+* Nur bei **dynamischen Routen** (`pages/blog/[id].js`).
+* Wenn die Route viele mögliche Werte hat (z. B. Blog-IDs, Produkt-Slugs).
+* Zusammen mit `getStaticProps`, um die Seite zur Build-Zeit vorzubereiten.
+
+---
+
+## **Funktionsweise**
+
+* Gibt eine Liste von **Parametern** zurück → Next.js generiert daraus statische HTML-Seiten.
+* Unterstützt **Fallback-Strategien**, falls nicht alle Seiten bei Build-Time erzeugt werden sollen.
+
+---
+
+## **Beispiel**
+
+```js
+// pages/blog/[id].js
+export default function BlogPost({ post }) {
+  return (
+    <main>
+      <h1>{post.title}</h1>
+      <p>{post.body}</p>
+    </main>
+  );
+}
+
+// Generiert statische Pfade
+export async function getStaticPaths() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=3");
+  const posts = await res.json();
+
+  const paths = posts.map((post) => ({
+    params: { id: post.id.toString() },
+  }));
+
+  return {
+    paths,          // z. B. [{ params: { id: "1" }}, { params: { id: "2" }}]
+    fallback: "blocking", // siehe unten
+  };
+}
+
+// Holt Daten für jeden Pfad
+export async function getStaticProps({ params }) {
+  const res = await fetch(`https://jsonplaceholder.typicode.com/posts/${params.id}`);
+  const post = await res.json();
+
+  return {
+    props: { post },
+    revalidate: 60, // ISR: Alle 60 Sekunden aktualisieren
+  };
+}
+```
+
+---
+
+## **Fallback-Modi**
+
+* **`fallback: false`**
+
+  * Nur die in `paths` definierten Seiten existieren.
+  * Andere Routen liefern **404**.
+
+* **`fallback: true`**
+
+  * Nicht definierte Seiten werden beim ersten Request **on the fly generiert**.
+  * Nutzer sieht zunächst einen Loading-State.
+
+* **`fallback: "blocking"`**
+
+  * Nicht definierte Seiten werden beim ersten Request generiert.
+  * Nutzer wartet, bis HTML fertig ist → kein Loading-Screen sichtbar.
+
+---
+
+## **Zusammenfassung:**
+
+* `getStaticPaths` = notwendig für **dynamische Routen mit SSG**.
+* Es definiert, **welche Seiten Next.js statisch vorab baut**.
+* In Kombination mit `getStaticProps` + `fallback` können auch **dynamisch neue Seiten on-demand erzeugt** werden (ISR).
+
+📖 Quelle: [Next.js Docs – getStaticPaths](https://nextjs.org/docs/pages/building-your-application/data-fetching/get-static-paths)
+
+---
 
   **[⬆ Наверх](#top)**
 
-33. ### <a name="33"></a> 
+33. ### <a name="33"></a> Wann sollte man getStaticProps vs. getServerSideProps verwenden?
 
+**Kurzantwort:**
 
+* **`getStaticProps` (SSG/ISR):** Für Inhalte, die sich **selten** ändern oder **cachebar** sind; erzeugt HTML **zur Build-Zeit**, optional mit **`revalidate`** für ISR. ([nextjs.org][1])
+* **`getServerSideProps` (SSR):** Für Inhalte, die **bei jedem Request** aktuell sein müssen oder **personalisiert** sind (Cookies, Auth, Geo, Header). ([nextjs.org][2])
+
+---
+
+### Entscheidungsleitfaden
+
+**Nutze `getStaticProps`, wenn …**
+
+* Daten **öffentlich cachebar** und **nicht nutzerspezifisch** sind.
+* **SEO** wichtig ist und schnelle Antwortzeiten via **CDN** gewünscht sind.
+* Änderungen in **Minuten/Stunden**-Takt reichen → **ISR** über `revalidate`. ([nextjs.org][1])
+
+**Nutze `getServerSideProps`, wenn …**
+
+* Inhalte **pro Request** variieren (z. B. **Session**, **Role**, **Geo**, **Header**).
+* **Echtzeit** oder **sehr häufig wechselnde** Daten nötig sind.
+* Du serverseitig auf **`req`/`res`** zugreifen musst. ([nextjs.org][2])
+
+---
+
+### Minimalbeispiele
+
+```js
+// pages/index.js  – SSG + ISR mit getStaticProps
+export default function Home({ posts }) {
+  return posts.map(p => <div key={p.id}>{p.title}</div>);
+}
+
+export async function getStaticProps() {
+  const posts = await fetch("https://api.example.com/posts").then(r => r.json());
+  return { props: { posts }, revalidate: 300 }; // alle 5 Min. regenerieren
+}
+```
+
+*Build-Zeit + periodische Revalidierung (ISR).* ([nextjs.org][1])
+
+```js
+// pages/dashboard.js  – SSR mit getServerSideProps
+export default function Dashboard({ user }) {
+  return <h1>Hallo {user.name}</h1>;
+}
+
+export async function getServerSideProps({ req }) {
+  const token = req.cookies.auth; // personalisiert
+  const user = await fetch("https://api.example.com/me", { headers: { Authorization: `Bearer ${token}` }}).then(r => r.json());
+  return { props: { user } };
+}
+```
+
+*Request-Time Rendering, geeignet für personalisierte Daten.* ([nextjs.org][2])
+
+---
+
+### Hinweis zum App Router
+
+Im **App Router** werden `getStaticProps/getServerSideProps` **nicht** verwendet; stattdessen steuerst du Rendering und Aktualität mit `fetch()`-Caching-Optionen (`force-cache`, `revalidate`, `no-store`). ([nextjs.org][3])
+
+---
+
+**Zusammenfassung:**
+
+* **SSG/ISR (`getStaticProps`)** für **cachebare**, **nicht personalisierte** Inhalte mit optionaler zeitgesteuerter Aktualisierung.
+* **SSR (`getServerSideProps`)** für **personalisierte** oder **hochdynamische** Inhalte **pro Request**.
+* **App Router:** Datenfetching via `fetch()` + Caching/Revalidation statt `get*Props`. ([nextjs.org][2])
+
+[1]: https://nextjs.org/docs/pages/building-your-application/data-fetching/get-static-props?utm_source=chatgpt.com "Data Fetching: getStaticProps"
+[2]: https://nextjs.org/docs/pages/building-your-application/data-fetching/get-server-side-props?utm_source=chatgpt.com "Data Fetching: getServerSideProps"
+[3]: https://nextjs.org/docs/app/getting-started/fetching-data?utm_source=chatgpt.com "Getting Started: Fetching Data"
 
   **[⬆ Наверх](#top)**
 
-34. ### <a name="34"></a> 
+34. ### <a name="34"></a> Wie funktioniert revalidate im ISR?
 
+**Definition:**
+`revalidate` ist die zentrale Option im **Incremental Static Regeneration (ISR)** von Next.js. Sie bestimmt, **nach wie vielen Sekunden** eine statisch generierte Seite **im Hintergrund neu generiert** werden soll. So kombiniert ISR die Geschwindigkeit von SSG mit der Aktualität von SSR.
 
+---
+
+## **Funktionsweise**
+
+1. Beim **Build** wird die Seite statisch generiert (`getStaticProps` oder `fetch()` im App Router).
+2. Nutzer erhalten diese statische Seite direkt vom Cache/CDN.
+3. Nach Ablauf der definierten Zeit (`revalidate: N`) wird bei der nächsten Anfrage:
+
+   * die **alte Seite** sofort ausgeliefert (**kein Warten**),
+   * im Hintergrund aber eine **neue Version** gebaut.
+4. Alle folgenden Requests bekommen die **aktualisierte Seite**.
+
+---
+
+## **Beispiel im Pages Router (`getStaticProps`)**
+
+```js
+// pages/index.js
+export default function Home({ time }) {
+  return <p>Aktuelle Build-Zeit: {time}</p>;
+}
+
+export async function getStaticProps() {
+  return {
+    props: { time: new Date().toISOString() },
+    revalidate: 10, // alle 10 Sekunden im Hintergrund aktualisieren
+  };
+}
+```
+
+➡ Seite wird nach 10 Sekunden beim nächsten Request neu generiert.
+
+---
+
+## **Beispiel im App Router (`fetch` mit Revalidate)**
+
+```js
+// app/page.js
+export default async function Home() {
+  const res = await fetch("https://api.example.com/data", {
+    next: { revalidate: 30 }, // alle 30 Sekunden neu generieren
+  });
+  const data = await res.json();
+
+  return <p>Daten: {data.message}</p>;
+}
+```
+
+➡ Standardmäßig wird `fetch()` gecacht (SSG). Mit `revalidate` erzwingst du periodische Aktualisierung (**ISR**).
+
+---
+
+## **On-Demand Revalidation**
+
+Neben dem Zeitintervall kann man per API-Endpunkt **gezielt Seiten neu generieren**, z. B. wenn ein neuer Blogpost veröffentlicht wird.
+👉 Funktioniert mit `res.revalidate('/path')` (Pages Router) oder Vercel **On-Demand ISR** (App Router).
+
+---
+
+## **Zusammenfassung:**
+
+* `revalidate` = Zeitintervall für **Hintergrund-Neuerstellung** einer Seite.
+* **Pages Router:** Rückgabe in `getStaticProps`.
+* **App Router:** als Option in `fetch()` → `next: { revalidate: N }`.
+* Vorteil: **SSG-Performance** + **SSR-Aktualität**, ohne kompletten Rebuild.
+
+📖 Quelle: [Next.js Docs – ISR](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching#revalidating-data)
+
+---
 
   **[⬆ Наверх](#top)**
 
-35. ### <a name="35"></a> 
+35. ### <a name="35"></a> Wie ruft man Daten im App Router (Next.js 13) ab?
 
+**Datenfetching im App Router (Next.js 13+)** funktioniert anders als im Pages Router:
+Es gibt **keine `getStaticProps` oder `getServerSideProps` mehr**. Stattdessen nutzt man **`fetch()` direkt in Server Components**.
 
+---
+
+## **1. Server Components (Standard)**
+
+* Standardmäßig sind Komponenten im App Router **Server Components**.
+* Daten werden **auf dem Server geladen**, bevor die Seite zum Client geschickt wird.
+
+```js
+// app/page.js
+export default async function Home() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+  const post = await res.json();
+
+  return (
+    <main>
+      <h1>{post.title}</h1>
+      <p>{post.body}</p>
+    </main>
+  );
+}
+```
+
+➡ Vorteil: kein zusätzliches JS im Browser, besser für **Performance & SEO**.
+
+---
+
+## **2. Caching und Revalidate (ISR/SSR)**
+
+Mit `fetch()` kann man **Caching-Strategien** steuern:
+
+```js
+// Statische Daten (SSG)
+await fetch("https://api.example.com/data"); 
+// default: `force-cache`
+
+// Server-Side Rendering (SSR)
+await fetch("https://api.example.com/data", { cache: "no-store" });
+
+// Incremental Static Regeneration (ISR)
+await fetch("https://api.example.com/data", { next: { revalidate: 60 } });
+```
+
+* **`force-cache`** = Standard (SSG)
+* **`no-store`** = immer neu (SSR)
+* **`revalidate: N`** = ISR (alle N Sekunden erneuern)
+
+---
+
+## **3. Client Components**
+
+* Mit `"use client"` kann man Client Components erstellen.
+* Hier ruft man Daten über **Hooks** wie `useEffect` ab → CSR.
+
+```js
+"use client";
+import { useEffect, useState } from "react";
+
+export default function ClientData() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/message")
+      .then((res) => res.json())
+      .then(setData);
+  }, []);
+
+  return <p>{data ? data.text : "Lade Daten..."}</p>;
+}
+```
+
+---
+
+## **4. Serverseitige API-Routen (Route Handler)**
+
+Man kann eigene **API-Routen im App Router** definieren und diese abfragen:
+
+```js
+// app/api/hello/route.js
+export async function GET() {
+  return Response.json({ message: "Hello API" });
+}
+```
+
+```js
+// app/page.js
+const res = await fetch("http://localhost:3000/api/hello");
+const data = await res.json();
+```
+
+---
+
+## **Zusammenfassung:**
+
+* **App Router** nutzt **`fetch()` in Server Components** statt `getStaticProps/getServerSideProps`.
+* Datenstrategien:
+
+  * **SSG** → default (Cache)
+  * **SSR** → `cache: "no-store"`
+  * **ISR** → `next: { revalidate: N }`
+* **Client Components** nutzen Hooks (`useEffect`) → CSR.
+* Eigene **API-Routen** via `app/api/*/route.js`.
+
+📖 Quelle: [Next.js Docs – Data Fetching](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching)
+
+---
 
   **[⬆ Наверх](#top)**
 
-36. ### <a name="36"></a> 
+36. ### <a name="36"></a> Was ist der Unterschied zwischen fetch auf dem Server und auf dem Client?
 
+**Unterschied `fetch` auf dem Server vs. auf dem Client in Next.js (App Router):**
 
+---
+
+## **1. `fetch` auf dem Server (Server Components)**
+
+* Läuft **vor dem Rendern** auf dem Server.
+* Ergebnisse können direkt ins HTML eingebettet werden → **SEO-freundlich**.
+* **Caching & Revalidate** werden automatisch unterstützt.
+* Kein zusätzliches JavaScript im Browser nötig → bessere Performance.
+
+**Beispiel (Server-Side Fetch, SSG/SSR/ISR):**
+
+```js
+// app/page.js (Server Component)
+export default async function Home() {
+  const res = await fetch("https://api.example.com/posts/1", {
+    cache: "no-store", // SSR
+  });
+  const post = await res.json();
+
+  return <h1>{post.title}</h1>;
+}
+```
+
+👉 Vorteil: weniger Client-JS, schnell, SEO-freundlich.
+
+---
+
+## **2. `fetch` auf dem Client (Client Components)**
+
+* Läuft erst **nachdem die Seite im Browser geladen** wurde.
+* Kein Pre-Rendering → Inhalte erscheinen erst nach Hydration.
+* Notwendig, wenn Daten von **Nutzerinteraktionen, Events oder Sessions** abhängen.
+* Standard-React-Pattern: `useEffect` + `useState`.
+
+**Beispiel (Client-Side Fetch, CSR):**
+
+```js
+"use client";
+import { useEffect, useState } from "react";
+
+export default function ClientData() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/hello")
+      .then(res => res.json())
+      .then(setData);
+  }, []);
+
+  return <p>{data ? data.message : "Lade Daten..."}</p>;
+}
+```
+
+👉 Nachteil: schlechtere SEO, da HTML erst leer ist; Inhalte erscheinen verzögert.
+
+---
+
+## **3. Vergleich**
+
+| Merkmal         | **Server-Fetch**                        | **Client-Fetch**                         |
+| --------------- | --------------------------------------- | ---------------------------------------- |
+| **Ort**         | Server (vor Rendering)                  | Browser (nach Rendering)                 |
+| **SEO**         | Sehr gut (HTML schon gefüllt)           | Schlecht (Content erst nach Hydration)   |
+| **Caching**     | `force-cache`, `no-store`, `revalidate` | Manuell mit Zustand/Client-Cache         |
+| **Performance** | Weniger Client-JS, schneller LCP        | Mehr Client-JS, langsamer LCP            |
+| **Use Cases**   | Statische Daten, SEO-relevante Inhalte  | Interaktive Daten, nutzerabhängige Infos |
+
+---
+
+**Zusammenfassung:**
+
+* **Server-Fetch**: vor Rendering, SEO-freundlich, unterstützt SSG/SSR/ISR.
+* **Client-Fetch**: nach Rendering, dynamisch, aber schlechtere SEO und Performance.
+* Faustregel: **so viel wie möglich auf dem Server, nur interaktive/nutzerabhängige Daten im Client**.
+
+📖 Quelle: [Next.js Docs – Data Fetching](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching)
+
+---
 
   **[⬆ Наверх](#top)**
 
-37. ### <a name="37"></a> 
+37. ### <a name="37"></a> Wie funktionieren Server Components (Next.js 13)?
 
+**Definition:**
+**Server Components (RSC)** in Next.js 13 sind React-Komponenten, die **ausschließlich auf dem Server ausgeführt werden**.
+Sie senden **fertiges HTML an den Client**, ohne dass JavaScript für diese Komponenten im Browser ausgeführt oder gebündelt werden muss.
 
+---
+
+## **Wichtige Eigenschaften**
+
+* **Standard im App Router**: Alle Komponenten ohne `"use client"` sind automatisch **Server Components**.
+* **Kein Client-JavaScript**: Weniger JS-Bundle, bessere Performance, schnelleres Laden.
+* **Direkter Zugriff auf Server-Ressourcen**: Datenbank, Filesystem, Secrets, externe APIs.
+* **SEO-freundlich**: Inhalte werden bereits auf dem Server gerendert.
+* **Keine Browser-APIs**: Kein `useState`, `useEffect`, `localStorage`, Events – dafür braucht man Client Components.
+
+---
+
+## **Beispiel – Server Component**
+
+```js
+// app/page.js (Server Component – default)
+export default async function Home() {
+  // Daten direkt auf dem Server laden
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+  const post = await res.json();
+
+  return (
+    <main>
+      <h1>{post.title}</h1>
+      <p>{post.body}</p>
+    </main>
+  );
+}
+```
+
+👉 Wird auf dem Server ausgeführt, Client erhält reines HTML.
+
+---
+
+## **Kombination mit Client Components**
+
+Man kann **Server und Client Components mischen**:
+
+```js
+// app/page.js
+import ClientCounter from "./ClientCounter";
+
+export default async function Home() {
+  const res = await fetch("https://api.example.com/data");
+  const data = await res.json();
+
+  return (
+    <main>
+      <h1>Server Component mit Client Child</h1>
+      <p>Daten: {data.message}</p>
+      <ClientCounter /> {/* Interaktive Komponente */}
+    </main>
+  );
+}
+```
+
+```js
+// app/ClientCounter.js
+"use client"; // macht die Komponente interaktiv
+import { useState } from "react";
+
+export default function ClientCounter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(count + 1)}>Zähler: {count}</button>;
+}
+```
+
+* **Home (Server Component):** Lädt Daten → schnell, kein Client-JS.
+* **ClientCounter:** wird hydratisiert → interaktive Logik im Browser.
+
+---
+
+## **Vorteile**
+
+* Kleinere JavaScript-Bundles → bessere Performance.
+* Nahtlose **Server/Client-Trennung**.
+* Direkter Datenbank- oder API-Zugriff ohne zusätzliche API-Routen.
+
+## **Nachteile**
+
+* Neue Denkweise: man muss verstehen, wann Server- vs. Client-Logik gebraucht wird.
+* Nicht alle Bibliotheken sind kompatibel (z. B. die auf Browser-APIs basieren).
+
+---
+
+**Zusammenfassung:**
+Server Components in Next.js 13 laufen **nur auf dem Server**, liefern **HTML ohne Client-JS**, können **direkt Daten abrufen** und sind **SEO-optimiert**. Für Interaktivität werden sie mit **Client Components** kombiniert.
+
+📖 Quelle: [Next.js Docs – Server Components](https://nextjs.org/docs/app/building-your-application/rendering/server-components)
+
+---
 
   **[⬆ Наверх](#top)**
 
-38. ### <a name="38"></a> 
+38. ### <a name="38"></a> Was ist der Unterschied zwischen Client Components und Server Components?
 
+**Unterschied zwischen Client Components und Server Components (Next.js 13+):**
 
+---
+
+## **1. Server Components**
+
+* **Standard** im App Router (ohne `"use client"`).
+* Laufen **ausschließlich auf dem Server**.
+* Können **direkt Datenbanken, APIs, Filesystem** ansprechen.
+* Werden zu **fertigem HTML** gerendert → **SEO-freundlich, kleineres Bundle**.
+* **Kein JavaScript im Client nötig** → bessere Performance.
+* **Nicht erlaubt:** React Hooks wie `useState`, `useEffect`, Browser-APIs (`localStorage`, `window`).
+
+**Beispiel:**
+
+```js
+// app/page.js (Server Component – default)
+export default async function Home() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+  const post = await res.json();
+
+  return <h1>{post.title}</h1>;
+}
+```
+
+---
+
+## **2. Client Components**
+
+* Mit Direktive `"use client"` am Anfang der Datei.
+* Laufen **im Browser** → ermöglichen **Interaktivität**.
+* Können React Hooks (`useState`, `useEffect`, `useContext`) und Browser-APIs nutzen.
+* Müssen hydratisiert werden → **mehr JavaScript-Bundle**, langsamer als Server Components.
+
+**Beispiel:**
+
+```js
+// app/Counter.js
+"use client";
+import { useState } from "react";
+
+export default function Counter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(count + 1)}>Zähler: {count}</button>;
+}
+```
+
+---
+
+## **3. Kombination**
+
+Man kombiniert beide, um **Datenserverseitig** + **Interaktivität clientseitig** zu nutzen:
+
+```js
+// app/page.js
+import Counter from "./Counter";
+
+export default async function Home() {
+  const res = await fetch("https://api.example.com/message");
+  const data = await res.json();
+
+  return (
+    <main>
+      <h1>{data.text}</h1>
+      <Counter /> {/* Client Component */}
+    </main>
+  );
+}
+```
+
+---
+
+## **Vergleichstabelle**
+
+| Merkmal          | **Server Components**                   | **Client Components**                    |
+| ---------------- | --------------------------------------- | ---------------------------------------- |
+| **Ort**          | Server                                  | Browser                                  |
+| **Default**      | Ja (im App Router)                      | Nein (`"use client"` notwendig)          |
+| **JS im Client** | Kein JS nötig (nur HTML)                | JS muss gebündelt & hydratisiert werden  |
+| **SEO**          | Sehr gut (fertiges HTML)                | Schlechter (Content erst nach Hydration) |
+| **Hooks**        | Nicht erlaubt (`useState`, `useEffect`) | Erlaubt (voller React-Support)           |
+| **Use Cases**    | Datenfetching, Layouts, SEO-Inhalte     | Interaktive Elemente, Event-Handling     |
+
+---
+
+**Zusammenfassung:**
+
+* **Server Components**: Datenserverseitig, schnell, kein Client-JS → gut für SEO & Performance.
+* **Client Components**: Interaktivität im Browser, nutzen React Hooks, benötigen Hydration.
+* Best Practice: **so viel wie möglich Server Components**, nur Interaktivität als Client Components.
+
+📖 Quelle: [Next.js Docs – Server vs Client Components](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns)
+
+---
 
   **[⬆ Наверх](#top)**
 
-39. ### <a name="39"></a> 
+39. ### <a name="39"></a> Wie bindet man externe Bibliotheken in Server Components ein?
 
+**Regel:**
+In **Server Components** (Next.js 13+) darf nur Code laufen, der **auf dem Server funktioniert**.
+Das bedeutet: **Bibliotheken ohne Browser-Abhängigkeiten** (kein `window`, `document`, DOM, `localStorage`) können direkt eingebunden werden.
+Bibliotheken mit **Browser-APIs** müssen in eine **Client Component** ausgelagert werden.
 
+---
+
+## **1. Externe Bibliothek im Server Component (möglich)**
+
+Beispiel mit einer serverseitigen Bibliothek wie `date-fns`:
+
+```js
+// app/page.js (Server Component – default)
+import { format } from "date-fns";
+
+export default function Home() {
+  const today = format(new Date(), "dd.MM.yyyy");
+  return <h1>Heute: {today}</h1>;
+}
+```
+
+👉 Funktioniert, da `date-fns` nur pure JS-Logik enthält.
+
+---
+
+## **2. Bibliothek, die Browser-APIs braucht (nur Client Component)**
+
+Beispiel: `chart.js` oder `leaflet` (nutzt Canvas/DOM).
+
+```js
+// app/Chart.js
+"use client";
+import { useEffect, useRef } from "react";
+import Chart from "chart.js/auto";
+
+export default function MyChart() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const ctx = canvasRef.current.getContext("2d");
+    new Chart(ctx, {
+      type: "bar",
+      data: { labels: ["A", "B"], datasets: [{ data: [10, 20] }] },
+    });
+  }, []);
+
+  return <canvas ref={canvasRef}></canvas>;
+}
+```
+
+👉 Muss `use client` haben, da `Chart.js` den DOM braucht.
+
+---
+
+## **3. Pattern: Server + Client kombinieren**
+
+Man kann Bibliotheken **teilweise serverseitig vorbereiten** und das Rendering clientseitig machen:
+
+```js
+// app/page.js (Server Component)
+import MyChart from "./Chart";
+
+export default async function Page() {
+  const data = await fetch("https://api.example.com/stats").then(r => r.json());
+  return <MyChart initialData={data} />;
+}
+```
+
+👉 Datenfetching serverseitig, Rendering clientseitig.
+
+---
+
+## **Best Practices**
+
+* **Immer prüfen:** Läuft die Bibliothek ohne Browser-APIs? → dann im Server Component.
+* **Rechenintensive Logik** (Markdown-Parser, Datenbanken, Crypto) → auf dem Server.
+* **UI-Bibliotheken** (Chart, Maps, Slider) → Client Component.
+
+---
+
+**Zusammenfassung:**
+
+* In Server Components nur Bibliotheken nutzen, die **kein DOM/Browser** brauchen.
+* Browser-abhängige Libraries gehören in **Client Components**.
+* Oft kombiniert: **Server für Daten + Client für Interaktivität**.
+
+📖 Quelle: [Next.js Docs – Server vs Client Components](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns)
+
+---
 
   **[⬆ Наверх](#top)**
 
-40. ### <a name="40"></a> 
+40. ### <a name="40"></a> Welche Einschränkungen haben Server Components?
 
+**Einschränkungen von Server Components in Next.js 13+:**
 
+---
+
+### **1. Kein Zugriff auf Browser-APIs**
+
+* Kein `window`, `document`, `localStorage`, `sessionStorage`.
+* Kein direktes DOM-Manipulieren.
+
+---
+
+### **2. Keine React Hooks für Client State**
+
+* **Nicht erlaubt:** `useState`, `useEffect`, `useLayoutEffect`.
+* Nur **serverseitige Logik** möglich (z. B. `async/await`, Datenbankzugriffe).
+
+---
+
+### **3. Eingeschränkte Bibliotheken-Nutzung**
+
+* Libraries, die **DOM oder Browser-Events** nutzen (z. B. `chart.js`, `leaflet`), funktionieren nicht.
+* Solche Bibliotheken müssen in **Client Components** ausgelagert werden.
+
+---
+
+### **4. Hydration**
+
+* Server Components werden **nicht hydratisiert** → kein Client-JavaScript.
+* Wenn Interaktivität benötigt wird → **Client Component einbinden**.
+
+---
+
+### **5. Einschränkungen bei Props**
+
+* Props an Server Components müssen **serialisierbar** sein (JSON).
+* Keine Funktionen, Klasseninstanzen oder nicht-serialisierbare Objekte als Props.
+
+---
+
+### **6. Datenfluss**
+
+* Server Components können **Client Components rendern**, aber nicht umgekehrt.
+* Das bedeutet: **Top-Down-Hierarchie**:
+
+  * Server Component → Client Component ✅
+  * Client Component → Server Component ❌
+
+---
+
+### **7. Asynchronität**
+
+* Server Components dürfen **async** sein und Daten mit `fetch()` laden.
+* Aber: Man kann nicht `useEffect` nutzen, um Daten nachzuladen.
+
+---
+
+### **Zusammenfassung:**
+
+Server Components sind mächtig für **Datenfetching, Performance und SEO**, aber:
+
+* **Kein Client-State, keine Browser-APIs**.
+* **Keine Hooks wie `useState`, `useEffect`**.
+* **Keine nicht-serialisierbaren Props**.
+* **Nur Server → Client, nicht umgekehrt**.
+  👉 Deshalb: **so viel wie möglich Server Components nutzen, Interaktivität in Client Components auslagern**.
+
+📖 Quelle: [Next.js Docs – Server vs Client Components](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns)
+
+---
 
   **[⬆ Наверх](#top)**  
 
