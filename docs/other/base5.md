@@ -24,25 +24,25 @@
 |15 | [Was ist Shadow DOM?](#15) |
 |   | CSS |
 |16 | [Erklären Sie das Box-Modell.](#16) |
-|17 | [](#17) |
-|18 | [](#18) |
-|19 | [](#19) |
-|20 | [](#20) |
-|21 | [](#21) |
-|22 | [](#22) |
-|23 | [](#23) |
-|24 | [](#24) |
-|25 | [](#25) |
-|26 | [](#26) |
-|27 | [](#27) |
-|28 | [](#28) |
-|29 | [](#29) |
-|30 | [](#30) |
-|31 | [](#31) |
-|32 | [](#32) |
-|33 | [](#33) |
-|34 | [](#34) |
-|35 | [](#35) |
+|17 | [Was ist der Unterschied zwischen relative, absolute, fixed und sticky?](#17) |
+|18 | [Wie funktioniert Flexbox? Welche Eigenschaften sind am wichtigsten?](#18) |
+|19 | [Wie funktioniert CSS Grid? Was sind Unterschiede zu Flexbox?](#19) |
+|20 | [Unterschied zwischen em, rem, %, vh, vw und px.](#20) |
+|21 | [Was sind Pseudo-Klassen und Pseudo-Elemente? Beispiele.](#21) |
+|22 | [Unterschied zwischen display: none und visibility: hidden.](#22) |
+|23 | [Was ist der Unterschied zwischen Inline-, internen und externen Stylesheets?](#23) |
+|24 | [Wie funktioniert z-index? Was ist ein Stacking Context?](#24) |
+|25 | [Unterschied zwischen CSS-Transitions und CSS-Animations.](#25) |
+|26 | [Wie funktionieren Media Queries?](#26) |
+|27 | [Unterschied zwischen absoluten und relativen Maßeinheiten.](#27) |
+|28 | [Unterschied zwischen Responsive und Adaptive Design.](#28) |
+|29 | [Was sind CSS-Variablen und wie werden sie verwendet?](#29) |
+|30 | [Unterschied zwischen CSS-in-JS, TailwindCSS, Sass/SCSS.](#30) |
+|31 | [Was ist BEM (Block, Element, Modifier)?](#31) |
+|32 | [Was sind CSS Pre- und Postprozessoren? (Sass, PostCSS, Autoprefixer).](#32) |
+|33 | [Was bedeutet „Critical CSS“ und warum ist es wichtig für Performance?](#33) |
+|34 | [Was sind CSS-Sprites und wann setzt man sie ein?](#34) |
+|35 | [Wie kann man Fonts optimieren (web-safe fonts, Google Fonts, font-display)?](#35) |
 |36 | [](#36) |
 |37 | [](#37) |
 |38 | [](#38) |
@@ -58,42 +58,45 @@
 |48 | [](#48) |
 |49 | [](#49) |
 |50 | [](#50) |
-|51 | [](#51) |
-|52 | [](#52) |
-|53 | [](#53) |
-|54 | [](#54) |
-|55 | [](#55) |
-|56 | [](#56) |
-|57 | [](#57) |
-|58 | [](#58) |
-|59 | [](#59) |
-|60 | [](#60) |
-|61 | [](#61) |
-|62 | [](#62) |
-|63 | [](#63) |
-|64 | [](#64) |
-|65 | [](#65) |
-|66 | [](#66) |
-|67 | [](#67) |
-|68 | [](#68) |
-|69 | [](#69) |
-|70 | [](#70) |
-|71 | [](#71) |
-|72 | [](#72) |
-|73 | [](#73) |
-|74 | [](#74) |
-|75 | [](#75) |
-|76 | [](#76) |
-|77 | [](#77) |
-|78 | [](#78) |
-|79 | [](#79) |
-|80 | [](#80) |
-|81 | [](#81) |
-|82 | [](#82) |
-|83 | [](#83) |
-|84 | [](#84) |
-|85 | [](#85) |
-|86 | [](#86) |
+|   | Allgemeine Frontend-Fragen |
+|51 | [Unterschied zwischen Frontend und Backend.](#51) |
+|52 | [Was ist Responsive Design?](#52) |
+|53 | [Was ist Progressive Enhancement vs. Graceful Degradation?](#53) |
+|54 | [Unterschied zwischen SSR (Server Side Rendering), CSR (Client Side Rendering) und SSG (Static Site Generation).](#54) |
+|55 | [Was bedeutet CORS und warum ist es wichtig?](#55) |
+|56 | [Unterschied zwischen GET- und POST-Requests.](#56) |
+|57 | [Unterschied zwischen Cookies, LocalStorage und SessionStorage.](#57) |
+|58 | [Was ist SEO und wie beeinflussen HTML und CSS dies?](#58) |
+|59 | [Welche Web-Performance-Optimierungen kennen Sie? (Lazy Loading, Minifizierung, Code Splitting).](#59) |
+|60 | [Was ist ein CDN (Content Delivery Network)?](#60) |
+|61 | [Was bedeutet "Critical Rendering Path"?](#61) |
+|62 | [Was ist eine Progressive Web App (PWA)?](#62) |
+|63 | [Unterschied zwischen Responsive und Adaptive Design.](#63) |
+|64 | [Welche Tools nutzen Sie zur Fehlerbehebung im Frontend (DevTools, Lighthouse)?](#64) |
+|65 | [Was sind Accessibility-Richtlinien (WCAG)?](#65) |
+|66 | [Was sind Web Components?](#66) |
+|67 | [Was ist Shadow DOM und wozu wird es verwendet?](#67) |
+|68 | [Wie stellt man sicher, dass eine Website in allen Browsern funktioniert (Cross-Browser-Kompatibilität)?](#68) |
+|69 | [Unterschied zwischen HTTP/1.1, HTTP/2 und HTTP/3.](#69) |
+|70 | [Was ist eine REST-API? Wie ruft man sie im Frontend ab?](#70) |
+|   | Sicherheit (Security im Frontend) |
+|71 | [Was ist XSS (Cross-Site Scripting) und wie verhindert man es?](#71) |
+|72 | [Was ist CSRF (Cross-Site Request Forgery)?](#72) |
+|73 | [Was ist Content Security Policy (CSP)?](#73) |
+|74 | [Unterschied zwischen HTTPS und HTTP.](#74) |
+|75 | [Was ist Clickjacking?](#75) |
+|76 | [Was ist Same-Origin-Policy?](#76) |
+|   | Tooling & Workflow |
+|77 | [Was ist Git und wie wird es im Team verwendet?](#77) |
+|78 | [Unterschied zwischen Git Pull, Git Fetch und Git Merge.](#78) |
+|79 | [Was ist Continuous Integration / Continuous Deployment (CI/CD)?](#79) |
+|80 | [Welche Build-Tools kennen Sie? (Webpack, Vite, Parcel).](#80) |
+|81 | [Unterschied zwischen NPM und Yarn.](#81) |
+|82 | [Was ist ein Linter und wofür wird er genutzt? (ESLint, Stylelint).](#82) |
+|83 | [Was ist Tree Shaking und warum ist es wichtig?](#83) |
+|84 | [Unterschied zwischen Development- und Production-Build.](#84) |
+|85 | [Was ist Code Splitting und Lazy Loading?](#85) |
+|86 | [Welche Test-Tools kennen Sie? (Jest, React Testing Library, Cypress, Playwright).](#86) |
 |87 | [](#87) |
 |88 | [](#88) |
 |89 | [](#89) |
