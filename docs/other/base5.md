@@ -5094,99 +5094,1438 @@ const createUser = async () => {
 
   **[⬆ Наверх](#top)**
 
-71. ### <a name="71"></a> 
+71. ### <a name="71"></a> Was ist XSS (Cross-Site Scripting) und wie verhindert man es?
 
+**XSS (Cross-Site Scripting)** ist eine **Sicherheitslücke**, bei der Angreifer **bösartigen Code (meist JavaScript)** in eine Website einschleusen, um Daten zu stehlen, Sessions zu übernehmen oder schädliche Aktionen im Namen des Nutzers auszuführen.
 
+---
+
+## 1. Arten von XSS
+
+1. **Stored XSS (Persistentes XSS)**
+
+   * Schädlicher Code wird **dauerhaft in einer Datenbank** gespeichert (z. B. in Kommentaren, Forenbeiträgen).
+   * Jeder Nutzer, der die Seite aufruft, führt den Code aus.
+
+2. **Reflected XSS**
+
+   * Schädlicher Code wird **über URL-Parameter** eingeschleust und sofort zurückgegeben.
+   * Beispiel:
+
+   ```url
+   https://example.com/search?q=<script>alert('XSS')</script>
+   ```
+
+3. **DOM-based XSS**
+
+   * Angriff über **unsichere Manipulationen im Frontend-JavaScript**.
+   * Beispiel: `innerHTML` ohne Sanitisierung.
+
+---
+
+## 2. Beispiel für XSS
+
+### Unsicherer Code
+
+```js
+const query = new URLSearchParams(window.location.search).get("q");
+document.body.innerHTML = "Suche: " + query;
+```
+
+➡️ Angreifer kann `?q=<script>alert('Hacked')</script>` in die URL setzen.
+
+---
+
+## 3. Schutzmaßnahmen
+
+### **1. Escaping / Encoding**
+
+* Nutzereingaben **nie direkt ins HTML einfügen**.
+* Sonderzeichen (`<`, `>`, `"`, `'`) escapen.
+
+```js
+function escapeHTML(str) {
+  return str.replace(/[&<>'"]/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c])
+  );
+}
+output.innerHTML = escapeHTML(userInput);
+```
+
+### **2. Sichere DOM-Methoden**
+
+* Statt `innerHTML` → besser `textContent` oder `createElement`.
+
+```js
+const div = document.createElement("div");
+div.textContent = userInput; // sicher, kein Script wird ausgeführt
+document.body.appendChild(div);
+```
+
+### **3. Content Security Policy (CSP)**
+
+* Browser-Richtlinie, die nur bestimmte Skriptquellen erlaubt.
+
+```http
+Content-Security-Policy: script-src 'self' https://trusted.cdn.com
+```
+
+### **4. Framework-Schutz**
+
+* Frameworks wie React, Angular, Vue escapen automatisch HTML.
+* Nur **`dangerouslySetInnerHTML` (React)** oder `v-html` (Vue) mit Vorsicht nutzen.
+
+### **5. Input Validierung**
+
+* Serverseitig: nur erlaubte Zeichen speichern.
+* Clientseitig: Eingaben prüfen (aber nie nur darauf verlassen).
+
+---
+
+## 4. Zusammenfassung
+
+* **XSS** = Einschleusen von JavaScript durch unsichere Eingaben.
+* **Arten**: Stored, Reflected, DOM-based.
+* **Schutz**: Escaping, sichere DOM-Methoden, CSP, Framework-Schutz, Input-Validierung.
+
+📖 Quellen:
+
+* [MDN – XSS](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting)
+* [OWASP – XSS Prevention Cheat Sheet](https://owasp.org/www-community/xss-prevention)
+
+---
 
   **[⬆ Наверх](#top)**
 
-72. ### <a name="72"></a> 
+72. ### <a name="72"></a> Was ist CSRF (Cross-Site Request Forgery)?
 
+**CSRF (Cross-Site Request Forgery)** ist ein **Angriff**, bei dem ein Angreifer den Browser eines eingeloggten Nutzers dazu bringt, **unerwünschte Aktionen** auf einer anderen Website (meist mit aktiver Session) auszuführen – ohne Wissen des Nutzers.
 
+---
+
+## 1. Wie funktioniert CSRF?
+
+* Nutzer ist auf einer Seite **eingeloggt** (z. B. Online-Banking, Shop).
+* Browser speichert **Cookies/Session-Token** automatisch.
+* Angreifer lockt den Nutzer auf eine manipulierte Seite oder E-Mail → dort wird ein **verstecktes Formular oder Bild-Tag** geladen, das einen Request an die Zielseite sendet.
+* Da der Browser Cookies mitsendet, wird die Anfrage als „gültig“ behandelt.
+
+### Beispiel
+
+```html
+<!-- Angreifer-Seite -->
+<img src="https://bank.de/transfer?amount=1000&to=attacker" />
+```
+
+➡️ Wenn Nutzer bei `bank.de` eingeloggt ist → Geldtransfer wird ohne Zustimmung ausgeführt.
+
+---
+
+## 2. Typische Ziele
+
+* Geldtransfers
+* Passwortänderungen
+* Einstellungen ändern
+* Postings in sozialen Netzwerken
+
+---
+
+## 3. Schutzmaßnahmen gegen CSRF
+
+1. **CSRF-Tokens**
+
+   * Server gibt jedem Formular/Request ein **zufälliges Token**, das geprüft wird.
+   * Beispiel (HTML):
+
+     ```html
+     <input type="hidden" name="csrf_token" value="abc123xyz">
+     ```
+   * Server verifiziert das Token bei jedem Request.
+
+2. **SameSite Cookies**
+
+   * Cookies können so gesetzt werden, dass sie **nicht bei Cross-Site-Requests gesendet** werden.
+
+   ```http
+   Set-Cookie: sessionId=abc123; SameSite=Strict; Secure; HttpOnly
+   ```
+
+3. **Double Submit Cookie**
+
+   * CSRF-Token zusätzlich im Cookie setzen und mit Request vergleichen.
+
+4. **CORS & Preflight**
+
+   * Unsichere Requests von fremden Domains blockieren.
+
+5. **Benutzerinteraktion**
+
+   * Kritische Aktionen erfordern zusätzliche Bestätigung (z. B. Passwort, 2FA).
+
+---
+
+## 4. Unterschied zu XSS
+
+* **XSS** = Angreifer injiziert Code in die Seite.
+* **CSRF** = Angreifer nutzt die Session des Nutzers für ungewollte Aktionen.
+
+---
+
+## Zusammenfassung
+
+* **CSRF** = Angriff, der eingeloggte Sessions missbraucht, indem Requests ohne Wissen des Nutzers ausgeführt werden.
+* **Schutz**: CSRF-Tokens, SameSite-Cookies, zusätzliche Bestätigung, CORS.
+
+📖 Quellen:
+
+* [MDN – CSRF](https://developer.mozilla.org/en-US/docs/Glossary/CSRF)
+* [OWASP – CSRF Prevention](https://owasp.org/www-community/attacks/csrf)
+
+---
 
   **[⬆ Наверх](#top)**
 
-73. ### <a name="73"></a> 
+73. ### <a name="73"></a> Was ist Content Security Policy (CSP)?
 
+**Content Security Policy (CSP)** ist ein **Sicherheitsmechanismus**, der per HTTP-Header definiert, **welche Inhalte (Skripte, Styles, Bilder, Fonts, etc.) ein Browser laden und ausführen darf**.
+Ziel: Schutz vor **XSS (Cross-Site Scripting)**, Daten-Injection und ähnlichen Angriffen.
 
+---
+
+## 1. Funktionsweise
+
+* Server sendet den **CSP-Header** im HTTP-Response.
+* Browser überprüft alle Ressourcen (JS, CSS, Fonts …) gegen die Richtlinien.
+* Alles, was nicht erlaubt ist, wird blockiert.
+
+### Beispiel (Header)
+
+```http
+Content-Security-Policy: default-src 'self'; img-src 'self' https://cdn.example.com; script-src 'self' https://apis.google.com
+```
+
+➡️ Bedeutet:
+
+* Standardquellen nur von der eigenen Domain (`'self'`).
+* Bilder dürfen auch von `cdn.example.com` geladen werden.
+* Skripte nur lokal und von `apis.google.com`.
+
+---
+
+## 2. Typische Direktiven
+
+* `default-src` → Standard-Regel für alle Ressourcen.
+* `script-src` → Quellen für JavaScript.
+* `style-src` → Quellen für CSS.
+* `img-src` → Quellen für Bilder.
+* `font-src` → Quellen für Schriftarten.
+* `object-src` → Quellen für Plugins (Flash, etc.).
+* `frame-ancestors` → Wer darf die Seite in einem `<iframe>` einbetten.
+
+---
+
+## 3. Schutzmechanismen durch CSP
+
+* Verhindert **Inline-Skripte** (`<script>alert('XSS')</script>`) → außer mit `'unsafe-inline'`.
+* Blockiert **unsichere externe Skripte**.
+* Kann mit `nonce` oder `hash` arbeiten:
+
+  ```html
+  <script nonce="abc123">console.log("sicherer Inline-Code")</script>
+  ```
+
+  ```http
+  Content-Security-Policy: script-src 'nonce-abc123'
+  ```
+
+---
+
+## 4. Vorteile
+
+✅ Starker Schutz gegen XSS.
+✅ Kontrolle über externe Ressourcen.
+✅ Unterstützung in allen modernen Browsern.
+
+## 5. Nachteile
+
+❌ Strikte Konfiguration kann Seiten „kaputtmachen“.
+❌ Aufwendig für große Legacy-Projekte mit vielen Inline-Skripten.
+
+---
+
+## Zusammenfassung
+
+* **CSP** = Sicherheitsheader, der kontrolliert, **welche Inhalte geladen/ausgeführt** werden dürfen.
+* Hauptzweck: Schutz vor **XSS und Code-Injection**.
+* Umsetzung: HTTP-Header mit Direktiven (`script-src`, `img-src`, `style-src`, …).
+
+📖 Quelle:
+
+* [MDN – Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
+* [OWASP – CSP Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
-74. ### <a name="74"></a> 
+74. ### <a name="74"></a> Unterschied zwischen HTTPS und HTTP.
 
+**Unterschied zwischen HTTP und HTTPS:**
 
+---
+
+## 1. **HTTP (Hypertext Transfer Protocol)**
+
+* Standardprotokoll für den Datenaustausch im Web.
+* Kommunikation erfolgt **im Klartext** → jeder im Netzwerk (z. B. WLAN, Proxy) kann Inhalte mitlesen oder manipulieren.
+* Standard-Port: **80**.
+
+---
+
+## 2. **HTTPS (Hypertext Transfer Protocol Secure)**
+
+* Erweiterung von HTTP mit **TLS/SSL-Verschlüsselung**.
+* Stellt sicher:
+
+  1. **Verschlüsselung** → Daten sind nicht lesbar für Dritte.
+  2. **Integrität** → Inhalte können nicht unbemerkt verändert werden.
+  3. **Authentizität** → Server-Identität wird durch Zertifikate geprüft.
+* Standard-Port: **443**.
+
+---
+
+## 3. Beispiel
+
+* **HTTP**-Anfrage:
+
+  ```
+  GET /login HTTP/1.1
+  Host: example.com
+  Cookie: session=abc123
+  ```
+
+  → Session-Cookie kann von Angreifern mitgelesen werden (z. B. in öffentlichem WLAN).
+
+* **HTTPS**-Anfrage:
+
+  * Dieselbe Kommunikation, aber über TLS verschlüsselt.
+  * Mitgelesen werden nur Metadaten (Domain, IP, Zeitpunkt) – Inhalte bleiben geschützt.
+
+---
+
+## 4. Vorteile von HTTPS
+
+* Schutz vor **Man-in-the-Middle-Angriffen (MITM)**.
+* Pflicht für viele moderne Browser-Features (z. B. **Service Worker, Geolocation, HTTP/2, PWA**).
+* Bessere **SEO**: Google bevorzugt HTTPS-Seiten.
+* Vertrauen der Nutzer durch **Schlosssymbol in der Adressleiste**.
+
+---
+
+## 5. Vergleichstabelle
+
+| Merkmal          | HTTP            | HTTPS                                   |
+| ---------------- | --------------- | --------------------------------------- |
+| Sicherheit       | unverschlüsselt | verschlüsselt mit TLS/SSL               |
+| Port             | 80              | 443                                     |
+| Abhörbar?        | Ja              | Nein (nur Metadaten sichtbar)           |
+| Integrität       | keine           | geschützt (Manipulation erkannt)        |
+| Authentizität    | keine           | durch SSL-Zertifikate                   |
+| Moderne Features | eingeschränkt   | erforderlich (PWA, Geolocation, HTTP/2) |
+
+---
+
+## Zusammenfassung
+
+* **HTTP** = unverschlüsseltes Protokoll, unsicher.
+* **HTTPS** = sicheres Protokoll mit TLS-Verschlüsselung → schützt Daten, sichert Authentizität, verbessert SEO und ist Standard im modernen Web.
+
+📖 Quelle:
+
+* [MDN – HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP)
+* [MDN – HTTPS](https://developer.mozilla.org/en-US/docs/Glossary/https)
+
+---
 
   **[⬆ Наверх](#top)**
 
-75. ### <a name="75"></a> 
+75. ### <a name="75"></a> Was ist Clickjacking?
 
+**Clickjacking** — kurz: ein Angreifer bettet Ihre Seite **unsichtbar in einen Frame** (z. B. `<iframe>`) auf einer bösartigen Seite ein und legt transparente oder überlappende Elemente darüber, sodass der Benutzer **unwissentlich** auf UI-Elemente Ihrer Seite klickt (z. B. Buttons, Zustimmungen, Transfers). Ziel: unerwünschte Aktionen im Kontext einer eingeloggten Session auslösen.
 
+### Wie es grob funktioniert
+
+* Opfer besucht Angreifer-Seite.
+* Angreifer lädt Ihre Seite innerhalb eines `<iframe>` und positioniert darüber Schaltflächen/Layer, so dass Klicks an das eingebettete UI weitergeleitet werden.
+* Browser sendet ggf. Cookies/Session-Header mit der Anfrage an Ihre Seite → Aktion wird im Namen des Benutzers ausgeführt.
+
+> Sicherheitsrelevanter Punkt: Clickjacking nutzt, dass Browser standardmäßig erlauben, Seiten in Frames anzuzeigen; Schutz muss der **Server** bereitstellen.
+
+### Schutzmaßnahmen (praktisch, priorisiert)
+
+1. **Content-Security-Policy — `frame-ancestors`** *(empfohlen)*
+
+   ```http
+   Content-Security-Policy: frame-ancestors 'self'
+   ```
+
+   Verhindert, dass Ihre Seite in Frames fremder Origins geladen wird. Unterstützt moderne Browser.
+
+2. **X-Frame-Options (Legacy, trotzdem nützlich)**
+
+   * `DENY` — niemals einbetten
+   * `SAMEORIGIN` — nur von derselben Origin erlauben
+
+   ```http
+   X-Frame-Options: DENY
+   ```
+
+   Hinweis: wird von CSP `frame-ancestors` ergänzt/replaziert, aber ist weit verbreitet.
+
+3. **UI-Härtung für kritische Aktionen**
+
+   * Zusätzliche Bestätigungen (Passwort, 2FA) für sensible Aktionen.
+   * Buttons nicht allein als Klick-Ziel für kritische Änderungen verwenden.
+
+4. **Framebusting (nicht zuverlässig allein)**
+
+   * JS in der Seite, die bei Einbettung umleitet, z. B.:
+
+   ```js
+   // funktioniert nur, wenn Seite nicht im Shadow/Sandbox stark geschützt ist
+   if (window.top !== window.self) {
+     window.top.location = window.location.href;
+   }
+   ```
+
+   → *Nicht* als einzige Schutzmaßnahme verwenden (umgehbar, Browser-Verhalten unterschiedlich).
+
+5. **Sandbox-Attribute beim Einbetten** (wenn Sie selbst iframes nutzen)
+
+   ```html
+   <iframe src="..." sandbox="allow-scripts"></iframe>
+   ```
+
+   Einschränkt, was eingebetteter Inhalt darf.
+
+### Beispiel: Express (ESM) — sichere Header setzen
+
+```js
+import express from "express";
+
+const app = express();
+
+// Einfacher CSP + X-Frame-Options
+app.use((req, res, next) => {
+  res.setHeader("Content-Security-Policy", "default-src 'self'; frame-ancestors 'self'");
+  res.setHeader("X-Frame-Options", "DENY");
+  next();
+});
+
+app.get("/", (req, res) => res.send("Sichere Seite"));
+app.listen(3000);
+```
+
+### Hinweise / Best Practices
+
+* **CSP `frame-ancestors`** ist die modernste Lösung — setze sie serverseitig.
+* Für externe Integrationen (z. B. trusted partners) kann `frame-ancestors` mehrere Origins erlauben: `frame-ancestors 'self' https://partner.example.com`.
+* Kombiniere technische Header mit **Applikationslogik** (zweite Bestätigung bei kritischen Aktionen).
+* Teste mit verschiedenen Browsern; nutze Tools wie OWASP-Tester oder Security Scanners.
+
+**Zusammenfassung**
+Clickjacking = Nutzer wird getäuscht, auf eingebettete UI einer fremden Seite zu klicken. Schutz: **serverseitig Headers** setzen (vorzugsweise `Content-Security-Policy: frame-ancestors 'self'`), `X-Frame-Options` als Ergänzung, UI-Härtung (Bestätigungen) und Sandbox-Prinzipien.
+
+📖 Quellen:
+
+* OWASP — Clickjacking Prevention: [https://owasp.org/www-community/attacks/Clickjacking](https://owasp.org/www-community/attacks/Clickjacking)
+* MDN — Content Security Policy / frame-ancestors: [https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Content-Security-Policy/frame-ancestors](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Content-Security-Policy/frame-ancestors)
 
   **[⬆ Наверх](#top)**
 
-76. ### <a name="76"></a> 
+76. ### <a name="76"></a> Was ist Same-Origin-Policy?
 
+**Same-Origin-Policy (SOP)** ist ein **Sicherheitskonzept in Webbrowsern**, das bestimmt, welche Seiten (oder Skripte) **miteinander interagieren dürfen**.
+Es schützt Benutzer, indem es **Zugriff auf Daten zwischen verschiedenen Ursprüngen (Origins)** einschränkt.
 
+---
+
+## 1. Definition von *Origin*
+
+Ein **Origin** besteht aus:
+
+* **Schema/Protokoll** (`http`, `https`)
+* **Host/Domain** (`example.com`)
+* **Port** (`:80`, `:443`, `:3000`)
+
+👉 Zwei Seiten haben **denselben Origin**, wenn alle drei Teile übereinstimmen.
+
+### Beispiel
+
+* `https://example.com:443/page1`
+
+* `https://example.com/page2`
+  ➡️ **gleiches Origin** (beide `https`, gleiche Domain, gleicher Port).
+
+* `http://example.com` (anderes Protokoll)
+
+* `https://sub.example.com` (andere Subdomain)
+  ➡️ **anderes Origin** → Zugriff blockiert.
+
+---
+
+## 2. Auswirkungen der Same-Origin-Policy
+
+* **DOM-Zugriff**: Skripte von `a.com` dürfen nicht direkt DOM von `b.com` manipulieren.
+* **Cookies, LocalStorage, IndexedDB**: nur von derselben Origin zugreifbar.
+* **AJAX/Fetch Requests**: nur erlaubt, wenn die Antwort des Servers CORS-Header enthält.
+
+---
+
+## 3. Beispielproblem ohne SOP
+
+Ohne SOP könnte eine bösartige Seite (`evil.com`) ein `<script>` laden, das:
+
+* Cookies von `bank.com` ausliest.
+* API-Requests an `bank.com` im Namen des Users ausführt.
+
+➡️ **SOP verhindert genau das.**
+
+---
+
+## 4. Ausnahmen und Erweiterungen
+
+* **CORS (Cross-Origin Resource Sharing)**: erlaubt kontrollierten Zugriff über spezielle HTTP-Header.
+* **PostMessage API**: erlaubt sicheren Datenaustausch zwischen Fenstern/Frames unterschiedlicher Origins.
+* **JSONP (veraltet)**: früherer Trick, Cross-Origin-Daten zu laden.
+
+---
+
+## 5. Zusammenfassung
+
+* **Same-Origin-Policy** = Sicherheitsregel: Seiten dürfen nur auf Ressourcen aus **gleichem Origin** zugreifen.
+* Schützt **DOM, Cookies, Storage, AJAX-Requests**.
+* Cross-Origin-Zugriff nur mit Mechanismen wie **CORS oder postMessage** möglich.
+
+📖 Quelle:
+
+* [MDN – Same-Origin Policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy)
+* [OWASP – Same Origin Policy](https://owasp.org/www-community/Same_Origin_Policy)
+
+---
 
   **[⬆ Наверх](#top)**
 
-77. ### <a name="77"></a> 
+77. ### <a name="77"></a> Was ist Git und wie wird es im Team verwendet?
 
+**Git** ist ein **verteiltes Versionskontrollsystem (VCS)**, mit dem Entwickler Quellcode **verwalten, versionieren und gemeinsam bearbeiten** können. Es ist Standard in der modernen Softwareentwicklung.
 
+---
+
+## 1. Grundprinzipien von Git
+
+* **Snapshots statt Diffs**: Git speichert den Stand der Dateien als Snapshots.
+* **Lokal + verteilt**: Jeder Entwickler hat das gesamte Repository lokal.
+* **Commits**: Änderungen werden mit einer Nachricht versioniert.
+* **Branches**: parallele Entwicklungslinien (z. B. `feature/login`, `bugfix/header`).
+* **Merges**: Änderungen aus Branches werden zusammengeführt.
+
+---
+
+## 2. Typischer Workflow im Team
+
+1. **Clonen des Repos**
+
+   ```bash
+   git clone https://github.com/org/project.git
+   ```
+
+2. **Neuen Branch für eine Aufgabe anlegen**
+
+   ```bash
+   git checkout -b feature/login
+   ```
+
+3. **Änderungen machen und committen**
+
+   ```bash
+   git add .
+   git commit -m "Add login form component"
+   ```
+
+4. **Branch zum Remote pushen**
+
+   ```bash
+   git push origin feature/login
+   ```
+
+5. **Pull Request (PR) erstellen**
+
+   * Code-Review durch Teammitglieder.
+   * Feedback → Anpassungen.
+   * Nach Freigabe: Merge in `main` oder `develop`.
+
+6. **Pull (aktualisieren)**
+
+   ```bash
+   git pull origin main
+   ```
+
+   → Änderungen vom Team ins eigene Repo holen.
+
+---
+
+## 3. Zusammenarbeit im Team
+
+* **Code Reviews** → Qualitätssicherung, Wissenstransfer.
+* **Branching-Strategien**:
+
+  * *Feature Branches* (für neue Features).
+  * *Gitflow* (mit `develop`, `release`, `hotfix`).
+  * *Trunk-based Development* (direkt auf `main` mit kurzen Branches).
+* **CI/CD**: Automatisierte Tests und Deployments nach jedem Merge.
+
+---
+
+## 4. Vorteile von Git im Team
+
+✅ Nachvollziehbare Historie von Änderungen.
+✅ Paralleles Arbeiten ohne Konflikte.
+✅ Schnelles Zurückrollen bei Fehlern.
+✅ Plattformen wie **GitHub, GitLab, Bitbucket** bieten PRs, Issues, Code Reviews.
+
+---
+
+## Zusammenfassung
+
+* **Git** = verteiltes Versionskontrollsystem für Quellcode.
+* Im Team: Arbeiten über Branches, Commits, Pull Requests.
+* Unterstützt **Code Reviews, CI/CD und kollaborative Entwicklung**.
+
+📖 Quelle:
+
+* [MDN – Git und GitHub](https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/GitHub)
+* [Atlassian Git Tutorial](https://www.atlassian.com/git/tutorials/what-is-git)
+
+---
 
   **[⬆ Наверх](#top)**
 
-78. ### <a name="78"></a> 
+78. ### <a name="78"></a> Unterschied zwischen Git Pull, Git Fetch und Git Merge.
 
+**Unterschied zwischen `git pull`, `git fetch` und `git merge`:**
 
+---
+
+## 1. **`git fetch`**
+
+* Holt **neue Commits vom Remote-Repository**, aber **ändert nichts am Arbeitsverzeichnis**.
+* Die Daten liegen dann lokal unter `origin/<branch>`.
+* Sicher, weil keine automatische Änderung am aktuellen Branch.
+
+```bash
+git fetch origin
+```
+
+➡️ Jetzt kennt dein Repo die neuesten Änderungen, aber dein aktueller Branch bleibt gleich.
+
+---
+
+## 2. **`git merge`**
+
+* Führt die Commits von einem Branch in den **aktuellen Branch** zusammen.
+* Kann **Fast-Forward** (linear) oder **Merge-Commit** (neuer Commit) erzeugen.
+
+```bash
+git merge origin/main
+```
+
+➡️ Führt die Änderungen von `origin/main` in den aktuellen Branch ein.
+
+---
+
+## 3. **`git pull`**
+
+* Kombination aus **`git fetch` + `git merge`**.
+* Holt Änderungen vom Remote und führt sie direkt in den aktuellen Branch ein.
+
+```bash
+git pull origin main
+```
+
+➡️ Aktueller Branch wird sofort mit `origin/main` synchronisiert.
+
+---
+
+## 4. Vergleichstabelle
+
+| Befehl          | Funktion                                                              | Wann nutzen?                                                  |
+| --------------- | --------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **`git fetch`** | Holt Änderungen vom Remote, ändert aber nichts im Arbeitsverzeichnis. | Wenn man erst prüfen möchte, **bevor** man merged.            |
+| **`git merge`** | Führt Änderungen von einem Branch in den aktuellen ein.               | Um bewusst Änderungen einzupflegen (lokal oder nach `fetch`). |
+| **`git pull`**  | Holt Änderungen **und merged** sofort.                                | Für schnelles Updaten (aber weniger Kontrolle).               |
+
+---
+
+## 5. Beispiel-Workflow
+
+```bash
+# Änderungen holen, aber nicht direkt anwenden
+git fetch origin
+
+# Unterschiede ansehen
+git log HEAD..origin/main --oneline
+
+# Manuell mergen
+git merge origin/main
+```
+
+---
+
+## Zusammenfassung
+
+* **`git fetch`**: nur herunterladen (keine Änderung im Arbeitsbranch).
+* **`git merge`**: Branches lokal zusammenführen.
+* **`git pull`**: fetch + merge in einem Schritt → schneller, aber weniger Kontrolle.
+
+📖 Quelle:
+
+* [Atlassian – Fetch vs Pull](https://www.atlassian.com/git/tutorials/syncing/git-fetch)
+* [Git Docs – git merge](https://git-scm.com/docs/git-merge)
+
+---
 
   **[⬆ Наверх](#top)**
 
-79. ### <a name="79"></a> 
+79. ### <a name="79"></a> Was ist Continuous Integration / Continuous Deployment (CI/CD)?
 
+**CI/CD (Continuous Integration / Continuous Deployment bzw. Delivery)** sind **Praktiken der modernen Softwareentwicklung**, die auf **Automatisierung** setzen, um Code schneller, sicherer und konsistenter bereitzustellen.
 
+---
+
+## 1. **Continuous Integration (CI)**
+
+* Entwickler arbeiten in **Feature-Branches**.
+* Änderungen werden regelmäßig in das zentrale Repository integriert.
+* Jeder Commit löst **automatisierte Prozesse** aus:
+
+  * **Build** (Kompilieren, Bundlen)
+  * **Automatisierte Tests** (Unit-, Integration-Tests)
+  * **Code-Style/Linting**
+
+👉 Ziel: **Fehler früh erkennen** und Integration vereinfachen.
+
+### Beispiel (GitHub Actions CI-Workflow)
+
+```yaml
+name: CI
+on: [push, pull_request]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm test
+```
+
+---
+
+## 2. **Continuous Delivery (CD)**
+
+* Erweiterung von CI:
+* Nach erfolgreichem Build/Test kann die Software **automatisiert für Staging/Pre-Prod** bereitgestellt werden.
+* Deployment ins Produktivsystem erfolgt **manuell freigegeben**.
+
+---
+
+## 3. **Continuous Deployment (CD)**
+
+* Noch ein Schritt weiter:
+* Nach CI → **automatisches Deployment direkt in Produktion**.
+* Jede Änderung, die alle Tests besteht, wird **ohne manuelles Eingreifen** veröffentlicht.
+
+---
+
+## 4. Vergleich
+
+| Begriff             | Ziel                                     | Manuelles Eingreifen  |
+| ------------------- | ---------------------------------------- | --------------------- |
+| **CI**              | Code regelmäßig integrieren + testen     | nein                  |
+| **CD (Delivery)**   | Release-Pipeline bis Staging vorbereiten | ja (für Prod-Release) |
+| **CD (Deployment)** | Vollautomatisches Deployment             | nein                  |
+
+---
+
+## 5. Vorteile von CI/CD
+
+✅ Schnelleres Feedback → Fehler früh erkennen.
+✅ Höhere Qualität durch automatisierte Tests.
+✅ Weniger Merge-Konflikte.
+✅ Kurze Release-Zyklen → schneller zum Kunden.
+✅ Weniger Risiko, da kleine Änderungen leichter rücksetzbar.
+
+---
+
+## Zusammenfassung
+
+* **CI**: kontinuierliche Integration → automatisiertes Bauen/Testen bei jedem Commit.
+* **CD (Delivery)**: kontinuierliche Auslieferung bis Staging → Produktion nach Freigabe.
+* **CD (Deployment)**: kontinuierliches Deployment → sofort in Produktion.
+  👉 CI/CD = automatisierte Pipeline für Qualität & schnelle Releases.
+
+📖 Quelle:
+
+* [Atlassian – CI/CD Erklärung](https://www.atlassian.com/continuous-delivery/ci-vs-ci-vs-cd)
+* [GitLab Docs – CI/CD](https://docs.gitlab.com/ee/ci/)
+
+---
 
   **[⬆ Наверх](#top)**
 
-80. ### <a name="80"></a> 
+80. ### <a name="80"></a> Welche Build-Tools kennen Sie? (Webpack, Vite, Parcel).
 
+**Build-Tools** sind Werkzeuge, die den Quellcode (JS, CSS, Assets) für den Einsatz im Browser **optimieren, bündeln und transformieren**.
+Die bekanntesten: **Webpack, Vite, Parcel**.
 
+---
+
+## 1. **Webpack**
+
+* **Modul-Bundler** (Standard lange Zeit).
+* Bündelt JS, CSS, Bilder, Fonts → ein oder mehrere Bundles.
+* Unterstützt **Loaders** (z. B. Babel, CSS, Images) und **Plugins** (Optimierung, Tree Shaking).
+* Stark konfigurierbar, aber komplex.
+
+### Beispiel (Minimal-Konfig)
+
+```js
+// webpack.config.js
+export default {
+  entry: "./src/index.js",
+  output: { filename: "bundle.js", path: "./dist" },
+  module: {
+    rules: [
+      { test: /\.css$/, use: ["style-loader", "css-loader"] }
+    ]
+  }
+};
+```
+
+✅ Vorteile: mächtig, flexibel.
+❌ Nachteile: komplexe Konfiguration, langsamere Builds.
+
+---
+
+## 2. **Vite**
+
+* Moderner **Next-Gen-Bundler** (entwickelt von Evan You, Vue.js).
+* Nutzt **ESM (ES Modules)** im Browser für Development.
+* Extrem schneller **Dev-Server** → lädt nur genutzte Module.
+* Für Production: Rollup als Bundler im Hintergrund.
+
+### Beispiel (React + Vite Setup)
+
+```bash
+npm create vite@latest my-app -- --template react
+```
+
+✅ Vorteile: superschnell, moderne DX (Developer Experience).
+❌ Nachteile: kleineres Plugin-Ökosystem im Vergleich zu Webpack.
+
+---
+
+## 3. **Parcel**
+
+* Zero-Config Bundler.
+* Erkennt automatisch welche Loader/Plugins benötigt werden.
+* Out-of-the-box: Hot Module Replacement, Tree Shaking, Code Splitting.
+
+### Beispiel (ohne Config)
+
+```bash
+npx parcel index.html
+```
+
+✅ Vorteile: extrem einfacher Einstieg.
+❌ Nachteile: weniger flexibel als Webpack, kleinere Community.
+
+---
+
+## 4. Vergleichstabelle
+
+| Tool        | Hauptfokus                    | Vorteile                            | Nachteile              |
+| ----------- | ----------------------------- | ----------------------------------- | ---------------------- |
+| **Webpack** | Flexibilität, volle Kontrolle | riesiges Ökosystem, mächtig         | komplex, langsamer     |
+| **Vite**    | Geschwindigkeit, ESM, DX      | ultraschneller Dev-Server, modern   | kleinere Community     |
+| **Parcel**  | Zero-Config, Einfachheit      | sofort startklar, wenig Setup nötig | weniger konfigurierbar |
+
+---
+
+## Zusammenfassung
+
+* **Webpack** = Klassiker, mächtig, aber komplex.
+* **Vite** = modern, schnell, ESM-basiert, für neue Projekte sehr beliebt.
+* **Parcel** = Zero-Config, ideal für kleine bis mittlere Projekte.
+
+📖 Quelle:
+
+* [Webpack Doku](https://webpack.js.org/)
+* [Vite Doku](https://vitejs.dev/)
+* [Parcel Doku](https://parceljs.org/)
+
+---
 
   **[⬆ Наверх](#top)**  
 
-81. ### <a name="81"></a> 
+81. ### <a name="81"></a> Unterschied zwischen NPM und Yarn.
 
+**Unterschied zwischen NPM und Yarn:**
 
+Beide sind **Package Manager** für JavaScript/Node.js, verwalten Abhängigkeiten (`dependencies`) und Skripte in Projekten.
+
+---
+
+## 1. **NPM (Node Package Manager)**
+
+* Standardmäßig bei **Node.js** installiert.
+* Verwendet `package.json` und `package-lock.json`.
+* Große Community, offizielles Registry: **npmjs.com**.
+* Standardbefehle:
+
+  ```bash
+  npm install express        # installiert Paket
+  npm install --save-dev jest
+  npm run build              # Skript ausführen
+  ```
+
+---
+
+## 2. **Yarn (Yet Another Resource Negotiator)**
+
+* Entwickelt von Facebook (2016) als **schnellere und stabilere Alternative zu npm (v3-v4)**.
+* Eigene Lock-Datei: `yarn.lock`.
+* Bietet **deterministisches Dependency-Management** (immer gleiche Versionen).
+* Schneller durch **Parallelisierung**.
+* Moderne Features wie **Workspaces** (Monorepos).
+
+Beispiele:
+
+```bash
+yarn add express          # Paket installieren
+yarn add --dev jest       # Dev-Dependency
+yarn build                # Skript ausführen
+```
+
+---
+
+## 3. Unterschiede im Detail
+
+| Merkmal               | NPM                          | Yarn                             |
+| --------------------- | ---------------------------- | -------------------------------- |
+| Herkunft              | Standard von Node.js         | Facebook (2016), Alternative     |
+| Lock-Datei            | `package-lock.json`          | `yarn.lock`                      |
+| Geschwindigkeit       | langsamer (ältere Versionen) | schneller durch Parallelisierung |
+| Determinismus         | verbessert ab NPM v5         | von Anfang an stabil             |
+| Workspaces (Monorepo) | ab NPM v7                    | von Anfang an unterstützt        |
+| Befehle               | `npm install`, `npm run`     | `yarn add`, `yarn <script>`      |
+
+---
+
+## 4. Heute (2025)
+
+* **NPM** hat viele Schwächen aufgeholt → stabil & Standard.
+* **Yarn** bietet bei großen Projekten Vorteile (Workspaces, Plug’n’Play Installation).
+* In Monorepos setzen viele Firmen auf **Yarn Workspaces** oder **pnpm** (noch moderner).
+
+---
+
+## Zusammenfassung
+
+* **NPM**: Standard, bei Node.js dabei, großes Ökosystem.
+* **Yarn**: Alternative, schneller & mit Features für große Projekte (Workspaces).
+  👉 Heute sind beide fast gleichwertig – Wahl hängt vom **Team-Setup & Workflow** ab.
+
+📖 Quelle:
+
+* [NPM Docs](https://docs.npmjs.com/)
+* [Yarn Docs](https://yarnpkg.com/)
+
+---
 
   **[⬆ Наверх](#top)**
 
-82. ### <a name="82"></a> 
+82. ### <a name="82"></a> Was ist ein Linter und wofür wird er genutzt? (ESLint, Stylelint).
 
+**Ein Linter** ist ein **Analyse-Tool**, das Quellcode automatisch überprüft, um **Fehler, Inkonsistenzen und Verstöße gegen Style-Guidelines** zu finden.
+Er hilft Teams, **einheitlichen, sauberen und fehlerfreien Code** zu schreiben.
 
+---
+
+## 1. Aufgaben eines Linters
+
+* **Syntax-Fehler erkennen** (z. B. fehlende Semikolons, unbenutzte Variablen).
+* **Code-Stil prüfen** (z. B. Einrückungen, Anführungszeichen `'` vs. `"`).
+* **Best Practices durchsetzen** (z. B. kein `console.log` in Production-Code).
+* **Fehlerprävention** (z. B. Vergleich `==` vs. `===`).
+
+---
+
+## 2. Bekannte Linter
+
+### **ESLint** (JavaScript/TypeScript)
+
+* Prüft JavaScript/TypeScript-Code.
+* Lässt sich mit Plugins erweitern (z. B. React, Next.js).
+* Beispiel-Konfiguration:
+
+  ```json
+  {
+    "extends": ["eslint:recommended", "plugin:react/recommended"],
+    "rules": {
+      "quotes": ["error", "double"],
+      "semi": ["error", "always"]
+    }
+  }
+  ```
+
+### **Stylelint** (CSS, SCSS, TailwindCSS)
+
+* Prüft Stylesheets auf Fehler & Konventionen.
+* Erkennt z. B. ungültige Properties oder doppelte Definitionen.
+* Beispiel:
+
+  ```json
+  {
+    "extends": "stylelint-config-standard",
+    "rules": {
+      "color-hex-length": "short",
+      "block-no-empty": true
+    }
+  }
+  ```
+
+---
+
+## 3. Vorteile im Team
+
+✅ Einheitlicher Code-Stil (weniger Diskussionen im Review).
+✅ Weniger Bugs durch automatische Checks.
+✅ Bessere Lesbarkeit & Wartbarkeit.
+✅ Automatisierbar in **CI/CD-Pipelines** (Build schlägt fehl bei Fehlern).
+
+---
+
+## 4. Kombination mit Formatter
+
+* **Linter** = erkennt & warnt (Fehler, Stilprobleme).
+* **Formatter (z. B. Prettier)** = korrigiert automatisch Formatierungsprobleme.
+  ➡️ Best Practice: **ESLint + Prettier** für JS, **Stylelint + Prettier** für CSS.
+
+---
+
+## Zusammenfassung
+
+* **Linter** = Tool zur Analyse & Qualitätssicherung von Code.
+* **ESLint**: für JavaScript/TypeScript.
+* **Stylelint**: für CSS/SCSS.
+* Vorteil: einheitlicher, fehlerfreier, wartbarer Code.
+
+📖 Quelle:
+
+* [ESLint – Offizielle Seite](https://eslint.org/)
+* [Stylelint – Offizielle Seite](https://stylelint.io/)
+
+---
 
   **[⬆ Наверх](#top)**
 
-83. ### <a name="83"></a> 
+83. ### <a name="83"></a> Was ist Tree Shaking und warum ist es wichtig?
 
+**Tree Shaking** ist ein **Optimierungsverfahren** in JavaScript-Build-Tools (z. B. Webpack, Rollup, Vite), das **ungenutzten Code automatisch entfernt** („schüttelt den toten Code vom Baum“).
+Ziel: kleinere **Bundle-Größe** → schnellere Ladezeiten → bessere Performance.
 
+---
+
+## 1. Wie funktioniert Tree Shaking?
+
+* Nutzt **ES Modules (ESM, `import/export`)**, weil diese **statisch analysierbar** sind.
+* Der Bundler erkennt, welche Funktionen/Klassen/Variablen **nie importiert oder verwendet** werden.
+* Nicht genutzte Teile werden **beim Build entfernt**.
+
+### Beispiel ohne Tree Shaking
+
+```js
+// utils.js
+export function used() { console.log("benutzt"); }
+export function unused() { console.log("nie benutzt"); }
+
+// index.js
+import { used } from "./utils.js";
+used();
+```
+
+➡️ **Tree Shaking entfernt `unused()`**, da nie importiert.
+
+---
+
+## 2. Voraussetzungen
+
+* **ESM (`import/export`)** statt CommonJS (`require/module.exports`).
+* Build-Tool muss Tree Shaking unterstützen (z. B. Webpack mit `mode: "production"`).
+* Keine **dynamischen Exports** (z. B. `export *` oder `eval`).
+
+---
+
+## 3. Vorteile
+
+✅ Reduzierte **Bundle-Größe**.
+✅ Schnellere Ladezeiten → bessere UX & SEO (Core Web Vitals).
+✅ Weniger unnötiger Code im Client.
+
+---
+
+## 4. Einschränkungen
+
+❌ Funktioniert nicht bei dynamischen Importen/Exports, die nicht analysierbar sind.
+❌ Bei CommonJS-Modulen nur eingeschränkt.
+
+---
+
+## 5. Beispiel (Webpack config)
+
+```js
+// webpack.config.js
+export default {
+  mode: "production", // aktiviert u. a. Tree Shaking
+  optimization: {
+    usedExports: true
+  }
+};
+```
+
+---
+
+## Zusammenfassung
+
+* **Tree Shaking** = Entfernen ungenutzten Codes beim Bundling.
+* Wichtig, um **Bundle kleiner, schneller und effizienter** zu machen.
+* Funktioniert nur mit **ES Modules** + unterstützendem Build-Tool.
+
+📖 Quelle:
+
+* [MDN – Tree Shaking](https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking)
+* [Webpack Docs – Tree Shaking](https://webpack.js.org/guides/tree-shaking/)
+
+---
 
   **[⬆ Наверх](#top)**
 
-84. ### <a name="84"></a> 
+84. ### <a name="84"></a> Unterschied zwischen Development- und Production-Build.
 
+**Unterschied zwischen Development- und Production-Build** in Frontend-Projekten (z. B. React, Vue, Angular, Next.js, Webpack, Vite):
 
+---
+
+## 1. **Development-Build**
+
+* Ziel: **schnelles Entwickeln & Debuggen**.
+* Eigenschaften:
+
+  * **Unminifizierter Code** → besser lesbar.
+  * **Source Maps** → einfache Fehlersuche.
+  * **Hot Module Replacement (HMR)** → sofortige Code-Updates ohne Reload.
+  * **Viel Logging & Warnungen** → DevTools zeigen detaillierte Fehler.
+  * **Keine oder wenig Optimierung** → schneller Build, aber größeres Bundle.
+
+### Beispiel (React Development Build)
+
+* Enthält zusätzliche Warnungen (z. B. bei `propTypes`, `useEffect`).
+* Performance **nicht optimiert**.
+
+---
+
+## 2. **Production-Build**
+
+* Ziel: **optimierte, performante Version für Endnutzer**.
+* Eigenschaften:
+
+  * **Minifizierung** von JS/CSS/HTML → kleinere Dateien.
+  * **Tree Shaking** → ungenutzter Code entfernt.
+  * **Code Splitting** → dynamische Chunks, nur benötigter Code geladen.
+  * **Optimierte Assets** → Bilder komprimiert, Fonts optimiert.
+  * **Source Maps oft deaktiviert oder getrennt ausgeliefert** (Sicherheits-/Performancegründe).
+  * **Strenge Fehlerbehandlung** → weniger Debug-Infos sichtbar.
+
+### Beispiel (React Production Build)
+
+* Entfernt Dev-Warnungen, liefert nur effizienten Code.
+* Performance für Nutzer **maximiert**.
+
+---
+
+## 3. Vergleichstabelle
+
+| Merkmal     | Development-Build                | Production-Build                 |
+| ----------- | -------------------------------- | -------------------------------- |
+| Performance | langsam, groß                    | schnell, optimiert               |
+| Dateigröße  | groß (unminifiziert)             | klein (minifiziert, komprimiert) |
+| Debugging   | einfach (Source Maps, Warnungen) | eingeschränkt                    |
+| Features    | HMR, Dev-Tools, Logs             | Tree Shaking, Code Splitting     |
+| Zielgruppe  | Entwickler                       | Endnutzer                        |
+
+---
+
+## 4. Beispiel (Webpack Config)
+
+```js
+// package.json Scripts
+"scripts": {
+  "start": "webpack serve --mode development",
+  "build": "webpack --mode production"
+}
+```
+
+* `--mode development` → schneller, mit Debugging.
+* `--mode production` → minifiziert, optimiert.
+
+---
+
+## Zusammenfassung
+
+* **Development-Build** = Debugging & schnelle Entwicklung (größer, langsamer, mit Warnungen).
+* **Production-Build** = optimiert für Nutzer (minifiziert, kleiner, schneller, ohne unnötige Logs).
+
+📖 Quelle:
+
+* [Webpack – Mode](https://webpack.js.org/configuration/mode/)
+* [Vite – Build Command](https://vitejs.dev/guide/build.html)
+
+---
 
   **[⬆ Наверх](#top)**
 
-85. ### <a name="85"></a> 
+85. ### <a name="85"></a> Was ist Code Splitting und Lazy Loading?
 
+**Code Splitting und Lazy Loading** sind **Performance-Optimierungstechniken** in modernen Frontend-Anwendungen, um **Bundle-Größe zu reduzieren** und **Ladezeiten zu verbessern**.
 
+---
+
+## 1. **Code Splitting**
+
+* Zerlegt den gesamten Code in **mehrere kleinere Bundles (Chunks)**.
+* Statt ein großes `bundle.js` → mehrere kleinere Dateien, die nur bei Bedarf geladen werden.
+* Unterstützt durch **Webpack, Rollup, Vite, Next.js**.
+
+### Beispiel (React – dynamischer Import)
+
+```js
+// src/App.js
+import React, { Suspense } from "react";
+
+// Komponente wird nur geladen, wenn gebraucht
+const Profile = React.lazy(() => import("./Profile"));
+
+function App() {
+  return (
+    <div>
+      <h1>Willkommen</h1>
+      <Suspense fallback={<p>Lädt...</p>}>
+        <Profile /> {/* Nur bei Aufruf geladen */}
+      </Suspense>
+    </div>
+  );
+}
+
+export default App;
+```
+
+➡️ `Profile` kommt in ein **eigenes Bundle**, nicht in `main.js`.
+
+---
+
+## 2. **Lazy Loading**
+
+* Ressourcen (Komponenten, Bilder, Daten) werden **erst geladen, wenn sie tatsächlich gebraucht werden**.
+* Spart **Initial Load** und Bandbreite.
+
+### Beispiele
+
+#### a) Lazy Loading von Bildern
+
+```html
+<img src="bild.jpg" alt="Beispiel" loading="lazy">
+```
+
+#### b) Lazy Loading von Routen (React Router)
+
+```js
+import { lazy } from "react";
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+```
+
+➡️ Route `/dashboard` lädt den Code erst, wenn der Nutzer sie öffnet.
+
+---
+
+## 3. Unterschiede & Zusammenspiel
+
+| Technik            | Zweck                             | Beispiel                                     |
+| ------------------ | --------------------------------- | -------------------------------------------- |
+| **Code Splitting** | Code aufteilen → kleinere Bundles | React.lazy, Webpack dynamic import           |
+| **Lazy Loading**   | Laden nur bei Bedarf              | Images `loading="lazy"`, Komponenten, Routen |
+
+👉 In der Praxis: **Code Splitting erzeugt Chunks** → **Lazy Loading lädt sie dynamisch**.
+
+---
+
+## 4. Vorteile
+
+✅ **Kleinere Initial-Bundle-Größe** → schnellere Startzeit.
+✅ **Schnellere Performance** auf mobilen Geräten.
+✅ **Weniger Bandbreitenverbrauch**.
+
+## 5. Nachteile
+
+❌ Mehr Netzwerk-Requests (statt einer Datei).
+❌ Bei langsamer Verbindung → spürbare Ladeverzögerung, wenn Chunk gebraucht wird.
+
+---
+
+## Zusammenfassung
+
+* **Code Splitting**: große Anwendung in **Chunks aufteilen**.
+* **Lazy Loading**: Chunks oder Ressourcen **nur bei Bedarf nachladen**.
+* Kombination sorgt für **schnelle Startzeiten + effiziente Ressourcennutzung**.
+
+📖 Quelle:
+
+* [MDN – Lazy Loading](https://developer.mozilla.org/en-US/docs/Web/Performance/Lazy_loading)
+* [Webpack – Code Splitting](https://webpack.js.org/guides/code-splitting/)
+
+---
 
   **[⬆ Наверх](#top)**
 
-86. ### <a name="86"></a> 
+86. ### <a name="86"></a> Welche Test-Tools kennen Sie? (Jest, React Testing Library, Cypress, Playwright).
 
+**Test-Tools im Frontend** decken unterschiedliche Ebenen des Testings ab: **Unit, Integration, End-to-End (E2E)**.
 
+---
+
+## 1. **Jest** – Unit & Integration Testing
+
+* Sehr verbreitetes **JavaScript-Testing-Framework**.
+* Nutzt **Mocks, Assertions, Snapshots**.
+* Läuft in Node.js, schnell durch paralleles Testen.
+* Standard bei React/Next.js-Projekten.
+
+### Beispiel
+
+```js
+// sum.js
+export const sum = (a, b) => a + b;
+
+// sum.test.js
+import { sum } from "./sum";
+
+test("adds 1 + 2 to equal 3", () => {
+  expect(sum(1, 2)).toBe(3);
+});
+```
+
+---
+
+## 2. **React Testing Library (RTL)** – Integration Testing
+
+* Baut auf Jest auf, speziell für **React-Komponenten**.
+* Fokus: **Testing aus Nutzersicht** („wie der User klickt“ statt Implementation).
+* Nutzt Queries wie `getByText`, `getByRole`.
+
+### Beispiel
+
+```js
+import { render, screen, fireEvent } from "@testing-library/react";
+import Button from "./Button";
+
+test("renders and clicks button", () => {
+  render(<Button>Click Me</Button>);
+  fireEvent.click(screen.getByText(/Click Me/i));
+  expect(screen.getByText(/Click Me/i)).toBeInTheDocument();
+});
+```
+
+---
+
+## 3. **Cypress** – End-to-End (E2E) Testing
+
+* Testet die Anwendung im **realen Browser**.
+* Simuliert echtes Nutzerverhalten (Klicken, Tippen, Navigation).
+* Inklusive Screenshot- und Video-Feature.
+
+### Beispiel
+
+```js
+describe("Login Page", () => {
+  it("should login with valid credentials", () => {
+    cy.visit("/login");
+    cy.get("input[name=email]").type("test@example.com");
+    cy.get("input[name=password]").type("123456");
+    cy.get("button[type=submit]").click();
+    cy.url().should("include", "/dashboard");
+  });
+});
+```
+
+---
+
+## 4. **Playwright** – End-to-End (E2E) Testing
+
+* Ähnlich wie Cypress, aber **Multi-Browser-Support** (Chromium, Firefox, WebKit).
+* Sehr stark in **Cross-Browser-Tests & Parallelisierung**.
+* Headless-Mode möglich (CI/CD-Pipelines).
+
+### Beispiel
+
+```js
+import { test, expect } from "@playwright/test";
+
+test("has title", async ({ page }) => {
+  await page.goto("https://example.com");
+  await expect(page).toHaveTitle(/Example/);
+});
+```
+
+---
+
+## 5. Vergleichstabelle
+
+| Tool                      | Art              | Stärken                                 |
+| ------------------------- | ---------------- | --------------------------------------- |
+| **Jest**                  | Unit/Integration | Schnell, Standard in React/JS-Projekten |
+| **React Testing Library** | Integration      | Nutzerzentriertes Testen von UI         |
+| **Cypress**               | E2E              | Einfacher Setup, visuelle Debugging     |
+| **Playwright**            | E2E              | Cross-Browser, schnelle Tests, CI/CD    |
+
+---
+
+## Zusammenfassung
+
+* **Jest** → Unit Tests & Snapshot Tests.
+* **React Testing Library** → Integration Tests für React (Nutzersicht).
+* **Cypress** → E2E-Tests mit Fokus auf Developer Experience.
+* **Playwright** → E2E-Tests mit starkem Cross-Browser-Support.
+
+📖 Quelle:
+
+* [Jest Docs](https://jestjs.io/)
+* [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+* [Cypress Docs](https://www.cypress.io/)
+* [Playwright Docs](https://playwright.dev/)
+
+---
 
   **[⬆ Наверх](#top)**
 
