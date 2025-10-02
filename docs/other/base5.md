@@ -16,7 +16,7 @@
 |7 | [Was sind required, pattern, min/max Attribute bei Formularen?](#7) |
 |8 | [Was sind HTML5-APIs (z. B. Geolocation, Drag & Drop, LocalStorage, Web Workers)?](#8) |
 |9 | [Was sind data-* Attribute und wie nutzt man sie?](#9) |
-|10 | [Was sind die Unterschiede zwischen <section>, <article>, <aside> und <div>?](#10) |
+|10 | [Was sind die Unterschiede zwischen section>, article>, aside> und div>?](#10) |
 |11 | [Wie implementiert man eine responsive Navigation in HTML?](#11) |
 |12 | [Was sind iframes und welche Vor- und Nachteile haben sie?](#12) |
 |13 | [Was bedeutet Barrierefreiheit (Accessibility, a11y) im HTML?](#13) |
