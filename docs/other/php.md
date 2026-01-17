@@ -235,104 +235,116 @@
   
 1. ### <a name="1"></a> Was ist PHP und wie funktioniert es?
 
-Was ist PHP und wie funktioniert es?
+## Was ist PHP und wie funktioniert es?
 
-Definition
+### Definition
 
-PHP (Hypertext Preprocessor) ist eine serverseitige Skriptsprache, die hauptsächlich zur Entwicklung von Webanwendungen verwendet wird. PHP-Code wird auf dem Server ausgeführt und erzeugt typischerweise HTML, JSON oder andere HTTP-Responses, die an den Client (Browser) gesendet werden.
+**PHP (Hypertext Preprocessor)** ist eine **serverseitige Skriptsprache**, die hauptsächlich zur Entwicklung von Webanwendungen verwendet wird. PHP-Code wird **auf dem Server ausgeführt** und erzeugt typischerweise **HTML, JSON oder andere HTTP-Responses**, die an den Client (Browser) gesendet werden.
 
 Quelle:
-	•	PHP Manual – Introduction: https://www.php.net/manual/de/intro-whatis.php
 
-⸻
+* PHP Manual – Introduction: [https://www.php.net/manual/de/intro-whatis.php](https://www.php.net/manual/de/intro-whatis.php)
 
-Grundprinzip (Client–Server)
-	1.	Der Client (Browser) sendet eine HTTP-Anfrage an den Webserver.
-	2.	Der Webserver (z. B. Nginx/Apache) leitet die Anfrage an PHP-FPM weiter.
-	3.	Der PHP-Interpreter führt den PHP-Code aus.
-	4.	PHP erzeugt eine Response (z. B. HTML oder JSON).
-	5.	Der Webserver sendet die Response an den Client zurück.
+---
 
-Der Client sieht nur das Ergebnis, niemals den PHP-Code.
+### Grundprinzip (Client–Server)
 
-⸻
+1. Der Client (Browser) sendet eine **HTTP-Anfrage** an den Webserver.
+2. Der Webserver (z. B. Nginx/Apache) leitet die Anfrage an **PHP-FPM** weiter.
+3. Der **PHP-Interpreter** führt den PHP-Code aus.
+4. PHP erzeugt eine **Response** (z. B. HTML oder JSON).
+5. Der Webserver sendet die Response an den Client zurück.
 
-Minimalbeispiel
+Der Client sieht **nur das Ergebnis**, niemals den PHP-Code.
 
+---
+
+### Minimalbeispiel
+
+```php
 <?php
 echo "Hello World";
+```
 
-	•	<?php öffnet den PHP-Kontext
-	•	echo gibt Daten an den Output-Buffer aus
-	•	Der Output wird Teil der HTTP-Response
+* `<?php` öffnet den PHP-Kontext
+* `echo` gibt Daten an den Output-Buffer aus
+* Der Output wird Teil der HTTP-Response
 
-⸻
+---
 
-PHP im Web-Kontext (vereinfachtes Beispiel)
+### PHP im Web-Kontext (vereinfachtes Beispiel)
 
+```php
 <?php
 $name = $_GET['name'] ?? 'Gast';
 echo "Hallo " . htmlspecialchars($name);
+```
 
-	•	Zugriff auf HTTP-Parameter über Superglobals ($_GET)
-	•	Ausgabe wird serverseitig erzeugt
-	•	htmlspecialchars() schützt vor XSS
+* Zugriff auf HTTP-Parameter über Superglobals (`$_GET`)
+* Ausgabe wird serverseitig erzeugt
+* `htmlspecialchars()` schützt vor XSS
 
-⸻
+---
 
-PHP-Ausführungsmodell
-	•	Request-basiert: Jeder HTTP-Request startet einen neuen PHP-Prozess
-	•	Kein Shared State zwischen Requests (außer Sessions, Cache, DB)
-	•	Sehr gut geeignet für stateless Webanwendungen
+### PHP-Ausführungsmodell
 
-⸻
+* **Request-basiert**: Jeder HTTP-Request startet einen neuen PHP-Prozess
+* Kein Shared State zwischen Requests (außer Sessions, Cache, DB)
+* Sehr gut geeignet für **stateless Webanwendungen**
 
-Typische Einsatzgebiete
-	•	Backend für Webanwendungen
-	•	REST APIs
-	•	Server-side Rendering (SSR)
-	•	CMS (z. B. WordPress)
-	•	Framework-basierte Anwendungen (Symfony, Laravel)
+---
 
-⸻
+### Typische Einsatzgebiete
 
-Abgrenzung zu JavaScript
+* Backend für Webanwendungen
+* REST APIs
+* Server-side Rendering (SSR)
+* CMS (z. B. WordPress)
+* Framework-basierte Anwendungen (Symfony, Laravel)
 
-PHP	JavaScript
-Serverseitig	Clientseitig (primär)
-Zugriff auf DB	Kein direkter DB-Zugriff
-Generiert HTML/JSON	Manipuliert DOM
-Läuft vor dem Response	Läuft nach dem Response
+---
 
+### Abgrenzung zu JavaScript
 
-⸻
+| PHP                    | JavaScript               |
+| ---------------------- | ------------------------ |
+| Serverseitig           | Clientseitig (primär)    |
+| Zugriff auf DB         | Kein direkter DB-Zugriff |
+| Generiert HTML/JSON    | Manipuliert DOM          |
+| Läuft vor dem Response | Läuft nach dem Response  |
 
-Zusammenfassung
-	•	PHP ist eine serverseitige Skriptsprache
-	•	Wird pro HTTP-Request ausgeführt
-	•	Erzeugt HTML/JSON für den Client
-	•	PHP-Code ist nicht im Browser sichtbar
-	•	Zentrale Rolle im klassischen Web-Backend
+---
 
-⸻
+### Zusammenfassung
 
-Typische Interview-Fallen
-	•	„PHP läuft im Browser“ ❌
-	•	„PHP ist stateful“ ❌
-	•	HTTP-Response ≠ PHP-Ausgabe verwechseln
-	•	PHP mit JavaScript vergleichen ohne Client/Server-Trennung
+* PHP ist eine **serverseitige Skriptsprache**
+* Wird **pro HTTP-Request** ausgeführt
+* Erzeugt HTML/JSON für den Client
+* PHP-Code ist **nicht im Browser sichtbar**
+* Zentrale Rolle im klassischen Web-Backend
 
-⸻
+---
 
-Mini-Check
-	•	Wo wird PHP-Code ausgeführt?
-	•	Sieht der Browser PHP-Code?
-	•	Warum ist PHP gut für REST APIs geeignet?
+### Typische Interview-Fallen
 
-⸻
+* „PHP läuft im Browser“ ❌
+* „PHP ist stateful“ ❌
+* HTTP-Response ≠ PHP-Ausgabe verwechseln
+* PHP mit JavaScript vergleichen ohne Client/Server-Trennung
 
-Weiterführende Doku:
-	•	https://www.php.net/manual/de/features.commandline.webserver.php
+---
+
+### Mini-Check
+
+* Wo wird PHP-Code ausgeführt?
+* Sieht der Browser PHP-Code?
+* Warum ist PHP gut für REST APIs geeignet?
+
+---
+
+**Weiterführende Doku:**
+
+* [https://www.php.net/manual/de/features.commandline.webserver.php](https://www.php.net/manual/de/features.commandline.webserver.php)
 
   **[⬆ Наверх](#top)**
 
